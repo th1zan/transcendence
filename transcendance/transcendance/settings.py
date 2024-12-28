@@ -53,6 +53,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'transcendance.urls'
 
+
+# Redirection after login
+LOGIN_REDIRECT_URL = '/accounts/profile/' 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
