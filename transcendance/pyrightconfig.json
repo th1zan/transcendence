@@ -1,0 +1,8 @@
+{
+  "typeCheckingMode": "basic",
+  "reportMissingImports": false,
+  "reportMissingTypeStubs": false,
+  "venvPath": "./.venv",
+  "venv": "env",
+  "extraPaths": ["./your_django_project"]
+}
