@@ -1,17 +1,13 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ScoreViewSet, UserCreate
+from django.urls import path
+from .views import PongResultList, PongResultDetail
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
-router = DefaultRouter()
-router.register(r'scores', ScoreViewSet)
+         TokenObtainPairView,
+         TokenRefreshView,
+     )
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('token/', TokenObtainPairView.as_view(), name='token_obten_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('signup/', UserCreate.as_view(), name='user_signup'),
+    path('api/results/', PongResultList.as_view(), name='pongresult-list'),
+    path('api/results/<int:pk>/', PongResultDetail.as_view(), name='pongresult-detail'),
+    path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

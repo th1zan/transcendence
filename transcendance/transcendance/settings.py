@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_filters', 
 ]
 
 MIDDLEWARE = [
@@ -141,4 +142,5 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTIFICATION_CLASSES': (
         'rest_framework_simplejwt.authentification.JWTAUthentification',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
