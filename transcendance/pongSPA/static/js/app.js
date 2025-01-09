@@ -28,17 +28,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function obtenirToken(username, password) {
-    fetch("/api/token/", {
+    fetch("/api/auth/login/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username, password }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Erreur de connexion: " + response.status);
+        }
+        return response.json();
+      })
       .then((data) => {
+        console.log(data); // Ajoutez ceci pour voir la réponse
         if (data.access) {
           localStorage.setItem("access_token", data.access);
+          localStorage.setItem("username", username); // Stocker le nom d'utilisateur
           afficherPageBienvenue(username);
         } else {
           alert("Erreur de connexion. Veuillez réessayer.");
@@ -115,19 +122,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function fetchResultats(username) {
     const token = localStorage.getItem("access_token");
+    if (!token) {
+      console.error("Token non trouvé. Veuillez vous reconnecter.");
+      return;
+    }
+
     fetch(`/api/results/?username=${username}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // Assurez-vous que le token est ajouté ici
       },
     })
       .then((response) => response.json())
       .then((data) => {
         const resultatsDiv = document.getElementById("resultats");
         resultatsDiv.innerHTML = "<h3>Vos résultats :</h3>";
-        data.results.forEach((result) => {
-          resultatsDiv.innerHTML += `<p>${result.date} - Score: ${result.score}</p>`;
-        });
+        if (data.results) {
+          data.results.forEach((result) => {
+            resultatsDiv.innerHTML += `<p>${result.date} - Score: ${result.score}</p>`;
+          });
+        } else {
+          resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
+        }
       })
       .catch((error) => {
         console.error("Erreur lors de la récupération des résultats:", error);

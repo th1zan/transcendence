@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class PongResult(models.Model):
     user1 = models.CharField(max_length=100, default="user1")
     user2 = models.CharField(max_length=100, default="user2")
