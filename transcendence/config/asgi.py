@@ -1,5 +1,5 @@
 """
-ASGI config for transcendance project.
+ASGI config for transcendence project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
