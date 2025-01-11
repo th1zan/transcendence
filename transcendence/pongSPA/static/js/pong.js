@@ -4,10 +4,13 @@ let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 let user1 = "user1";
 let user2 = "Bot_AI";
 let numberOfGames = 1;
-let pointsToWin = 3;
+let pointsToWin = 2;
 let currentGame = 0;
 let player1Wins = 0;
 let player2Wins = 0;
+
+// Variable pour stocker l'historique des sets
+let setHistory = [];
 
 // Démarrer le jeu Pong
 function startPongGame() {
@@ -32,17 +35,25 @@ function startPongGame() {
 }
 
 function startGameSetup() {
-  user1 = document.getElementById("user1").value;
-  user2 = document.getElementById("user2").value;
-  numberOfGames = parseInt(document.getElementById("numberOfGames").value);
-  pointsToWin = parseInt(document.getElementById("pointsToWin").value);
+  console.log("Username from localStorage:", localStorage.getItem("username"));
+  const storedUsername = localStorage.getItem("username");
+  if (storedUsername) {
+    user1 = storedUsername;
+  } else {
+    console.warn("Aucun nom d'utilisateur trouvé dans le localStorage.");
+    user1 = "user1"; // valeur par défaut si le nom d'utilisateur n'est pas stocké
+  }
 
+  user2 = document.getElementById("user2").value || "Bot_AI"; // Valeur par défaut si non renseigné
+  numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
+  pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 2;
   document.getElementById("gameForm").style.display = "none";
   document.getElementById("pong").style.display = "block";
 
   currentGame = 0; // Initialiser le compteur de parties
   player1Wins = 0;
   player2Wins = 0;
+  setHistory = []; // Réinitiali
 
   startPongGame();
 }
@@ -74,6 +85,7 @@ function update() {
     computer.score++;
     if (computer.score === pointsToWin) {
       player2Wins++;
+      saveSetResult(); // Sauvegarder le résultat du set
       handleGameEnd(user2);
     } else {
       resetBall();
@@ -82,11 +94,21 @@ function update() {
     player.score++;
     if (player.score === pointsToWin) {
       player1Wins++;
+      saveSetResult(); // Sauvegarder le résultat du set
       handleGameEnd(user1);
     } else {
       resetBall();
     }
   }
+}
+
+function saveSetResult() {
+  // Enregistrer le résultat actuel du set
+  setHistory.push({
+    set_number: currentGame + 1,
+    user1_score: player.score,
+    user2_score: computer.score,
+  });
 }
 
 function handleGameEnd(winner) {
@@ -98,26 +120,37 @@ function handleGameEnd(winner) {
     resetScores();
     startPongGame(); // Démarrer la prochaine partie
   } else {
+    sendScore(); // Envoyer les scores au serveur
     displayResults(winner);
   }
 }
 
 function displayResults(finalWinner) {
-  const username = localStorage.getItem("username"); // Assurez-vous que le nom d'utilisateur est stocké dans le stockage local
+  const username = localStorage.getItem("username");
 
   document.getElementById("pong").style.display = "none";
   document.getElementById("result").style.display = "block";
 
-  const summary = `
+  let summary = `
     ${user1}: ${player1Wins} wins<br>
     ${user2}: ${player2Wins} wins<br>
     Winner: ${finalWinner}<br>
     Number of Games: ${numberOfGames}<br>
     Points to Win: ${pointsToWin}<br>
-    <button onclick="displayWelcomePage('${username}')">Retour</button>
+    <button id="backButton">Retour</button>
+    <h3>Set History:</h3>
   `;
 
+  setHistory.forEach((set, index) => {
+    summary += `Set ${index + 1}: ${user1} ${set.user1_score} - ${user2} ${set.user2_score}<br>`;
+  });
+
   document.getElementById("summary").innerHTML = summary;
+
+  // Attacher un écouteur d'événement au bouton après l'insertion dans le DOM
+  document.getElementById("backButton").addEventListener("click", () => {
+    displayWelcomePage(username);
+  });
 }
 
 // Dimensions et objets du jeu
@@ -231,15 +264,37 @@ function resetBall() {
 function sendScore() {
   const token = localStorage.getItem("access_token");
 
+  if (!token) {
+    console.error("Token non trouvé. Veuillez vous reconnecter.");
+    return;
+  }
+
+  // Vérifiez le contenu de setHistory avant l'envoi
+  console.log("setHistory avant l'envoi:", setHistory);
+
   fetch("/api/scores/", {
     method: "POST",
+    // credentials: "omit", // Omit all credentials from the request
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ player_name: "Player", score: player.score }),
+    body: JSON.stringify({
+      user1,
+      user2,
+      sets: setHistory, // Utilise l'historique des sets
+      user1_sets_won: player1Wins,
+      user2_sets_won: player2Wins,
+      sets_to_win: numberOfGames,
+      points_per_set: pointsToWin,
+    }),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       console.log("Score soumis :", data);
     })

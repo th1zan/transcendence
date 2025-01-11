@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class PongspaConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'pongSPA'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "pongSPA"

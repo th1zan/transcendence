@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((data) => {
         if (data.access) {
           localStorage.setItem("access_token", data.access);
+          console.log(localStorage.getItem("access_token"));
           localStorage.setItem("username", username); // Stocker le nom d'utilisateur
           displayWelcomePage(username);
         } else {
@@ -81,7 +82,41 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("click", displayConnectionFormular);
   }
 
-  function displayWelcomePage(username) {
+  function createAccount(newUsername, newPassword) {
+    fetch("/api/auth/register/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: newUsername, password: newPassword }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(
+              data.error || "Erreur lors de la création du compte.",
+            );
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          alert(
+            "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
+          );
+          displayConnectionFormular();
+        } else {
+          alert("Erreur lors de la création du compte. Veuillez réessayer.");
+        }
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la création du compte :", error);
+        alert(error.message);
+      });
+  }
+
+  window.displayWelcomePage = function (username) {
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
@@ -94,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("playButton").addEventListener("click", () => {
       displayGameForm(); // Affiche le formulaire de jeu
     });
-  }
+  };
 
   function displayGameForm() {
     const appDiv = document.getElementById("app");
@@ -118,7 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
   }
-  x;
 
   function fetchResultats(username) {
     const token = localStorage.getItem("access_token");
@@ -127,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    fetch(`/api/results/?username=${username}`, {
+    fetch(`/api/results/?user1=${username}&user2=${username}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -138,9 +172,24 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((data) => {
         const resultatsDiv = document.getElementById("resultats");
         resultatsDiv.innerHTML = "<h3>Vos résultats :</h3>";
-        if (data.results) {
-          data.results.forEach((result) => {
-            resultatsDiv.innerHTML += `<p>${result.date} - Score: ${result.score}</p>`;
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach((match) => {
+            // Ajustez selon la structure de votre PongMatch
+            const date = new Date(match.date_played).toLocaleString();
+            const tournamentInfo = match.tournament
+              ? ` (Tournoi: ${match.tournament_name})`
+              : "";
+            const winner = match.winner || "En cours";
+            const score = `${match.user1_sets_won} - ${match.user2_sets_won}`;
+
+            resultatsDiv.innerHTML += `
+          <p>
+            ${date} - ${match.user1} vs ${match.user2} - 
+            Score: ${score} - 
+            Winner: ${winner}${tournamentInfo}
+            <br>
+            <small>Nombre de sets à gagner: ${match.sets_to_win}, Points par set: ${match.points_per_set}</small>
+          </p>`;
           });
         } else {
           resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
@@ -148,39 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((error) => {
         console.error("Erreur lors de la récupération des résultats:", error);
-      });
-  }
-
-  function startGameSetup() {
-    // Récupérer les valeurs du formulaire
-    user1 = document.getElementById("user1").value;
-    user2 = document.getElementById("user2").value;
-    numberOfGames = parseInt(document.getElementById("numberOfGames").value);
-    pointsToWin = parseInt(document.getElementById("pointsToWin").value);
-
-    // Masquer le formulaire et afficher le canvas
-    document.getElementById("gameForm").style.display = "none";
-    document.getElementById("pong").style.display = "block";
-
-    // Initialiser les scores et commencer le jeu
-    resetScores();
-    initPongGame(); // Lance le jeu avec les paramètres fournis
-  }
-
-  function demarrerJeu() {
-    alert("Le jeu commence !");
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
-      <canvas id="pong" width="800" height="400" style="border: 1px solid #000000"></canvas>
-      <button id="backToWelcomeButton">Retour</button>
-    `;
-
-    initPongGame();
-
-    document
-      .getElementById("backToWelcomeButton")
-      .addEventListener("click", () => {
-        displayWelcomePage(localStorage.getItem("username"));
       });
   }
 
