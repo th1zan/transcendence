@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    fetch(`/api/results/?user1=${username}&user2=${username}`, {
+    fetch(`/api/results/?user1=${username}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -183,13 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const score = `${match.user1_sets_won} - ${match.user2_sets_won}`;
 
             resultatsDiv.innerHTML += `
-          <p>
-            ${date} - ${match.user1} vs ${match.user2} - 
-            Score: ${score} - 
-            Winner: ${winner}${tournamentInfo}
-            <br>
-            <small>Nombre de sets à gagner: ${match.sets_to_win}, Points par set: ${match.points_per_set}</small>
-          </p>`;
+                <p>
+                    ${date} - ${match.user1} vs ${match.user2} - 
+                    Score: ${score} - 
+                    Winner: ${winner}${tournamentInfo}
+                    <br>
+                    <small>Nombre de sets à gagner: ${match.sets_to_win}, Points par set: ${match.points_per_set}</small>
+                </p>`;
           });
         } else {
           resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";

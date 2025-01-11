@@ -9,7 +9,8 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from .models import PongMatch
 from .serializers import PongMatchSerializer, PongSetSerializer
 
@@ -24,13 +25,17 @@ class PongMatchList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        logger.info(f"User {user.id} is accessing the PongMatchList endpoint.")
-        return (
-            super()
-            .get_queryset()
-            .filter(Q(user1=user.username) | Q(user2=user.username))
-        )
+        queryset = super().get_queryset()
+        user1 = self.request.query_params.get("user1")
+        user2 = self.request.query_params.get("user2")
+
+        if user1 and user2:
+            return queryset.filter(Q(user1=user1) | Q(user2=user2))
+        elif user1:
+            return queryset.filter(Q(user1=user1) | Q(user2=user1))
+        elif user2:
+            return queryset.filter(Q(user1=user2) | Q(user2=user2))
+        return queryset
 
 
 class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -40,6 +45,8 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class UserRegisterView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -56,14 +63,13 @@ class UserRegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if len(password) < 8:  # Exemple de vérification pour un mot de passe trop court
+        if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
             return Response(
-                {"error": "Password must be at least 8 characters long."},
+                {"error": "Password must be at least 3 characters long."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user = User.objects.create(
-            username=username, password=make_password(password))
+        user = User.objects.create(username=username, password=make_password(password))
 
         return Response(
             {"success": "User created successfully."}, status=status.HTTP_201_CREATED
