@@ -1,99 +1,225 @@
-const canvas = document.getElementById("pong");
-const context = canvas.getContext("2d");
+let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 
-// Create the paddle
+// Variables globales pour suivre les scores et le jeu
+let user1 = "user1";
+let user2 = "Bot_AI";
+let numberOfGames = 1;
+let pointsToWin = 3;
+let currentGame = 0;
+let player1Wins = 0;
+let player2Wins = 0;
+
+// Démarrer le jeu Pong
+function startPongGame() {
+  const canvas = document.getElementById("pong");
+
+  if (!canvas) {
+    console.error("Canvas introuvable. Réessayez dans 100 ms.");
+    setTimeout(startPongGame, 100);
+    return;
+  }
+
+  const context = canvas.getContext("2d");
+
+  initGameObjects(canvas);
+  resetScores();
+
+  const fps = 50;
+  gameInterval = setInterval(() => {
+    update();
+    render(context);
+  }, 1000 / fps);
+}
+
+function startGameSetup() {
+  user1 = document.getElementById("user1").value;
+  user2 = document.getElementById("user2").value;
+  numberOfGames = parseInt(document.getElementById("numberOfGames").value);
+  pointsToWin = parseInt(document.getElementById("pointsToWin").value);
+
+  document.getElementById("gameForm").style.display = "none";
+  document.getElementById("pong").style.display = "block";
+
+  currentGame = 0; // Initialiser le compteur de parties
+  player1Wins = 0;
+  player2Wins = 0;
+
+  startPongGame();
+}
+
+function resetScores() {
+  player.score = 0;
+  computer.score = 0;
+}
+
+function update() {
+  ball.x += ball.velocityX;
+  ball.y += ball.velocityY;
+
+  if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+    ball.velocityY = -ball.velocityY;
+  }
+
+  let computerLevel = 0.1;
+  computer.y += (ball.y - (computer.y + computer.height / 2)) * computerLevel;
+
+  let playerPaddle = ball.x < canvas.width / 2 ? player : computer;
+
+  if (collision(ball, playerPaddle)) {
+    ball.velocityX = -ball.velocityX;
+    ball.speed += 0.1;
+  }
+
+  if (ball.x - ball.radius < 0) {
+    computer.score++;
+    if (computer.score === pointsToWin) {
+      player2Wins++;
+      handleGameEnd(user2);
+    } else {
+      resetBall();
+    }
+  } else if (ball.x + ball.radius > canvas.width) {
+    player.score++;
+    if (player.score === pointsToWin) {
+      player1Wins++;
+      handleGameEnd(user1);
+    } else {
+      resetBall();
+    }
+  }
+}
+
+function handleGameEnd(winner) {
+  clearInterval(gameInterval); // Arrêter la boucle de jeu
+  currentGame++;
+
+  if (currentGame < numberOfGames) {
+    alert(`${winner} wins this game! Starting the next game...`);
+    resetScores();
+    startPongGame(); // Démarrer la prochaine partie
+  } else {
+    displayResults(winner);
+  }
+}
+
+function displayResults(finalWinner) {
+  const username = localStorage.getItem("username"); // Assurez-vous que le nom d'utilisateur est stocké dans le stockage local
+
+  document.getElementById("pong").style.display = "none";
+  document.getElementById("result").style.display = "block";
+
+  const summary = `
+    ${user1}: ${player1Wins} wins<br>
+    ${user2}: ${player2Wins} wins<br>
+    Winner: ${finalWinner}<br>
+    Number of Games: ${numberOfGames}<br>
+    Points to Win: ${pointsToWin}<br>
+    <button onclick="displayWelcomePage('${username}')">Retour</button>
+  `;
+
+  document.getElementById("summary").innerHTML = summary;
+}
+
+// Dimensions et objets du jeu
 const paddleWidth = 10,
   paddleHeight = 100;
-const player = {
-  x: 0,
-  y: canvas.height / 2 - paddleHeight / 2,
-  width: paddleWidth,
-  height: paddleHeight,
-  color: "WHITE",
-  score: 0,
-};
-const computer = {
-  x: canvas.width - paddleWidth,
-  y: canvas.height / 2 - paddleHeight / 2,
-  width: paddleWidth,
-  height: paddleHeight,
-  color: "WHITE",
-  score: 0,
-};
+let canvas, player, computer, ball;
 
-// Create the ball
-const ball = {
-  x: canvas.width / 2,
-  y: canvas.height / 2,
-  radius: 10,
-  speed: 5,
-  velocityX: 5,
-  velocityY: 5,
-  color: "WHITE",
-};
+// Initialisation des objets de jeu
+function initGameObjects(gameCanvas) {
+  canvas = gameCanvas;
 
-// Draw rectangle
-function drawRect(x, y, w, h, color) {
-  context.fillStyle = color;
-  context.fillRect(x, y, w, h);
+  player = {
+    x: 0,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    color: "WHITE",
+    score: 0,
+  };
+
+  computer = {
+    x: canvas.width - paddleWidth,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    color: "WHITE",
+    score: 0,
+  };
+
+  ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    radius: 10,
+    speed: 5,
+    velocityX: 5,
+    velocityY: 5,
+    color: "WHITE",
+  };
+
+  // Contrôle du paddle du joueur avec la souris
+  canvas.addEventListener("mousemove", (event) => {
+    let rect = canvas.getBoundingClientRect();
+    player.y = event.clientY - rect.top - player.height / 2;
+  });
 }
 
-// Draw circle
-function drawCircle(x, y, r, color) {
-  context.fillStyle = color;
-  context.beginPath();
-  context.arc(x, y, r, 0, Math.PI * 2, false);
-  context.closePath();
-  context.fill();
+// Dessiner un rectangle
+function drawRect(x, y, w, h, color, ctx) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
 }
 
-// Draw text
-function drawText(text, x, y, color) {
-  context.fillStyle = color;
-  context.font = "45px fantasy";
-  context.fillText(text, x, y);
+// Dessiner un cercle
+function drawCircle(x, y, r, color, ctx) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2, false);
+  ctx.closePath();
+  ctx.fill();
 }
 
-// Render the game
-function render() {
-  drawRect(0, 0, canvas.width, canvas.height, "#000");
-  drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE");
-  drawText(computer.score, (3 * canvas.width) / 4, canvas.height / 5, "WHITE");
-  drawRect(player.x, player.y, player.width, player.height, player.color);
+// Dessiner du texte
+function drawText(text, x, y, color, ctx) {
+  ctx.fillStyle = color;
+  ctx.font = "45px fantasy";
+  ctx.fillText(text, x, y);
+}
+
+// Rendu du jeu
+function render(ctx) {
+  drawRect(0, 0, canvas.width, canvas.height, "#000", ctx); // Fond noir
+  drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE", ctx); // Score joueur
+  drawText(
+    computer.score,
+    (3 * canvas.width) / 4,
+    canvas.height / 5,
+    "WHITE",
+    ctx,
+  ); // Score ordinateur
+  drawRect(player.x, player.y, player.width, player.height, player.color, ctx); // Paddle joueur
   drawRect(
     computer.x,
     computer.y,
     computer.width,
     computer.height,
     computer.color,
-  );
-  drawCircle(ball.x, ball.y, ball.radius, ball.color);
+    ctx,
+  ); // Paddle ordinateur
+  drawCircle(ball.x, ball.y, ball.radius, ball.color, ctx); // Balle
 }
 
-// Control the player's paddle
-canvas.addEventListener("mousemove", (event) => {
-  let rect = canvas.getBoundingClientRect();
-  player.y = event.clientY - rect.top - player.height / 2;
-});
-
-// Collision detection
+// Vérifier les collisions
 function collision(b, p) {
-  p.top = p.y;
-  p.bottom = p.y + p.height;
-  p.left = p.x;
-  p.right = p.x + p.width;
-
-  b.top = b.y - b.radius;
-  b.bottom = b.y + b.radius;
-  b.left = b.x - b.radius;
-  b.right = b.x + b.radius;
-
   return (
-    p.left < b.right && p.top < b.bottom && p.right > b.left && p.bottom > b.top
+    b.x - b.radius < p.x + p.width &&
+    b.x + b.radius > p.x &&
+    b.y - b.radius < p.y + p.height &&
+    b.y + b.radius > p.y
   );
 }
 
-// Reset the ball
+// Réinitialiser la balle
 function resetBall() {
   ball.x = canvas.width / 2;
   ball.y = canvas.height / 2;
@@ -101,57 +227,7 @@ function resetBall() {
   ball.velocityX = -ball.velocityX;
 }
 
-// Update: position, movement, score
-function update() {
-  ball.x += ball.velocityX;
-  ball.y += ball.velocityY;
-
-  // Simple AI to control the computer paddle
-  let computerLevel = 0.1;
-  computer.y += (ball.y - (computer.y + computer.height / 2)) * computerLevel;
-
-  if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-    ball.velocityY = -ball.velocityY;
-  }
-
-  let playerOrComputer = ball.x < canvas.width / 2 ? player : computer;
-
-  if (collision(ball, playerOrComputer)) {
-    let collidePoint =
-      ball.y - (playerOrComputer.y + playerOrComputer.height / 2);
-    collidePoint = collidePoint / (playerOrComputer.height / 2);
-
-    let angleRad = (Math.PI / 4) * collidePoint;
-
-    let direction = ball.x < canvas.width / 2 ? 1 : -1;
-    ball.velocityX = direction * ball.speed * Math.cos(angleRad);
-    ball.velocityY = ball.speed * Math.sin(angleRad);
-
-    ball.speed += 0.1;
-  }
-
-  if (ball.x - ball.radius < 0) {
-    computer.score++;
-    sendScore(); // Appel après que l'ordinateur marque un point
-    resetBall();
-  } else if (ball.x + ball.radius > canvas.width) {
-    player.score++;
-    sendScore(); // Appel après que le joueur marque un point
-    resetBall();
-  }
-}
-
-// Game loop
-function game() {
-  update();
-  render();
-}
-
-// Number of frames per second
-let framePerSecond = 50;
-setInterval(game, 1000 / framePerSecond);
-
-// Send score to the server
+// Envoyer le score au serveur
 function sendScore() {
   const token = localStorage.getItem("access_token");
 
@@ -165,9 +241,9 @@ function sendScore() {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log("Score submitted:", data);
+      console.log("Score soumis :", data);
     })
     .catch((error) => {
-      console.error("Error submitting score:", error);
+      console.error("Erreur lors de l'envoi du score :", error);
     });
 }
