@@ -13,7 +13,7 @@ MANAGE = $(PYTHON) manage.py
 # Create a virtual environment if it doesn't exist
 create-venv:
 	if [ ! -d "$(VENV_DIR)" ]; then \
-		python3 -m venv $(VENV_DIR) || /home/mvillarr/.local/bin/virtualenv $(VENV_DIR) \
+		python3 -m venv $(VENV_DIR) || ~/.local/bin/virtualenv $(VENV_DIR) \
 		&& echo "Virtual environment created at $(VENV_DIR)"; \
 	else \
 		echo "Virtual environment already exists at $(VENV_DIR)"; \
