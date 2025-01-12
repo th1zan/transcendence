@@ -1,4 +1,5 @@
 import logging
+import uuid # Pour générer un pseudonyme aléatoire
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
@@ -75,6 +76,28 @@ class UserRegisterView(APIView):
             {"success": "User created successfully."}, status=status.HTTP_201_CREATED
         )
 
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is logged in
+
+    def delete(self, request):
+        user = request.user
+        if user.is_authenticated:
+            # Delete related game history or other data before deleting the user
+            # Generate a random pseudonym for the deleted user
+            random_username = f"deleteduser_{uuid.uuid4().hex[:12]}"
+
+            # Update matches where the user is user1 only
+            PongMatch.objects.filter(user1=user.username).update(user1=random_username)
+            
+            user.delete()  # Deletes the user from the database
+            return Response(
+                {"success": "Compte supprimé avec succès."}, 
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {"error": "Utilisateur non authentifié."},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]

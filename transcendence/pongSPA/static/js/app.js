@@ -122,11 +122,17 @@ document.addEventListener("DOMContentLoaded", () => {
     <h2>Bonjour ${username}</h2>
     <div id="resultats"></div>
     <button id="playButton">Jouer</button>
+    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
   `;
 
     fetchResultats(username);
-
-    document.getElementById("playButton").addEventListener("click", () => {
+    // Attach event listeners to buttons
+    document
+      .getElementById("deleteAccountButton")
+      .addEventListener("click", deleteAccount);
+    document
+      .getElementById("playButton")
+      .addEventListener("click", () => {
       displayGameForm(); // Affiche le formulaire de jeu
     });
   };
@@ -222,3 +228,40 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(script);
   }
 });
+
+
+function deleteAccount() {
+  const confirmDelete = confirm(
+    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
+  );
+
+  if (!confirmDelete) return;
+
+  fetch("/api/auth/delete-account/", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include the user's token
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Échec de la suppression du compte.");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      alert("Compte supprimé avec succès !");
+      localStorage.clear(); // Clear all user data from localStorage
+
+      // Force page redirection and prevent lingering JavaScript
+      window.location.href = "/"; // Redirect to the login page
+
+      //displayConnectionFormular(); // Redirect back to the login page
+    })
+    .catch((error) => {
+      if (error.name !== "AbortError") { // Prevent errors due to reload interruption
+        console.error("Erreur lors de la suppression du compte :", error);
+        alert("Une erreur est survenue : " + error.message);
+      }
+    });
+}
