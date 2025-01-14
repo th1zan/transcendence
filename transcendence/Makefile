@@ -1,48 +1,56 @@
-# Directory for the virtual environment
-VENV_DIR = ../env
+# Name of the Docker image
+IMAGE_NAME = transcendance
 
-# Python executable within the virtual environment
-PYTHON = $(VENV_DIR)/bin/python
+# Build the Docker image
+build:
+	docker build -t $(IMAGE_NAME) .
 
-# Requirement file
-REQUIREMENTS_FILE = requirements.txt
+# Run the Docker container
+run:
+	docker run -p 8000:8000 $(IMAGE_NAME)
 
-# Django management command
-MANAGE = $(PYTHON) manage.py
+# Run the Docker container in interactive mode (for development)
+run-dev:
+	docker run -it -v $(PWD):/app -p 8000:8000 $(IMAGE_NAME)
 
-# Create a virtual environment if it doesn't exist
-create-venv:
-	if [ ! -d "$(VENV_DIR)" ]; then \
-		python3 -m venv $(VENV_DIR); \
-		echo "Virtual environment created at $(VENV_DIR)"; \
-	else \
-		echo "Virtual environment already exists at $(VENV_DIR)"; \
-	fi
+# Stop all running containers
+stop:
+	docker stop $(shell docker ps -q)
 
-# Install requirements
-install: create-venv
-	$(VENV_DIR)/bin/pip install -r $(REQUIREMENTS_FILE)
-
-# Apply migrations
-migrate: install
-	$(MANAGE) migrate
-
-# Make migrations
-make-migrations: install
-	$(MANAGE) makemigrations
-
-# Run the Django development server
-run-server: migrate
-	$(MANAGE) runserver
-
-# Full setup and run
-setup-and-run: make-migrations migrate run-server
-
-# Export current environment packages to requirements.txt
-export:
-	$(VENV_DIR)/bin/pip freeze > $(REQUIREMENTS_FILE)
-	echo "Dependencies exported to $(REQUIREMENTS_FILE)"
-
-# Clean the virtual environment
+# Remove all stopped containers
 clean:
-	rm -rf $(VENV_DIR)
+	docker rm $(shell docker ps -a -q)
+
+# Remove the Docker image
+remove-image:
+	docker rmi $(IMAGE_NAME)
+
+
+
+
+# # Name of the Docker image
+# IMAGE_NAME = transcendance
+#
+# # Build the Docker image
+# build:
+# 	docker build -t $(IMAGE_NAME) .
+#
+# # Run the Docker container
+# run:
+# 	docker run -p 8000:8000 $(IMAGE_NAME)
+#
+# # Run the Docker container in interactive mode (for development)
+# run-dev:
+# 	docker run -it -v $(PWD):/app -p 8000:8000 $(IMAGE_NAME)
+#
+# # Stop all running containers
+# stop:
+# 	docker stop $(shell docker ps -q)
+#
+# # Remove all stopped containers
+# clean:
+# 	docker rm $(shell docker ps -a -q)
+#
+# # Remove the Docker image
+# remove-image:
+# 	docker rmi $(IMAGE_NAME)
