@@ -1,5 +1,5 @@
 import logging
-import uuid # Pour générer un pseudonyme aléatoire
+import uuid  # Pour générer un pseudonyme aléatoire
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
@@ -7,11 +7,12 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import PongMatch
 from .serializers import PongMatchSerializer, PongSetSerializer
 
@@ -70,11 +71,23 @@ class UserRegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user = User.objects.create(username=username, password=make_password(password))
+        user = User.objects.create(
+            username=username, password=make_password(password))
 
-        return Response(
-            {"success": "User created successfully."}, status=status.HTTP_201_CREATED
-        )
+        # Génération du token JWT refresh = RefreshToken.for_user(user)
+        refresh = RefreshToken.for_user(user)
+
+        response = Response(
+            {"success": "User created successfully."}, status=status.HTTP_201_CREATED)
+
+        # Configuration du cookie sécurisé avec le token d'accès
+        response.set_cookie('access_token', str(
+            refresh.access_token), httponly=True, secure=True, samesite='Strict')
+
+        # Implémentation 2FA ici. Envoie code sms ou email
+
+        return response
+
 
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is logged in
@@ -87,17 +100,18 @@ class DeleteAccountView(APIView):
             random_username = f"deleteduser_{uuid.uuid4().hex[:12]}"
 
             # Update matches where the user is user1 only
-            PongMatch.objects.filter(user1=user.username).update(user1=random_username)
-            
+            PongMatch.objects.filter(user1=user.username).update(
+                user1=random_username)
+
             user.delete()  # Deletes the user from the database
             return Response(
-                {"success": "Compte supprimé avec succès."}, 
-                status=status.HTTP_200_OK
+                {"success": "Compte supprimé avec succès."}, status=status.HTTP_200_OK
             )
         return Response(
             {"error": "Utilisateur non authentifié."},
-            status=status.HTTP_401_UNAUTHORIZED
+            status=status.HTTP_401_UNAUTHORIZED,
         )
+
 
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
