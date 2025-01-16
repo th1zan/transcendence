@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username, password }),
+      credentials: "include",
     })
       .then((response) => {
         if (!response.ok) {
@@ -89,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username: newUsername, password: newPassword }),
+      credentials: "include",
     })
       .then((response) => {
         if (!response.ok) {
@@ -130,9 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .getElementById("deleteAccountButton")
       .addEventListener("click", deleteAccount);
-    document
-      .getElementById("playButton")
-      .addEventListener("click", () => {
+    document.getElementById("playButton").addEventListener("click", () => {
       displayGameForm(); // Affiche le formulaire de jeu
     });
   };
@@ -171,8 +171,8 @@ document.addEventListener("DOMContentLoaded", () => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -229,19 +229,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 function deleteAccount() {
   const confirmDelete = confirm(
-    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
+    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
   );
 
   if (!confirmDelete) return;
 
   fetch("/api/auth/delete-account/", {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include the user's token
-    },
+    credentials: "include",
   })
     .then((response) => {
       if (!response.ok) {
@@ -259,7 +256,8 @@ function deleteAccount() {
       //displayConnectionFormular(); // Redirect back to the login page
     })
     .catch((error) => {
-      if (error.name !== "AbortError") { // Prevent errors due to reload interruption
+      if (error.name !== "AbortError") {
+        // Prevent errors due to reload interruption
         console.error("Erreur lors de la suppression du compte :", error);
         alert("Une erreur est survenue : " + error.message);
       }

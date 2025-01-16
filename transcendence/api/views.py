@@ -4,6 +4,7 @@ import uuid  # Pour générer un pseudonyme aléatoire
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
@@ -12,6 +13,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import PongMatch
 from .serializers import PongMatchSerializer, PongSetSerializer
@@ -46,6 +48,20 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            response.set_cookie(
+                key="access_token",
+                value=response.data["access"],
+                httponly=True,
+                secure=True,  # Activez cela en production avec HTTPS
+                samesite="Lax",
+            )
+        return response
+
+
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -78,11 +94,17 @@ class UserRegisterView(APIView):
         refresh = RefreshToken.for_user(user)
 
         response = Response(
-            {"success": "User created successfully."}, status=status.HTTP_201_CREATED)
+            {"success": "User created successfully."}, status=status.HTTP_201_CREATED
+        )
 
         # Configuration du cookie sécurisé avec le token d'accès
-        response.set_cookie('access_token', str(
-            refresh.access_token), httponly=True, secure=True, samesite='Strict')
+        response.set_cookie(
+            "access_token",
+            str(refresh.access_token),
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+        )
 
         # Implémentation 2FA ici. Envoie code sms ou email
 
@@ -113,10 +135,12 @@ class DeleteAccountView(APIView):
         )
 
 
+@method_decorator(
+    csrf_exempt, name="dispatch"
+)  # Considérez la suppression si vous gérez le CSRF correctement
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @csrf_exempt
     def post(self, request):
         match_data = request.data
         sets_data = match_data.pop("sets", [])
