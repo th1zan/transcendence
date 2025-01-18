@@ -34,7 +34,7 @@ function startPongGame() {
   }, 1000 / fps);
 }
 
-function startGameSetup() {
+export function startGameSetup() {
   console.log("Username from localStorage:", localStorage.getItem("username"));
   const storedUsername = localStorage.getItem("username");
   if (storedUsername) {
@@ -53,7 +53,7 @@ function startGameSetup() {
   currentGame = 0; // Initialiser le compteur de parties
   player1Wins = 0;
   player2Wins = 0;
-  setHistory = []; // Réinitiali
+  setHistory = []; // Réinitialiser l'historique des sets
 
   startPongGame();
 }
@@ -274,7 +274,6 @@ function sendScore() {
 
   fetch("/api/scores/", {
     method: "POST",
-    // credentials: "omit", // Omit all credentials from the request
     headers: {
       "Content-Type": "application/json",
     },

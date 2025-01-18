@@ -1,4 +1,5 @@
 export function renderTournamentDashboard(container) {
+
 	container.innerHTML = `
 	  <div class="main-content">
 		<h2>Tournament Dashboard</h2>

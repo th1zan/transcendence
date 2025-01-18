@@ -1,3 +1,6 @@
+import { startGameSetup } from './pong.js';
+import { createTournamentForm } from './tournament.js';
+
 document.addEventListener("DOMContentLoaded", () => {
   displayConnectionFormular();
 
@@ -11,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button type="submit">Se connecter</button>
       </form>
       <button id="signupButton">Créer un compte</button>
+      <button id="newTournamentButton">Créer un nouveau tournoi</button> 
     `;
 
     document
@@ -25,6 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .getElementById("signupButton")
       .addEventListener("click", displayRegistrationForm);
+    document
+      .getElementById("newTournamentButton") 
+      .addEventListener("click", createTournamentForm);
   }
 
   function getToken(username, password) {
@@ -206,28 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  function initPongGame() {
-    const script = document.createElement("script");
-    script.src = "/static/js/pong.js"; // Vérifiez que ce chemin est correct
-    script.type = "text/javascript";
-    script.onload = function () {
-      console.log("Script pong.js chargé avec succès.");
-
-      // Vérifiez si startPongGame est disponible globalement
-      if (typeof window.startPongGame === "function") {
-        window.startPongGame(); // Appelez la fonction exposée globalement
-      } else {
-        console.error(
-          "startPongGame n'est pas défini après le chargement de pong.js.",
-        );
-      }
-    };
-    script.onerror = function () {
-      console.error("Erreur de chargement du script pong.js.");
-    };
-    document.body.appendChild(script);
-  }
-});
+  });
 
 function deleteAccount() {
   const confirmDelete = confirm(
