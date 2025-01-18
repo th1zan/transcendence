@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function displayConnectionFormular() {
     const appDiv = document.getElementById("app");
+    appDiv.innerHTML = ""; // Clear everything in the container first
     appDiv.innerHTML = `
       <h2>Connexion</h2>
       <form id="loginForm">
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
+
         getToken(username, password);
       });
 
@@ -27,35 +29,48 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("click", displayRegistrationForm);
   }
 
+
   function getToken(username, password) {
     fetch("/api/auth/login/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // "X-CSRFToken": getCSRFToken(),
       },
-      body: JSON.stringify({ username, password }),
-      credentials: "include",
+      body: JSON.stringify({username, password}),
+      credentials: "include", // Ensure cookies are sent with the request
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Connection error:" + response.status);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.access) {
-          localStorage.setItem("access_token", data.access);
-          console.log(localStorage.getItem("access_token"));
-          localStorage.setItem("username", username); // Stocker le nom d'utilisateur
-          displayWelcomePage(username);
-        } else {
-          alert("Connection error. Please retry.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error during connection.", error);
-      });
-  }
+    .then((response) => {
+      if (!response.ok) {
+          console.error("Error response status:", response.status);
+          if (response.status === 403) {
+              console.error(
+                  "403 Forbidden: Verify backend permissions or credentials."
+              );
+          }
+          throw new Error("Login error: " + response.status);
+      }
+
+      console.log(
+          "Login successful. JWT is stored in an HttpOnly cookie."
+      );
+      displayWelcomePage(username); // Proceed to the welcome page
+  })
+  .catch((error) => {
+      console.error("Error during login:", error);
+      alert("Login failed. Please try again.");
+  });
+
+}
+
+//   function getCSRFToken() {
+//     let csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+//     if (!csrfToken) {
+//         console.error("CSRF token not found. Ensure the backend is correctly sending the token as a cookie.");
+//     }
+//     return csrfToken ? csrfToken.split('=')[1] : null;
+// }
+
 
   function displayRegistrationForm() {
     const appDiv = document.getElementById("app");
@@ -64,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <form id="signupForm">
         <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required />
         <input type="password" id="newPassword" placeholder="Mot de passe" required />
+        <input type="email" id="newEmail" placeholder="Adresse email" required />
         <button type="submit">Créer un compte</button>
       </form>
       <button id="backToLoginButton">Retour à la connexion</button>
@@ -75,7 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         const newUsername = document.getElementById("newUsername").value;
         const newPassword = document.getElementById("newPassword").value;
-        createAccount(newUsername, newPassword);
+        const newEmail = document.getElementById("newEmail").value;
+        createAccount(newUsername, newPassword, newEmail);
       });
 
     document
@@ -83,13 +100,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("click", displayConnectionFormular);
   }
 
-  function createAccount(newUsername, newPassword) {
+  function createAccount(newUsername, newPassword, newEmail) {
     fetch("/api/auth/register/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username: newUsername, password: newPassword }),
+      body: JSON.stringify({ username: newUsername, password: newPassword, email: newEmail }),
       credentials: "include",
     })
       .then((response) => {

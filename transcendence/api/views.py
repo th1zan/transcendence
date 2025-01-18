@@ -1,25 +1,34 @@
 import logging
 import uuid  # Pour générer un pseudonyme aléatoire
+import jwt
+import datetime
 
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import PongMatch
-from .serializers import PongMatchSerializer, PongSetSerializer
+
+from .models import PongMatch, User
+from .serializers import PongMatchSerializer, PongSetSerializer, UserRegisterSerializer
 
 logger = logging.getLogger(__name__)
-
+User = get_user_model()
 
 class PongMatchList(generics.ListCreateAPIView):
     queryset = PongMatch.objects.all()
@@ -64,52 +73,97 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+    def post(self, request):
+        serializer = UserRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(password=make_password(serializer.validated_data["password"]))
+            # Génération du token JWT 
+            refresh = RefreshToken.for_user(user)
 
+            response = Response(
+                {"success": "User created successfully."}, status=status.HTTP_201_CREATED
+            )
+
+            # Configuration du cookie sécurisé avec le token d'accès
+            response.set_cookie(
+                "access_token",
+                str(refresh.access_token),
+                httponly=True, # Empêche JavaScript d'accéder au cookie
+                secure=False,  # Set to True in production with HTTPS
+                samesite="Strict",
+            )
+
+        # Implémentation 2FA ici. Envoie code sms ou email
+            return response
+
+        # Return validation errors from serializer
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginView(APIView):
+    parser_classes = [JSONParser]
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
 
         if not username or not password:
-            return Response(
-                {"error": "Username and password are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise AuthenticationFailed("Nom d'utilisateur et mot de passe requis.")
 
-        if User.objects.filter(username=username).exists():
-            return Response(
-                {"error": "Username already exists."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # Debug log
+        logger.debug(f"Username: {username}, Password: {password}")
 
-        if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
-            return Response(
-                {"error": "Password must be at least 3 characters long."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = User.objects.filter(username=username).first()
 
-        user = User.objects.create(
-            username=username, password=make_password(password))
+        if user is None:
+            logger.error(f"User not found: {username}")
+            raise AuthenticationFailed("Utilisateur non trouvé.")
 
-        # Génération du token JWT refresh = RefreshToken.for_user(user)
-        refresh = RefreshToken.for_user(user)
+        if not user.check_password(password):
+            logger.error(f"Incorrect password for user: {username}")
+            raise AuthenticationFailed("Mot de passe incorrect.")
 
-        response = Response(
-            {"success": "User created successfully."}, status=status.HTTP_201_CREATED
-        )
+        #return Response({"success": "Logged in successfully."}, status=200)
+        payload = {
+            "id": user.id,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
+            "iat": datetime.datetime.utcnow(),
+        }
 
-        # Configuration du cookie sécurisé avec le token d'accès
-        response.set_cookie(
-            "access_token",
-            str(refresh.access_token),
-            httponly=True,
-            secure=True,
-            samesite="Strict",
-        )
+        token = jwt.encode(payload, "secret", algorithm="HS256") #.decode("utf-8") - ne need in newer versions
 
-        # Implémentation 2FA ici. Envoie code sms ou email
-
+        response = Response({"message": "Login successful."})
+        response.set_cookie(key="jwt", value=token, httponly=True)
+        response.data = ({"jwt": token})
         return response
 
+class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        token = request.COOKIES.get("jwt")
+
+        if not token:
+            raise AuthenticationFailed("Non authentifié.")
+        
+        try:
+            payload = jwt.decode(token, "secret", algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Non authentifié.")
+        
+        user = User.objects.filter(id=payload["id"]).first()
+        serializer = UserRegisterSerializer(user)
+        return Response(serializer.data)
+    
+
+class LogoutView(APIView):
+    def post(self, request):
+        response = Response()
+        response.delete_cookie("jwt")
+        response.data = {
+            "message": "Déconnexion réussie."
+        }
+        return response
 
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is logged in
