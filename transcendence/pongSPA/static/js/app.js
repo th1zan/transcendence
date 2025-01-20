@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function displayConnectionFormular() {
     const appDiv = document.getElementById("app");
-    appDiv.innerHTML = ""; // Clear everything in the container first
     appDiv.innerHTML = `
       <h2>Connexion</h2>
       <form id="loginForm">
@@ -13,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </form>
       <button id="signupButton">Créer un compte</button>
     `;
+    setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
     document
       .getElementById("loginForm")
@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
-
         getToken(username, password);
       });
 
@@ -29,48 +28,64 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("click", displayRegistrationForm);
   }
 
-
   function getToken(username, password) {
     fetch("/api/auth/login/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        // "X-CSRFToken": getCSRFToken(),
       },
-      body: JSON.stringify({username, password}),
-      credentials: "include", // Ensure cookies are sent with the request
+      body: JSON.stringify({ username, password }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Connection error:" + response.status);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.message === "Login successful") {
+          console.log("Login successful");
+        // if (data.access) {
+        //   localStorage.setItem("access_token", data.access);
+        //   console.log(localStorage.getItem("access_token"));
+        //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
+        //   localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+          displayWelcomePage(username);
+        } else {
+          alert("Connection error. Please retry.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error during connection.", error);
+      });
+  }
+
+  function refreshToken() {
+    fetch("/api/auth/refresh/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
     })
     .then((response) => {
-      if (!response.ok) {
-          console.error("Error response status:", response.status);
-          if (response.status === 403) {
-              console.error(
-                  "403 Forbidden: Verify backend permissions or credentials."
-              );
-          }
-          throw new Error("Login error: " + response.status);
-      }
-
-      console.log(
-          "Login successful. JWT is stored in an HttpOnly cookie."
-      );
-      displayWelcomePage(username); // Proceed to the welcome page
-  })
-  .catch((error) => {
-      console.error("Error during login:", error);
-      alert("Login failed. Please try again.");
-  });
-
-}
-
-//   function getCSRFToken() {
-//     let csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
-//     if (!csrfToken) {
-//         console.error("CSRF token not found. Ensure the backend is correctly sending the token as a cookie.");
-//     }
-//     return csrfToken ? csrfToken.split('=')[1] : null;
-// }
-
+        if (!response.ok) {
+            throw new Error("Token refresh error:" + response.status);
+        }
+        return response.json();
+    })
+    .then((data) => {
+        if (data.message === "Token refreshed successfully") {
+            console.log("Token refreshed successfully");
+        } else {
+            alert("Token refresh error. Please retry.");
+        }
+    })
+    .catch((error) => {
+        console.error("Error during token refresh.", error);
+    });
+  }
 
   function displayRegistrationForm() {
     const appDiv = document.getElementById("app");
@@ -79,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <form id="signupForm">
         <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required />
         <input type="password" id="newPassword" placeholder="Mot de passe" required />
-        <input type="email" id="newEmail" placeholder="Adresse email" required />
         <button type="submit">Créer un compte</button>
       </form>
       <button id="backToLoginButton">Retour à la connexion</button>
@@ -91,8 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         const newUsername = document.getElementById("newUsername").value;
         const newPassword = document.getElementById("newPassword").value;
-        const newEmail = document.getElementById("newEmail").value;
-        createAccount(newUsername, newPassword, newEmail);
+        createAccount(newUsername, newPassword);
       });
 
     document
@@ -100,14 +113,14 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("click", displayConnectionFormular);
   }
 
-  function createAccount(newUsername, newPassword, newEmail) {
+  function createAccount(newUsername, newPassword) {
     fetch("/api/auth/register/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ username: newUsername, password: newPassword, email: newEmail }),
-      credentials: "include",
+      body: JSON.stringify({ username: newUsername, password: newPassword }),
     })
       .then((response) => {
         if (!response.ok) {
@@ -135,12 +148,48 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  function logout() {
+    const confirmLogout = confirm("Are you sure you want to log out?");
+    if (!confirmLogout) return;
+  
+    // const accessToken = localStorage.getItem("access_token");
+  
+    // if (!accessToken) {
+    //   alert("No access token found. Please log in again.");
+    //   return;
+    // }
+  
+    fetch("/api/auth/logout/", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${accessToken}`, // Use the access token here
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((error) => {
+            throw new Error(error.error || "Logout request failed.");
+          });
+        }
+        //localStorage.clear(); // Clear all user data
+        alert("Logout successful!");
+        window.location.href = "/"; // Redirect to login page
+      })
+      .catch((error) => {
+        console.error("Logout failed:", error);
+        alert("An error occurred during logout: " + error.message);
+      });
+  }
+
   window.displayWelcomePage = function (username) {
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
     <div id="resultats"></div>
     <button id="playButton">Jouer</button>
+    <button id="logoutButton">Déconnexion</button>
     <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
   `;
 
@@ -149,7 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .getElementById("deleteAccountButton")
       .addEventListener("click", deleteAccount);
-    document.getElementById("playButton").addEventListener("click", () => {
+    document
+      .getElementById("logoutButton")
+      .addEventListener("click", logout);
+    document
+      .getElementById("playButton")
+      .addEventListener("click", () => {
       displayGameForm(); // Affiche le formulaire de jeu
     });
   };
@@ -178,18 +232,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function fetchResultats(username) {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      console.error("Token non trouvé. Veuillez vous reconnecter.");
-      return;
-    }
+    // const token = localStorage.getItem("access_token");
+    // if (!token) {
+    //   console.error("Token non trouvé. Veuillez vous reconnecter.");
+    //   return;
+    // }
 
     fetch(`/api/results/?user1=${username}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        // Authorization: `Bearer ${token}`,
       },
-      credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -246,9 +301,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
 function deleteAccount() {
   const confirmDelete = confirm(
-    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
   );
 
   if (!confirmDelete) return;
@@ -256,6 +312,9 @@ function deleteAccount() {
   fetch("/api/auth/delete-account/", {
     method: "DELETE",
     credentials: "include",
+    headers: {
+    //  Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include the user's token
+    },
   })
     .then((response) => {
       if (!response.ok) {
@@ -265,7 +324,7 @@ function deleteAccount() {
     })
     .then((data) => {
       alert("Compte supprimé avec succès !");
-      localStorage.clear(); // Clear all user data from localStorage
+      // localStorage.clear(); // Clear all user data from localStorage
 
       // Force page redirection and prevent lingering JavaScript
       window.location.href = "/"; // Redirect to the login page
@@ -273,8 +332,7 @@ function deleteAccount() {
       //displayConnectionFormular(); // Redirect back to the login page
     })
     .catch((error) => {
-      if (error.name !== "AbortError") {
-        // Prevent errors due to reload interruption
+      if (error.name !== "AbortError") { // Prevent errors due to reload interruption
         console.error("Erreur lors de la suppression du compte :", error);
         alert("Une erreur est survenue : " + error.message);
       }

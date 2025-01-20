@@ -1,34 +1,26 @@
 import logging
-import uuid  # Pour générer un pseudonyme aléatoire
-import jwt
-import datetime
+import uuid # Pour générer un pseudonyme aléatoire
 
+from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
-#from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.parsers import JSONParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-
-
-from .models import PongMatch, User
-from .serializers import PongMatchSerializer, PongSetSerializer, UserRegisterSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .models import PongMatch
+from .serializers import PongMatchSerializer, PongSetSerializer
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
+
 
 class PongMatchList(generics.ListCreateAPIView):
     queryset = PongMatch.objects.all()
@@ -56,114 +48,153 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PongMatchSerializer
     permission_classes = [IsAuthenticated]
 
+# class LoginView(APIView):
+#     def post(self, request):
+#         username = request.data.get("username")
+#         password = request.data.get("password")
+
+#         user = authenticate(username=username, password=password)
+#         if user is None:
+#             return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+#         refresh = RefreshToken.for_user(user)
+#         access_token = str(refresh.access_token)
+
+#         response = JsonResponse({"detail": "Login successful."})
+#         response.set_cookie(
+#             key="access_token",
+#             value=access_token,
+#             httponly=True,
+#             secure=True,  # Set to True in production (requires HTTPS)
+#             samesite="Strict",  # Adjust SameSite attribute based on your needs
+#         )
+#         response.set_cookie(
+#             key="refresh_token",
+#             value=str(refresh),
+#             httponly=True,
+#             secure=True,  # Set to True in production (requires HTTPS)
+#             samesite="Strict",
+#         )
+
+#         return response
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
+            tokens = response.data
+            response = JsonResponse({'message': 'Login successful'})
             response.set_cookie(
-                key="access_token",
-                value=response.data["access"],
+                key='access_token',
+                value=tokens['access'],
                 httponly=True,
-                secure=True,  # Activez cela en production avec HTTPS
-                samesite="Lax",
+                secure=False,  # Set to True in production
+                samesite='Lax'
+            )
+            # response.set_cookie(
+            #     key='refresh_token',
+            #     value=tokens['refresh'],
+            #     httponly=True,
+            #     secure=False,  # Set to True in production
+            #     samesite='Lax'
+            # )
+        return response
+
+class CustomTokenRefreshView(TokenRefreshView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            tokens = response.data
+            response = JsonResponse({'message': 'Token refreshed successfully'})
+            response.set_cookie(
+                key='access_token',
+                value=tokens['access'],
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax'
             )
         return response
 
-
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
-    parser_classes = [JSONParser]
-    def post(self, request):
-        serializer = UserRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save(password=make_password(serializer.validated_data["password"]))
-            # Génération du token JWT 
-            refresh = RefreshToken.for_user(user)
 
-            response = Response(
-                {"success": "User created successfully."}, status=status.HTTP_201_CREATED
-            )
-
-            # Configuration du cookie sécurisé avec le token d'accès
-            response.set_cookie(
-                "access_token",
-                str(refresh.access_token),
-                httponly=True, # Empêche JavaScript d'accéder au cookie
-                secure=False,  # Set to True in production with HTTPS
-                samesite="Strict",
-            )
-
-        # Implémentation 2FA ici. Envoie code sms ou email
-            return response
-
-        # Return validation errors from serializer
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class LoginView(APIView):
-    parser_classes = [JSONParser]
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
 
         if not username or not password:
-            raise AuthenticationFailed("Nom d'utilisateur et mot de passe requis.")
+            return Response(
+                {"error": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        # Debug log
-        logger.debug(f"Username: {username}, Password: {password}")
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"error": "Username already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        user = User.objects.filter(username=username).first()
+        if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
+            return Response(
+                {"error": "Password must be at least 3 characters long."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        if user is None:
-            logger.error(f"User not found: {username}")
-            raise AuthenticationFailed("Utilisateur non trouvé.")
+        user = User.objects.create(username=username, password=make_password(password))
 
-        if not user.check_password(password):
-            logger.error(f"Incorrect password for user: {username}")
-            raise AuthenticationFailed("Mot de passe incorrect.")
+        return Response(
+            {"success": "User created successfully."}, status=status.HTTP_201_CREATED
+        )
 
-        #return Response({"success": "Logged in successfully."}, status=200)
-        payload = {
-            "id": user.id,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-            "iat": datetime.datetime.utcnow(),
-        }
-
-        token = jwt.encode(payload, "secret", algorithm="HS256") #.decode("utf-8") - ne need in newer versions
-
-        response = Response({"message": "Login successful."})
-        response.set_cookie(key="jwt", value=token, httponly=True)
-        response.data = ({"jwt": token})
-        return response
-
-class UserView(APIView):
+  
+class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        token = request.COOKIES.get("jwt")
-
-        if not token:
-            raise AuthenticationFailed("Non authentifié.")
-        
-        try:
-            payload = jwt.decode(token, "secret", algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Non authentifié.")
-        
-        user = User.objects.filter(id=payload["id"]).first()
-        serializer = UserRegisterSerializer(user)
-        return Response(serializer.data)
-    
-
-class LogoutView(APIView):
     def post(self, request):
-        response = Response()
-        response.delete_cookie("jwt")
-        response.data = {
-            "message": "Déconnexion réussie."
-        }
-        return response
+        try:
+            response = JsonResponse({"detail": "Logout successful."})
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            return response
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# # working function with local storage
+# class LogoutView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         try:
+#             # Authenticate user using the provided access token
+#             auth = JWTAuthentication()
+#             user, token = auth.authenticate(request)
+#             if user is None or token is None:
+#                 return Response({"error": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+#             # Optional: Add logic to mark user as logged out (if applicable)
+#             # Example: Logout event logging or user session invalidation
+            
+#             return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+# class LogoutView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         refresh_token = request.data.get("refresh")
+#         if not refresh_token:
+#             return Response({"error": "No refresh token provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()  # Blacklist the refresh token
+#             return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is logged in
@@ -176,25 +207,22 @@ class DeleteAccountView(APIView):
             random_username = f"deleteduser_{uuid.uuid4().hex[:12]}"
 
             # Update matches where the user is user1 only
-            PongMatch.objects.filter(user1=user.username).update(
-                user1=random_username)
-
+            PongMatch.objects.filter(user1=user.username).update(user1=random_username)
+            
             user.delete()  # Deletes the user from the database
             return Response(
-                {"success": "Compte supprimé avec succès."}, status=status.HTTP_200_OK
+                {"success": "Compte supprimé avec succès."}, 
+                status=status.HTTP_200_OK
             )
         return Response(
             {"error": "Utilisateur non authentifié."},
-            status=status.HTTP_401_UNAUTHORIZED,
+            status=status.HTTP_401_UNAUTHORIZED
         )
 
-
-@method_decorator(
-    csrf_exempt, name="dispatch"
-)  # Considérez la suppression si vous gérez le CSRF correctement
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @csrf_exempt
     def post(self, request):
         match_data = request.data
         sets_data = match_data.pop("sets", [])

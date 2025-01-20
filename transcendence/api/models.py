@@ -1,25 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 
-class User(AbstractUser):
-    email = models.EmailField(max_length=255, unique=True)
-    username = models.CharField(max_length=255, unique=True)
-    password = models.CharField(max_length=255)
-
-    USERNAME_FIELD = "email"  # Use email for authentication
-    REQUIRED_FIELDS = []  # or "username" to Require username during registration
-
-    def __str__(self):
-        return self.email
-    
-# class PlayerProfile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-#     alias = models.CharField(max_length=100, unique=True, null=True, blank=True)
-#     score = models.IntegerField(default=0)
-#     is_guest = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return f"{self.alias or self.user.username}'s Profile"
 
 class PongMatch(models.Model):
     user1 = models.CharField(max_length=100, default="user1")
