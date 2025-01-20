@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        // Authorization: `Bearer ${accessToken}`, // Use the access token here
+        // Authorization: `Bearer ${accessToken}`, 
       },
     })
       .then((response) => {
@@ -313,7 +313,7 @@ function deleteAccount() {
     method: "DELETE",
     credentials: "include",
     headers: {
-    //  Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include the user's token
+    //  Authorization: `Bearer ${localStorage.getItem("access_token")}`,
     },
   })
     .then((response) => {
