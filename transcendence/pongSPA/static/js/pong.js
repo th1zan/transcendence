@@ -276,6 +276,7 @@ function sendScore() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       user1,
@@ -286,7 +287,6 @@ function sendScore() {
       sets_to_win: numberOfGames,
       points_per_set: pointsToWin,
     }),
-    credentials: "include",
   })
     .then((response) => {
       if (!response.ok) {

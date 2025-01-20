@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <button id="signupButton">Créer un compte</button>
       <button id="newTournamentButton">Créer un nouveau tournoi</button> 
     `;
+    setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
     document
       .getElementById("loginForm")
@@ -37,11 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function getToken(username, password) {
     fetch("/api/auth/login/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username, password }),
-      credentials: "include",
     })
       .then((response) => {
         if (!response.ok) {
@@ -50,10 +51,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
       })
       .then((data) => {
-        if (data.access) {
-          localStorage.setItem("access_token", data.access);
-          console.log(localStorage.getItem("access_token"));
-          localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+        if (data.message === "Login successful") {
+          console.log("Login successful");
+        // if (data.access) {
+        //   localStorage.setItem("access_token", data.access);
+        //   console.log(localStorage.getItem("access_token"));
+        //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
+        //   localStorage.setItem("username", username); // Stocker le nom d'utilisateur
           displayWelcomePage(username);
         } else {
           alert("Connection error. Please retry.");
@@ -62,6 +66,32 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch((error) => {
         console.error("Error during connection.", error);
       });
+  }
+
+  function refreshToken() {
+    fetch("/api/auth/refresh/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    .then((response) => {
+        if (!response.ok) {
+            throw new Error("Token refresh error:" + response.status);
+        }
+        return response.json();
+    })
+    .then((data) => {
+        if (data.message === "Token refreshed successfully") {
+            console.log("Token refreshed successfully");
+        } else {
+            alert("Token refresh error. Please retry.");
+        }
+    })
+    .catch((error) => {
+        console.error("Error during token refresh.", error);
+    });
   }
 
   function displayRegistrationForm() {
@@ -93,11 +123,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function createAccount(newUsername, newPassword) {
     fetch("/api/auth/register/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username: newUsername, password: newPassword }),
-      credentials: "include",
     })
       .then((response) => {
         if (!response.ok) {
@@ -125,12 +155,48 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  function logout() {
+    const confirmLogout = confirm("Are you sure you want to log out?");
+    if (!confirmLogout) return;
+  
+    // const accessToken = localStorage.getItem("access_token");
+  
+    // if (!accessToken) {
+    //   alert("No access token found. Please log in again.");
+    //   return;
+    // }
+  
+    fetch("/api/auth/logout/", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${accessToken}`, 
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((error) => {
+            throw new Error(error.error || "Logout request failed.");
+          });
+        }
+        //localStorage.clear(); // Clear all user data
+        alert("Logout successful!");
+        window.location.href = "/"; // Redirect to login page
+      })
+      .catch((error) => {
+        console.error("Logout failed:", error);
+        alert("An error occurred during logout: " + error.message);
+      });
+  }
+
   window.displayWelcomePage = function (username) {
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
     <div id="resultats"></div>
     <button id="playButton">Jouer</button>
+    <button id="logoutButton">Déconnexion</button>
     <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
   `;
 
@@ -139,7 +205,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .getElementById("deleteAccountButton")
       .addEventListener("click", deleteAccount);
-    document.getElementById("playButton").addEventListener("click", () => {
+    document
+      .getElementById("logoutButton")
+      .addEventListener("click", logout);
+    document
+      .getElementById("playButton")
+      .addEventListener("click", () => {
       displayGameForm(); // Affiche le formulaire de jeu
     });
   };
@@ -168,18 +239,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function fetchResultats(username) {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      console.error("Token non trouvé. Veuillez vous reconnecter.");
-      return;
-    }
+    // const token = localStorage.getItem("access_token");
+    // if (!token) {
+    //   console.error("Token non trouvé. Veuillez vous reconnecter.");
+    //   return;
+    // }
 
     fetch(`/api/results/?user1=${username}`, {
       method: "GET",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        // Authorization: `Bearer ${token}`,
       },
-      credentials: "include",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -215,9 +287,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   });
 
+
 function deleteAccount() {
   const confirmDelete = confirm(
-    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
   );
 
   if (!confirmDelete) return;
@@ -225,6 +298,9 @@ function deleteAccount() {
   fetch("/api/auth/delete-account/", {
     method: "DELETE",
     credentials: "include",
+    headers: {
+    //  Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+    },
   })
     .then((response) => {
       if (!response.ok) {
@@ -234,7 +310,7 @@ function deleteAccount() {
     })
     .then((data) => {
       alert("Compte supprimé avec succès !");
-      localStorage.clear(); // Clear all user data from localStorage
+      // localStorage.clear(); // Clear all user data from localStorage
 
       // Force page redirection and prevent lingering JavaScript
       window.location.href = "/"; // Redirect to the login page
@@ -242,8 +318,7 @@ function deleteAccount() {
       //displayConnectionFormular(); // Redirect back to the login page
     })
     .catch((error) => {
-      if (error.name !== "AbortError") {
-        // Prevent errors due to reload interruption
+      if (error.name !== "AbortError") { // Prevent errors due to reload interruption
         console.error("Erreur lors de la suppression du compte :", error);
         alert("Une erreur est survenue : " + error.message);
       }
