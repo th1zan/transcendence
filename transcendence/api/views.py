@@ -177,6 +177,7 @@ class LogoutView(APIView):
 #             # Optional: Add logic to mark user as logged out (if applicable)
 #             # Example: Logout event logging or user session invalidation
             
+
 #             return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
