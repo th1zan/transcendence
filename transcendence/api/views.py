@@ -4,19 +4,22 @@ import uuid  # Pour générer un pseudonyme aléatoire
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import PongMatch
-from .serializers import PongMatchSerializer, PongSetSerializer
+from .models import Player, PongMatch, Tournament, TournamentPlayer
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer)
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +90,7 @@ class UserRegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user = User.objects.create(
-            username=username, password=make_password(password))
+        user = User.objects.create(username=username, password=make_password(password))
 
         # Génération du token JWT refresh = RefreshToken.for_user(user)
         refresh = RefreshToken.for_user(user)
@@ -122,8 +124,7 @@ class DeleteAccountView(APIView):
             random_username = f"deleteduser_{uuid.uuid4().hex[:12]}"
 
             # Update matches where the user is user1 only
-            PongMatch.objects.filter(user1=user.username).update(
-                user1=random_username)
+            PongMatch.objects.filter(user1=user.username).update(user1=random_username)
 
             user.delete()  # Deletes the user from the database
             return Response(
@@ -163,3 +164,39 @@ class PongScoreView(APIView):
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TournamentCreationView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        tournament_data = request.data.get("tournament_name")
+        players_data = request.data.get("players", [])
+
+        if not tournament_data:
+            return Response(
+                {"error": "Tournament name is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create the tournament
+        tournament_serializer = TournamentSerializer(
+            data={"tournament_name": tournament_data, "date": timezone.now().date()}
+        )
+        if tournament_serializer.is_valid():
+            tournament = tournament_serializer.save()
+
+            # Create or retrieve Player entries and link them to the tournament
+            for player_pseudo in players_data:
+                player, created = Player.objects.get_or_create(pseudo=player_pseudo)
+                TournamentPlayer.objects.create(player=player, tournament=tournament)
+
+            return Response(
+                {"message": "Tournament and players added successfully"},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )

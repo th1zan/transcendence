@@ -1,9 +1,19 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import \
-    PongMatch  # Assurez-vous que le modèle est correctement importé
-from .models import PongSet
+from .models import PongMatch, PongSet, Tournament, TournamentPlayer
+
+
+class TournamentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tournament
+        fields = "__all__"
+
+
+class TournamentPlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TournamentPlayer
+        fields = "__all__"
 
 
 class PongMatchSerializer(serializers.ModelSerializer):

@@ -3,6 +3,7 @@ export function createTournamentForm() {
     appDiv.innerHTML = `
       <h2>Créer un tournoi</h2>
       <form id="tournamentForm">
+        <input type="text" id="tournamentName" placeholder="Nom du tournoi" required>
         <div id="playerContainer"></div>
         <button type="button" id="addPlayerButton">Ajouter un joueur</button>
         <button type="button" id="submitButton">Soumettre</button>
@@ -22,20 +23,22 @@ export function createTournamentForm() {
     };
 
     submitButton.onclick = () => {
+        const tournamentName = document.getElementById('tournamentName').value;
         players = Array.from(playerContainer.children).map(div => div.querySelector('input').value);
-        sendPlayersToAPI(players);
+        sendPlayersToAPI(tournamentName, players);
     };
 
-    function sendPlayersToAPI(players) {
-        fetch('YOUR_API_ENDPOINT', {
+    function sendPlayersToAPI(tournamentName, players) {
+        fetch("/api/tournament/new", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ players }),
+        body: JSON.stringify({ tournament_name: tournamentName, players }),
         })
         .then(response => response.json())
         .then(data => console.log('Success:', data))
         .catch((error) => console.error('Error:', error));
     }
 }
+
