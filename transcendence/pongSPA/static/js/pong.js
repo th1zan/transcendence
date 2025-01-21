@@ -1,5 +1,5 @@
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
-import { displayWelcomePage } from './app.js';
+import { displayWelcomePage } from "./app.js";
 
 // Variables globales pour suivre les scores et le jeu
 let user1 = "user1";
@@ -14,15 +14,13 @@ let player2Wins = 0;
 let setHistory = [];
 
 // Démarrer le jeu Pong
-function startPongGame()
-{
-	const canvas = document.getElementById("pong");
+function startPongGame() {
+  const canvas = document.getElementById("pong");
 
-	if (!canvas)
-	{
-    	console.error("Canvas introuvable. Réessayez dans 100 ms.");
-    	setTimeout(startPongGame, 100);
-    	return;
+  if (!canvas) {
+    console.error("Canvas introuvable. Réessayez dans 100 ms.");
+    setTimeout(startPongGame, 100);
+    return;
   }
 
   const context = canvas.getContext("2d");

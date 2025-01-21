@@ -13,117 +13,119 @@ document.addEventListener("DOMContentLoaded", () => {
   localStorage.clear();
 
   displayConnectionFormular();
+});
 
-  function displayConnectionFormular() {
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
-      <h2>Connexion fhhfggggg !!!</h2>
+function displayConnectionFormular() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+      <h2>Connexion !!!</h2>
       <form id="loginForm">
         <input type="text" id="username" class="form-control" placeholder="Nom d'utilisateur" required />
         <input type="password" id="password" placeholder="Mot de passe" required />
         <button type="submit">Se connecter</button>
       </form>
       <button id="signupButton" class="btn btn-primary">Créer un compte</button>
+      <button id="newTournamentButton">Créer un tournois</button>
     `;
-    setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
+  setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
-    document
-      .getElementById("loginForm")
-      .addEventListener("submit", function (event) {
-        event.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        getToken(username, password);
-      });
+  document
+    .getElementById("loginForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      getToken(username, password);
+    });
 
-    document
-      .getElementById("signupButton")
-      .addEventListener("click", displayRegistrationForm);
-    document
-      .getElementById("newTournamentButton")
-      .addEventListener("click", createTournamentForm);
-  }
+  document
+    .getElementById("signupButton")
+    .addEventListener("click", displayRegistrationForm);
+  document
+    .getElementById("newTournamentButton")
+    .addEventListener("click", createTournamentForm);
+}
 
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
       }
     }
-    return cookieValue;
   }
+  return cookieValue;
+}
 
-  function getToken(username, password) {
-    const csrftoken = getCookie("csrftoken");
+function getToken(username, password) {
+  const csrftoken = getCookie("csrftoken");
 
-    fetch("/api/auth/login/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken,
-      },
-      body: JSON.stringify({ username, password }),
+  fetch("/api/auth/login/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrftoken,
+    },
+    body: JSON.stringify({ username, password }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Connection error:" + response.status);
+      }
+      return response.json();
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Connection error:" + response.status);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.message === "Login successful") {
-          console.log("Login successful");
-          // if (data.access) {
-          //   localStorage.setItem("access_token", data.access);
-          //   console.log(localStorage.getItem("access_token"));
-          //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
-          localStorage.setItem("username", username); // Stocker le nom d'utilisateur
-          displayWelcomePage(username);
-        } else {
-          alert("Connection error. Please retry.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error during connection.", error);
-      });
-  }
-
-  function refreshToken() {
-    fetch("/api/auth/refresh/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    .then((data) => {
+      if (data.message === "Login successful") {
+        console.log("Login successful");
+        // if (data.access) {
+        //   localStorage.setItem("access_token", data.access);
+        //   console.log(localStorage.getItem("access_token"));
+        //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
+        localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+        displayWelcomePage(username);
+      } else {
+        alert("Connection error. Please retry.");
+      }
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Token refresh error:" + response.status);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.message === "Token refreshed successfully") {
-          console.log("Token refreshed successfully");
-        } else {
-          alert("Token refresh error. Please retry.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error during token refresh.", error);
-      });
-  }
+    .catch((error) => {
+      console.error("Error during connection.", error);
+    });
+}
 
-  function displayRegistrationForm() {
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
+function refreshToken() {
+  fetch("/api/auth/refresh/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Token refresh error:" + response.status);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (data.message === "Token refreshed successfully") {
+        console.log("Token refreshed successfully");
+      } else {
+        alert("Token refresh error. Please retry.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error during token refresh.", error);
+    });
+}
+
+function displayRegistrationForm() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
       <h2>Créer un compte</h2>
       <form id="signupForm">
         <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required />
@@ -133,107 +135,86 @@ document.addEventListener("DOMContentLoaded", () => {
       <button id="backToLoginButton">Retour à la connexion</button>
     `;
 
-    document
-      .getElementById("signupForm")
-      .addEventListener("submit", function (event) {
-        event.preventDefault();
-        const newUsername = document.getElementById("newUsername").value;
-        const newPassword = document.getElementById("newPassword").value;
-        createAccount(newUsername, newPassword);
-      });
-
-    document
-      .getElementById("backToLoginButton")
-      .addEventListener("click", displayConnectionFormular);
-  }
-
-  function createAccount(newUsername, newPassword) {
-    fetch("/api/auth/register/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username: newUsername, password: newPassword }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(
-              data.error || "Erreur lors de la création du compte.",
-            );
-          });
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          localStorage.setItem("username", newUsername);
-          alert(
-            "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
-          );
-          displayConnectionFormular();
-        } else {
-          alert("Erreur lors de la création du compte. Veuillez réessayer.");
-        }
-      })
-      .catch((error) => {
-        console.error("Erreur lors de la création du compte :", error);
-        alert(error.message);
-      });
-  }
-
-  function logout() {
-    const confirmLogout = confirm("Are you sure you want to log out?");
-    if (!confirmLogout) return;
-
-    fetch("/api/auth/logout/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((error) => {
-            throw new Error(error.error || "Logout request failed.");
-          });
-        }
-        localStorage.clear(); // Clear all user data
-        alert("Logout successful!");
-        window.location.href = "/"; // Redirect to login page
-      })
-      .catch((error) => {
-        console.error("Logout failed:", error);
-        alert("An error occurred during logout: " + error.message);
-      });
-  }
-
-  function displayWelcomePage(username) {
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
-    <h2>Bonjour ${username}</h2>
-    <div id="resultats"></div>
-    <button id="playButton">Jouer</button>
-    <button id="logoutButton">Déconnexion</button>
-    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
-  `;
-
-    fetchResultats(username);
-    // Attach event listeners to buttons
-    document
-      .getElementById("deleteAccountButton")
-      .addEventListener("click", deleteAccount);
-    document.getElementById("logoutButton").addEventListener("click", logout);
-    document.getElementById("playButton").addEventListener("click", () => {
-      displayGameForm(); // Affiche le formulaire de jeu
+  document
+    .getElementById("signupForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+      const newUsername = document.getElementById("newUsername").value;
+      const newPassword = document.getElementById("newPassword").value;
+      createAccount(newUsername, newPassword);
     });
-  }
 
-  function displayGameForm() {
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
+  document
+    .getElementById("backToLoginButton")
+    .addEventListener("click", displayConnectionFormular);
+}
+
+function logout() {
+  const confirmLogout = confirm("Are you sure you want to log out?");
+  if (!confirmLogout) return;
+
+  fetch("/api/auth/logout/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((error) => {
+          throw new Error(error.error || "Logout request failed.");
+        });
+      }
+      localStorage.clear(); // Clear all user data
+      alert("Logout successful!");
+      window.location.href = "/"; // Redirect to login page
+    })
+    .catch((error) => {
+      console.error("Logout failed:", error);
+      alert("An error occurred during logout: " + error.message);
+    });
+}
+
+function createAccount(newUsername, newPassword) {
+  fetch("/api/auth/register/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username: newUsername, password: newPassword }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((data) => {
+          throw new Error(
+            data.error || "Erreur lors de la création du compte.",
+          );
+        });
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (data.success) {
+        localStorage.setItem("username", newUsername);
+        alert(
+          "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
+        );
+        displayConnectionFormular();
+      } else {
+        alert("Erreur lors de la création du compte. Veuillez réessayer.");
+      }
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la création du compte :", error);
+      alert(error.message);
+    });
+}
+
+function displayGameForm() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
     <h1>Pong Game</h1>
     <form id="gameForm">
       <label for="user1">Player 1 Name:</label>
@@ -253,59 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
       <p id="summary"></p>
     </div>
   `;
-    // tsanglar: add this line for the fix
-    document
-      .getElementById("startGameButton")
-      .addEventListener("click", startGameSetup);
-  }
-
-  function fetchResultats(username) {
-    // const token = localStorage.getItem("access_token");
-    // if (!token) {
-    //   console.error("Token non trouvé. Veuillez vous reconnecter.");
-    //   return;
-    // }
-
-    fetch(`/api/results/?user1=${username}`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        // Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const resultatsDiv = document.getElementById("resultats");
-        resultatsDiv.innerHTML = "<h3>Vos résultats :</h3>";
-        if (Array.isArray(data) && data.length > 0) {
-          data.forEach((match) => {
-            // Ajustez selon la structure de votre PongMatch
-            const date = new Date(match.date_played).toLocaleString();
-            const tournamentInfo = match.tournament
-              ? ` (Tournoi: ${match.tournament_name})`
-              : "";
-            const winner = match.winner || "En cours";
-            const score = `${match.user1_sets_won} - ${match.user2_sets_won}`;
-
-            resultatsDiv.innerHTML += `
-                <p>
-                    ${date} - ${match.user1} vs ${match.user2} - 
-                    Score: ${score} - 
-                    Winner: ${winner}${tournamentInfo}
-                    <br>
-                    <small>Nombre de sets à gagner: ${match.sets_to_win}, Points par set: ${match.points_per_set}</small>
-                </p>`;
-          });
-        } else {
-          resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
-        }
-      })
-      .catch((error) => {
-        console.error("Erreur lors de la récupération des résultats:", error);
-      });
-  }
-});
+  // tsanglar: add this line for the fix
+  document
+    .getElementById("startGameButton")
+    .addEventListener("click", startGameSetup);
+}
 
 function deleteAccount() {
   const confirmDelete = confirm(
@@ -342,5 +275,73 @@ function deleteAccount() {
         console.error("Erreur lors de la suppression du compte :", error);
         alert("Une erreur est survenue : " + error.message);
       }
+    });
+}
+
+export function displayWelcomePage(username) {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+    <h2>Bonjour ${username}</h2>
+    <div id="resultats"></div>
+    <button id="playButton">Jouer</button>
+    <button id="logoutButton">Déconnexion</button>
+    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
+  `;
+
+  fetchResultats(username);
+  // Attach event listeners to buttons
+  document
+    .getElementById("deleteAccountButton")
+    .addEventListener("click", deleteAccount);
+  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("playButton").addEventListener("click", () => {
+    displayGameForm(); // Affiche le formulaire de jeu
+  });
+}
+
+function fetchResultats(username) {
+  // const token = localStorage.getItem("access_token");
+  // if (!token) {
+  //   console.error("Token non trouvé. Veuillez vous reconnecter.");
+  //   return;
+  // }
+
+  fetch(`/api/results/?user1=${username}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      // Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const resultatsDiv = document.getElementById("resultats");
+      resultatsDiv.innerHTML = "<h3>Vos résultats :</h3>";
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach((match) => {
+          // Ajustez selon la structure de votre PongMatch
+          const date = new Date(match.date_played).toLocaleString();
+          const tournamentInfo = match.tournament
+            ? ` (Tournoi: ${match.tournament_name})`
+            : "";
+          const winner = match.winner || "En cours";
+          const score = `${match.user1_sets_won} - ${match.user2_sets_won}`;
+
+          resultatsDiv.innerHTML += `
+              <p>
+                  ${date} - ${match.user1} vs ${match.user2} - 
+                  Score: ${score} - 
+                  Winner: ${winner}${tournamentInfo}
+                  <br>
+                  <small>Nombre de sets à gagner: ${match.sets_to_win}, Points par set: ${match.points_per_set}</small>
+              </p>`;
+        });
+      } else {
+        resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
+      }
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la récupération des résultats:", error);
     });
 }
