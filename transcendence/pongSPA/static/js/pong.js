@@ -1,4 +1,5 @@
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
+import { displayWelcomePage } from './app.js';
 
 // Variables globales pour suivre les scores et le jeu
 let user1 = "user1";
