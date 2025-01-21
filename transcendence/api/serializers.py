@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 
 from .models import PongMatch, PongSet, Tournament, TournamentPlayer
 
@@ -36,6 +37,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
+        if not User.objects.filter(username=value).exists():
+            raise AuthenticationFailed('User does not exist.', code='user_not_found')
         return value
 
     def validate_password(self, value):

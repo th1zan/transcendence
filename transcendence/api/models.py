@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-
+# from django.contrib.auth.models import AbstractUser
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -69,4 +69,17 @@ class PongSet(models.Model):
     player2_score = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Set {self.set_number} - {self.match.player1}: {self.player1_score}, {self.match.player2}: {self.player2_score}"
+        return f"Set {self.set_number} - {self.match.user1}: {self.user1_score}, {self.match.user2}: {self.user2_score}"
+
+
+# class User(AbstractUser):
+#     email = models.EmailField(max_length=255, unique=True)
+#     username = models.CharField(max_length=255, unique=True)
+#     password = models.CharField(max_length=255)
+
+
+#     USERNAME_FIELD = "email"  # Use email for authentication
+#     REQUIRED_FIELDS = []  # or "username" to Require username during registration
+
+#     def __str__(self):
+#         return self.email

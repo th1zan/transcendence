@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
@@ -16,20 +17,16 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
+
 
 from .models import Player, PongMatch, Tournament, TournamentPlayer
-from .serializers import (
-    PongMatchSerializer,
-    PongSetSerializer,
-    TournamentPlayerSerializer,
-    TournamentSerializer,
-)
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer,
+                          UserRegisterSerializer)
+
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +90,7 @@ class PongScoreView(APIView):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -146,7 +144,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
-
+    serializer_class = UserRegisterSerializer
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -186,8 +184,8 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 # Ensure the token is saved as an OutstandingToken
                 outstanding_token = OutstandingToken.objects.get(token=token)
-                # token.blacklist()
-                BlacklistedToken.objects.create(token=outstanding_token)
+                if not BlacklistedToken.objects.filter(token=outstanding_token).exists():
+                    BlacklistedToken.objects.create(token=outstanding_token)
             response = JsonResponse({"detail": "Logout successful."})
             response.delete_cookie("access_token")
             response.delete_cookie("refresh_token")
