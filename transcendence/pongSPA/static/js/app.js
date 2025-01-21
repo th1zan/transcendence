@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Clear all cookies
+  document.cookie.split(";").forEach((c) => {
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
+
+  // Clear local storage
+  localStorage.clear();
+  
   displayConnectionFormular();
 
   function displayConnectionFormular() {
@@ -28,12 +38,32 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("click", displayRegistrationForm);
   }
 
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
   function getToken(username, password) {
+    
+    const csrftoken = getCookie('csrftoken');
+
     fetch("/api/auth/login/", {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
       },
       body: JSON.stringify({ username, password }),
     })
