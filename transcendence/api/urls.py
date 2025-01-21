@@ -1,14 +1,16 @@
 from django.urls import path
 
 from .views import (
-	CustomTokenObtainPairView,
-	CustomTokenRefreshView,
-	DeleteAccountView,
-	LogoutView,
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
+    DeleteAccountView,
+    LogoutView,
     PongMatchDetail,
     PongMatchList,
     PongScoreView,
-    UserRegisterView,)
+    TournamentCreationView,
+    UserRegisterView,
+)
 
 urlpatterns = [
     path("results/", PongMatchList.as_view(), name="pongmatch-list"),
@@ -17,6 +19,7 @@ urlpatterns = [
     path("auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
-	path('auth/logout/', LogoutView.as_view(), name='logout'),
-	path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
+    path("auth/logout/", LogoutView.as_view(), name="logout"),
+    path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
+    path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
 ]

@@ -29,7 +29,7 @@ export function createTournamentForm() {
     };
 
     function sendPlayersToAPI(tournamentName, players) {
-        fetch("/api/tournament/new", {
+        fetch("/api/tournament/new/", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

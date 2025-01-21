@@ -1,23 +1,31 @@
 import logging
-import uuid # Pour générer un pseudonyme aléatoire
+import uuid  # Pour générer un pseudonyme aléatoire
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .models import PongMatch
-from .serializers import PongMatchSerializer, PongSetSerializer
+
+from .models import Player, PongMatch, Tournament, TournamentPlayer
+from .serializers import (
+    PongMatchSerializer,
+    PongSetSerializer,
+    TournamentPlayerSerializer,
+    TournamentSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +55,7 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = PongMatch.objects.all()
     serializer_class = PongMatchSerializer
     permission_classes = [IsAuthenticated]
+
 
 # class LoginView(APIView):
 #     def post(self, request):
@@ -78,19 +87,21 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 #         return response
 
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             tokens = response.data
-            response = JsonResponse({'message': 'Login successful'})
+            response = JsonResponse({"message": "Login successful"})
             response.set_cookie(
-                key='access_token',
-                value=tokens['access'],
+                key="access_token",
+                value=tokens["access"],
                 httponly=True,
                 secure=False,  # Set to True in production
-                samesite='Lax'
+                samesite="Lax",
             )
             # response.set_cookie(
             #     key='refresh_token',
@@ -101,21 +112,24 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             # )
         return response
 
+
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             tokens = response.data
-            response = JsonResponse({'message': 'Token refreshed successfully'})
+            response = JsonResponse({"message": "Token refreshed successfully"})
             response.set_cookie(
-                key='access_token',
-                value=tokens['access'],
+                key="access_token",
+                value=tokens["access"],
                 httponly=True,
                 secure=False,  # Set to True in production
-                samesite='Lax'
+                samesite="Lax",
             )
         return response
+
 
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
@@ -148,7 +162,7 @@ class UserRegisterView(APIView):
             {"success": "User created successfully."}, status=status.HTTP_201_CREATED
         )
 
-  
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -176,12 +190,12 @@ class LogoutView(APIView):
 
 #             # Optional: Add logic to mark user as logged out (if applicable)
 #             # Example: Logout event logging or user session invalidation
-            
+
 
 #             return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+
 # class LogoutView(APIView):
 #     permission_classes = [IsAuthenticated]
 
@@ -197,6 +211,7 @@ class LogoutView(APIView):
 #         except Exception as e:
 #             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is logged in
 
@@ -209,16 +224,16 @@ class DeleteAccountView(APIView):
 
             # Update matches where the user is user1 only
             PongMatch.objects.filter(user1=user.username).update(user1=random_username)
-            
+
             user.delete()  # Deletes the user from the database
             return Response(
-                {"success": "Compte supprimé avec succès."}, 
-                status=status.HTTP_200_OK
+                {"success": "Compte supprimé avec succès."}, status=status.HTTP_200_OK
             )
         return Response(
             {"error": "Utilisateur non authentifié."},
-            status=status.HTTP_401_UNAUTHORIZED
+            status=status.HTTP_401_UNAUTHORIZED,
         )
+
 
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
@@ -250,6 +265,7 @@ class PongScoreView(APIView):
 
 class TournamentCreationView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []
     parser_classes = [JSONParser]
 
     def post(self, request):
