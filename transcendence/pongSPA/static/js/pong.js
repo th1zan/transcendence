@@ -13,13 +13,15 @@ let player2Wins = 0;
 let setHistory = [];
 
 // Démarrer le jeu Pong
-function startPongGame() {
-  const canvas = document.getElementById("pong");
+function startPongGame()
+{
+	const canvas = document.getElementById("pong");
 
-  if (!canvas) {
-    console.error("Canvas introuvable. Réessayez dans 100 ms.");
-    setTimeout(startPongGame, 100);
-    return;
+	if (!canvas)
+	{
+    	console.error("Canvas introuvable. Réessayez dans 100 ms.");
+    	setTimeout(startPongGame, 100);
+    	return;
   }
 
   const context = canvas.getContext("2d");
