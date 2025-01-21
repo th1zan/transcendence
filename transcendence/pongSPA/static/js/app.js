@@ -17,14 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function displayConnectionFormular() {
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
-      <h2>Connexion</h2>
+      <h2>Connexion fhhfggggg !!!</h2>
       <form id="loginForm">
-        <input type="text" id="username" placeholder="Nom d'utilisateur" required />
+        <input type="text" id="username" class="form-control" placeholder="Nom d'utilisateur" required />
         <input type="password" id="password" placeholder="Mot de passe" required />
         <button type="submit">Se connecter</button>
       </form>
-      <button id="signupButton">Créer un compte</button>
-      <button id="newTournamentButton">Créer un nouveau tournoi</button> 
+      <button id="signupButton" class="btn btn-primary">Créer un compte</button>
     `;
     setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 

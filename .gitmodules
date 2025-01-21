@@ -1,0 +1,3 @@
+[submodule "django_test"]
+	path = django_test
+	url = git@github.com:Maria-esther0/django_test.git
