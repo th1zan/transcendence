@@ -16,9 +16,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Player, PongMatch, Tournament, TournamentPlayer
@@ -67,8 +69,8 @@ class PongScoreView(APIView):
         match_data = request.data
         sets_data = match_data.pop("sets", [])
 
-        # Associate the match with the authenticated user 
-        #match_data['user1'] = request.user.username
+        # Associate the match with the authenticated user
+        # match_data['user1'] = request.user.username
 
         match_serializer = PongMatchSerializer(data=match_data)
         if match_serializer.is_valid():
@@ -84,11 +86,10 @@ class PongScoreView(APIView):
                     return Response(
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
-    
+
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -107,11 +108,11 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 samesite="Lax",
             )
             response.set_cookie(
-                key='refresh_token',
-                value=tokens['refresh'],
+                key="refresh_token",
+                value=tokens["refresh"],
                 httponly=True,
                 secure=False,  # Set to True in production
-                samesite='Lax'
+                samesite="Lax",
             )
         return response
 
@@ -121,10 +122,13 @@ class CustomTokenRefreshView(TokenRefreshView):
 
     def post(self, request, *args, **kwargs):
 
-        refresh_token = request.COOKIES.get('refresh_token')
+        refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
-            return Response({"detail": "Refresh token not provided."}, status=status.HTTP_400_BAD_REQUEST)
-        request.data['refresh'] = refresh_token
+            return Response(
+                {"detail": "Refresh token not provided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        request.data["refresh"] = refresh_token
 
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
@@ -177,12 +181,12 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.COOKIES.get('refresh_token')
+            refresh_token = request.COOKIES.get("refresh_token")
             if refresh_token:
                 token = RefreshToken(refresh_token)
                 # Ensure the token is saved as an OutstandingToken
                 outstanding_token = OutstandingToken.objects.get(token=token)
-                #token.blacklist()
+                # token.blacklist()
                 BlacklistedToken.objects.create(token=outstanding_token)
             response = JsonResponse({"detail": "Logout successful."})
             response.delete_cookie("access_token")
@@ -213,3 +217,39 @@ class DeleteAccountView(APIView):
             {"error": "Utilisateur non authentifié."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
+
+
+class TournamentCreationView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        tournament_data = request.data.get("tournament_name")
+        players_data = request.data.get("players", [])
+
+        if not tournament_data:
+            return Response(
+                {"error": "Tournament name is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create the tournament
+        tournament_serializer = TournamentSerializer(
+            data={"tournament_name": tournament_data, "date": timezone.now().date()}
+        )
+        if tournament_serializer.is_valid():
+            tournament = tournament_serializer.save()
+
+            # Create or retrieve Player entries and link them to the tournament
+            for player_pseudo in players_data:
+                player, created = Player.objects.get_or_create(pseudo=player_pseudo)
+                TournamentPlayer.objects.create(player=player, tournament=tournament)
+
+            return Response(
+                {"message": "Tournament and players added successfully"},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
