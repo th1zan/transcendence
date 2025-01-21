@@ -15,6 +15,8 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import PongMatch
 from .serializers import PongMatchSerializer, PongSetSerializer
@@ -48,35 +50,37 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PongMatchSerializer
     permission_classes = [IsAuthenticated]
 
-# class LoginView(APIView):
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
 
-#         user = authenticate(username=username, password=password)
-#         if user is None:
-#             return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+class PongScoreView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#         refresh = RefreshToken.for_user(user)
-#         access_token = str(refresh.access_token)
+    # @csrf_exempt
+    def post(self, request):
+        match_data = request.data
+        sets_data = match_data.pop("sets", [])
 
-#         response = JsonResponse({"detail": "Login successful."})
-#         response.set_cookie(
-#             key="access_token",
-#             value=access_token,
-#             httponly=True,
-#             secure=True,  # Set to True in production (requires HTTPS)
-#             samesite="Strict",  # Adjust SameSite attribute based on your needs
-#         )
-#         response.set_cookie(
-#             key="refresh_token",
-#             value=str(refresh),
-#             httponly=True,
-#             secure=True,  # Set to True in production (requires HTTPS)
-#             samesite="Strict",
-#         )
+        # Associate the match with the authenticated user 
+        #match_data['user1'] = request.user.username
 
-#         return response
+        match_serializer = PongMatchSerializer(data=match_data)
+        if match_serializer.is_valid():
+            match = match_serializer.save()
+
+            for set_data in sets_data:
+                # Associe le match ID à chaque set
+                set_data["match"] = match.id
+                set_serializer = PongSetSerializer(data=set_data)
+                if set_serializer.is_valid():
+                    set_serializer.save()
+                else:
+                    return Response(
+                        set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
+    
+            return Response(match_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = [AllowAny]
@@ -92,18 +96,24 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 secure=False,  # Set to True in production
                 samesite='Lax'
             )
-            # response.set_cookie(
-            #     key='refresh_token',
-            #     value=tokens['refresh'],
-            #     httponly=True,
-            #     secure=False,  # Set to True in production
-            #     samesite='Lax'
-            # )
+            response.set_cookie(
+                key='refresh_token',
+                value=tokens['refresh'],
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax'
+            )
         return response
 
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
+
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response({"detail": "Refresh token not provided."}, status=status.HTTP_400_BAD_REQUEST)
+        request.data['refresh'] = refresh_token
+
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             tokens = response.data
@@ -116,6 +126,7 @@ class CustomTokenRefreshView(TokenRefreshView):
                 samesite='Lax'
             )
         return response
+
 
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
@@ -154,6 +165,13 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
+            refresh_token = request.COOKIES.get('refresh_token')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                # Ensure the token is saved as an OutstandingToken
+                outstanding_token = OutstandingToken.objects.get(token=token)
+                #token.blacklist()
+                BlacklistedToken.objects.create(token=outstanding_token)
             response = JsonResponse({"detail": "Logout successful."})
             response.delete_cookie("access_token")
             response.delete_cookie("refresh_token")
@@ -161,41 +179,6 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-# # working function with local storage
-# class LogoutView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         try:
-#             # Authenticate user using the provided access token
-#             auth = JWTAuthentication()
-#             user, token = auth.authenticate(request)
-#             if user is None or token is None:
-#                 return Response({"error": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED)
-
-#             # Optional: Add logic to mark user as logged out (if applicable)
-#             # Example: Logout event logging or user session invalidation
-            
-
-#             return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-# class LogoutView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         refresh_token = request.data.get("refresh")
-#         if not refresh_token:
-#             return Response({"error": "No refresh token provided."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()  # Blacklist the refresh token
-#             return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class DeleteAccountView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is logged in
@@ -219,30 +202,3 @@ class DeleteAccountView(APIView):
             {"error": "Utilisateur non authentifié."},
             status=status.HTTP_401_UNAUTHORIZED
         )
-
-class PongScoreView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @csrf_exempt
-    def post(self, request):
-        match_data = request.data
-        sets_data = match_data.pop("sets", [])
-
-        match_serializer = PongMatchSerializer(data=match_data)
-        if match_serializer.is_valid():
-            match = match_serializer.save()
-
-            for set_data in sets_data:
-                # Associe le match ID à chaque set
-                set_data["match"] = match.id
-                set_serializer = PongSetSerializer(data=set_data)
-                if set_serializer.is_valid():
-                    set_serializer.save()
-                else:
-                    return Response(
-                        set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            return Response(match_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
