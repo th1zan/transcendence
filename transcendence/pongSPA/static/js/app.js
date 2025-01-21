@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
-  window.displayWelcomePage = function (username) {
+ 
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
@@ -221,7 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <input type="number" id="numberOfGames" value="1" min="1"><br><br>
       <label for="pointsToWin">Points to Win:</label>
       <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-      <button type="button" onclick="startGameSetup()">Start Game</button>
+      <!-- tsanglar: fixed, this line didnt work anymore. OK now <button type="button" onclick="startGameSetup()">Start Game</button> -->
+      <button type="button" id="startGameButton">Start Game</button>
     </form>
     <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
     <div id="result" style="display: none;">
@@ -229,6 +230,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <p id="summary"></p>
     </div>
   `;
+  // tsanglar: add this line for the fix
+    document.getElementById("startGameButton").addEventListener("click", startGameSetup);
   }
 
   function fetchResultats(username) {
