@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
         //   localStorage.setItem("access_token", data.access);
         //   console.log(localStorage.getItem("access_token"));
         //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
-        //   localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+          localStorage.setItem("username", username); // Stocker le nom d'utilisateur
           displayWelcomePage(username);
         } else {
           alert("Connection error. Please retry.");
@@ -141,6 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then((data) => {
         if (data.success) {
+          localStorage.setItem("username", newUsername);
           alert(
             "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
           );
@@ -159,19 +160,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmLogout = confirm("Are you sure you want to log out?");
     if (!confirmLogout) return;
   
-    // const accessToken = localStorage.getItem("access_token");
-  
-    // if (!accessToken) {
-    //   alert("No access token found. Please log in again.");
-    //   return;
-    // }
-  
     fetch("/api/auth/logout/", {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        // Authorization: `Bearer ${accessToken}`, 
       },
     })
       .then((response) => {
@@ -180,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
             throw new Error(error.error || "Logout request failed.");
           });
         }
-        //localStorage.clear(); // Clear all user data
+        localStorage.clear(); // Clear all user data
         alert("Logout successful!");
         window.location.href = "/"; // Redirect to login page
       })
@@ -310,7 +303,7 @@ function deleteAccount() {
     })
     .then((data) => {
       alert("Compte supprimé avec succès !");
-      // localStorage.clear(); // Clear all user data from localStorage
+      localStorage.clear(); // Clear all user data from localStorage
 
       // Force page redirection and prevent lingering JavaScript
       window.location.href = "/"; // Redirect to the login page

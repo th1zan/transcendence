@@ -262,21 +262,23 @@ function resetBall() {
 
 // Envoyer le score au serveur
 function sendScore() {
-  const token = localStorage.getItem("access_token");
+  // const token = localStorage.getItem("access_token");
 
-  if (!token) {
-    console.error("Token non trouvé. Veuillez vous reconnecter.");
-    return;
-  }
+  // if (!token) {
+  //   console.error("Token non trouvé. Veuillez vous reconnecter.");
+  //   return;
+  // }
 
   // Vérifiez le contenu de setHistory avant l'envoi
   console.log("setHistory avant l'envoi:", setHistory);
 
   fetch("/api/scores/", {
     method: "POST",
+    credentials: "include", // Include cookies in the request
+    // credentials: "omit", // Omit all credentials from the request
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      // Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       user1,
