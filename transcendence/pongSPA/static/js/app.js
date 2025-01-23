@@ -212,13 +212,14 @@ function createAccount(newUsername, newPassword) {
     });
 }
 
-function displayGameForm() {
+function displayGameForm(username) {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h1>Pong Game</h1>
     <form id="gameForm">
       <label for="user1">Player 1 Name:</label>
-      <input type="text" id="user1" value="user1"><br><br>
+      <!-- <input type="text" id="user1" value="user1"><br><br> -->
+     <input type="text" id="user1" value="${username}" readonly><br><br>
       <label for="user2">Player 2 Name:</label>
       <input type="text" id="user2" value="Bot_AI"><br><br>
       <label for="numberOfGames">Number of Games:</label>
@@ -295,7 +296,7 @@ export function displayWelcomePage(username) {
     .addEventListener("click", deleteAccount);
   document.getElementById("logoutButton").addEventListener("click", logout);
   document.getElementById("playButton").addEventListener("click", () => {
-    displayGameForm(); // Affiche le formulaire de jeu
+    displayGameForm(username); // Affiche le formulaire de jeu
   });
 }
 

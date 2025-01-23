@@ -8,13 +8,13 @@ from .models import PongMatch, PongSet, Tournament, TournamentPlayer
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = "__all__"
+        fields = ["tournament_name", "date"]
 
 
 class TournamentPlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentPlayer
-        fields = "__all__"
+        fields = ["pseudo"]
 
 
 class PongMatchSerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
         if not User.objects.filter(username=value).exists():
-            raise AuthenticationFailed('User does not exist.', code='user_not_found')
+            raise AuthenticationFailed("User does not exist.", code="user_not_found")
         return value
 
     def validate_password(self, value):

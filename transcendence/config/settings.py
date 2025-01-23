@@ -39,14 +39,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_harlequin",
     "config",
     "pongSPA",
     "api.apps.ApiConfig",
     "rest_framework",
     "rest_framework_simplejwt",
-	"rest_framework_simplejwt.token_blacklist",
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
-	
 ]
 
 MIDDLEWARE = [
@@ -153,20 +153,36 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-	'AUTH_COOKIE': 'access_token',  # Cookie name for access token
-    'AUTH_COOKIE_SECURE': True,  # Use secure cookies
-    'AUTH_COOKIE_HTTP_ONLY': True,  # Use HTTP-only cookies
-    'AUTH_COOKIE_PATH': '/',  # Path for the cookie
-    'AUTH_COOKIE_SAMESITE': 'Lax',  # SameSite attribute
-
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_COOKIE": "access_token",  # Cookie name for access token
+    "AUTH_COOKIE_SECURE": True,  # Use secure cookies
+    "AUTH_COOKIE_HTTP_ONLY": True,  # Use HTTP-only cookies
+    "AUTH_COOKIE_PATH": "/",  # Path for the cookie
+    "AUTH_COOKIE_SAMESITE": "Lax",  # SameSite attribute
 }
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Cette configuration va envoyer les logs SQL à la console avec un niveau de log DEBUG.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}

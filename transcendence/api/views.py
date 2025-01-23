@@ -18,15 +18,16 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Player, PongMatch, Tournament, TournamentPlayer
-from .serializers import (PongMatchSerializer, PongSetSerializer,
-                          TournamentPlayerSerializer, TournamentSerializer,
-                          UserRegisterSerializer)
-
+from .serializers import (
+    PongMatchSerializer,
+    PongSetSerializer,
+    TournamentPlayerSerializer,
+    TournamentSerializer,
+    UserRegisterSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ class PongScoreView(APIView):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    
+
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -145,6 +146,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
+
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -184,7 +186,9 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 # Ensure the token is saved as an OutstandingToken
                 outstanding_token = OutstandingToken.objects.get(token=token)
-                if not BlacklistedToken.objects.filter(token=outstanding_token).exists():
+                if not BlacklistedToken.objects.filter(
+                    token=outstanding_token
+                ).exists():
                     BlacklistedToken.objects.create(token=outstanding_token)
             response = JsonResponse({"detail": "Logout successful."})
             response.delete_cookie("access_token")
@@ -217,6 +221,11 @@ class DeleteAccountView(APIView):
         )
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class TournamentCreationView(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser]
@@ -225,22 +234,27 @@ class TournamentCreationView(APIView):
         tournament_data = request.data.get("tournament_name")
         players_data = request.data.get("players", [])
 
+        logger.debug(f"Tournament data: {tournament_data}")
+        logger.debug(f"Players data: {players_data}")
+
         if not tournament_data:
             return Response(
                 {"error": "Tournament name is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create the tournament
         tournament_serializer = TournamentSerializer(
             data={"tournament_name": tournament_data, "date": timezone.now().date()}
         )
         if tournament_serializer.is_valid():
             tournament = tournament_serializer.save()
 
-            # Create or retrieve Player entries and link them to the tournament
             for player_pseudo in players_data:
+                logger.debug(f"Processing player: {player_pseudo}")
                 player, created = Player.objects.get_or_create(pseudo=player_pseudo)
+                logger.debug(
+                    f"Player {player_pseudo} created: {created}, player: {player}"
+                )
                 TournamentPlayer.objects.create(player=player, tournament=tournament)
 
             return Response(
@@ -248,6 +262,9 @@ class TournamentCreationView(APIView):
                 status=status.HTTP_201_CREATED,
             )
         else:
+            logger.error(
+                f"Tournament serializer errors: {tournament_serializer.errors}"
+            )
             return Response(
                 tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
