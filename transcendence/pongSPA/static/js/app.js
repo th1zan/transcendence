@@ -149,16 +149,14 @@ function displayGameForm(username) {
   appDiv.innerHTML = `
     <h1>Pong Game</h1>
     <form id="gameForm">
-      <label for="user1">Player 1 Name:</label>
-      <!-- <input type="text" id="user1" value="user1"><br><br> -->
-     <input type="text" id="user1" value="${username}" readonly><br><br>
-      <label for="user2">Player 2 Name:</label>
-      <input type="text" id="user2" value="Bot_AI"><br><br>
+      <label for="player1">Player 1 Name:</label>
+     <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
+      <label for="player2">Player 2 Name:</label>
+      <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
       <label for="numberOfGames">Number of Games:</label>
       <input type="number" id="numberOfGames" value="1" min="1"><br><br>
       <label for="pointsToWin">Points to Win:</label>
       <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-      <!-- tsanglar: fixed, this line didnt work anymore. OK now <button type="button" onclick="startGameSetup()">Start Game</button> -->
       <button type="button" id="startGameButton">Start Game</button>
     </form>
     <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
@@ -166,11 +164,11 @@ function displayGameForm(username) {
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>
-  `;
-  // tsanglar: add this line for the fix
+  `;  
+  console.log("Valeur de username dans displayGameForm :", username); 
   document
     .getElementById("startGameButton")
-    .addEventListener("click", startGameSetup);
+    .addEventListener("click", () => startGameSetup(username));
 }
 
 

@@ -2,10 +2,12 @@ let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 import { displayWelcomePage } from "./app.js";
 
 // Variables globales pour suivre les scores et le jeu
-let user1 = "user1";
-let user2 = "Bot_AI";
+let user1 = "default_user1";
+let user2 = "default_user2";
+let player1 = "default_player1";
+let player2 = "default_player2";
 let numberOfGames = 1;
-let pointsToWin = 2;
+let pointsToWin = 1;
 let currentGame = 0;
 let player1Wins = 0;
 let player2Wins = 0;
@@ -35,17 +37,19 @@ function startPongGame() {
   }, 1000 / fps);
 }
 
-export function startGameSetup() {
+export function startGameSetup(username) {
   console.log("Username from localStorage:", localStorage.getItem("username"));
-  const storedUsername = localStorage.getItem("username");
-  if (storedUsername) {
-    user1 = storedUsername;
-  } else {
-    console.warn("Aucun nom d'utilisateur trouvé dans le localStorage.");
-    user1 = "user1"; // valeur par défaut si le nom d'utilisateur n'est pas stocké
-  }
-
-  user2 = document.getElementById("user2").value || "Bot_AI"; // Valeur par défaut si non renseigné
+  // const storedUsername = localStorage.getItem("username");
+  // if (storedUsername) {
+    // user1 = storedUsername;
+  // } else {
+  //   console.warn("Aucun nom d'utilisateur trouvé dans le localStorage.");
+  //   user1 = "user1"; // valeur par défaut si le nom d'utilisateur n'est pas stocké
+  // }
+ console.log("Valeur de username dans startGameSetup:", username); 
+  player1 = username;
+  console.log("Valeur de player1 avant l'envoi :", player1); 
+  player2 = document.getElementById("player2").value.trim();
   numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
   pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 2;
   document.getElementById("gameForm").style.display = "none";
@@ -87,7 +91,7 @@ function update() {
     if (computer.score === pointsToWin) {
       player2Wins++;
       saveSetResult(); // Sauvegarder le résultat du set
-      handleGameEnd(user2);
+      handleGameEnd(player2);
     } else {
       resetBall();
     }
@@ -96,7 +100,7 @@ function update() {
     if (player.score === pointsToWin) {
       player1Wins++;
       saveSetResult(); // Sauvegarder le résultat du set
-      handleGameEnd(user1);
+      handleGameEnd(player1);
     } else {
       resetBall();
     }
@@ -107,8 +111,8 @@ function saveSetResult() {
   // Enregistrer le résultat actuel du set
   setHistory.push({
     set_number: currentGame + 1,
-    user1_score: player.score,
-    user2_score: computer.score,
+    player1_score: player.score,
+    player2_score: computer.score,
   });
 }
 
@@ -133,8 +137,8 @@ function displayResults(finalWinner) {
   document.getElementById("result").style.display = "block";
 
   let summary = `
-    ${user1}: ${player1Wins} wins<br>
-    ${user2}: ${player2Wins} wins<br>
+    ${player1}: ${player1Wins} wins<br>
+    ${player2}: ${player2Wins} wins<br>
     Winner: ${finalWinner}<br>
     Number of Games: ${numberOfGames}<br>
     Points to Win: ${pointsToWin}<br>
@@ -143,7 +147,7 @@ function displayResults(finalWinner) {
   `;
 
   setHistory.forEach((set, index) => {
-    summary += `Set ${index + 1}: ${user1} ${set.user1_score} - ${user2} ${set.user2_score}<br>`;
+    summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
   });
 
   document.getElementById("summary").innerHTML = summary;
@@ -269,7 +273,8 @@ function sendScore() {
   //   console.error("Token non trouvé. Veuillez vous reconnecter.");
   //   return;
   // }
-
+  //
+  console.log("Valeur de player1 avant l'envoi :", player1); 
   // Vérifiez le contenu de setHistory avant l'envoi
   console.log("setHistory avant l'envoi:", setHistory);
 
@@ -282,11 +287,13 @@ function sendScore() {
       // Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      user1,
-      user2,
+      user1 : user1,
+      player1 : player1,
+      user2 : user2,
+      player2 : player2,
       sets: setHistory, // Utilise l'historique des sets
-      user1_sets_won: player1Wins,
-      user2_sets_won: player2Wins,
+      player1_sets_won: player1Wins,
+      player_sets_won: player2Wins,
       sets_to_win: numberOfGames,
       points_per_set: pointsToWin,
     }),

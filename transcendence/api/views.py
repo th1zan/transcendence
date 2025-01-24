@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -36,20 +37,24 @@ class PongMatchList(generics.ListCreateAPIView):
     queryset = PongMatch.objects.all()
     serializer_class = PongMatchSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["user1", "user2"]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        user1 = self.request.query_params.get("user1")
-        user2 = self.request.query_params.get("user2")
+        user_param = self.request.query_params.get("user1")
 
-        if user1 and user2:
-            return queryset.filter(Q(user1=user1) | Q(user2=user2))
-        elif user1:
-            return queryset.filter(Q(user1=user1) | Q(user2=user1))
-        elif user2:
-            return queryset.filter(Q(user1=user2) | Q(user2=user2))
+        if user_param:
+            # Récupérer l'ID du joueur à partir du nom d'utilisateur
+            player_id = (
+                Player.objects.filter(player=user_param)
+                .values_list("id", flat=True)
+                .first()
+            )
+
+            if player_id:
+                # Filtrer les matchs où le joueur est soit player1 soit player2
+                queryset = queryset.filter(Q(player1=player_id) | Q(player2=player_id))
+
         return queryset
 
 
@@ -62,13 +67,27 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # @csrf_exempt
     def post(self, request):
         match_data = request.data
         sets_data = match_data.pop("sets", [])
 
-        # Associate the match with the authenticated user
-        # match_data['user1'] = request.user.username
+        # Récupérer l'utilisateur connecté pour user1
+        user1 = request.user
+        # Vérifier si player1 existe, sinon le créer
+        player1_name = match_data["player1"]
+        player1, created = Player.objects.get_or_create(
+            player=player1_name, defaults={"user": user1}
+        )
+
+        # Gérer player2 comme un joueur invité
+        player2_name = match_data["player2"]
+        player2, created = Player.objects.get_or_create(player=player2_name)
+
+        # Remplacer les noms par des identifiants dans match_data
+        match_data["user1"] = user1.id
+        match_data["user2"] = None  # Pas de user2 pour le moment
+        match_data["player1"] = player1.id
+        match_data["player2"] = player2.id
 
         match_serializer = PongMatchSerializer(data=match_data)
         if match_serializer.is_valid():
