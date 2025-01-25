@@ -20,6 +20,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+
 
 from .models import Player, PongMatch, Tournament, TournamentPlayer
 from .serializers import (
