@@ -1,4 +1,5 @@
 import { displayWelcomePage } from "./app.js";
+import { displayConnectionFormular } from "./app.js";
 
 export function getToken(username, password) {
   const csrftoken = getCookie("csrftoken");

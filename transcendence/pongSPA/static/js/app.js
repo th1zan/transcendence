@@ -1,6 +1,12 @@
 import { startGameSetup } from "./pong.js";
 import { createTournamentForm } from "./tournament.js";
-import { getToken, refreshToken, deleteAccount, logout, createAccount } from "./auth.js";
+import {
+  getToken,
+  refreshToken,
+  deleteAccount,
+  logout,
+  createAccount,
+} from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Clear all cookies
@@ -16,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   displayConnectionFormular();
 });
 
-function displayConnectionFormular() {
+export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
       <h2>Connexion !!!</h2>
@@ -47,8 +53,6 @@ function displayConnectionFormular() {
     .addEventListener("click", createTournamentForm);
 }
 
-
-
 function displayRegistrationForm() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
@@ -74,7 +78,6 @@ function displayRegistrationForm() {
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
 }
-
 
 export function displayWelcomePage(username) {
   const appDiv = document.getElementById("app");
@@ -164,11 +167,9 @@ function displayGameForm(username) {
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>
-  `;  
-  console.log("Valeur de username dans displayGameForm :", username); 
+  `;
+  console.log("Valeur de username dans displayGameForm :", username);
   document
     .getElementById("startGameButton")
     .addEventListener("click", () => startGameSetup(username));
 }
-
-
