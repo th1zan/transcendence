@@ -8,7 +8,7 @@ from .models import PongMatch, PongSet, Tournament, TournamentPlayer
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = ["tournament_name", "date"]
+        fields = ["tournament_name", "date", "number_of_games", "points_to_win"]
 
 
 class TournamentPlayerSerializer(serializers.ModelSerializer):
@@ -20,7 +20,16 @@ class TournamentPlayerSerializer(serializers.ModelSerializer):
 class PongMatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = PongMatch
-        fields = "__all__"
+        fields = [
+            "player1",
+            "player2",
+            "player1_sets_won",
+            "player2_sets_won",
+            "winner",
+            "date_played",
+            "sets_to_win",
+            "points_per_set",
+        ]
 
 
 class PongSetSerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 import logging
 import uuid  # Pour générer un pseudonyme aléatoire
+from itertools import combinations
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
@@ -110,7 +111,6 @@ class PongScoreView(APIView):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -139,7 +139,6 @@ class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
             return Response(
@@ -252,9 +251,15 @@ class TournamentCreationView(APIView):
     def post(self, request):
         tournament_data = request.data.get("tournament_name")
         players_data = request.data.get("players", [])
+        number_of_games = request.data.get(
+            "number_of_games", 1
+        )  # Valeur par défaut à 1
+        points_to_win = request.data.get("points_to_win", 3)  # Valeur par défaut à 3
 
         logger.debug(f"Tournament data: {tournament_data}")
         logger.debug(f"Players data: {players_data}")
+        logger.debug(f"Number of games: {number_of_games}")
+        logger.debug(f"Points to win: {points_to_win}")
 
         if not tournament_data:
             return Response(
@@ -262,22 +267,54 @@ class TournamentCreationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # 1. Création du tournoi
         tournament_serializer = TournamentSerializer(
-            data={"tournament_name": tournament_data, "date": timezone.now().date()}
+            data={
+                "tournament_name": tournament_data,
+                "date": timezone.now().date(),
+                "number_of_games": number_of_games,
+                "points_to_win": points_to_win,
+            }
         )
         if tournament_serializer.is_valid():
             tournament = tournament_serializer.save()
+            tournament_id = tournament.id
 
-            for player_pseudo in players_data:
-                logger.debug(f"Processing player: {player_pseudo}")
-                player, created = Player.objects.get_or_create(pseudo=player_pseudo)
+            # 2. Gestion des joueurs
+            players = []
+            for player_player in players_data:
+                logger.debug(f"Processing player: {player_player}")
+
+                # Vérifier si un utilisateur avec ce pseudo existe
+                try:
+                    user = User.objects.get(username=player_player)
+                    player, created = Player.objects.get_or_create(
+                        player=player_player, defaults={"user": user}
+                    )
+                    if (
+                        not created
+                    ):  # Si le joueur existait déjà, mettre à jour le champ user si nécessaire
+                        if player.user is None:
+                            player.user = user
+                            player.save()
+                except User.DoesNotExist:
+                    # Si l'utilisateur n'existe pas, le joueur est un "guest"
+                    player, created = Player.objects.get_or_create(player=player_player)
+
                 logger.debug(
-                    f"Player {player_pseudo} created: {created}, player: {player}"
+                    f"Player {player_player} created: {created}, player: {player}"
                 )
+                players.append(player)
+
+            # 3. Association des joueurs au tournoi
+            for player in players:
                 TournamentPlayer.objects.create(player=player, tournament=tournament)
 
+            # 4. Génération des matchs
+            generate_matches(tournament_id, number_of_games, points_to_win)
+
             return Response(
-                {"message": "Tournament and players added successfully"},
+                {"message": "Tournament, players, and matches added successfully"},
                 status=status.HTTP_201_CREATED,
             )
         else:
@@ -286,4 +323,51 @@ class TournamentCreationView(APIView):
             )
             return Response(
                 tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+def generate_matches(tournament_id, number_of_games, points_to_win):
+    # Récupérer tous les joueurs associés au tournoi
+    tournament_players = TournamentPlayer.objects.filter(tournament_id=tournament_id)
+    players = [tp.player for tp in tournament_players]
+
+    # Générer tous les matchs possibles
+    matches = combinations(players, 2)
+
+    # Enregistrer les matchs dans le modèle PongMatch
+    for player1, player2 in matches:
+        PongMatch.objects.create(
+            tournament_id=tournament_id,
+            player1=player1,
+            player2=player2,
+            user1=player1.user,  # Peut être None
+            user2=player2.user,  # Peut être None
+            sets_to_win=number_of_games,
+            points_per_set=points_to_win,
+            is_tournament_match=True,  # Indiquer que c'est un match de tournoi
+        )
+
+    logger.debug(f"Matches generated for tournament {tournament_id}")
+
+
+class TournamentMatchesView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        tournament_name = request.GET.get("tournament_name")
+        if not tournament_name:
+            return Response(
+                {"error": "Tournament name is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            tournament = Tournament.objects.get(tournament_name=tournament_name)
+            matches = PongMatch.objects.filter(tournament=tournament)
+            serializer = PongMatchSerializer(matches, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found"},
+                status=status.HTTP_404_NOT_FOUND,
             )

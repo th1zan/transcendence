@@ -9,15 +9,17 @@ class Player(models.Model):
     player = models.CharField(max_length=20)
 
     def __str__(self):
-        return self.user.username if self.user else self.pseudo
+        return self.user.username if self.user else self.player
 
 
 class Tournament(models.Model):
     tournament_name = models.CharField(max_length=100)
     date = models.DateField()
+    number_of_games = models.IntegerField(default=1)
+    points_to_win = models.IntegerField(default=3)
 
     def __str__(self):
-        return f"{self.tournament_name} ({self.date})"
+        return self.tournament_name
 
 
 class TournamentPlayer(models.Model):
@@ -30,7 +32,11 @@ class TournamentPlayer(models.Model):
 
 class PongMatch(models.Model):
     user1 = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="initiated_matches"
+        User,
+        on_delete=models.CASCADE,
+        related_name="initiated_matches",
+        null=True,
+        blank=True,
     )
     player1 = models.ForeignKey(
         Player, on_delete=models.CASCADE, related_name="matches_as_player1"
