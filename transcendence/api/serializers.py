@@ -18,18 +18,32 @@ class TournamentPlayerSerializer(serializers.ModelSerializer):
 
 
 class PongMatchSerializer(serializers.ModelSerializer):
+    player1_name = serializers.SerializerMethodField()
+    player2_name = serializers.SerializerMethodField()
+
     class Meta:
         model = PongMatch
         fields = [
+            "id",
             "player1",
             "player2",
+            "sets_to_win",
+            "points_per_set",
             "player1_sets_won",
             "player2_sets_won",
             "winner",
             "date_played",
-            "sets_to_win",
-            "points_per_set",
+            "is_tournament_match",
+            "tournament",
+            "player1_name",
+            "player2_name",
         ]
+
+    def get_player1_name(self, obj):
+        return obj.player1.user.username if obj.player1.user else obj.player1.player
+
+    def get_player2_name(self, obj):
+        return obj.player2.user.username if obj.player2.user else obj.player2.player
 
 
 class PongSetSerializer(serializers.ModelSerializer):

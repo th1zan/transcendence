@@ -10,6 +10,7 @@ from .views import (
     PongScoreView,
     TournamentCreationView,
     TournamentMatchesView,
+    TournamentSearchView,
     UserRegisterView,
 )
 
@@ -24,8 +25,9 @@ urlpatterns = [
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
-        "api/tournament/matches/",
+        "tournament/matches/",
         TournamentMatchesView.as_view(),
         name="tournament_matches",
     ),
+    path("tournaments/", TournamentSearchView.as_view(), name="search_tournaments"),
 ]

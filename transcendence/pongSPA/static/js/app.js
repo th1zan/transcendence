@@ -1,5 +1,5 @@
 import { startGameSetup } from "./pong.js";
-import { createTournamentForm } from "./tournament.js";
+import { createTournamentForm, validateSearch } from "./tournament.js";
 import {
   getToken,
   refreshToken,
@@ -25,13 +25,15 @@ document.addEventListener("DOMContentLoaded", () => {
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-      <h2>Connexion !!!</h2>
+      <h1>Connexion</h1>
       <form id="loginForm">
-        <input type="text" id="username" class="form-control" placeholder="Nom d'utilisateur" required />
+        <input type="text" id="username" placeholder="Nom d'utilisateur" required />
+        <br>
         <input type="password" id="password" placeholder="Mot de passe" required />
+        <br>
         <button type="submit" class="btn btn-success" >Se connecter</button>
       </form>
-      <button id="newTournamentButton">Créer un nouveau tournoi</button> 
+      <br>
       <button id="signupButton" class="btn btn-primary">Créer un compte</button>
     `;
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
@@ -48,9 +50,6 @@ export function displayConnectionFormular() {
   document
     .getElementById("signupButton")
     .addEventListener("click", displayRegistrationForm);
-  document
-    .getElementById("newTournamentButton")
-    .addEventListener("click", createTournamentForm);
 }
 
 function displayRegistrationForm() {
@@ -59,9 +58,13 @@ function displayRegistrationForm() {
       <h2>Créer un compte</h2>
       <form id="signupForm">
         <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required />
+        <br>
         <input type="password" id="newPassword" placeholder="Mot de passe" required />
+        <br>
         <button type="submit">Créer un compte</button>
       </form>
+      <br>
+      <br>
       <button id="backToLoginButton">Retour à la connexion</button>
     `;
 
@@ -83,21 +86,48 @@ export function displayWelcomePage(username) {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
-    <div id="resultats"></div>
+    <br>
+    <br>
+    <h3>Jouer une partie</h2>
     <button id="playButton">Jouer</button>
+    <br>
+    <br>
+    <h3>Tournoi</h3>
+    <b>Créer un nouveau tournoi</b>
+    <button id="newTournamentButton">Créer un nouveau tournoi</button> 
+    <br>
+    <br>
+    <b>Rechercher un tournoi</b>
+    <div id="searchTournament">
+      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
+      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher</button>
+    </div>
+    <br>
+    <br>
+    <div id="tournamentList"></div>
+    <br>
+    <h3>Gestion du compte</h3>
     <button id="logoutButton">Déconnexion</button>
+    <br>
     <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
+    <br>
+    <br>
+    <h3>Statistiques</h3>
+    <div id="resultats"></div>
   `;
 
+  // Afficher les résultats
   fetchResultats(username);
-  // Attach event listeners to buttons
-  document
-    .getElementById("deleteAccountButton")
-    .addEventListener("click", deleteAccount);
-  document.getElementById("logoutButton").addEventListener("click", logout);
+
+  // Attacher les écouteurs d'événements aux boutons
   document.getElementById("playButton").addEventListener("click", () => {
     displayGameForm(username); // Affiche le formulaire de jeu
   });
+  
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("tournamentSearchButton").addEventListener("click", validateSearch);
+  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
 }
 
 function fetchResultats(username) {
@@ -141,13 +171,14 @@ function fetchResultats(username) {
     });
 }
 
+
 function displayGameForm(username) {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h1>Pong Game</h1>
     <form id="gameForm">
       <label for="player1">Player 1 Name:</label>
-     <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
+      <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
       <label for="player2">Player 2 Name:</label>
       <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
       <label for="numberOfGames">Number of Games:</label>
@@ -163,7 +194,12 @@ function displayGameForm(username) {
     </div>
   `;
   console.log("Valeur de username dans displayGameForm :", username);
-  document
-    .getElementById("startGameButton")
-    .addEventListener("click", () => startGameSetup(username));
+  
+  document.getElementById("startGameButton").addEventListener("click", () => {
+    const player1 = username;
+    const player2 = document.getElementById("player2").value.trim();
+    const numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
+    const pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 3;
+    startGameSetup(player1, player2, numberOfGames, pointsToWin, "solo");
+  });
 }

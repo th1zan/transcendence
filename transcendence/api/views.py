@@ -19,10 +19,12 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
-
 
 from .models import Player, PongMatch, Tournament, TournamentPlayer
 from .serializers import (
@@ -316,7 +318,10 @@ class TournamentCreationView(APIView):
             generate_matches(tournament_id, number_of_games, points_to_win)
 
             return Response(
-                {"message": "Tournament, players, and matches added successfully"},
+                {
+                    "message": "Tournament, players, and matches added successfully",
+                    "tournament_id": tournament_id,
+                },
                 status=status.HTTP_201_CREATED,
             )
         else:
@@ -356,15 +361,16 @@ class TournamentMatchesView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        tournament_name = request.GET.get("tournament_name")
-        if not tournament_name:
+        tournament_id = request.GET.get("tournament_id")
+        if not tournament_id:
             return Response(
-                {"error": "Tournament name is required"},
+                {"error": "Tournament ID is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            tournament = Tournament.objects.get(tournament_name=tournament_name)
+            # Utilisez 'id' pour accéder à l'identifiant du tournoi
+            tournament = Tournament.objects.get(id=tournament_id)
             matches = PongMatch.objects.filter(tournament=tournament)
             serializer = PongMatchSerializer(matches, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -373,3 +379,16 @@ class TournamentMatchesView(APIView):
                 {"error": "Tournament not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+
+class TournamentSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        name = request.GET.get("name", "")
+        tournaments = Tournament.objects.filter(tournament_name__icontains=name)
+        data = [
+            {"id": t.id, "tournament_name": t.tournament_name, "date": t.date}
+            for t in tournaments
+        ]
+        return JsonResponse(data, safe=False)

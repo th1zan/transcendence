@@ -1,11 +1,13 @@
-let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 import { displayWelcomePage } from "./app.js";
+import { DisplayTournamentGame } from "./tournament.js";
 
+let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 // Variables globales pour suivre les scores et le jeu
 let user1 = "default_user1";
 let user2 = "default_user2";
 let player1 = "default_player1";
 let player2 = "default_player2";
+let context = "solo"
 let numberOfGames = 1;
 let pointsToWin = 1;
 let currentGame = 0;
@@ -37,29 +39,49 @@ function startPongGame() {
   }, 1000 / fps);
 }
 
-export function startGameSetup(username) {
-  console.log("Username from localStorage:", localStorage.getItem("username"));
-  // const storedUsername = localStorage.getItem("username");
-  // if (storedUsername) {
-    // user1 = storedUsername;
-  // } else {
-  //   console.warn("Aucun nom d'utilisateur trouvé dans le localStorage.");
-  //   user1 = "user1"; // valeur par défaut si le nom d'utilisateur n'est pas stocké
-  // }
- console.log("Valeur de username dans startGameSetup:", username); 
-  player1 = username;
-  console.log("Valeur de player1 avant l'envoi :", player1); 
-  player2 = document.getElementById("player2").value.trim();
-  numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
-  pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 2;
-  document.getElementById("gameForm").style.display = "none";
-  document.getElementById("pong").style.display = "block";
+export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
+  // Mettre à jour les variables globales
+  user1 = p1;
+  user2 = p2;
+  player1 = p1;
+  player2 = p2;
+  numberOfGames = numGames;
+  pointsToWin = ptsToWin;
+  context = ctxt;
 
-  currentGame = 0; // Initialiser le compteur de parties
+  console.log("Valeur de player1 dans startGameSetup:", player1);
+  console.log("Valeur de player2 dans startGameSetup:", player2);
+
+  // Vérifier et créer pong si nécessaire
+  let pongCanvas = document.getElementById("pong");
+  if (!pongCanvas) {
+    pongCanvas = document.createElement('canvas');
+    pongCanvas.id = "pong";
+    pongCanvas.width = 800; // Définir la largeur du canvas
+    pongCanvas.height = 400; // Définir la hauteur du canvas
+    document.body.appendChild(pongCanvas);
+  }
+  pongCanvas.style.display = "block";
+
+  // Gérer l'affichage en fonction du contexte
+  if (context === "tournament") {
+    // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
+    document.getElementById("tournamentMatches").style.display = "none";
+  } else if (context === "solo") {
+    // Si le contexte est solo, cacher tout le formulaire de jeu
+    let gameForm = document.getElementById("gameForm");
+    if (gameForm) {
+      gameForm.style.display = "none";
+    }
+  }
+
+  // Initialiser les scores et l'historique des sets
+  currentGame = 0;
   player1Wins = 0;
   player2Wins = 0;
-  setHistory = []; // Réinitialiser l'historique des sets
+  setHistory = [];
 
+  // Démarrer le jeu Pong
   startPongGame();
 }
 
@@ -70,6 +92,11 @@ function resetScores() {
 
 function update() {
   ball.x += ball.velocityX;
+// liser le compteur de parties
+  player1Wins = 0;
+  player2Wins = 0;
+  setHistory = []; // Réinitialiser l'historique des sets
+
   ball.y += ball.velocityY;
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
@@ -133,8 +160,22 @@ function handleGameEnd(winner) {
 function displayResults(finalWinner) {
   const username = localStorage.getItem("username");
 
-  document.getElementById("pong").style.display = "none";
-  document.getElementById("result").style.display = "block";
+  // Vérifiez et créez l'élément result si nécessaire
+  let resultDiv = document.getElementById("result");
+  if (!resultDiv) {
+    resultDiv = document.createElement('div');
+    resultDiv.id = "result";
+    document.body.appendChild(resultDiv);
+  }
+
+  // Masquer le canvas pong
+  const pongCanvas = document.getElementById("pong");
+  if (pongCanvas) {
+    pongCanvas.style.display = "none";
+  }
+
+  // Afficher le résultat
+  resultDiv.style.display = "block";
 
   let summary = `
     ${player1}: ${player1Wins} wins<br>
@@ -150,12 +191,30 @@ function displayResults(finalWinner) {
     summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
   });
 
-  document.getElementById("summary").innerHTML = summary;
+  // Assurez-vous que l'élément summary existe
+  let summaryDiv = document.getElementById("summary");
+  if (!summaryDiv) {
+    summaryDiv = document.createElement('div');
+    summaryDiv.id = "summary";
+    resultDiv.appendChild(summaryDiv);
+  }
+  summaryDiv.innerHTML = summary;
 
   // Attacher un écouteur d'événement au bouton après l'insertion dans le DOM
-  document.getElementById("backButton").addEventListener("click", () => {
-    displayWelcomePage(username);
-  });
+   const backButton = document.getElementById("backButton");
+  if (backButton) {
+    backButton.addEventListener("click", () => {
+      summaryDiv.innerHTML = ""; // Effacer le summary
+
+      if (typeof context !== 'undefined' && context !== "solo") {
+        const tournamentName = localStorage.getItem("tournamentName")
+        DisplayTournamentGame(tournamentName);
+      } else {
+        // Retourner à la page d'accueil si context est "solo"
+        displayWelcomePage(username);
+      }
+    });
+  }
 }
 
 // Dimensions et objets du jeu
@@ -267,35 +326,40 @@ function resetBall() {
 
 // Envoyer le score au serveur
 function sendScore() {
-  // const token = localStorage.getItem("access_token");
+  // Initialiser les variables
+  let tournament = null;
+  let isTournamentMatch = false;
 
-  // if (!token) {
-  //   console.error("Token non trouvé. Veuillez vous reconnecter.");
-  //   return;
-  // }
-  //
+  // Vérifier le contexte
+  if (typeof context !== 'undefined' && context !== "solo") {
+    const tournamentID = localStorage.getItem("tournamentId");
+    if (tournamentID) {
+      tournament = tournamentID;
+      isTournamentMatch = true;
+    }
+  }
+
   console.log("Valeur de player1 avant l'envoi :", player1); 
-  // Vérifiez le contenu de setHistory avant l'envoi
   console.log("setHistory avant l'envoi:", setHistory);
 
   fetch("/api/scores/", {
     method: "POST",
     credentials: "include", // Include cookies in the request
-    // credentials: "omit", // Omit all credentials from the request
     headers: {
       "Content-Type": "application/json",
-      // Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      user1 : user1,
-      player1 : player1,
-      user2 : user2,
-      player2 : player2,
+      user1: user1,
+      player1: player1,
+      user2: user2,
+      player2: player2,
       sets: setHistory, // Utilise l'historique des sets
       player1_sets_won: player1Wins,
       player2_sets_won: player2Wins,
       sets_to_win: numberOfGames,
       points_per_set: pointsToWin,
+      tournament: tournament, // Ajouter le tournoi
+      is_tournament_match: isTournamentMatch, // Ajouter le match de tournoi
     }),
   })
     .then((response) => {

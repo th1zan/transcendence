@@ -1,40 +1,55 @@
-class PongScoreView(APIView):
-    permission_classes = [IsAuthenticated]
+function DisplayTournamentGame(tournamentName) {
+  const tournamentId = localStorage.getItem("tournamentId");
 
-    def post(self, request):
-        match_data = request.data
-        sets_data = match_data.pop("sets", [])
+  if (!tournamentId) {
+    console.error("Aucun ID de tournoi trouvé. Veuillez créer un tournoi d'abord.");
+    return;
+  }
 
-        # Convertir les noms en objets User et Player
-        try:
-            user1 = get_object_or_404(User, username=match_data['user1'])
-            user2 = get_object_or_404(User, username=match_data['user2']) if match_data['user2'] else None
-            player1 = get_object_or_404(Player, name=match_data['player1'])
-            player2 = get_object_or_404(Player, name=match_data['player2'])
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+  fetch(`/api/tournament/matches/?tournament_id=${tournamentId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Matchs du tournoi :", data);
+      // Afficher les matchs dans l'interface utilisateur
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la récupération des matchs du tournoi :", error);
+    });
+}
 
-        # Remplacer les noms par des identifiants dans match_data
-        match_data['user1'] = user1.id
-        match_data['user2'] = user2.id if user2 else None
-        match_data['player1'] = player1.id
-        match_data['player2'] = player2.id
 
-        match_serializer = PongMatchSerializer(data=match_data)
-        if match_serializer.is_valid():
-            match = match_serializer.save()
 
-            for set_data in sets_data:
-                # Associe le match ID à chaque set
-                set_data["match"] = match.id
-                set_serializer = PongSetSerializer(data=set_data)
-                if set_serializer.is_valid():
-                    set_serializer.save()
-                else:
-                    return Response(
-                        set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            return Response(match_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
+  fetch("/api/tournament/new/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: tournamentName,
+      players: players,
+      number_of_games: numberOfGames,
+      points_to_win: pointsToWin,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Tournoi créé :", data);
+      const tournamentId = data.id; // Assurez-vous que l'API renvoie l'ID
+      // Stockez l'ID du tournoi pour une utilisation future
+      localStorage.setItem("tournamentId", tournamentId);
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la création du tournoi :", error);
+    });
+}
