@@ -293,7 +293,7 @@ function sendScore() {
       player2 : player2,
       sets: setHistory, // Utilise l'historique des sets
       player1_sets_won: player1Wins,
-      player_sets_won: player2Wins,
+      player2_sets_won: player2Wins,
       sets_to_win: numberOfGames,
       points_per_set: pointsToWin,
     }),

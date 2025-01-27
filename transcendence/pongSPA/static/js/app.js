@@ -101,37 +101,31 @@ export function displayWelcomePage(username) {
 }
 
 function fetchResultats(username) {
-  // const token = localStorage.getItem("access_token");
-  // if (!token) {
-  //   console.error("Token non trouvé. Veuillez vous reconnecter.");
-  //   return;
-  // }
-
   fetch(`/api/results/?user1=${username}`, {
     method: "GET",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      // Authorization: `Bearer ${token}`,
     },
   })
     .then((response) => response.json())
     .then((data) => {
+      console.log(data); // Vérifiez ce que vous recevez
       const resultatsDiv = document.getElementById("resultats");
       resultatsDiv.innerHTML = "<h3>Vos résultats :</h3>";
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((match) => {
-          // Ajustez selon la structure de votre PongMatch
-          const date = new Date(match.date_played).toLocaleString();
-          const tournamentInfo = match.tournament
-            ? ` (Tournoi: ${match.tournament_name})`
-            : "";
+          // Vérifiez et utilisez les bonnes propriétés
+          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Date inconnue";
+          const user1 = match.user1 || "Joueur 1 inconnu";
+          const user2 = match.user2 || "Joueur 2 inconnu";
           const winner = match.winner || "En cours";
-          const score = `${match.user1_sets_won} - ${match.user2_sets_won}`;
+          const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+          const tournamentInfo = match.tournament ? ` (Tournoi: ${match.tournament_name || 'Inconnu'})` : "";
 
           resultatsDiv.innerHTML += `
               <p>
-                  ${date} - ${match.user1} vs ${match.user2} - 
+                  ${date} - ${user1} vs ${user2} - 
                   Score: ${score} - 
                   Winner: ${winner}${tournamentInfo}
                   <br>
