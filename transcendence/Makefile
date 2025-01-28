@@ -40,6 +40,7 @@ clean:
 		echo "No containers to remove."; \
 	fi
 
+
 # Remove the Docker image
 remove-image:
 	docker rmi $(IMAGE_NAME)
