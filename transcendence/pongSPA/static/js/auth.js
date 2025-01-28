@@ -27,7 +27,7 @@ export function getToken(username, password) {
         //   console.log(localStorage.getItem("access_token"));
         //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
         localStorage.setItem("username", username); // Stocker le nom d'utilisateur
-        displayWelcomePage(username);
+        displayWelcomePage();
       } else {
         alert("Connection error. Please retry.");
       }
@@ -108,7 +108,6 @@ export function logout() {
 export function createAccount(newUsername, newPassword) {
   fetch("/api/auth/register/", {
     method: "POST",
-    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -118,11 +117,11 @@ export function createAccount(newUsername, newPassword) {
       if (!response.ok) {
         return response.json().then((data) => {
           throw new Error(
-            data.error || "Erreur lors de la création du compte.",
+            data.detail || data.error || "Erreur lors de la création du compte."
           );
-        });
-      }
-      return response.json();
+      });
+    }
+    return response.json();
     })
     .then((data) => {
       if (data.success) {

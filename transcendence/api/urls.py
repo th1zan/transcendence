@@ -8,6 +8,7 @@ from .views import (
     PongMatchDetail,
     PongMatchList,
     PongScoreView,
+    RankingView,
     TournamentCreationView,
     TournamentMatchesView,
     TournamentSearchView,
@@ -18,6 +19,7 @@ urlpatterns = [
     path("results/", PongMatchList.as_view(), name="pongmatch-list"),
     path("results/<int:pk>/", PongMatchDetail.as_view(), name="pongmatch-detail"),
     path("scores/", PongScoreView.as_view(), name="pong-score"),
+    path("scores/<int:pk>/", PongScoreView.as_view(), name="pong-score-detail"),
     path("auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
@@ -29,5 +31,6 @@ urlpatterns = [
         TournamentMatchesView.as_view(),
         name="tournament_matches",
     ),
+    path("ranking/", RankingView.as_view(), name="ranking"),
     path("tournaments/", TournamentSearchView.as_view(), name="search_tournaments"),
 ]
