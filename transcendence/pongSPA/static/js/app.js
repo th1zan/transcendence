@@ -25,16 +25,45 @@ document.addEventListener("DOMContentLoaded", () => {
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-      <h1>Connexion</h1>
-      <form id="loginForm">
-        <input type="text" id="username" placeholder="Nom d'utilisateur" required />
-        <br>
-        <input type="password" id="password" placeholder="Mot de passe" required />
-        <br>
-        <button type="submit" class="btn btn-success" >Se connecter</button>
-      </form>
-      <br>
-      <button id="signupButton" class="btn btn-primary">Créer un compte</button>
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+      <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
+        <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
+        <form id="loginForm">
+          <div class="form-group mb-4">
+            <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
+            <input 
+              type="text" 
+              id="username" 
+              class="form-control form-control-lg" 
+              placeholder="Entrez votre nom" 
+              required 
+            />
+          </div>
+          <div class="form-group mb-5">
+            <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Mot de passe</label>
+            <input 
+              type="password" 
+              id="password" 
+              class="form-control form-control-lg" 
+              placeholder="Entrez votre mot de passe" 
+              required 
+            />
+          </div>
+          <button 
+            type="submit" 
+            class="btn btn-success w-100 py-3" 
+            style="font-size: 1.3rem;">
+            Se connecter
+          </button>
+        </form>
+        <button 
+          id="signupButton" 
+          class="btn btn-primary w-100 mt-4 py-3" 
+          style="font-size: 1.3rem;">
+          Créer un compte
+        </button>
+      </div>
+    </div>
     `;
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
@@ -52,20 +81,49 @@ export function displayConnectionFormular() {
     .addEventListener("click", displayRegistrationForm);
 }
 
+// creation du compte 
 function displayRegistrationForm() {
   const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-      <h2>Créer un compte</h2>
-      <form id="signupForm">
-        <input type="text" id="newUsername" placeholder="Nom d'utilisateur" required />
-        <br>
-        <input type="password" id="newPassword" placeholder="Mot de passe" required />
-        <br>
-        <button type="submit">Créer un compte</button>
-      </form>
-      <br>
-      <br>
-      <button id="backToLoginButton">Retour à la connexion</button>
+    appDiv.innerHTML = `
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+      <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
+        <h2 class="text-center mb-5" style="color: #007bff; font-size: 2.5rem;">Créer un compte</h2>
+        <form id="signupForm">
+          <div class="form-group mb-4">
+            <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
+            <input 
+              type="text" 
+              id="newUsername" 
+              class="form-control form-control-lg" 
+              placeholder="Entrez votre nom d'utilisateur" 
+              required 
+            />
+          </div>
+          <div class="form-group mb-5">
+            <label for="newPassword" style="font-size: 1.2rem;"><i class="bi bi-lock"></i> Mot de passe</label>
+            <input 
+              type="password" 
+              id="newPassword" 
+              class="form-control form-control-lg" 
+              placeholder="Entrez votre mot de passe" 
+              required 
+            />
+          </div>
+          <button 
+            type="submit" 
+            class="btn btn-success w-100 py-3" 
+            style="font-size: 1.3rem;">
+            Créer le compte
+          </button>
+        </form>
+        <button 
+          id="backToLoginButton" 
+          class="btn btn-primary w-100 mt-4 py-3" 
+          style="font-size: 1.3rem;">
+          Retour à la connexion
+        </button>
+      </div>
+    </div>
     `;
 
   document
