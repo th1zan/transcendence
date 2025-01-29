@@ -1,10 +1,11 @@
 import logging
 import uuid  # Pour générer un pseudonyme aléatoire
+from itertools import combinations
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -18,12 +19,14 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
-
-from .models import Player, PongMatch, Tournament, TournamentPlayer
+from .models import Player, PongMatch, PongSet, Tournament, TournamentPlayer
 from .serializers import (
     PongMatchSerializer,
     PongSetSerializer,
@@ -106,13 +109,78 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
+            # Retourner une réponse réussie avec les données du match
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            match = PongMatch.objects.get(pk=pk)
+        except PongMatch.DoesNotExist:
+            return Response(
+                {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        match_data = request.data
+        sets_data = match_data.pop("sets", [])
+
+        # Récupérer l'utilisateur connecté pour user1
+        user1 = request.user
+
+        # Vérifier si player1 existe, sinon le créer
+        player1_name = match_data["player1"]
+        player1, created = Player.objects.get_or_create(
+            player=player1_name, defaults={"user": user1}
+        )
+
+        # Gérer player2 comme un joueur invité
+        player2_name = match_data["player2"]
+        player2, created = Player.objects.get_or_create(player=player2_name)
+
+        # Remplacer les noms par des identifiants dans match_data
+        match_data["user1"] = user1.id
+        match_data["user2"] = None  # Pas de user2 pour le moment
+        match_data["player1"] = player1.id
+        match_data["player2"] = player2.id
+
+        # Mettre à jour les champs du match
+        match_serializer = PongMatchSerializer(match, data=match_data, partial=True)
+        if match_serializer.is_valid():
+            match = match_serializer.save()
+
+            # Mettre à jour les sets associés
+            for set_data in sets_data:
+                set_id = set_data.get("id")
+                if set_id:
+                    try:
+                        pong_set = PongSet.objects.get(pk=set_id, match=match)
+                        set_serializer = PongSetSerializer(
+                            pong_set, data=set_data, partial=True
+                        )
+                    except PongSet.DoesNotExist:
+                        return Response(
+                            {"error": "Set not found."},
+                            status=status.HTTP_404_NOT_FOUND,
+                        )
+                else:
+                    # Créer un nouveau set si l'ID n'est pas fourni
+                    set_data["match"] = match.id
+                    set_serializer = PongSetSerializer(data=set_data)
+
+                if set_serializer.is_valid():
+                    set_serializer.save()
+                else:
+                    return Response(
+                        set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            return Response(match_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -141,7 +209,6 @@ class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
             return Response(
@@ -164,37 +231,64 @@ class CustomTokenRefreshView(TokenRefreshView):
         return response
 
 
+# class UserRegisterView(APIView):
+#     permission_classes = [AllowAny]
+#     serializer_class = UserRegisterSerializer
+#
+#     def post(self, request):
+#         username = request.data.get("username")
+#         password = request.data.get("password")
+#
+#         if not username or not password:
+#             return Response(
+#                 {"error": "Username and password are required."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         if User.objects.filter(username=username).exists():
+#             return Response(
+#                 {"error": "Username already exists."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
+#             return Response(
+#                 {"error": "Password must be at least 3 characters long."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         user = User.objects.create(username=username, password=make_password(password))
+#
+#         return Response(
+#             {"success": "User created successfully."}, status=status.HTTP_201_CREATED
+#         )
+
+
+logger = logging.getLogger(__name__)
+
+
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-
-        if not username or not password:
-            return Response(
-                {"error": "Username and password are required."},
-                status=status.HTTP_400_BAD_REQUEST,
+        logger.info("Received data: %s", request.data)
+        serializer = self.serializer_class(data=request.data)
+        logger.info("Serializer validation result: %s", serializer.is_valid())
+        if serializer.is_valid():
+            logger.info("Creating user with data: %s", serializer.validated_data)
+            user = User.objects.create_user(
+                username=serializer.validated_data.get("username"),
+                password=serializer.validated_data.get("password"),
             )
-
-        if User.objects.filter(username=username).exists():
+            logger.info("User created: %s", user.username)
             return Response(
-                {"error": "Username already exists."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"success": "User created successfully."},
+                status=status.HTTP_201_CREATED,
             )
-
-        if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
-            return Response(
-                {"error": "Password must be at least 3 characters long."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user = User.objects.create(username=username, password=make_password(password))
-
-        return Response(
-            {"success": "User created successfully."}, status=status.HTTP_201_CREATED
-        )
+        else:
+            logger.error("Validation errors: %s", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
@@ -254,9 +348,15 @@ class TournamentCreationView(APIView):
     def post(self, request):
         tournament_data = request.data.get("tournament_name")
         players_data = request.data.get("players", [])
+        number_of_games = request.data.get(
+            "number_of_games", 1
+        )  # Valeur par défaut à 1
+        points_to_win = request.data.get("points_to_win", 3)  # Valeur par défaut à 3
 
         logger.debug(f"Tournament data: {tournament_data}")
         logger.debug(f"Players data: {players_data}")
+        logger.debug(f"Number of games: {number_of_games}")
+        logger.debug(f"Points to win: {points_to_win}")
 
         if not tournament_data:
             return Response(
@@ -264,22 +364,57 @@ class TournamentCreationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # 1. Création du tournoi
         tournament_serializer = TournamentSerializer(
-            data={"tournament_name": tournament_data, "date": timezone.now().date()}
+            data={
+                "tournament_name": tournament_data,
+                "date": timezone.now().date(),
+                "number_of_games": number_of_games,
+                "points_to_win": points_to_win,
+            }
         )
         if tournament_serializer.is_valid():
             tournament = tournament_serializer.save()
+            tournament_id = tournament.id
 
-            for player_pseudo in players_data:
-                logger.debug(f"Processing player: {player_pseudo}")
-                player, created = Player.objects.get_or_create(pseudo=player_pseudo)
+            # 2. Gestion des joueurs
+            players = []
+            for player_player in players_data:
+                logger.debug(f"Processing player: {player_player}")
+
+                # Vérifier si un utilisateur avec ce pseudo existe
+                try:
+                    user = User.objects.get(username=player_player)
+                    player, created = Player.objects.get_or_create(
+                        player=player_player, defaults={"user": user}
+                    )
+                    if (
+                        not created
+                    ):  # Si le joueur existait déjà, mettre à jour le champ user si nécessaire
+                        if player.user is None:
+                            player.user = user
+                            player.save()
+                except User.DoesNotExist:
+                    # Si l'utilisateur n'existe pas, le joueur est un "guest"
+                    player, created = Player.objects.get_or_create(player=player_player)
+
                 logger.debug(
-                    f"Player {player_pseudo} created: {created}, player: {player}"
+                    f"Player {player_player} created: {created}, player: {player}"
                 )
+                players.append(player)
+
+            # 3. Association des joueurs au tournoi
+            for player in players:
                 TournamentPlayer.objects.create(player=player, tournament=tournament)
 
+            # 4. Génération des matchs
+            generate_matches(tournament_id, number_of_games, points_to_win)
+
             return Response(
-                {"message": "Tournament and players added successfully"},
+                {
+                    "message": "Tournament, players, and matches added successfully",
+                    "tournament_id": tournament_id,
+                },
                 status=status.HTTP_201_CREATED,
             )
         else:
@@ -289,3 +424,81 @@ class TournamentCreationView(APIView):
             return Response(
                 tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+def generate_matches(tournament_id, number_of_games, points_to_win):
+    # Récupérer tous les joueurs associés au tournoi
+    tournament_players = TournamentPlayer.objects.filter(tournament_id=tournament_id)
+    players = [tp.player for tp in tournament_players]
+
+    # Générer tous les matchs possibles
+    matches = combinations(players, 2)
+
+    # Enregistrer les matchs dans le modèle PongMatch
+    for player1, player2 in matches:
+        PongMatch.objects.create(
+            tournament_id=tournament_id,
+            player1=player1,
+            player2=player2,
+            user1=player1.user,  # Peut être None
+            user2=player2.user,  # Peut être None
+            sets_to_win=number_of_games,
+            points_per_set=points_to_win,
+            is_tournament_match=True,  # Indiquer que c'est un match de tournoi
+        )
+
+    logger.debug(f"Matches generated for tournament {tournament_id}")
+
+
+class TournamentMatchesView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        tournament_id = request.GET.get("tournament_id")
+        if not tournament_id:
+            return Response(
+                {"error": "Tournament ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Utilisez 'id' pour accéder à l'identifiant du tournoi
+            tournament = Tournament.objects.get(id=tournament_id)
+            matches = PongMatch.objects.filter(tournament=tournament)
+            serializer = PongMatchSerializer(matches, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class TournamentSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        name = request.GET.get("name", "")
+        tournaments = Tournament.objects.filter(tournament_name__icontains=name)
+        data = [
+            {"id": t.id, "tournament_name": t.tournament_name, "date": t.date}
+            for t in tournaments
+        ]
+        return JsonResponse(data, safe=False)
+
+
+class RankingView(APIView):
+    def get(self, request):
+        # Calculer le nombre de victoires pour chaque joueur
+        players = Player.objects.all()
+        ranking_data = []
+
+        for player in players:
+            total_wins = PongMatch.objects.filter(Q(winner=player.player)).count()
+
+            ranking_data.append({"name": player.player, "total_wins": total_wins})
+
+        # Trier le classement par nombre de victoires décroissant
+        ranking_data.sort(key=lambda x: x["total_wins"], reverse=True)
+
+        return Response(ranking_data)
