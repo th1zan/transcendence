@@ -40,6 +40,14 @@ clean:
 		echo "No containers to remove."; \
 	fi
 
+#remove database and cache files
+remove-db:
+	@echo "🗑️ Removing database and cache files..."; \
+	rm -f db.sqlite3; \
+	rm -rf api/__pycache__/*; \
+	rm -rf api/migrations/__pycache__/*; \
+	rm -f api/migrations/000*; \
+	echo "✅ Database and cache files removed."
 
 # Remove the Docker image
 remove-image:
