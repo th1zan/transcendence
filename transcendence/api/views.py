@@ -5,7 +5,7 @@ from itertools import combinations
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -26,7 +26,7 @@ from rest_framework_simplejwt.token_blacklist.models import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Player, PongMatch, Tournament, TournamentPlayer
+from .models import Player, PongMatch, PongSet, Tournament, TournamentPlayer
 from .serializers import (
     PongMatchSerializer,
     PongSetSerializer,
@@ -109,7 +109,73 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
+            # Retourner une réponse réussie avec les données du match
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            match = PongMatch.objects.get(pk=pk)
+        except PongMatch.DoesNotExist:
+            return Response(
+                {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        match_data = request.data
+        sets_data = match_data.pop("sets", [])
+
+        # Récupérer l'utilisateur connecté pour user1
+        user1 = request.user
+
+        # Vérifier si player1 existe, sinon le créer
+        player1_name = match_data["player1"]
+        player1, created = Player.objects.get_or_create(
+            player=player1_name, defaults={"user": user1}
+        )
+
+        # Gérer player2 comme un joueur invité
+        player2_name = match_data["player2"]
+        player2, created = Player.objects.get_or_create(player=player2_name)
+
+        # Remplacer les noms par des identifiants dans match_data
+        match_data["user1"] = user1.id
+        match_data["user2"] = None  # Pas de user2 pour le moment
+        match_data["player1"] = player1.id
+        match_data["player2"] = player2.id
+
+        # Mettre à jour les champs du match
+        match_serializer = PongMatchSerializer(match, data=match_data, partial=True)
+        if match_serializer.is_valid():
+            match = match_serializer.save()
+
+            # Mettre à jour les sets associés
+            for set_data in sets_data:
+                set_id = set_data.get("id")
+                if set_id:
+                    try:
+                        pong_set = PongSet.objects.get(pk=set_id, match=match)
+                        set_serializer = PongSetSerializer(
+                            pong_set, data=set_data, partial=True
+                        )
+                    except PongSet.DoesNotExist:
+                        return Response(
+                            {"error": "Set not found."},
+                            status=status.HTTP_404_NOT_FOUND,
+                        )
+                else:
+                    # Créer un nouveau set si l'ID n'est pas fourni
+                    set_data["match"] = match.id
+                    set_serializer = PongSetSerializer(data=set_data)
+
+                if set_serializer.is_valid():
+                    set_serializer.save()
+                else:
+                    return Response(
+                        set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            return Response(match_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -165,37 +231,64 @@ class CustomTokenRefreshView(TokenRefreshView):
         return response
 
 
+# class UserRegisterView(APIView):
+#     permission_classes = [AllowAny]
+#     serializer_class = UserRegisterSerializer
+#
+#     def post(self, request):
+#         username = request.data.get("username")
+#         password = request.data.get("password")
+#
+#         if not username or not password:
+#             return Response(
+#                 {"error": "Username and password are required."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         if User.objects.filter(username=username).exists():
+#             return Response(
+#                 {"error": "Username already exists."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
+#             return Response(
+#                 {"error": "Password must be at least 3 characters long."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         user = User.objects.create(username=username, password=make_password(password))
+#
+#         return Response(
+#             {"success": "User created successfully."}, status=status.HTTP_201_CREATED
+#         )
+
+
+logger = logging.getLogger(__name__)
+
+
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-
-        if not username or not password:
-            return Response(
-                {"error": "Username and password are required."},
-                status=status.HTTP_400_BAD_REQUEST,
+        logger.info("Received data: %s", request.data)
+        serializer = self.serializer_class(data=request.data)
+        logger.info("Serializer validation result: %s", serializer.is_valid())
+        if serializer.is_valid():
+            logger.info("Creating user with data: %s", serializer.validated_data)
+            user = User.objects.create_user(
+                username=serializer.validated_data.get("username"),
+                password=serializer.validated_data.get("password"),
             )
-
-        if User.objects.filter(username=username).exists():
+            logger.info("User created: %s", user.username)
             return Response(
-                {"error": "Username already exists."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"success": "User created successfully."},
+                status=status.HTTP_201_CREATED,
             )
-
-        if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
-            return Response(
-                {"error": "Password must be at least 3 characters long."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user = User.objects.create(username=username, password=make_password(password))
-
-        return Response(
-            {"success": "User created successfully."}, status=status.HTTP_201_CREATED
-        )
+        else:
+            logger.error("Validation errors: %s", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
@@ -392,3 +485,20 @@ class TournamentSearchView(APIView):
             for t in tournaments
         ]
         return JsonResponse(data, safe=False)
+
+
+class RankingView(APIView):
+    def get(self, request):
+        # Calculer le nombre de victoires pour chaque joueur
+        players = Player.objects.all()
+        ranking_data = []
+
+        for player in players:
+            total_wins = PongMatch.objects.filter(Q(winner=player.player)).count()
+
+            ranking_data.append({"name": player.player, "total_wins": total_wins})
+
+        # Trier le classement par nombre de victoires décroissant
+        ranking_data.sort(key=lambda x: x["total_wins"], reverse=True)
+
+        return Response(ranking_data)

@@ -95,7 +95,7 @@ function update() {
 // liser le compteur de parties
   player1Wins = 0;
   player2Wins = 0;
-  setHistory = []; // Réinitialiser l'historique des sets
+  // setHistory = []; // Réinitialiser l'historique des sets
 
   ball.y += ball.velocityY;
 
@@ -187,6 +187,8 @@ function displayResults(finalWinner) {
     <h3>Set History:</h3>
   `;
 
+  console.log("setHistory lors de l'affichage des résultats :", setHistory);
+
   setHistory.forEach((set, index) => {
     summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
   });
@@ -208,7 +210,7 @@ function displayResults(finalWinner) {
 
       if (typeof context !== 'undefined' && context !== "solo") {
         const tournamentName = localStorage.getItem("tournamentName")
-        DisplayTournamentGame(tournamentName);
+        DisplayTournamentGame();
       } else {
         // Retourner à la page d'accueil si context est "solo"
         displayWelcomePage(username);
@@ -329,6 +331,7 @@ function sendScore() {
   // Initialiser les variables
   let tournament = null;
   let isTournamentMatch = false;
+  const matchID = localStorage.getItem("matchID");
 
   // Vérifier le contexte
   if (typeof context !== 'undefined' && context !== "solo") {
@@ -342,9 +345,24 @@ function sendScore() {
   console.log("Valeur de player1 avant l'envoi :", player1); 
   console.log("setHistory avant l'envoi:", setHistory);
 
-  fetch("/api/scores/", {
-    method: "POST",
-    credentials: "include", // Include cookies in the request
+  // Déterminer le gagnant
+  let winner = null;
+  if (player1Wins > player2Wins) {
+    winner = player1; // ID du joueur 1
+  } else if (player2Wins > player1Wins) {
+    winner = player2; // ID du joueur 2
+  }
+
+  // Déterminer la méthode HTTP à utiliser
+  const method = matchID ? "PUT" : "POST";
+  const url = matchID ? `/api/scores/${matchID}/` : "/api/scores/";
+
+  
+  console.log("methode :", method, " et match ID: ", matchID);
+
+  fetch(url, {
+    method: method,
+    credentials: "include", // Inclure les cookies dans la requête
     headers: {
       "Content-Type": "application/json",
     },
@@ -353,13 +371,14 @@ function sendScore() {
       player1: player1,
       user2: user2,
       player2: player2,
-      sets: setHistory, // Utilise l'historique des sets
+      sets: setHistory,
       player1_sets_won: player1Wins,
       player2_sets_won: player2Wins,
       sets_to_win: numberOfGames,
       points_per_set: pointsToWin,
-      tournament: tournament, // Ajouter le tournoi
-      is_tournament_match: isTournamentMatch, // Ajouter le match de tournoi
+      tournament: tournament,
+      is_tournament_match: isTournamentMatch,
+      winner: winner, // Ajouter le gagnant
     }),
   })
     .then((response) => {
