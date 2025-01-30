@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views
 from .views import (
+    AnonymizeAccountView,
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
     DeleteAccountView,
@@ -26,6 +27,7 @@ urlpatterns = [
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
+	path("api/anonymize-account/", AnonymizeAccountView.as_view(), name="anonymize-account"),
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(

@@ -1,10 +1,10 @@
 import logging
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
-
-from django.contrib.auth import authenticate
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -26,7 +26,7 @@ from rest_framework_simplejwt.token_blacklist.models import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Player, PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import CustomUser, Player, PongMatch, PongSet, Tournament, TournamentPlayer
 from .serializers import (
     PongMatchSerializer,
     PongSetSerializer,
@@ -35,8 +35,10 @@ from .serializers import (
     UserRegisterSerializer,
 )
 
-logger = logging.getLogger(__name__)
+CustomUser = get_user_model()  # Get the correct User model dynamically
 
+
+logger = logging.getLogger(__name__)
 
 class PongMatchList(generics.ListCreateAPIView):
     queryset = PongMatch.objects.all()
@@ -187,6 +189,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             tokens = response.data
+            user = CustomUser.objects.get(username=request.data.get("username"))
+            user.is_online = True  # Set user as online
+            user.update_last_seen()
+            user.save()
             response = JsonResponse({"message": "Login successful"})
             response.set_cookie(
                 key="access_token",
@@ -231,38 +237,6 @@ class CustomTokenRefreshView(TokenRefreshView):
         return response
 
 
-# class UserRegisterView(APIView):
-#     permission_classes = [AllowAny]
-#     serializer_class = UserRegisterSerializer
-#
-#     def post(self, request):
-#         username = request.data.get("username")
-#         password = request.data.get("password")
-#
-#         if not username or not password:
-#             return Response(
-#                 {"error": "Username and password are required."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-#
-#         if User.objects.filter(username=username).exists():
-#             return Response(
-#                 {"error": "Username already exists."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-#
-#         if len(password) < 3:  # Exemple de vérification pour un mot de passe trop court
-#             return Response(
-#                 {"error": "Password must be at least 3 characters long."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-#
-#         user = User.objects.create(username=username, password=make_password(password))
-#
-#         return Response(
-#             {"success": "User created successfully."}, status=status.HTTP_201_CREATED
-#         )
-
 
 logger = logging.getLogger(__name__)
 
@@ -288,9 +262,14 @@ class UserRegisterView(APIView):
                 )
 
             logger.info("Creating user with data: %s", serializer.validated_data)
-            user = User.objects.create_user(
-                username=username,
+            user = CustomUser.objects.create_user(
+                username=serializer.validated_data.get("username"),
                 password=serializer.validated_data.get("password"),
+            )
+            #Create a Player entry linked to this user
+            Player.objects.create(
+                user=user,
+                player=user.username,  # Set player name as username
             )
             logger.info("User created: %s", user.username)
 
@@ -320,6 +299,12 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
+            # Update user's online status and last seen timestamp
+            user = request.user
+            user.is_online = False  # Set user as offline
+            user.update_last_seen()
+            user.save()
+
             refresh_token = request.COOKIES.get("refresh_token")
             if refresh_token:
                 token = RefreshToken(refresh_token)
@@ -337,27 +322,65 @@ class LogoutView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DeleteAccountView(APIView):
+class AnonymizeAccountView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is logged in
 
-    def delete(self, request):
+    def post(self, request):
         user = request.user
         if user.is_authenticated:
-            # Delete related game history or other data before deleting the user
             # Generate a random pseudonym for the deleted user
-            random_username = f"deleteduser_{uuid.uuid4().hex[:12]}"
+            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:12]}"
 
             # Update matches where the user is user1 only
             PongMatch.objects.filter(user1=user.username).update(user1=random_username)
+            # Keep user1 but anonymize player1 (for match history)
+            PongMatch.objects.filter(player1__user=user).update(player1_name=anonymous_name)
+            PongMatch.objects.filter(player2__user=user).update(player2_name=anonymous_name)
 
-            user.delete()  # Deletes the user from the database
+            # Update winner field if this user was a winner
+            PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
+
+            # Anonymize the player's profile
+            Player.objects.filter(user=user).update(player=anonymous_name, user=None)
+
+            # Remove all personal data from User, but keep the account ID (FK in PongMatch)
+            user.username = anonymous_name
+            user.email = ""
+            user.phone_number = ""
+            user.profile_picture = None  # Remove profile picture
+            user.set_unusable_password()
+            user.save()
+            #user.delete()  # Deletes the user from the database
             return Response(
-                {"success": "Compte supprimé avec succès."}, status=status.HTTP_200_OK
+                {"message": f"Your account has been anonymized as {anonymous_name}."}, status=status.HTTP_200_OK
             )
         return Response(
             {"error": "Utilisateur non authentifié."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is logged in
+
+    def delete(self, request):
+        user = request.user
+        deleted_name = f"Deleted_User"
+
+        # Update matches where the user is user1 or user2, but do not remove the opponent
+        PongMatch.objects.filter(user1=user).update(user1=None, player1_name=deleted_name)
+        PongMatch.objects.filter(user2=user).update(user2=None, player2_name=deleted_name)
+
+        # Update match winner if deleted user won
+        PongMatch.objects.filter(winner=user.username).update(winner=deleted_name)
+
+        # Delete player profile
+        Player.objects.filter(user=user).delete()
+
+        # Delete the user completely
+        user.delete()
+
+        return Response({"message": "Your account has been permanently deleted."}, status=status.HTTP_200_OK)
 
 
 import logging
@@ -408,7 +431,7 @@ class TournamentCreationView(APIView):
 
                 # Vérifier si un utilisateur avec ce pseudo existe
                 try:
-                    user = User.objects.get(username=player_player)
+                    user = CustomUser.objects.get(username=player_player)
                     player, created = Player.objects.get_or_create(
                         player=player_player, defaults={"user": user}
                     )
@@ -418,7 +441,7 @@ class TournamentCreationView(APIView):
                         if player.user is None:
                             player.user = user
                             player.save()
-                except User.DoesNotExist:
+                except CustomUser.DoesNotExist:
                     # Si l'utilisateur n'existe pas, le joueur est un "guest"
                     player, created = Player.objects.get_or_create(player=player_player)
 

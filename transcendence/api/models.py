@@ -1,11 +1,34 @@
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.db import models
+from django.utils.timezone import now
 
-# from django.contrib.auth.models import AbstractUser
+class CustomUser(AbstractUser):
+    email = models.EmailField(max_length=255, unique=True, blank=True, null=True)
+    username = models.CharField(max_length=255, unique=True)
+    password = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)  # We might use phone number for 2FA
+    profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)  # Profile image
+    friends = models.ManyToManyField("self", blank=True)  # Friend list (Many-to-Many)
+    is_online = models.BooleanField(default=False)  # Track online status
+    last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
+
+    def update_last_seen(self):
+        """Update last_seen timestamp when the user is active"""
+        self.last_seen = now()
+        self.save()
+
+
+    USERNAME_FIELD = "username"  # or later put email for authentication
+    REQUIRED_FIELDS = []  # or "email" to Require email during registration
+
+    def __str__(self):
+        return self.username  # Display username as user identifier
 
 
 class Player(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     player = models.CharField(max_length=20)
 
     def __str__(self):
@@ -36,8 +59,8 @@ class TournamentPlayer(models.Model):
 
 class PongMatch(models.Model):
     user1 = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         related_name="initiated_matches",
         null=True,
         blank=True,
@@ -46,8 +69,8 @@ class PongMatch(models.Model):
         Player, on_delete=models.CASCADE, related_name="matches_as_player1"
     )
     user2 = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
         related_name="opponent_matches",
         null=True,
         blank=True,
@@ -59,7 +82,8 @@ class PongMatch(models.Model):
     points_per_set = models.IntegerField(default=3)
     player1_sets_won = models.IntegerField(default=0)
     player2_sets_won = models.IntegerField(default=0)
-    winner = models.CharField(max_length=100, blank=True)
+    #winner = models.CharField(max_length=100, blank=True)
+    winner = models.ForeignKey(Player, on_delete=models.CASCADE)
     date_played = models.DateTimeField(auto_now_add=True)
     is_tournament_match = models.BooleanField(default=False)
     tournament = models.ForeignKey(
@@ -82,16 +106,3 @@ class PongSet(models.Model):
 
     def __str__(self):
         return f"Set {self.set_number} - {self.match.player1}: {self.player1_score}, {self.match.player2}: {self.player2_score}"
-
-
-# class User(AbstractUser):
-#     email = models.EmailField(max_length=255, unique=True)
-#     username = models.CharField(max_length=255, unique=True)
-#     password = models.CharField(max_length=255)
-
-
-#     USERNAME_FIELD = "email"  # Use email for authentication
-#     REQUIRED_FIELDS = []  # or "username" to Require username during registration
-
-#     def __str__(self):
-#         return self.email

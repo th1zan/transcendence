@@ -102,6 +102,23 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         # 'NAME': env('DB_NAME'),
+#         # 'USER': env('DB_USER'),
+#         # 'PASSWORD': env('DB_PASSWORD'),
+#         # 'HOST': env('DB_HOST'),
+#         # 'PORT': env('DB_PORT', default='5432'),
+# 		  'NAME': "database_name",
+#         'USER': "database_user",
+#         'PASSWORD': "your_password",
+#         'HOST': "localhost",
+#         # 'DB_PORT': 5432,
+#     }
+# }
+
+AUTH_USER_MODEL = "api.CustomUser"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -160,7 +177,6 @@ REST_FRAMEWORK = {
         "api.authentication.CookieJWTAuthentication",  # Replace with the actual path instead of  "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
