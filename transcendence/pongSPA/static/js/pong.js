@@ -3,6 +3,7 @@ import { DisplayTournamentGame } from "./tournament.js";
 
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 // Variables globales pour suivre les scores et le jeu
+let ws; //websocket pour communiquer avec l'IA
 let user1 = "default_user1";
 let user2 = "default_user2";
 let player1 = "default_player1";
@@ -16,6 +17,26 @@ let player2Wins = 0;
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
+
+// Ouvrir une connexion websocket avec le serveur
+function connectWebSocket()
+{
+  ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
+
+  ws.onopen = () => console.log("WebSocket connecté");
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "update_paddle") {
+      computer.y = data.y;
+    }
+  };
+  ws.onerror = (error) => console.error("WebSocket erreur :", error);
+  ws.onclose = () => 
+  {
+    console.log("WebSocket déconnecté. Reconnexion...");
+    setTimeout(connectWebSocket, 1000);
+  };
+}
 
 // Démarrer le jeu Pong
 function startPongGame() {
@@ -31,6 +52,7 @@ function startPongGame() {
 
   initGameObjects(canvas);
   resetScores();
+  connectWebSocket(); 
 
   const fps = 50;
   gameInterval = setInterval(() => {
@@ -92,19 +114,11 @@ function resetScores() {
 
 function update() {
   ball.x += ball.velocityX;
-// liser le compteur de parties
-  player1Wins = 0;
-  player2Wins = 0;
-  // setHistory = []; // Réinitialiser l'historique des sets
-
   ball.y += ball.velocityY;
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
   }
-
-  let computerLevel = 0.1;
-  computer.y += (ball.y - (computer.y + computer.height / 2)) * computerLevel;
 
   let playerPaddle = ball.x < canvas.width / 2 ? player : computer;
 
@@ -117,7 +131,7 @@ function update() {
     computer.score++;
     if (computer.score === pointsToWin) {
       player2Wins++;
-      saveSetResult(); // Sauvegarder le résultat du set
+      saveSetResult();
       handleGameEnd(player2);
     } else {
       resetBall();
@@ -126,11 +140,16 @@ function update() {
     player.score++;
     if (player.score === pointsToWin) {
       player1Wins++;
-      saveSetResult(); // Sauvegarder le résultat du set
+      saveSetResult();
       handleGameEnd(player1);
     } else {
       resetBall();
     }
+  }
+
+  //Envoyer la position de la balle au serveur
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
 
