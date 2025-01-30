@@ -1,8 +1,10 @@
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
+from django.conf import settings
+
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import CustomUser, PongMatch, PongSet, Tournament, TournamentPlayer
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -54,17 +56,29 @@ class PongSetSerializer(serializers.ModelSerializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ("username", "password")
+        model = CustomUser
+        fields = ['username', 'password'] #("username", "password")
 
     def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
+        if CustomUser.objects.filter(username=value).exists():
             raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
         return value
-
+    
+    # def validate_email(self, value):
+    #     if CustomUser.objects.filter(email=value).exists():
+    #         raise serializers.ValidationError("A user with that email already exists.")
+    #     return value
+    
     def validate_password(self, value):
         if len(value) < 3:
             raise serializers.ValidationError(
                 "Le mot de passe doit contenir au moins 3 caractères."
             )
         return value
+    def create(self, validated_data):
+        user = CustomUser.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user
