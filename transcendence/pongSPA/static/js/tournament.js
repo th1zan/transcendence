@@ -206,14 +206,6 @@ export function createTournamentForm() {
 }
 
 function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
-    // Simplifiez la création de playerData pour n'inclure que les noms
-    
-    // Affichage du contenu de players dans la console
-    // console.log("Players array:", players);
-  const playerData = players.map(playerName => ({ name: playerName }));
-    // console.log("PlayersData:", playerData);
-
-
     fetch("/api/tournament/new/", {
         method: 'POST',
         headers: {
@@ -221,12 +213,11 @@ function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin
         },
         body: JSON.stringify({ 
             tournament_name: tournamentName,
-            players: playerData,
+            players: players,  // Directly use players array without transforming to objects
             number_of_games: numberOfGames,
             points_to_win: pointsToWin
         }),
-    })
-    .then((response) => {
+    })    .then((response) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
     })
