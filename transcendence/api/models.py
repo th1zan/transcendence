@@ -11,6 +11,10 @@ class Player(models.Model):
     def __str__(self):
         return self.user.username if self.user else self.player
 
+    @property
+    def is_guest(self):
+        return self.user is None
+
 
 class Tournament(models.Model):
     tournament_name = models.CharField(max_length=100)
@@ -77,7 +81,7 @@ class PongSet(models.Model):
     player2_score = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"Set {self.set_number} - {self.match.user1}: {self.user1_score}, {self.match.user2}: {self.user2_score}"
+        return f"Set {self.set_number} - {self.match.player1}: {self.player1_score}, {self.match.player2}: {self.player2_score}"
 
 
 # class User(AbstractUser):

@@ -144,8 +144,8 @@ function displayRegistrationForm() {
     .addEventListener("click", displayConnectionFormular);
 }
 
-//Home page
-export function displayWelcomePage(username) {
+export function displayWelcomePage() {
+  const username = localStorage.getItem("username");
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
@@ -157,6 +157,7 @@ export function displayWelcomePage(username) {
     <br>
     <h3>Tournoi</h3>
     <b>Créer un nouveau tournoi</b>
+    <br>
     <button id="newTournamentButton">Créer un nouveau tournoi</button> 
     <br>
     <br>
@@ -177,23 +178,43 @@ export function displayWelcomePage(username) {
     <br>
     <h3>Statistiques</h3>
     <div id="resultats"></div>
+    <button id="viewResultsButton">Vos résultats</button>
+    <br>
+    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
+    <div id="ranking"></div> <!-- Div pour afficher le classement -->
   `;
 
-  // Afficher les résultats
-  fetchResultats(username);
-
   // Attacher les écouteurs d'événements aux boutons
-  document.getElementById("playButton").addEventListener("click", () => {
-    displayGameForm(username); // Affiche le formulaire de jeu
-  });
-  
+  document.getElementById("playButton").addEventListener("click", displayGameForm);
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-  document.getElementById("tournamentSearchButton").addEventListener("click", validateSearch);
   document.getElementById("logoutButton").addEventListener("click", logout);
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+  
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
+      return;
+    }
+
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      alert("Veuillez entrer un nom de tournoi.");
+      return;
+    }
+
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
+
+  // Ajouter un écouteur d'événement pour le bouton "Classement général"
+
+  document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
+  document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 }
 
-function fetchResultats(username) {
+function fetchResultats() {
+  const username = localStorage.getItem("username");
   fetch(`/api/results/?user1=${username}`, {
     method: "GET",
     credentials: "include",
@@ -204,38 +225,102 @@ function fetchResultats(username) {
     .then((response) => response.json())
     .then((data) => {
       console.log(data); // Vérifiez ce que vous recevez
+      const appDiv = document.getElementById("app");
+      appDiv.innerHTML = `
+        <button id="backButton" class="btn btn-secondary">Retour</button>
+        <h3>Vos résultats :</h3>
+        <div id="resultats"></div>
+      `;
+
       const resultatsDiv = document.getElementById("resultats");
-      resultatsDiv.innerHTML = "<h3>Vos résultats :</h3>";
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((match) => {
-          // Vérifiez et utilisez les bonnes propriétés
           const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Date inconnue";
-          const user1 = match.user1 || "Joueur 1 inconnu";
-          const user2 = match.user2 || "Joueur 2 inconnu";
+          const player1 = match.player1_name || "Joueur 1 inconnu";
+          const player2 = match.player2_name || "Joueur 2 inconnu";
           const winner = match.winner || "En cours";
           const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
           const tournamentInfo = match.tournament ? ` (Tournoi: ${match.tournament_name || 'Inconnu'})` : "";
 
           resultatsDiv.innerHTML += `
               <p>
-                  ${date} - ${user1} vs ${user2} - 
-                  Score: ${score} - 
+                  ${date} - ${player1} vs ${player2}
+                  <br>
+                  Score: ${score}
+                  <br>
                   Winner: ${winner}${tournamentInfo}
                   <br>
-                  <small>Nombre de sets à gagner: ${match.sets_to_win}, Points par set: ${match.points_per_set}</small>
               </p>`;
         });
       } else {
         resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
       }
+
+      // Ajoutez un écouteur d'événement pour le bouton de retour
+      document.getElementById("backButton").addEventListener("click", () => {
+        const username = localStorage.getItem("username");
+        if (username) {
+          displayWelcomePage(username);
+        } else {
+          console.error("Nom d'utilisateur non trouvé dans le stockage local.");
+        }
+      });
     })
     .catch((error) => {
       console.error("Erreur lors de la récupération des résultats:", error);
     });
 }
 
+function fetchRanking() {
+  fetch("/api/ranking/", {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data); // Vérifiez ce que vous recevez
+      const appDiv = document.getElementById("app");
+      appDiv.innerHTML = `
+        <button id="backButton" class="btn btn-secondary">Retour</button>
+        <h3>Classement des joueurs :</h3>
+        <div id="ranking"></div>
+      `;
 
-function displayGameForm(username) {
+      const rankingDiv = document.getElementById("ranking");
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach((player) => {
+          const playerName = player.name || "Nom inconnu";
+          const totalWins = player.total_wins || 0;
+          rankingDiv.innerHTML += `
+              <p>
+                  ${playerName} - Total Wins: ${totalWins}
+              </p>`;
+        });
+      } else {
+        rankingDiv.innerHTML += "<p>Aucun classement trouvé.</p>";
+      }
+
+      // Ajoutez un écouteur d'événement pour le bouton de retour
+      document.getElementById("backButton").addEventListener("click", () => {
+        const username = localStorage.getItem("username");
+        if (username) {
+          displayWelcomePage(username);
+        } else {
+          console.error("Nom d'utilisateur non trouvé dans le stockage local.");
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la récupération du classement:", error);
+    });
+}
+
+function displayGameForm() { 
+
+  const username = localStorage.getItem("username");
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h1>Pong Game</h1>

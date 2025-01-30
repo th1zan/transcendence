@@ -14,7 +14,7 @@ class TournamentSerializer(serializers.ModelSerializer):
 class TournamentPlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentPlayer
-        fields = ["pseudo"]
+        fields = ["player"]
 
 
 class PongMatchSerializer(serializers.ModelSerializer):
@@ -60,12 +60,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
-        if not User.objects.filter(username=value).exists():
-            raise AuthenticationFailed("User does not exist.", code="user_not_found")
         return value
 
     def validate_password(self, value):
-        if len(value) < 3:  # minimum 3 caractères pour dev
+        if len(value) < 3:
             raise serializers.ValidationError(
                 "Le mot de passe doit contenir au moins 3 caractères."
             )
