@@ -25,12 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-  	<div class="container mt-5 custom-container">
-		  <h1 class="text-center custom-title">Bienvenue sur la page d'accueil</h1>
-	  </div>
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
-      <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
+  	<div class="min-vh-100 d-flex flex-column justify-content-center align-items-center" style="background-color: #f4f3f5;">
+		<div class="container mt-5 custom-container">
+	  		<h1 class="text-center custom-title">Bienvenue sur la page d'accueil</h1>
+		</div>
+		<div class="d-flex justify-content-center align-items-center w-100" style="min-height: 75vh;">			
+      	<div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
+        	<h2 class="text-center mb-5" style="font-size: 2.5rem; color: #51227f;">Connexion</h2>
         <form id="loginForm">
           <div class="form-group mb-4">
             <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
@@ -143,6 +144,7 @@ function displayRegistrationForm() {
     .addEventListener("click", displayConnectionFormular);
 }
 
+//Home page
 export function displayWelcomePage(username) {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
