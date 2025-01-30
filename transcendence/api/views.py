@@ -1,10 +1,12 @@
 import logging
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-#from django.contrib.auth.models import User
+
+# from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -39,6 +41,7 @@ CustomUser = get_user_model()  # Get the correct User model dynamically
 
 
 logger = logging.getLogger(__name__)
+
 
 class PongMatchList(generics.ListCreateAPIView):
     queryset = PongMatch.objects.all()
@@ -237,7 +240,6 @@ class CustomTokenRefreshView(TokenRefreshView):
         return response
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -254,7 +256,7 @@ class UserRegisterView(APIView):
             username = serializer.validated_data.get("username")
 
             # Vérifier si le username existe déjà
-            if User.objects.filter(username=username).exists():
+            if CustomUser.objects.filter(username=username).exists():
                 logger.error("Username already exists: %s", username)
                 return Response(
                     {"error": "Username already exists."},
@@ -262,33 +264,37 @@ class UserRegisterView(APIView):
                 )
 
             logger.info("Creating user with data: %s", serializer.validated_data)
-            user = CustomUser.objects.create_user(
-                username=serializer.validated_data.get("username"),
-                password=serializer.validated_data.get("password"),
-            )
-            #Create a Player entry linked to this user
-            Player.objects.create(
-                user=user,
-                player=user.username,  # Set player name as username
-            )
-            logger.info("User created: %s", user.username)
-
-            # Vérifier si le player existe déjà
-            if Player.objects.filter(player=username).exists():
-                logger.error("Player name already exists: %s", username)
-                return Response(
-                    {"error": "Player name already exists."},
-                    status=status.HTTP_400_BAD_REQUEST,
+            try:
+                user = CustomUser.objects.create_user(
+                    username=serializer.validated_data.get("username"),
+                    password=serializer.validated_data.get("password"),
                 )
+                logger.info("User created: %s", user.username)
 
-            # Créer automatiquement un joueur associé à l'utilisateur
-            Player.objects.create(user=user, player=username)
-            logger.info("Player created for user: %s", user.username)
+                # Vérifier si le player existe déjà avant de créer
 
-            return Response(
-                {"success": "User and player created successfully."},
-                status=status.HTTP_201_CREATED,
-            )
+                #     Player.objects.create(
+                #         user=user,
+                #         player=username,  # Set player name as username
+                #     )
+                #     logger.info("Player created for user: %s", user.username)
+                # else:
+                #     logger.error("Player name already exists: %s", username)
+                #     return Response(
+                #         {"error": "Player name already exists."},
+                #         status=status.HTTP_400_BAD_REQUEST,
+                #     )
+
+                return Response(
+                    {"success": "User and player created successfully."},
+                    status=status.HTTP_201_CREATED,
+                )
+            except Exception as e:
+                logger.error("Error creating user or player: %s", str(e))
+                return Response(
+                    {"error": "Could not create user or player."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
         else:
             logger.error("Validation errors: %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -334,8 +340,12 @@ class AnonymizeAccountView(APIView):
             # Update matches where the user is user1 only
             PongMatch.objects.filter(user1=user.username).update(user1=random_username)
             # Keep user1 but anonymize player1 (for match history)
-            PongMatch.objects.filter(player1__user=user).update(player1_name=anonymous_name)
-            PongMatch.objects.filter(player2__user=user).update(player2_name=anonymous_name)
+            PongMatch.objects.filter(player1__user=user).update(
+                player1_name=anonymous_name
+            )
+            PongMatch.objects.filter(player2__user=user).update(
+                player2_name=anonymous_name
+            )
 
             # Update winner field if this user was a winner
             PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
@@ -350,9 +360,10 @@ class AnonymizeAccountView(APIView):
             user.profile_picture = None  # Remove profile picture
             user.set_unusable_password()
             user.save()
-            #user.delete()  # Deletes the user from the database
+            # user.delete()  # Deletes the user from the database
             return Response(
-                {"message": f"Your account has been anonymized as {anonymous_name}."}, status=status.HTTP_200_OK
+                {"message": f"Your account has been anonymized as {anonymous_name}."},
+                status=status.HTTP_200_OK,
             )
         return Response(
             {"error": "Utilisateur non authentifié."},
@@ -368,8 +379,12 @@ class DeleteAccountView(APIView):
         deleted_name = f"Deleted_User"
 
         # Update matches where the user is user1 or user2, but do not remove the opponent
-        PongMatch.objects.filter(user1=user).update(user1=None, player1_name=deleted_name)
-        PongMatch.objects.filter(user2=user).update(user2=None, player2_name=deleted_name)
+        PongMatch.objects.filter(user1=user).update(
+            user1=None, player1_name=deleted_name
+        )
+        PongMatch.objects.filter(user2=user).update(
+            user2=None, player2_name=deleted_name
+        )
 
         # Update match winner if deleted user won
         PongMatch.objects.filter(winner=user.username).update(winner=deleted_name)
@@ -380,7 +395,10 @@ class DeleteAccountView(APIView):
         # Delete the user completely
         user.delete()
 
-        return Response({"message": "Your account has been permanently deleted."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Your account has been permanently deleted."},
+            status=status.HTTP_200_OK,
+        )
 
 
 import logging
