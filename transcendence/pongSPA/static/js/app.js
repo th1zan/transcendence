@@ -24,11 +24,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-  	<div class="container mt-5 custom-container">
+  const header = document.getElementById("header");
+
+  header.innerHTML = `
+    <div class="container-fluidner mt-5 custom-container">
 		  <h1 class="text-center custom-title">Bienvenue sur la page d'accueil</h1>
 	  </div>
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+  `;
+
+
+  appDiv.innerHTML = `
+  	  <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
       <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
         <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
         <form id="loginForm">
@@ -145,49 +151,59 @@ function displayRegistrationForm() {
 
 export function displayWelcomePage() {
   const username = localStorage.getItem("username");
+
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h2>Bonjour ${username}</h2>
     <br>
-    <br>
-    <h3>Jouer une partie</h2>
-    <button id="playButton">Jouer</button>
-    <br>
-    <br>
-    <h3>Tournoi</h3>
-    <b>Créer un nouveau tournoi</b>
-    <br>
-    <button id="newTournamentButton">Créer un nouveau tournoi</button> 
-    <br>
-    <br>
-    <b>Rechercher un tournoi</b>
-    <div id="searchTournament">
-      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
-      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher</button>
-    </div>
-    <br>
-    <br>
     <div id="tournamentList"></div>
-    <br>
-    <h3>Gestion du compte</h3>
-    <button id="logoutButton">Déconnexion</button>
-    <br>
-    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
-    <br>
-    <br>
-    <h3>Statistiques</h3>
-    <div id="resultats"></div>
-    <button id="viewResultsButton">Vos résultats</button>
-    <br>
-    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
-    <div id="ranking"></div> <!-- Div pour afficher le classement -->
   `;
+
+  const menuDiv = document.getElementById("menu");
+  menuDiv.innerHTML = `
+    <button id="playButton">Jouer une partie</button>
+    <br>
+    <br>
+    <button id="tournamentButton">Tournament</button>
+    <br>
+    <br>
+    <button id="statsButton">Statistiques</button>
+    <br>
+    <br>
+    <button id="settingsButton">Settings</button>
+    <br>
+    <br>
+    <br>
+    <br>
+    <button id="logoutButton">Déconnexion</button>
+      `;
 
   // Attacher les écouteurs d'événements aux boutons
   document.getElementById("playButton").addEventListener("click", displayGameForm);
-  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("tournamentButton").addEventListener("click", displayTournament);
+  document.getElementById("statsButton").addEventListener("click", displayStats);
+  document.getElementById("settingsButton").addEventListener("click", displaySettings);
   document.getElementById("logoutButton").addEventListener("click", logout);
-  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+
+}
+
+export function displayTournament() {
+
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+   <h3>Tournament</h3>
+    <br>
+    <button id="newTournamentButton">Nouveau tournoi</button> 
+    <br>
+    <br>
+    <div id="searchTournament">
+      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
+      <br>
+      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher un tournoi</button>
+    </div>
+  `;
+
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
   
   document.getElementById("tournamentSearchButton").addEventListener("click", () => {
     const tournamentNameInput = document.getElementById("tournamentNameInput");
@@ -206,7 +222,37 @@ export function displayWelcomePage() {
     validateSearch();
   });
 
-  // Ajouter un écouteur d'événement pour le bouton "Classement général"
+
+}
+
+
+
+
+export function displaySettings() {
+
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+   <h3>Gestion du compte</h3>
+    <br>
+    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
+  `;
+
+  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+}
+
+
+export function displayStats() {
+
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+  <h3>Statistiques</h3>
+    <div id="resultats"></div>
+    <button id="viewResultsButton">Vos résultats</button>
+    <br>
+    <br>
+    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
+    <div id="ranking"></div> <!-- Div pour afficher le classement -->
+  `;
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
@@ -255,18 +301,7 @@ function fetchResultats() {
         resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
       }
 
-      // Ajoutez un écouteur d'événement pour le bouton de retour
-      document.getElementById("backButton").addEventListener("click", () => {
-        const username = localStorage.getItem("username");
-        if (username) {
-          displayWelcomePage(username);
-        } else {
-          console.error("Nom d'utilisateur non trouvé dans le stockage local.");
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la récupération des résultats:", error);
+      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
@@ -303,17 +338,7 @@ function fetchRanking() {
       }
 
       // Ajoutez un écouteur d'événement pour le bouton de retour
-      document.getElementById("backButton").addEventListener("click", () => {
-        const username = localStorage.getItem("username");
-        if (username) {
-          displayWelcomePage(username);
-        } else {
-          console.error("Nom d'utilisateur non trouvé dans le stockage local.");
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la récupération du classement:", error);
+      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
@@ -322,7 +347,7 @@ function displayGameForm() {
   const username = localStorage.getItem("username");
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h1>Pong Game</h1>
+    <h3>Pong Game</h3>
     <form id="gameForm">
       <label for="player1">Player 1 Name:</label>
       <input type="text" id="player1" value="${username} (by default)" readonly><br><br>

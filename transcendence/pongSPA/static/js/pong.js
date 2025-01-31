@@ -76,13 +76,13 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
 
   // Vérifier et créer pong si nécessaire
   let pongCanvas = document.getElementById("pong");
-  if (!pongCanvas) {
-    pongCanvas = document.createElement('canvas');
-    pongCanvas.id = "pong";
-    pongCanvas.width = 800; // Définir la largeur du canvas
-    pongCanvas.height = 400; // Définir la hauteur du canvas
-    document.body.appendChild(pongCanvas);
-  }
+  // if (!pongCanvas) {
+  //   pongCanvas = document.createElement('canvas');
+  //   pongCanvas.id = "pong";
+  //   pongCanvas.width = 800; // Définir la largeur du canvas
+  //   pongCanvas.height = 400; // Définir la hauteur du canvas
+  //   document.body.appendChild(pongCanvas);
+  // }
   pongCanvas.style.display = "block";
 
   // Gérer l'affichage en fonction du contexte

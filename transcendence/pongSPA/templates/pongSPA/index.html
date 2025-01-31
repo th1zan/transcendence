@@ -1,34 +1,62 @@
+
 {% load static %}
 
 <!doctype html>
 <html lang="en">
 
+<!doctype html>
+<html lang="en">
+
 <head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>PONG</title>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-	<style>
-        .custom-container {
-            background-color: rgb(163, 148, 203); /* Background color */
-            padding: 20px; /* Internal spacing */
-            border-radius: 10px; /* Rounded corners */
-        }
-        .custom-title {
-            color: rgb(0, 0, 0); /* Light green text color */
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PONG</title>
+    <!-- Intégration de Bootstrap via CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
-	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-	
 
-	<div id="app"></div>
-      <script type="module" src="{% static 'js/app.js' %}"></script>
-      <!--<script src="{% static 'js/pong.js' %}"></script>-->
+    <!-- Header -->
+    <header id="header" class="header bg-dark text-white text-center p-3">
+        <h1>PONG - Jeu</h1>
+    </header>
+
+    <!-- Main content with grid structure -->
+    <div class="container-fluid">
+        <div class="row">
+
+            <!-- Menu (Colonne gauche) -->
+            <nav id="menu" class="col-md-2 bg-secondary text-white p-3">
+                <h4>Menu</h4>
+            
+            </nav>
+
+            <!-- Contenu principal (Colonne droite) -->
+            <div class="col-md-10 content p-4">
+                <div id="app">
+                    <!-- L'application principale ou autre contenu -->
+                    <h2>App</h2>
+                    <p>Jouez à PONG, défiez vos amis et atteignez de nouveaux scores !</p>
+                    <!-- Ajouter d'autres sections du jeu ou de l'application ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer" class="footer bg-dark text-white text-center p-3">
+        <p>&copy; 2025 PONG - Tous droits réservés</p>
+    </footer>
+
+    <!-- Scripts Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    
+    <!-- Script de l'application -->
+    <script type="module" src="{% static 'js/app.js' %}"></script>
 </body>
 
 </html>
