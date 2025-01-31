@@ -28,7 +28,7 @@ from rest_framework_simplejwt.token_blacklist.models import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import CustomUser, Player, PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import Player, PongMatch, PongSet, Tournament, TournamentPlayer
 from .serializers import (
     PongMatchSerializer,
     PongSetSerializer,
@@ -37,10 +37,9 @@ from .serializers import (
     UserRegisterSerializer,
 )
 
-CustomUser = get_user_model()  # Get the correct User model dynamically
+CustomUser = get_user_model()  # Utilisé quand nécessaire
 
-
-logger = logging.getLogger(__name__)
+# Le reste de votre code...logger = logging.getLogger(__name__)
 
 
 class PongMatchList(generics.ListCreateAPIView):
@@ -86,16 +85,30 @@ class PongScoreView(APIView):
         # Vérifier si player1 existe, sinon le créer
         player1_name = match_data["player1"]
         player1, created = Player.objects.get_or_create(
-            player=player1_name, defaults={"user": user1}
+            player=player1_name,
+            defaults={"user": user1 if user1.username == player1_name else None},
         )
 
-        # Gérer player2 comme un joueur invité
+        # Gérer player2 comme un joueur invité ou connecté
         player2_name = match_data["player2"]
-        player2, created = Player.objects.get_or_create(player=player2_name)
+        player2, created = Player.objects.get_or_create(
+            player=player2_name,
+            defaults={
+                "user": (
+                    CustomUser.objects.filter(username=player2_name).first()
+                    if player2_name != player1_name
+                    else None
+                )
+            },
+        )
 
         # Remplacer les noms par des identifiants dans match_data
-        match_data["user1"] = user1.id
-        match_data["user2"] = None  # Pas de user2 pour le moment
+        match_data["user1"] = user1.id if user1.username == player1_name else None
+        match_data["user2"] = (
+            CustomUser.objects.filter(username=player2_name).first().id
+            if player2_name != player1_name
+            else None
+        )
         match_data["player1"] = player1.id
         match_data["player2"] = player2.id
 
@@ -114,7 +127,17 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
-            # Retourner une réponse réussie avec les données du match
+            # Définir le gagnant
+            if match_data.get("winner"):
+                try:
+                    winner_player = Player.objects.get(player=match_data["winner"])
+                    match.winner = winner_player
+                    match.save()
+                except Player.DoesNotExist:
+                    return Response(
+                        {"error": "Player not found."}, status=status.HTTP_404_NOT_FOUND
+                    )
+
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -136,20 +159,25 @@ class PongScoreView(APIView):
         # Vérifier si player1 existe, sinon le créer
         player1_name = match_data["player1"]
         player1, created = Player.objects.get_or_create(
-            player=player1_name, defaults={"user": user1}
+            player=player1_name,
+            defaults={"user": user1 if user1.username == player1_name else None},
         )
 
-        # Gérer player2 comme un joueur invité
+        # Gérer player2 comme un joueur invité ou connecté
         player2_name = match_data["player2"]
         player2, created = Player.objects.get_or_create(player=player2_name)
 
         # Remplacer les noms par des identifiants dans match_data
-        match_data["user1"] = user1.id
-        match_data["user2"] = None  # Pas de user2 pour le moment
+        match_data["user1"] = user1.id if user1.username == player1_name else None
+        match_data["user2"] = (
+            CustomUser.objects.filter(username=player2_name).first().id
+            if player2_name != player1_name
+            and CustomUser.objects.filter(username=player2_name).exists()
+            else None
+        )
         match_data["player1"] = player1.id
-        match_data["player2"] = player2.id
+        match_data["player2"] = player2.id  # Mettre à jour les champs du match
 
-        # Mettre à jour les champs du match
         match_serializer = PongMatchSerializer(match, data=match_data, partial=True)
         if match_serializer.is_valid():
             match = match_serializer.save()
@@ -178,6 +206,17 @@ class PongScoreView(APIView):
                 else:
                     return Response(
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # Définir le gagnant pour la mise à jour
+            if match_data.get("winner"):
+                try:
+                    winner_player = Player.objects.get(player=match_data["winner"])
+                    match.winner = winner_player
+                    match.save()
+                except Player.DoesNotExist:
+                    return Response(
+                        {"error": "Player not found."}, status=status.HTTP_404_NOT_FOUND
                     )
 
             return Response(match_serializer.data, status=status.HTTP_200_OK)
@@ -254,6 +293,9 @@ class UserRegisterView(APIView):
 
         if serializer.is_valid():
             username = serializer.validated_data.get("username")
+            email = serializer.validated_data.get(
+                "email", None
+            )  # Email might not be provided
 
             # Vérifier si le username existe déjà
             if CustomUser.objects.filter(username=username).exists():
@@ -266,28 +308,31 @@ class UserRegisterView(APIView):
             logger.info("Creating user with data: %s", serializer.validated_data)
             try:
                 user = CustomUser.objects.create_user(
-                    username=serializer.validated_data.get("username"),
+                    username=username,
+                    email=email,  # Pass None if email is not provided
                     password=serializer.validated_data.get("password"),
                 )
                 logger.info("User created: %s", user.username)
 
-                # Vérifier si le player existe déjà avant de créer
-
-                #     Player.objects.create(
-                #         user=user,
-                #         player=username,  # Set player name as username
-                #     )
-                #     logger.info("Player created for user: %s", user.username)
-                # else:
-                #     logger.error("Player name already exists: %s", username)
-                #     return Response(
-                #         {"error": "Player name already exists."},
-                #         status=status.HTTP_400_BAD_REQUEST,
-                #     )
+                # Création du joueur
+                player = Player.objects.create(
+                    user=user,
+                    player=username,
+                )
+                logger.info("Player created for user: %s", user.username)
 
                 return Response(
                     {"success": "User and player created successfully."},
                     status=status.HTTP_201_CREATED,
+                )
+            except IntegrityError as e:
+                # This would catch unique constraint errors
+                logger.error("Integrity error creating user or player: %s", str(e))
+                return Response(
+                    {
+                        "error": "Could not create user or player. Email might be already in use."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             except Exception as e:
                 logger.error("Error creating user or player: %s", str(e))
@@ -298,6 +343,63 @@ class UserRegisterView(APIView):
         else:
             logger.error("Validation errors: %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class UserRegisterView(APIView):
+#     permission_classes = [AllowAny]
+#     serializer_class = UserRegisterSerializer
+#
+#     def post(self, request):
+#         logger.info("Received data: %s", request.data)
+#         serializer = self.serializer_class(data=request.data)
+#         logger.info("Serializer validation result: %s", serializer.is_valid())
+#
+#         if serializer.is_valid():
+#             username = serializer.validated_data.get("username")
+#
+#             # Vérifier si le username existe déjà
+#             if CustomUser.objects.filter(username=username).exists():
+#                 logger.error("Username already exists: %s", username)
+#                 return Response(
+#                     {"error": "Username already exists."},
+#                     status=status.HTTP_400_BAD_REQUEST,
+#                 )
+#
+#             logger.info("Creating user with data: %s", serializer.validated_data)
+#             try:
+#                 user = CustomUser.objects.create_user(
+#                     username=serializer.validated_data.get("username"),
+#                     password=serializer.validated_data.get("password"),
+#                 )
+#                 logger.info("User created: %s", user.username)
+#
+#                 # Vérifier si le player existe déjà avant de créer
+#
+#                 #     Player.objects.create(
+#                 #         user=user,
+#                 #         player=username,  # Set player name as username
+#                 #     )
+#                 #     logger.info("Player created for user: %s", user.username)
+#                 # else:
+#                 #     logger.error("Player name already exists: %s", username)
+#                 #     return Response(
+#                 #         {"error": "Player name already exists."},
+#                 #         status=status.HTTP_400_BAD_REQUEST,
+#                 #     )
+#
+#                 return Response(
+#                     {"success": "User and player created successfully."},
+#                     status=status.HTTP_201_CREATED,
+#                 )
+#             except Exception as e:
+#                 logger.error("Error creating user or player: %s", str(e))
+#                 return Response(
+#                     {"error": "Could not create user or player."},
+#                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#                 )
+#         else:
+#             logger.error("Validation errors: %s", serializer.errors)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
@@ -348,9 +450,9 @@ class AnonymizeAccountView(APIView):
             )
 
             # Update winner field if this user was a winner
-            PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
-
-            # Anonymize the player's profile
+            PongMatch.objects.filter(winner__user=user).update(
+                winner=None
+            )  # Anonymize the player's profile
             Player.objects.filter(user=user).update(player=anonymous_name, user=None)
 
             # Remove all personal data from User, but keep the account ID (FK in PongMatch)
@@ -513,8 +615,6 @@ def generate_matches(tournament_id, number_of_games, points_to_win):
 
 
 class TournamentMatchesView(APIView):
-    permission_classes = [AllowAny]
-
     def get(self, request):
         tournament_id = request.GET.get("tournament_id")
         if not tournament_id:
@@ -524,11 +624,10 @@ class TournamentMatchesView(APIView):
             )
 
         try:
-            # Utilisez 'id' pour accéder à l'identifiant du tournoi
             tournament = Tournament.objects.get(id=tournament_id)
             matches = PongMatch.objects.filter(tournament=tournament)
             serializer = PongMatchSerializer(matches, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data)
         except Tournament.DoesNotExist:
             return Response(
                 {"error": "Tournament not found"},
@@ -556,8 +655,7 @@ class RankingView(APIView):
         ranking_data = []
 
         for player in players:
-            total_wins = PongMatch.objects.filter(Q(winner=player.player)).count()
-
+            total_wins = PongMatch.objects.filter(winner=player).count()
             ranking_data.append({"name": player.player, "total_wins": total_wins})
 
         # Trier le classement par nombre de victoires décroissant
@@ -571,7 +669,7 @@ class RankingView(APIView):
 def check_user_exists(request):
     username = request.GET.get("username", "")
     try:
-        user = User.objects.get(username=username)
+        user = CustomUser.objects.get(username=username)
         player = Player.objects.get(user=user)
         return JsonResponse(
             {
@@ -581,5 +679,5 @@ def check_user_exists(request):
                 "is_guest": player.is_guest,
             }
         )
-    except User.DoesNotExist:
+    except CustomUser.DoesNotExist:
         return JsonResponse({"exists": False})

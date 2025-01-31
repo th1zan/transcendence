@@ -112,6 +112,7 @@ export function createAccount(newUsername, newPassword) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ username: newUsername, password: newPassword }),
+    credentials: 'omit'
   })
     .then((response) => {
       if (!response.ok) {

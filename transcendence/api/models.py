@@ -1,15 +1,20 @@
 # from django.contrib.auth.models import User
-from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now
 
+
 class CustomUser(AbstractUser):
-    email = models.EmailField(max_length=255, unique=True, blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)  # We might use phone number for 2FA
-    profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)  # Profile image
+    phone_number = models.CharField(
+        max_length=15, blank=True, null=True
+    )  # We might use phone number for 2FA
+    profile_picture = models.ImageField(
+        upload_to="profile_pics/", blank=True, null=True
+    )  # Profile image
     friends = models.ManyToManyField("self", blank=True)  # Friend list (Many-to-Many)
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
@@ -19,7 +24,6 @@ class CustomUser(AbstractUser):
         self.last_seen = now()
         self.save()
 
-
     USERNAME_FIELD = "username"  # or later put email for authentication
     REQUIRED_FIELDS = []  # or "email" to Require email during registration
 
@@ -28,8 +32,10 @@ class CustomUser(AbstractUser):
 
 
 class Player(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
-    player = models.CharField(max_length=20)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    )
+    player = models.CharField(max_length=20, unique=True)
 
     def __str__(self):
         return self.user.username if self.user else self.player
@@ -82,8 +88,12 @@ class PongMatch(models.Model):
     points_per_set = models.IntegerField(default=3)
     player1_sets_won = models.IntegerField(default=0)
     player2_sets_won = models.IntegerField(default=0)
-    #winner = models.CharField(max_length=100, blank=True)
-    winner = models.ForeignKey(Player, on_delete=models.CASCADE)
+    winner = models.ForeignKey(
+        Player,
+        on_delete=models.CASCADE,
+        null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou non terminés
+        blank=True,  # Idem pour les formulaires et l'admin
+    )
     date_played = models.DateTimeField(auto_now_add=True)
     is_tournament_match = models.BooleanField(default=False)
     tournament = models.ForeignKey(
@@ -95,7 +105,7 @@ class PongMatch(models.Model):
     )
 
     def __str__(self):
-        return f"{self.player1} vs {self.player2} - Winner: {self.winner}"
+        return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
 
 
 class PongSet(models.Model):
