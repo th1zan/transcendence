@@ -152,24 +152,16 @@ export function displayWelcomePage() {
   appDiv.innerHTML = `
     <h2 class="text-center">Bonjour ${username}</h2>
     <div style="background-color: red;" class="p-1 h-100  d-flex">
-      <div  style="background-color: #80bdff; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
-        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-scale d-flex align-self-center m-4" alt="Ilkay" width="100" height="100" />
+      <div  style="background-color: #80bdff; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex" id="v-pills-tab" role="tablist" aria-orientation="vertical">
         <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="tab" aria-controls="v-pills-home" aria-selected="true">Home</a>
         <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Profile</a>
         <a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
         <a class="nav-link mt-auto" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</a>
       </div>
       <div style="background-color: green;" class="p-1 h-100 flex-grow-1" >
-      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixed; background-size: 100% 100%;"
-        class="p-1 h-50 d-flex rounded " >
-      <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
-        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-scale d-flex align-self-center" alt="Ilkay" style="max-width:100px ; max-height:60%;">
-          <div class="container row" style="" >
-            <div style="background-color: teal;" class="col-4"> blabla 1 </div>
-            <div style="background-color: olive;" class="col-4"> blabla 2 </div>
-            <div style="background-color: blue;" class="col-4"> blabla 3 </div>
-
-          </div>
+        <img src="ilyanar.jpg" class="img-circle" alt="Responsive image">
+        <div style="background-color: orange;" class="p-1 h-50 d-flex rounded" >
+          a
         </div>
 
       </div>
