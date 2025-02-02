@@ -1,11 +1,12 @@
 import { startGameSetup } from "./pong.js";
 import { createTournamentForm, validateSearch } from "./tournament.js";
 import {
-  getToken,
-  refreshToken,
-  deleteAccount,
-  logout,
+  anonymizeAccount,
   createAccount,
+  deleteAccount,
+  getToken,
+  logout,
+  refreshToken,
 } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -235,9 +236,11 @@ export function displaySettings() {
    <h3>Gestion du compte</h3>
     <br>
     <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
+    <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
   `;
 
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+  document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
 }
 
 

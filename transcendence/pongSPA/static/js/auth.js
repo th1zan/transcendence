@@ -178,3 +178,38 @@ export function deleteAccount() {
       }
     });
 }
+
+export function anonymizeAccount() {
+  const confirmAnonymize = confirm(
+    "Êtes-vous sûr de vouloir anonymiser votre compte ? Cette action est irréversible."
+  );
+  if (!confirmAnonymize) return;
+
+  fetch("/api/auth/anonymize-account/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((error) => {
+          throw new Error(
+            error.error || "Échec de l'anonymisation du compte."
+          );
+        });
+      }
+      return response.json();
+    })
+    .then((data) => {
+      alert(data.message || "Votre compte a été anonymisé avec succès.");
+      localStorage.clear();
+      window.location.href = "/";
+    })
+    .catch((error) => {
+      console.error("Erreur lors de l'anonymisation du compte :", error);
+      alert("Une erreur est survenue : " + error.message);
+    });
+}

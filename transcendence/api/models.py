@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 from django.utils.timezone import now
 
 
@@ -18,6 +19,7 @@ class CustomUser(AbstractUser):
     friends = models.ManyToManyField("self", blank=True)  # Friend list (Many-to-Many)
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
+    date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
 
     def update_last_seen(self):
         """Update last_seen timestamp when the user is active"""

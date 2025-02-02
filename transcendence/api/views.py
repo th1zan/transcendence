@@ -383,30 +383,38 @@ class AnonymizeAccountView(APIView):
             # Generate a random pseudonym for the deleted user
             anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:12]}"
 
-            # Update matches where the user is user1 only
-            PongMatch.objects.filter(user1=user.username).update(user1=random_username)
-            # Keep user1 but anonymize player1 (for match history)
-            PongMatch.objects.filter(player1__user=user).update(
-                player1_name=anonymous_name
-            )
-            PongMatch.objects.filter(player2__user=user).update(
-                player2_name=anonymous_name
-            )
-
             # Update winner field if this user was a winner
-            PongMatch.objects.filter(winner__user=user).update(
-                winner=None
-            )  # Anonymize the player's profile
-            Player.objects.filter(user=user).update(player=anonymous_name, user=None)
+            #PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
+            
+            # Update the Player profile: change the player's display name to the new anonymous name
+            # We keep the user association so foreign keys in PongMatch remain valid
+            Player.objects.filter(user=user).update(player=anonymous_name)
 
             # Remove all personal data from User, but keep the account ID (FK in PongMatch)
             user.username = anonymous_name
-            user.email = ""
-            user.phone_number = ""
-            user.profile_picture = None  # Remove profile picture
+        
+            # Clear optional attributes if they exist
+            if hasattr(user, "email"):
+                user.email = ""
+            if hasattr(user, "first_name"):
+                user.first_name = ""
+            if hasattr(user, "last_name"):
+                user.last_name = ""
+            if hasattr(user, "phone_number"):
+                user.phone_number = ""
+            if hasattr(user, "profile_picture"):
+                user.profile_picture = None
+            if hasattr(user, "friend_list"):
+                user.friend_list.clear()
+            if hasattr(user, "is_online"):
+                user.is_online = False
+            if hasattr(user, "last_seen"):
+                user.last_seen = None
+            user.is_active = False # Deactivate the account
+            user.date_joined = None
             user.set_unusable_password()
             user.save()
-            # user.delete()  # Deletes the user from the database
+
             return Response(
                 {"message": f"Your account has been anonymized as {anonymous_name}."},
                 status=status.HTTP_200_OK,
