@@ -7,6 +7,7 @@ import {
   getToken,
   logout,
   refreshToken,
+  updateProfile,
   uploadAvatar,
 } from "./auth.js";
 
@@ -263,7 +264,27 @@ export function displaySettings() {
           </div>
         </div>
       </div>
-      
+      <!-- Profile Information Update -->
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Edit Profile Information</h4>
+        <div class="form-group mt-2">
+          <label>Username:</label>
+          <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+        </div>
+        <div class="form-group mt-2">
+          <label>Email:</label>
+          <input type="email" id="emailInput" class="form-control" value="${user.email}">
+        </div>
+        <div class="form-group mt-2">
+          <label>Phone Number:</label>
+          <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Account Actions -->
       <div class="d-flex justify-content-center mt-4">
       <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Supprimer le compte</button>
       <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
@@ -273,6 +294,7 @@ export function displaySettings() {
     document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
     document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
     document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+    document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
   })
   .catch(error => {
     console.error("Error loading user data:", error);

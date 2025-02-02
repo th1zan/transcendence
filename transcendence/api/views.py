@@ -465,8 +465,27 @@ class UserDetailView(APIView):
         return Response({
             "username": user.username,
             "email": user.email,
+            "phone_number": user.phone_number,
             "avatar_url": user.avatar.url if user.avatar else "/media/avatars/default.png"
         })
+    
+    def put(self, request):
+        """Updates the current user's details."""
+        user = request.user
+        data = request.data
+
+        # Update fields 
+        if "username" in data:
+            user.username = data["username"]
+        if "email" in data:
+            user.email = data["email"]
+        if "phone_number" in data:
+            user.phone_number = data["phone_number"]
+
+        user.save()
+
+        return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
+    
 
 class UploadAvatarView(APIView):
     permission_classes = [IsAuthenticated]

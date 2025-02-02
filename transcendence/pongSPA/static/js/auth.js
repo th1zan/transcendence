@@ -252,3 +252,35 @@ export function uploadAvatar() {
       alert("Error: " + error.message);
     });
 }
+
+export function updateProfile() {
+  const username = document.getElementById("usernameInput").value;
+  const email = document.getElementById("emailInput").value;
+  const phoneNumber = document.getElementById("phoneInput").value;
+
+  fetch("/api/auth/user/", {
+    method: "PUT",
+    credentials: "include", // Send authentication cookies
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      email: email,
+      phone_number: phoneNumber
+    }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to update profile.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Profile updated successfully!");
+    })
+    .catch(error => {
+      console.error("Error updating profile:", error);
+      alert("An error occurred: " + error.message);
+    });
+}
