@@ -345,62 +345,6 @@ class UserRegisterView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class UserRegisterView(APIView):
-#     permission_classes = [AllowAny]
-#     serializer_class = UserRegisterSerializer
-#
-#     def post(self, request):
-#         logger.info("Received data: %s", request.data)
-#         serializer = self.serializer_class(data=request.data)
-#         logger.info("Serializer validation result: %s", serializer.is_valid())
-#
-#         if serializer.is_valid():
-#             username = serializer.validated_data.get("username")
-#
-#             # Vérifier si le username existe déjà
-#             if CustomUser.objects.filter(username=username).exists():
-#                 logger.error("Username already exists: %s", username)
-#                 return Response(
-#                     {"error": "Username already exists."},
-#                     status=status.HTTP_400_BAD_REQUEST,
-#                 )
-#
-#             logger.info("Creating user with data: %s", serializer.validated_data)
-#             try:
-#                 user = CustomUser.objects.create_user(
-#                     username=serializer.validated_data.get("username"),
-#                     password=serializer.validated_data.get("password"),
-#                 )
-#                 logger.info("User created: %s", user.username)
-#
-#                 # Vérifier si le player existe déjà avant de créer
-#
-#                 #     Player.objects.create(
-#                 #         user=user,
-#                 #         player=username,  # Set player name as username
-#                 #     )
-#                 #     logger.info("Player created for user: %s", user.username)
-#                 # else:
-#                 #     logger.error("Player name already exists: %s", username)
-#                 #     return Response(
-#                 #         {"error": "Player name already exists."},
-#                 #         status=status.HTTP_400_BAD_REQUEST,
-#                 #     )
-#
-#                 return Response(
-#                     {"success": "User and player created successfully."},
-#                     status=status.HTTP_201_CREATED,
-#                 )
-#             except Exception as e:
-#                 logger.error("Error creating user or player: %s", str(e))
-#                 return Response(
-#                     {"error": "Could not create user or player."},
-#                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#                 )
-#         else:
-#             logger.error("Validation errors: %s", serializer.errors)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -481,18 +425,19 @@ class DeleteAccountView(APIView):
         deleted_name = f"Deleted_User"
 
         # Update matches where the user is user1 or user2, but do not remove the opponent
-        PongMatch.objects.filter(user1=user).update(
-            user1=None, player1_name=deleted_name
-        )
-        PongMatch.objects.filter(user2=user).update(
-            user2=None, player2_name=deleted_name
-        )
+        # Remove the user association from PongMatch records.
+        # This clears the user field while preserving the player foreign keys (and thus match scores).
+        PongMatch.objects.filter(user1=user).update(user1=None)
+        PongMatch.objects.filter(user2=user).update(user2=None)
 
-        # Update match winner if deleted user won
-        PongMatch.objects.filter(winner=user.username).update(winner=deleted_name)
-
-        # Delete player profile
-        Player.objects.filter(user=user).delete()
+        # Retrieve the associated Player profile, if any.
+        player = Player.objects.filter(user=user).first()
+        if player:
+            # Instead of deleting the player's record,
+            # update the player's name to "Deleted_User" and dissociate it from the user.
+            player.player = "Deleted_User"
+            player.user = None
+            player.save()
 
         # Delete the user completely
         user.delete()
