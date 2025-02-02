@@ -525,6 +525,41 @@ class UploadAvatarView(APIView):
             {"message": "Profile picture updated successfully.", "avatar_url": user.avatar.url},
             status=status.HTTP_200_OK
         )
+    
+class AddFriendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        friend_username = request.data.get("username")
+        if not friend_username:
+            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ensure consistency: Use `CustomUser` instead of `User`
+        friend_user = get_object_or_404(CustomUser, username=friend_username)
+        current_user = request.user  # Current authenticated user
+
+        # Prevent adding oneself
+        if current_user == friend_user:
+            return Response({"error": "You cannot add yourself as a friend."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if they are already friends
+        if friend_user in current_user.friends.all():
+            return Response({"message": "Already friends."}, status=status.HTTP_200_OK)
+
+        # Add each other as friends (symmetrical relationship)
+        current_user.friends.add(friend_user)
+        friend_user.friends.add(current_user)
+
+        return Response({"message": f"{friend_username} added as a friend."}, status=status.HTTP_200_OK)
+
+
+class ListFriendsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        friends = user.friends.all().values("username")
+        return Response({"friends": list(friends)})
 
 import logging
 

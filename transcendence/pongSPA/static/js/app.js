@@ -10,6 +10,7 @@ import {
   updateProfile,
   uploadAvatar,
 } from "./auth.js";
+import { addFriend, fetchFriends } from "./friends.js"; 
 
 document.addEventListener("DOMContentLoaded", () => {
   // Clear all cookies
@@ -164,27 +165,31 @@ export function displayWelcomePage() {
 
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = `
-    <button id="playButton">Jouer une partie</button>
+    <button id="playButton">🎮 Jouer une partie</button>
     <br>
     <br>
-    <button id="tournamentButton">Tournament</button>
+    <button id="tournamentButton">🏆 Tournament</button>
     <br>
     <br>
-    <button id="statsButton">Statistiques</button>
+    <button id="statsButton">📊 Statistiques</button>
     <br>
     <br>
-    <button id="settingsButton">Settings</button>
+    <button id="friendsButton">👥 Amis</button>
+    <br>
+    <br>
+    <button id="settingsButton">⚙️ Paramètres</button>
     <br>
     <br>
     <br>
     <br>
-    <button id="logoutButton">Déconnexion</button>
+    <button id="logoutButton">🚪 Déconnexion</button>
       `;
 
   // Attacher les écouteurs d'événements aux boutons
   document.getElementById("playButton").addEventListener("click", displayGameForm);
   document.getElementById("tournamentButton").addEventListener("click", displayTournament);
   document.getElementById("statsButton").addEventListener("click", displayStats);
+  document.getElementById("friendsButton").addEventListener("click", displayFriends);
   document.getElementById("settingsButton").addEventListener("click", displaySettings);
   document.getElementById("logoutButton").addEventListener("click", logout);
 
@@ -229,6 +234,29 @@ export function displayTournament() {
 }
 
 
+export function displayFriends() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+    <h3>👥 Gestion des Amis</h3>
+    <br>
+    <div>
+      <input type="text" id="friendUsername" placeholder="Nom d'utilisateur" class="form-control" />
+      <button id="addFriendButton" class="btn btn-success mt-2">Ajouter</button>
+    </div>
+    <br>
+    <h4>Mes Amis</h4>
+    <ul id="friendList" class="list-group"></ul>
+  `;
+
+  document.getElementById("addFriendButton").addEventListener("click", () => {
+    const friendUsername = document.getElementById("friendUsername").value.trim();
+    if (friendUsername) {
+      addFriend(friendUsername);
+    }
+  });
+
+  fetchFriends();
+}
 
 
 export function displaySettings() {

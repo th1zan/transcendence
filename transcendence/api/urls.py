@@ -4,11 +4,13 @@ from django.conf.urls.static import static
 
 from . import views
 from .views import (
+	AddFriendView,
     AnonymizeAccountView,
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
     CustomUser,
     DeleteAccountView,
+    ListFriendsView,
     LogoutView,
     PongMatchDetail,
     PongMatchList,
@@ -35,6 +37,8 @@ urlpatterns = [
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
 	path("auth/user/", UserDetailView.as_view(), name="user-detail"),
 	path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
+	path('friends/add/', AddFriendView.as_view(), name='add_friend'),
+    path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
         "tournament/matches/",
