@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
@@ -17,7 +18,7 @@ from django.views.decorators.http import require_POST
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -455,6 +456,56 @@ class DeleteAccountView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            "username": user.username,
+            "email": user.email,
+            "avatar_url": user.avatar.url if user.avatar else "/media/avatars/default.png"
+        })
+
+class UploadAvatarView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        # Check if a file was uploaded
+        if "avatar" not in request.FILES:
+            return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+
+        file_obj = request.FILES["avatar"]
+
+        # Extract file extension and validate type
+        file_extension = os.path.splitext(file_obj.name)[-1].lower()
+        allowed_extensions = {".jpg", ".jpeg", ".png"}
+
+        if file_extension not in allowed_extensions:
+            return Response({"error": "Invalid file type. Only JPG, JPEG, and PNG are allowed."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Define a unique filename using the user ID
+        new_filename = f"user_{user.id}{file_extension}"
+        avatar_path = f"avatars/{new_filename}"
+
+        # Delete the old avatar (if it exists and is not the default)
+        if user.avatar and user.avatar.name != "avatars/default.png":
+            old_avatar_path = os.path.join(settings.MEDIA_ROOT, user.avatar.name)
+            if os.path.exists(old_avatar_path):
+                os.remove(old_avatar_path)
+
+        # Save the new avatar
+        user.avatar.save(avatar_path, file_obj)
+        user.save(update_fields=["avatar"])  # Ensure the database updates the field
+
+        return Response(
+            {"message": "Profile picture updated successfully.", "avatar_url": user.avatar.url},
+            status=status.HTTP_200_OK
+        )
 
 import logging
 

@@ -10,12 +10,8 @@ class CustomUser(AbstractUser):
     email = models.EmailField(max_length=255, blank=True, null=True)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(
-        max_length=15, blank=True, null=True
-    )  # We might use phone number for 2FA
-    profile_picture = models.ImageField(
-        upload_to="profile_pics/", blank=True, null=True
-    )  # Profile image
+    phone_number = models.CharField(max_length=15, blank=True, null=True)  # We might use phone number for 2FA
+    avatar = models.ImageField(upload_to="avatars/", default='avatars/default.png', blank=True, null=True) # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
     friends = models.ManyToManyField("self", blank=True)  # Friend list (Many-to-Many)
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time

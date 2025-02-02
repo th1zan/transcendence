@@ -213,3 +213,42 @@ export function anonymizeAccount() {
       alert("Une erreur est survenue : " + error.message);
     });
 }
+
+export function uploadAvatar() {
+  const input = document.getElementById("avatarInput");
+  const file = input.files[0];
+
+  if (!file) {
+    alert("Please select a file.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  fetch("/api/auth/upload-avatar/", {
+    method: "POST",
+    credentials: "include", // Ensures authentication
+    body: formData,
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(error => { 
+          throw new Error(error.error || "Upload failed."); 
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Profile picture updated successfully!");
+      const profilePic = document.getElementById("profilePic");
+
+      if (profilePic && data.avatar_url) {
+        profilePic.src = data.avatar_url + "?t=" + new Date().getTime(); // Prevents caching issues
+      }
+    })
+    .catch(error => {
+      console.error("Error uploading profile picture:", error);
+      alert("Error: " + error.message);
+    });
+}

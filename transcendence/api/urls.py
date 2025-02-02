@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 
 from . import views
 from .views import (
@@ -15,6 +17,8 @@ from .views import (
     TournamentCreationView,
     TournamentMatchesView,
     TournamentSearchView,
+    UploadAvatarView,
+    UserDetailView,
     UserRegisterView,
 )
 
@@ -29,6 +33,8 @@ urlpatterns = [
     path("auth/logout/", LogoutView.as_view(), name="logout"),
     path("auth/anonymize-account/",AnonymizeAccountView.as_view(),name="anonymize-account"),
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
+	path("auth/user/", UserDetailView.as_view(), name="user-detail"),
+	path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
         "tournament/matches/",
@@ -38,4 +44,6 @@ urlpatterns = [
     path("user/exists/", views.check_user_exists, name="check_user_exists"),
     path("ranking/", RankingView.as_view(), name="ranking"),
     path("tournaments/", TournamentSearchView.as_view(), name="search_tournaments"),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# This ensures that media folder (which can also be mounted as a volume in production setups) is properly linked to Django project.

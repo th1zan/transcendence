@@ -7,6 +7,7 @@ import {
   getToken,
   logout,
   refreshToken,
+  uploadAvatar,
 } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -230,17 +231,52 @@ export function displayTournament() {
 
 
 export function displaySettings() {
+  fetch("/api/auth/user/", {
+    method: "GET",
+    credentials: "include", // Ensures authentication cookies are sent
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch user data.");
+      }
+      return response.json();
+    })
+    .then(user => {
+      const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
 
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-   <h3>Gestion du compte</h3>
-    <br>
-    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
-    <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
-  `;
+    const appDiv = document.getElementById("app");
+    appDiv.innerHTML = `
+    <div class="container mt-4">
+      <h3 class="text-center">Gestion du compte</h3>
 
-  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-  document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Update Profile Picture</h4>
+        <div class="d-flex flex-column align-items-center">
+          <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+          
+          <div class="mt-3 w-75">
+            <label class="form-label">Choose a new profile picture:</label>
+            <div class="input-group">
+              <input type="file" id="avatarInput" accept="image/*" class="form-control">
+              <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-center mt-4">
+      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Supprimer le compte</button>
+      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
+       </div>
+    `;
+
+    document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+    document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+  })
+  .catch(error => {
+    console.error("Error loading user data:", error);
+  });
 }
 
 
@@ -259,6 +295,7 @@ export function displayStats() {
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+
 }
 
 function fetchResultats() {
