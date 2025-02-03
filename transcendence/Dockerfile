@@ -22,4 +22,4 @@ EXPOSE 8000
 RUN python manage.py collectstatic --noinput
 
 #added "python..." to make migrations and migrate before running the server
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 config.asgi:application"]
+CMD ["sh", "-c", "python manage.py makemigrations api && python manage.py migrate && python manage.py collectstatic --noinput && daphne -b 0.0.0.0 -p 8000 config.asgi:application"]
