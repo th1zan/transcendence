@@ -16,6 +16,7 @@ from .views import (
     PongMatchList,
     PongScoreView,
     RankingView,
+	RemoveFriendView,
     TournamentCreationView,
     TournamentMatchesView,
     TournamentSearchView,
@@ -39,6 +40,7 @@ urlpatterns = [
 	path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
 	path('friends/add/', AddFriendView.as_view(), name='add_friend'),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
+	path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
         "tournament/matches/",

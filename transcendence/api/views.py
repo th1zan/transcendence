@@ -560,7 +560,36 @@ class ListFriendsView(APIView):
         user = request.user
         friends = user.friends.all().values("username")
         return Response({"friends": list(friends)})
+    
+class RemoveFriendView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def delete(self, request):
+        friend_username = request.data.get("username")
+        if not friend_username:
+            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the current authenticated user
+        current_user = request.user  
+
+        # Get the friend user safely
+        friend_user = get_object_or_404(CustomUser, username=friend_username)
+
+        # Prevent removing oneself
+        if current_user == friend_user:
+            return Response({"error": "You cannot remove yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if they are actually friends
+        if friend_user not in current_user.friends.all():
+            return Response({"error": "This user is not in your friend list."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Remove each other as friends (symmetrical relationship)
+        current_user.friends.remove(friend_user)
+        friend_user.friends.remove(current_user)
+
+        return Response({"message": f"{friend_username} has been removed from your friend list."}, status=status.HTTP_200_OK)
+    
+    
 import logging
 
 logger = logging.getLogger(__name__)

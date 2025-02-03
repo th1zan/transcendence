@@ -10,7 +10,7 @@ import {
   updateProfile,
   uploadAvatar,
 } from "./auth.js";
-import { addFriend, fetchFriends } from "./friends.js"; 
+import { addFriend, fetchFriends, removeFriend } from "./friends.js"; 
 
 document.addEventListener("DOMContentLoaded", () => {
   // Clear all cookies
