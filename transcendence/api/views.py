@@ -3,12 +3,15 @@ import os
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
+from asgiref.sync import async_to_sync #for notifications over WebSockets
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
+from django.db.utils import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -29,7 +32,7 @@ from rest_framework_simplejwt.token_blacklist.models import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Player, PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import CustomUser, FriendRequest, Notification, Player, PongMatch, PongSet, Tournament, TournamentPlayer
 from .serializers import (
     PongMatchSerializer,
     PongSetSerializer,
@@ -310,7 +313,7 @@ class UserRegisterView(APIView):
             try:
                 user = CustomUser.objects.create_user(
                     username=username,
-                    email=email,  # Pass None if email is not provided
+                    #email=email,  # Pass None if email is not provided
                     password=serializer.validated_data.get("password"),
                 )
                 logger.info("User created: %s", user.username)
@@ -606,7 +609,114 @@ class FriendsOnlineStatusView(APIView):
         ]
 
         return Response({"friends_status": friends_status}, status=status.HTTP_200_OK)   
+
+class SendFriendRequestView(APIView):
+    permission_classes = [IsAuthenticated]
     
+    def post(self, request):
+        receiver_username = request.data.get('username')
+        try:
+            receiver = CustomUser.objects.get(username=receiver_username)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if FriendRequest.objects.filter(sender=request.user, receiver=receiver, status='pending').exists():
+            return Response({"error": "Friend request already sent."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create the friend request
+        friend_request = FriendRequest.objects.create(sender=request.user, receiver=receiver)
+        
+        # Create a notification for the receiver
+        Notification.objects.create(
+            user=receiver,
+            message=f"{request.user.username} sent you a friend request."
+        )
+        
+        # (Optional) Push the notification over WebSockets here
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"notifications_{receiver.id}",
+            {
+                "type": "send_notification",
+                "content": {"message": f"{request.user.username} sent you a friend request."}
+            }
+        )
+        return Response({"message": "Friend request sent."}, status=status.HTTP_200_OK)
+
+
+class ViewFriendRequestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        friend_requests = FriendRequest.objects.filter(receiver=request.user, status="pending")
+        requests_data = [{"sender": fr.sender.username} for fr in friend_requests]
+
+        return Response({"requests": requests_data}, status=200)
+
+
+class RespondToFriendRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        sender_username = request.data.get("username")
+        action = request.data.get("action")  # 'accept' or 'decline'
+
+        if action not in ["accept", "decline"]:
+            return Response({"error": "Invalid action. Use 'accept' or 'decline'."}, status=400)
+
+        try:
+            friend_request = FriendRequest.objects.get(sender__username=sender_username, receiver=request.user, status="pending")
+        except FriendRequest.DoesNotExist:
+            return Response({"error": "Friend request not found."}, status=404)
+
+        if action == "accept":
+            # Add each other as friends
+            request.user.friends.add(friend_request.sender)
+            friend_request.sender.friends.add(request.user)
+            friend_request.status = "accepted"
+            message = f"You are now friends with {sender_username}!"
+        else:
+            friend_request.status = "declined"
+            message = f"You have declined {sender_username}'s friend request."
+
+        friend_request.save()
+
+        return Response({"message": message}, status=200)
+
+# class ConfirmFriendRequestView(APIView):
+#     permission_classes = [IsAuthenticated]
+    
+#     def post(self, request):
+#         sender_username = request.data.get('username')
+#         try:
+#             sender = CustomUser.objects.get(username=sender_username)
+#         except CustomUser.DoesNotExist:
+#             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+#         try:
+#             friend_request = FriendRequest.objects.get(
+#                 sender=sender,
+#                 receiver=request.user,
+#                 status='pending'
+#             )
+#         except FriendRequest.DoesNotExist:
+#             return Response({"error": "No pending friend request from this user."}, status=status.HTTP_400_BAD_REQUEST)
+        
+#         friend_request.status = 'accepted'
+#         friend_request.save()
+        
+#         # Optionally, update both users’ friend lists (depending on your overall user management)
+        
+#         # Create a notification for the sender
+#         Notification.objects.create(
+#             user=sender,
+#             message=f"{request.user.username} accepted your friend request."
+#         )
+        
+#         # (Optional) Push the notification over WebSockets here
+        
+#         return Response({"message": "Friend request accepted."}, status=status.HTTP_200_OK)
+
 import logging
 
 logger = logging.getLogger(__name__)

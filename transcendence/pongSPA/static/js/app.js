@@ -10,7 +10,7 @@ import {
   updateProfile,
   uploadAvatar,
 } from "./auth.js";
-import { addFriend, fetchFriends, removeFriend } from "./friends.js"; 
+import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
 
 document.addEventListener("DOMContentLoaded", () => {
   // Clear all cookies
@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   localStorage.clear();
 
   displayConnectionFormular();
+  setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 });
 
 export function displayConnectionFormular() {
@@ -78,7 +79,7 @@ export function displayConnectionFormular() {
       </div>
     </div>
     `;
-  setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
+  // setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
   document
     .getElementById("loginForm")
@@ -237,24 +238,26 @@ export function displayTournament() {
 export function displayFriends() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h3>👥 Gestion des Amis</h3>
+    <h3>👥 Friends Management</h3>
     <br>
     <div>
       <input type="text" id="friendUsername" placeholder="Nom d'utilisateur" class="form-control" />
-      <button id="addFriendButton" class="btn btn-success mt-2">Ajouter</button>
+      <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
     </div>
+    <h4>Demandes d'amis en attente</h4>
+    <ul id="friendRequests" class="list-group"></ul>
     <br>
-    <h4>Mes Amis</h4>
+    <h4>My Friends</h4>
     <ul id="friendList" class="list-group"></ul>
   `;
 
-  document.getElementById("addFriendButton").addEventListener("click", () => {
+  document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
     const friendUsername = document.getElementById("friendUsername").value.trim();
     if (friendUsername) {
-      addFriend(friendUsername);
+      sendFriendRequest(friendUsername);
     }
   });
-
+  fetchFriendRequests();
   fetchFriends();
 }
 

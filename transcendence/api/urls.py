@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 
 from . import views
 from .views import (
-	AddFriendView,
+	#AddFriendView,
     AnonymizeAccountView,
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
@@ -16,14 +16,17 @@ from .views import (
     PongMatchDetail,
     PongMatchList,
     PongScoreView,
+	SendFriendRequestView,
     RankingView,
 	RemoveFriendView,
+	RespondToFriendRequestView,
     TournamentCreationView,
     TournamentMatchesView,
     TournamentSearchView,
     UploadAvatarView,
     UserDetailView,
     UserRegisterView,
+	ViewFriendRequestsView,
 )
 
 urlpatterns = [
@@ -39,10 +42,13 @@ urlpatterns = [
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
 	path("auth/user/", UserDetailView.as_view(), name="user-detail"),
 	path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
-	path('friends/add/', AddFriendView.as_view(), name='add_friend'),
+	#path('friends/add/', AddFriendView.as_view(), name='add_friend'),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
 	path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
 	path("friends/status/", FriendsOnlineStatusView.as_view(), name="friends_status"),
+	path("friends/send-request/", SendFriendRequestView.as_view(), name="send_friend_request"),
+	path("friends/requests/", ViewFriendRequestsView.as_view(), name="view_friend_requests"),  # View pending requests
+    path("friends/respond/", RespondToFriendRequestView.as_view(), name="respond_friend_request"),  # Accept/Decline reques
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
         "tournament/matches/",

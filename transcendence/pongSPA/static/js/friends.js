@@ -1,6 +1,31 @@
 
-export function addFriend(friendUsername) {
-	fetch("/api/friends/add/", {
+// this adds a friend automatically 
+// export function addFriend(friendUsername) {
+// 	fetch("/api/friends/add/", {
+// 	  method: "POST",
+// 	  headers: {
+// 		"Content-Type": "application/json",
+// 	  },
+// 	  credentials: "include",
+// 	  body: JSON.stringify({ username: friendUsername }),
+// 	})
+// 	  .then((response) => response.json())
+// 	  .then((data) => {
+// 		if (data.error) {
+// 		  alert("Erreur : " + data.error);
+// 		} else {
+// 		  alert(data.message);
+// 		  fetchFriends(); // Refresh the friend list
+// 		}
+// 	  })
+// 	  .catch((error) => {
+// 		console.error("Erreur lors de l'ajout d'ami :", error);
+// 		alert("Une erreur est survenue.");
+// 	  });
+//   }
+
+export function sendFriendRequest(friendUsername) {
+	fetch("/api/friends/send-request/", {  // Updated endpoint
 	  method: "POST",
 	  headers: {
 		"Content-Type": "application/json",
@@ -13,12 +38,11 @@ export function addFriend(friendUsername) {
 		if (data.error) {
 		  alert("Erreur : " + data.error);
 		} else {
-		  alert(data.message);
-		  fetchFriends(); // Refresh the friend list
+		  alert(`Demande d'ami envoyée à ${friendUsername}.`);
 		}
 	  })
 	  .catch((error) => {
-		console.error("Erreur lors de l'ajout d'ami :", error);
+		console.error("Erreur lors de l'envoi de la demande d'ami :", error);
 		alert("Une erreur est survenue.");
 	  });
   }
@@ -51,6 +75,73 @@ export function removeFriend(friendUsername) {
 	  });
   }
 
+
+export function respondToFriendRequest(friendUsername, action) {
+	fetch("/api/friends/respond/", {  
+	  method: "POST",
+	  headers: {
+		"Content-Type": "application/json",
+	  },
+	  credentials: "include",
+	  body: JSON.stringify({ username: friendUsername, action: action }), // 'accept' or 'decline'
+	})
+	  .then((response) => response.json())
+	  .then((data) => {
+		if (data.error) {
+		  alert("Erreur : " + data.error);
+		} else {
+		  alert(data.message);
+		  fetchFriendRequests(); // Refresh the friend request list
+          fetchFriends(); // refresh the friend list
+		}
+	  })
+	  .catch((error) => {
+		console.error("Erreur lors de la réponse à la demande d'ami :", error);
+		alert("Une erreur est survenue.");
+	  });
+  }
+
+
+  export function fetchFriendRequests() {
+	fetch("/api/friends/requests/", {
+	  method: "GET",
+	  credentials: "include",
+	})
+	  .then(response => response.json())
+	  .then(requestsData => {
+		const requestList = document.getElementById("friendRequests");
+		requestList.innerHTML = "";
+  
+		requestsData.requests.forEach(request => {
+		  const listItem = document.createElement("li");
+		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+		  listItem.innerHTML = `
+			<span>${request.sender}</span>
+			<div>
+			  <button class="btn btn-success btn-sm accept-request" data-username="${request.sender}">✅ Accepter</button>
+			  <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">❌ Refuser</button>
+			</div>
+		  `;
+		  requestList.appendChild(listItem);
+		});
+  
+		// Add event listeners for accept and decline buttons
+		document.querySelectorAll(".accept-request").forEach(button => {
+		  button.addEventListener("click", event => {
+			const friendUsername = event.target.getAttribute("data-username");
+			respondToFriendRequest(friendUsername, "accept");
+		  });
+		});
+  
+		document.querySelectorAll(".decline-request").forEach(button => {
+		  button.addEventListener("click", event => {
+			const friendUsername = event.target.getAttribute("data-username");
+			respondToFriendRequest(friendUsername, "decline");
+		  });
+		});
+	  })
+	  .catch(error => console.error("Erreur lors de la récupération des demandes d'amis :", error));
+  }
 
 export function fetchFriends() {
 	fetch("/api/friends/list/", {
