@@ -10,6 +10,7 @@ from .views import (
     CustomTokenRefreshView,
     CustomUser,
     DeleteAccountView,
+    FriendsOnlineStatusView,
     ListFriendsView,
     LogoutView,
     PongMatchDetail,
@@ -41,6 +42,7 @@ urlpatterns = [
 	path('friends/add/', AddFriendView.as_view(), name='add_friend'),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
 	path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
+	path("friends/status/", FriendsOnlineStatusView.as_view(), name="friends_status"),
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
         "tournament/matches/",

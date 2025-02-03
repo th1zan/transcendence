@@ -51,20 +51,41 @@ export function removeFriend(friendUsername) {
 	  });
   }
 
+
 export function fetchFriends() {
 	fetch("/api/friends/list/", {
 	  method: "GET",
 	  credentials: "include",
 	})
 	  .then((response) => response.json())
-	  .then((data) => {
-		const friendList = document.getElementById("friendList");
-		friendList.innerHTML = "";
-		data.friends.forEach((friend) => {
+	  .then((friendsData) => {
+		// Now fetch friend statuses
+		fetch("/api/friends/status/", {
+		  method: "GET",
+		  credentials: "include",
+		})
+		  .then((statusResponse) => statusResponse.json())
+		  .then((statusData) => {
+			const friendList = document.getElementById("friendList");
+			friendList.innerHTML = "";
+  
+			friendsData.friends.forEach((friend) => {
+			  // Find corresponding status in statusData
+			  const friendStatus = statusData.friends_status.find(
+				(status) => status.username === friend.username
+			  );
+  
+			  const isOnline = friendStatus ? friendStatus.is_online : false;
+			  const lastSeen = friendStatus ? friendStatus.last_seen : "Never";
+  
+			  const statusBadge = isOnline
+				? `<span class="badge bg-success">🟢 En ligne</span>`
+				: `<span class="badge bg-secondary">⚫ Hors ligne (vu: ${lastSeen})</span>`;
+
 		  const listItem = document.createElement("li");
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
-			<span>${friend.username}</span>
+			<span>${friend.username} ${statusBadge}</span>
 			<button class="btn btn-danger btn-sm remove-friend" data-username="${friend.username}">❌ Supprimer</button>
 		  `;
 		  friendList.appendChild(listItem);
@@ -77,7 +98,7 @@ export function fetchFriends() {
 			});
 		});
 	  })
-	  .catch((error) => {
-		console.error("Erreur lors de la récupération des amis :", error);
-	  });
+	  .catch((error) => console.error("Erreur lors de la récupération des statuts d'amis :", error));
+    })
+	.catch((error) => console.error("Erreur lors de la récupération des amis :", error));
   }

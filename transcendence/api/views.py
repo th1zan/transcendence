@@ -588,7 +588,24 @@ class RemoveFriendView(APIView):
         friend_user.friends.remove(current_user)
 
         return Response({"message": f"{friend_username} has been removed from your friend list."}, status=status.HTTP_200_OK)
-    
+
+class FriendsOnlineStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        current_user = request.user
+        friends = current_user.friends.all()
+
+        friends_status = [
+            {
+                "username": friend.username,
+                "is_online": friend.is_online,
+                "last_seen": friend.last_seen.strftime("%Y-%m-%d %H:%M:%S") if friend.last_seen else "Never"
+            }
+            for friend in friends
+        ]
+
+        return Response({"friends_status": friends_status}, status=status.HTTP_200_OK)   
     
 import logging
 
