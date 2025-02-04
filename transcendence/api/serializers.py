@@ -14,7 +14,7 @@ class TournamentSerializer(serializers.ModelSerializer):
 class TournamentPlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentPlayer
-        fields = ["pseudo"]
+        fields = ["player"]
 
 
 class PongMatchSerializer(serializers.ModelSerializer):

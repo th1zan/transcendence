@@ -11,6 +11,10 @@ class Player(models.Model):
     def __str__(self):
         return self.user.username if self.user else self.player
 
+    @property
+    def is_guest(self):
+        return self.user is None
+
 
 class Tournament(models.Model):
     tournament_name = models.CharField(max_length=100)

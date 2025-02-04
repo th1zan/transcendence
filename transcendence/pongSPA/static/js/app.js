@@ -19,49 +19,51 @@ document.addEventListener("DOMContentLoaded", () => {
   // Clear local storage
   localStorage.clear();
 
-  displayConnectionFormular();
+  //displayConnectionFormular();
+  displayWelcomePage();
 });
 
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-  	<div class="container mt-5 custom-container">
-		  <h1 class="text-center custom-title">Bienvenu sur la page d'accueil</h1>
-	  </div>
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #FFFFFF;">
-      <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
+  	<div class="min-vh-100 flex-column justify-content-center align-items-center" style="background-color: #f4f3f5;">
+		<div class="container mt-5 custom-container">
+	  		<h1 class="text-center custom-title">Bienvenue sur la page d'accueil !</h1>
+		</div>
+		<div class="d-flex justify-content-center align-items-center w-100" style="min-height: 75vh;">
+      	<div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
+        	<h2 class="text-center mb-5" style="font-size: 2.5rem; color: #51227f;">Connexion</h2>
         <form id="loginForm">
           <div class="form-group mb-4">
             <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
-            <input 
-              type="text" 
-              id="username" 
-              class="form-control form-control-lg" 
-              placeholder="Entrez votre nom" 
-              required 
+            <input
+              type="text"
+              id="username"
+              class="form-control form-control-lg"
+              placeholder="Entrez votre nom"
+              required
             />
           </div>
           <div class="form-group mb-5">
             <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Mot de passe</label>
-            <input 
-              type="password" 
-              id="password" 
-              class="form-control form-control-lg" 
-              placeholder="Entrez votre mot de passe" 
-              required 
+            <input
+              type="password"
+              id="password"
+              class="form-control form-control-lg"
+              placeholder="Entrez votre mot de passe"
+              required
             />
           </div>
-          <button 
-            type="submit" 
-            class="btn btn-success w-100 py-3" 
+          <button
+            type="submit"
+            class="btn btn-success w-100 py-3"
             style="font-size: 1.3rem;">
             Se connecter
           </button>
         </form>
-        <button 
-          id="signupButton" 
-          class="btn btn-primary w-100 mt-4 py-3" 
+        <button
+          id="signupButton"
+          class="btn btn-primary w-100 mt-4 py-3"
           style="font-size: 1.3rem;">
           Créer un compte
         </button>
@@ -84,7 +86,7 @@ export function displayConnectionFormular() {
     .addEventListener("click", displayRegistrationForm);
 }
 
-// creation du compte 
+// creation du compte
 function displayRegistrationForm() {
   const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
@@ -94,34 +96,34 @@ function displayRegistrationForm() {
         <form id="signupForm">
           <div class="form-group mb-4">
             <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
-            <input 
-              type="text" 
-              id="newUsername" 
-              class="form-control form-control-lg" 
-              placeholder="Entrez votre nom d'utilisateur" 
-              required 
+            <input
+              type="text"
+              id="newUsername"
+              class="form-control form-control-lg"
+              placeholder="Entrez votre nom d'utilisateur"
+              required
             />
           </div>
           <div class="form-group mb-5">
             <label for="newPassword" style="font-size: 1.2rem;"><i class="bi bi-lock"></i> Mot de passe</label>
-            <input 
-              type="password" 
-              id="newPassword" 
-              class="form-control form-control-lg" 
-              placeholder="Entrez votre mot de passe" 
-              required 
+            <input
+              type="password"
+              id="newPassword"
+              class="form-control form-control-lg"
+              placeholder="Entrez votre mot de passe"
+              required
             />
           </div>
-          <button 
-            type="submit" 
-            class="btn btn-success w-100 py-3" 
+          <button
+            type="submit"
+            class="btn btn-success w-100 py-3"
             style="font-size: 1.3rem;">
             Créer le compte
           </button>
         </form>
-        <button 
-          id="backToLoginButton" 
-          class="btn btn-primary w-100 mt-4 py-3" 
+        <button
+          id="backToLoginButton"
+          class="btn btn-primary w-100 mt-4 py-3"
           style="font-size: 1.3rem;">
           Retour à la connexion
         </button>
@@ -143,12 +145,83 @@ function displayRegistrationForm() {
     .addEventListener("click", displayConnectionFormular);
 }
 
+// homepage
 export function displayWelcomePage() {
   const username = localStorage.getItem("username");
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h2>Bonjour ${username}</h2>
-    <br>
+    <h2 class="text-center">Bonjour ${username}</h2>
+    <div style="background-color: black;" class="p-1 h-100  d-flex">
+      <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
+          <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="button" aria-controls="v-pills-home" aria-selected="true">Play</a>
+          <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">New Tornament</a>
+          <div class="flex-grow-1"></div>
+          <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Delete account</a>
+          <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Log out</a>
+      </div>
+      <div style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
+      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixed; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
+      <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
+      <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px ; height:60%; background-color: red;">
+      <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
+      </div>
+      <div class="container row" style="" >
+      <div style="background-color: teal;" class="col-4"> blabla 1 </div>
+      <div style="background-color: olive;" class="col-4"> blabla 2 </div>
+      <div style="background-color: blue;" class="col-4"> blabla 3 </div>
+
+      </div>
+      </div>
+      </div>
+      </div>
+      `;
+
+      //<a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
+      //<div class="tab-content" id="v-pills-tabContent">
+      //  <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">abc</div>
+      //  <div class="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">...</div>
+      //  <div class="tab-pane fade" id="v-pills-messages" role="tabpanel" aria-labelledby="v-pills-messages-tab">...</div>
+      //  <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">...</div>
+      //</div>
+
+  // Attacher les écouteurs d'événements aux boutons
+  document.getElementById("playButton").addEventListener("click", displayGameForm);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
+      return;
+    }
+
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      alert("Veuillez entrer un nom de tournoi.");
+      return;
+    }
+
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
+
+  // Ajouter un écouteur d'événement pour le bouton "Classement général"
+
+  document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
+  document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+}
+
+
+
+export function displayWelcomePage2() {
+  const username = localStorage.getItem("username");
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+    <h2 class="text-center">Bonjour ${username}</h2>
+
     <br>
     <h3>Jouer une partie</h2>
     <button id="playButton">Jouer</button>
@@ -157,7 +230,7 @@ export function displayWelcomePage() {
     <h3>Tournoi</h3>
     <b>Créer un nouveau tournoi</b>
     <br>
-    <button id="newTournamentButton">Créer un nouveau tournoi</button> 
+    <button id="newTournamentButton">Créer un nouveau tournoi</button>
     <br>
     <br>
     <b>Rechercher un tournoi</b>
@@ -188,7 +261,7 @@ export function displayWelcomePage() {
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
   document.getElementById("logoutButton").addEventListener("click", logout);
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-  
+
   document.getElementById("tournamentSearchButton").addEventListener("click", () => {
     const tournamentNameInput = document.getElementById("tournamentNameInput");
     if (!tournamentNameInput) {
@@ -317,7 +390,7 @@ function fetchRanking() {
     });
 }
 
-function displayGameForm() { 
+function displayGameForm() {
 
   const username = localStorage.getItem("username");
   const appDiv = document.getElementById("app");
@@ -341,7 +414,7 @@ function displayGameForm() {
     </div>
   `;
   console.log("Valeur de username dans displayGameForm :", username);
-  
+
   document.getElementById("startGameButton").addEventListener("click", () => {
     const player1 = username;
     const player2 = document.getElementById("player2").value.trim();

@@ -275,15 +275,39 @@ class UserRegisterView(APIView):
         logger.info("Received data: %s", request.data)
         serializer = self.serializer_class(data=request.data)
         logger.info("Serializer validation result: %s", serializer.is_valid())
+
         if serializer.is_valid():
+            username = serializer.validated_data.get("username")
+
+            # Vérifier si le username existe déjà
+            if User.objects.filter(username=username).exists():
+                logger.error("Username already exists: %s", username)
+                return Response(
+                    {"error": "Username already exists."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             logger.info("Creating user with data: %s", serializer.validated_data)
             user = User.objects.create_user(
-                username=serializer.validated_data.get("username"),
+                username=username,
                 password=serializer.validated_data.get("password"),
             )
             logger.info("User created: %s", user.username)
+
+            # Vérifier si le player existe déjà
+            if Player.objects.filter(player=username).exists():
+                logger.error("Player name already exists: %s", username)
+                return Response(
+                    {"error": "Player name already exists."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Créer automatiquement un joueur associé à l'utilisateur
+            Player.objects.create(user=user, player=username)
+            logger.info("Player created for user: %s", user.username)
+
             return Response(
-                {"success": "User created successfully."},
+                {"success": "User and player created successfully."},
                 status=status.HTTP_201_CREATED,
             )
         else:
@@ -398,9 +422,6 @@ class TournamentCreationView(APIView):
                     # Si l'utilisateur n'existe pas, le joueur est un "guest"
                     player, created = Player.objects.get_or_create(player=player_player)
 
-                logger.debug(
-                    f"Player {player_player} created: {created}, player: {player}"
-                )
                 players.append(player)
 
             # 3. Association des joueurs au tournoi
@@ -502,3 +523,22 @@ class RankingView(APIView):
         ranking_data.sort(key=lambda x: x["total_wins"], reverse=True)
 
         return Response(ranking_data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def check_user_exists(request):
+    username = request.GET.get("username", "")
+    try:
+        user = User.objects.get(username=username)
+        player = Player.objects.get(user=user)
+        return JsonResponse(
+            {
+                "exists": True,
+                "user_id": user.id,
+                "username": user.username,
+                "is_guest": player.is_guest,
+            }
+        )
+    except User.DoesNotExist:
+        return JsonResponse({"exists": False})

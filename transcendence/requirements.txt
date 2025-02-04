@@ -36,3 +36,6 @@ tomlkit==0.13.2
 ujson==5.10.0
 whatthepatch==1.0.7
 yapf==0.43.0
+channels==4.0.0
+daphne==4.0.0
+whitenoise

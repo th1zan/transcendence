@@ -1,5 +1,6 @@
 from django.urls import path
 
+from . import views
 from .views import (
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
@@ -12,6 +13,7 @@ from .views import (
     TournamentCreationView,
     TournamentMatchesView,
     TournamentSearchView,
+    User,
     UserRegisterView,
 )
 
@@ -31,6 +33,7 @@ urlpatterns = [
         TournamentMatchesView.as_view(),
         name="tournament_matches",
     ),
+    path("user/exists/", views.check_user_exists, name="check_user_exists"),
     path("ranking/", RankingView.as_view(), name="ranking"),
     path("tournaments/", TournamentSearchView.as_view(), name="search_tournaments"),
 ]
