@@ -453,7 +453,7 @@ function displayGameForm() {
       <button type="button" id="startGameButton">Start Game</button>
     </form>
     <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
-    <div id="result" style="display: none;">
+    <div id="game_panel" style="display: none;">
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>
