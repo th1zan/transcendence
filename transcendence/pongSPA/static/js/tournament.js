@@ -9,9 +9,12 @@ export function DisplayTournamentGame() {
   appDiv.innerHTML = `
     <h2>Tournois : ${tournamentName}</h2>
     <div id="tournamentMatches"></div>    
-    <div id="result"></div>      
+    <div id="game_panel" style="display: none;">
+      <h2>Game Results</h2>
+      <p id="summary"></p>
+    </div>    
     <button id="backToSearchButton" class="btn btn-secondary">Retour à la recherche</button>
-    <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
+    <canvas id="pong" width="800" height="400"></canvas>
   `;
 
   const tournamentId = localStorage.getItem("tournamentId");

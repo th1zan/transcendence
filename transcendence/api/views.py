@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -83,7 +83,6 @@ class PongScoreView(APIView):
 
         # Récupérer l'utilisateur connecté pour user1
         user1 = request.user
-        # Vérifier si player1 existe, sinon le créer
         player1_name = match_data["player1"]
         player1, created = Player.objects.get_or_create(
             player=player1_name,
@@ -98,6 +97,7 @@ class PongScoreView(APIView):
                 "user": (
                     CustomUser.objects.filter(username=player2_name).first()
                     if player2_name != player1_name
+                    and CustomUser.objects.filter(username=player2_name).exists()
                     else None
                 )
             },
@@ -108,7 +108,8 @@ class PongScoreView(APIView):
         match_data["user2"] = (
             CustomUser.objects.filter(username=player2_name).first().id
             if player2_name != player1_name
-            else None
+            and CustomUser.objects.filter(username=player2_name).exists()
+            else None  # Si l'utilisateur n'existe pas, user2 sera None
         )
         match_data["player1"] = player1.id
         match_data["player2"] = player2.id
@@ -118,7 +119,6 @@ class PongScoreView(APIView):
             match = match_serializer.save()
 
             for set_data in sets_data:
-                # Associe le match ID à chaque set
                 set_data["match"] = match.id
                 set_serializer = PongSetSerializer(data=set_data)
                 if set_serializer.is_valid():
@@ -346,7 +346,6 @@ class UserRegisterView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -385,15 +384,15 @@ class AnonymizeAccountView(APIView):
             anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:12]}"
 
             # Update winner field if this user was a winner
-            #PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
-            
+            # PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
+
             # Update the Player profile: change the player's display name to the new anonymous name
             # We keep the user association so foreign keys in PongMatch remain valid
             Player.objects.filter(user=user).update(player=anonymous_name)
 
             # Remove all personal data from User, but keep the account ID (FK in PongMatch)
             user.username = anonymous_name
-        
+
             # Clear optional attributes if they exist
             if hasattr(user, "email"):
                 user.email = ""
@@ -411,7 +410,7 @@ class AnonymizeAccountView(APIView):
                 user.is_online = False
             if hasattr(user, "last_seen"):
                 user.last_seen = None
-            user.is_active = False # Deactivate the account
+            user.is_active = False  # Deactivate the account
             user.date_joined = None
             user.set_unusable_password()
             user.save()
@@ -462,19 +461,23 @@ class UserDetailView(APIView):
 
     def get(self, request):
         user = request.user
-        return Response({
-            "username": user.username,
-            "email": user.email,
-            "phone_number": user.phone_number,
-            "avatar_url": user.avatar.url if user.avatar else "/media/avatars/default.png"
-        })
-    
+        return Response(
+            {
+                "username": user.username,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "avatar_url": (
+                    user.avatar.url if user.avatar else "/media/avatars/default.png"
+                ),
+            }
+        )
+
     def put(self, request):
         """Updates the current user's details."""
         user = request.user
         data = request.data
 
-        # Update fields 
+        # Update fields
         if "username" in data:
             user.username = data["username"]
         if "email" in data:
@@ -484,8 +487,10 @@ class UserDetailView(APIView):
 
         user.save()
 
-        return Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
-    
+        return Response(
+            {"message": "Profile updated successfully!"}, status=status.HTTP_200_OK
+        )
+
 
 class UploadAvatarView(APIView):
     permission_classes = [IsAuthenticated]
@@ -496,7 +501,9 @@ class UploadAvatarView(APIView):
 
         # Check if a file was uploaded
         if "avatar" not in request.FILES:
-            return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         file_obj = request.FILES["avatar"]
 
@@ -505,7 +512,10 @@ class UploadAvatarView(APIView):
         allowed_extensions = {".jpg", ".jpeg", ".png"}
 
         if file_extension not in allowed_extensions:
-            return Response({"error": "Invalid file type. Only JPG, JPEG, and PNG are allowed."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid file type. Only JPG, JPEG, and PNG are allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Define a unique filename using the user ID
         new_filename = f"user_{user.id}{file_extension}"
@@ -522,25 +532,34 @@ class UploadAvatarView(APIView):
         user.save(update_fields=["avatar"])  # Ensure the database updates the field
 
         return Response(
-            {"message": "Profile picture updated successfully.", "avatar_url": user.avatar.url},
-            status=status.HTTP_200_OK
+            {
+                "message": "Profile picture updated successfully.",
+                "avatar_url": user.avatar.url,
+            },
+            status=status.HTTP_200_OK,
         )
-    
+
+
 class AddFriendView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         friend_username = request.data.get("username")
         if not friend_username:
-            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Ensure consistency: Use `CustomUser` instead of `User`
         friend_user = get_object_or_404(CustomUser, username=friend_username)
         current_user = request.user  # Current authenticated user
 
         # Prevent adding oneself
         if current_user == friend_user:
-            return Response({"error": "You cannot add yourself as a friend."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "You cannot add yourself as a friend."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Check if they are already friends
         if friend_user in current_user.friends.all():
@@ -550,7 +569,10 @@ class AddFriendView(APIView):
         current_user.friends.add(friend_user)
         friend_user.friends.add(current_user)
 
-        return Response({"message": f"{friend_username} added as a friend."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": f"{friend_username} added as a friend."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ListFriendsView(APIView):
@@ -560,34 +582,47 @@ class ListFriendsView(APIView):
         user = request.user
         friends = user.friends.all().values("username")
         return Response({"friends": list(friends)})
-    
+
+
 class RemoveFriendView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request):
         friend_username = request.data.get("username")
         if not friend_username:
-            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Get the current authenticated user
-        current_user = request.user  
+        current_user = request.user
 
         # Get the friend user safely
         friend_user = get_object_or_404(CustomUser, username=friend_username)
 
         # Prevent removing oneself
         if current_user == friend_user:
-            return Response({"error": "You cannot remove yourself."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "You cannot remove yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Check if they are actually friends
         if friend_user not in current_user.friends.all():
-            return Response({"error": "This user is not in your friend list."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "This user is not in your friend list."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Remove each other as friends (symmetrical relationship)
         current_user.friends.remove(friend_user)
         friend_user.friends.remove(current_user)
 
-        return Response({"message": f"{friend_username} has been removed from your friend list."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": f"{friend_username} has been removed from your friend list."},
+            status=status.HTTP_200_OK,
+        )
+
 
 class FriendsOnlineStatusView(APIView):
     permission_classes = [IsAuthenticated]
@@ -600,13 +635,18 @@ class FriendsOnlineStatusView(APIView):
             {
                 "username": friend.username,
                 "is_online": friend.is_online,
-                "last_seen": friend.last_seen.strftime("%Y-%m-%d %H:%M:%S") if friend.last_seen else "Never"
+                "last_seen": (
+                    friend.last_seen.strftime("%Y-%m-%d %H:%M:%S")
+                    if friend.last_seen
+                    else "Never"
+                ),
             }
             for friend in friends
         ]
 
-        return Response({"friends_status": friends_status}, status=status.HTTP_200_OK)   
-    
+        return Response({"friends_status": friends_status}, status=status.HTTP_200_OK)
+
+
 import logging
 
 logger = logging.getLogger(__name__)
