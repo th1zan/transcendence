@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-  	<div class="min-vh-100 d-flex flex-column justify-content-center align-items-center" style="background-color: #f4f3f5;">
+  	<div class="min-vh-100 flex-column justify-content-center align-items-center" style="background-color: #f4f3f5;">
 		<div class="container mt-5 custom-container">
 	  		<h1 class="text-center custom-title">Bienvenue sur la page d'accueil !</h1>
 		</div>
@@ -151,31 +151,33 @@ export function displayWelcomePage() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h2 class="text-center">Bonjour ${username}</h2>
-    <div style="background-color: red;" class="p-1 h-100  d-flex">
-      <div  style="background-color: #80bdff; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
-        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-scale d-flex align-self-center m-4" alt="Ilkay" width="100" height="100" />
-        <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="tab" aria-controls="v-pills-home" aria-selected="true">Home</a>
-        <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Profile</a>
-        <a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
-        <a class="nav-link mt-auto" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</a>
+    <div style="background-color: black;" class="p-1 h-100  d-flex">
+      <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
+        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
+          <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="button" aria-controls="v-pills-home" aria-selected="true">Play</a>
+          <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">New Tornament</a>
+          <div class="flex-grow-1"></div>
+          <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Delete account</a>
+          <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Log out</a>
       </div>
-      <div style="background-color: green;" class="p-1 h-100 flex-grow-1" >
-      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixed; background-size: 100% 100%;"
-        class="p-1 h-50 d-flex rounded " >
+      <div style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
+      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixed; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
       <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
-        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-scale d-flex align-self-center" alt="Ilkay" style="max-width:100px ; max-height:60%;">
-          <div class="container row" style="" >
-            <div style="background-color: teal;" class="col-4"> blabla 1 </div>
-            <div style="background-color: olive;" class="col-4"> blabla 2 </div>
-            <div style="background-color: blue;" class="col-4"> blabla 3 </div>
-
-          </div>
-        </div>
+      <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px ; height:60%; background-color: red;">
+      <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
+      </div>
+      <div class="container row" style="" >
+      <div style="background-color: teal;" class="col-4"> blabla 1 </div>
+      <div style="background-color: olive;" class="col-4"> blabla 2 </div>
+      <div style="background-color: blue;" class="col-4"> blabla 3 </div>
 
       </div>
-    </div>
-
+      </div>
+      </div>
+      </div>
       `;
+
+      //<a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
       //<div class="tab-content" id="v-pills-tabContent">
       //  <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">abc</div>
       //  <div class="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">...</div>
@@ -183,33 +185,33 @@ export function displayWelcomePage() {
       //  <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">...</div>
       //</div>
 
-  //// Attacher les écouteurs d'événements aux boutons
-  //document.getElementById("playButton").addEventListener("click", displayGameForm);
-  //document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-  //document.getElementById("logoutButton").addEventListener("click", logout);
-  //document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+  // Attacher les écouteurs d'événements aux boutons
+  document.getElementById("playButton").addEventListener("click", displayGameForm);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
 
-  //document.getElementById("tournamentSearchButton").addEventListener("click", () => {
-  //  const tournamentNameInput = document.getElementById("tournamentNameInput");
-  //  if (!tournamentNameInput) {
-  //    console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
-  //    return;
-  //  }
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
+      return;
+    }
 
-  //  const tournamentName = tournamentNameInput.value;
-  //  if (!tournamentName) {
-  //    alert("Veuillez entrer un nom de tournoi.");
-  //    return;
-  //  }
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      alert("Veuillez entrer un nom de tournoi.");
+      return;
+    }
 
-  //  localStorage.setItem("tournamentName", tournamentName);
-  //  validateSearch();
-  //});
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
 
-  //// Ajouter un écouteur d'événement pour le bouton "Classement général"
+  // Ajouter un écouteur d'événement pour le bouton "Classement général"
 
-  //document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
-  //document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+  document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
+  document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 }
 
 
