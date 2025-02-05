@@ -63,7 +63,7 @@ function startPongGame() {
 }
 
 function updateGamePanel() {
-  const gamePanel = document.getElementById("game_panel");
+  const gamePanel = document.getElementById("app_bottom");
   if (gamePanel) {
     gamePanel.style.display = "block";
     
@@ -105,7 +105,20 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
 
-  // Vérifier et créer pong si nécessaire
+  const appTop = document.getElementById("app_top");
+  appTop.innerHTML = ``;
+
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = `
+    <canvas id="pong" width="800" height="400"></canvas>
+  `;
+
+
+  //   const appBottom = document.getElementById("app_bottom");
+  // appTop.innerHTML = `
+  //
+  // `;
+
   let pongCanvas = document.getElementById("pong");
   // if (!pongCanvas) {
   //   pongCanvas = document.createElement('canvas');
@@ -119,16 +132,16 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   pongCanvas.style.display = "block";
 
   // Gérer l'affichage en fonction du contexte
-  if (context === "tournament") {
-    // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
-    document.getElementById("tournamentMatches").style.display = "none";
-  } else if (context === "solo") {
-    // Si le contexte est solo, cacher tout le formulaire de jeu
-    let gameForm = document.getElementById("gameForm");
-    if (gameForm) {
-      gameForm.style.display = "none";
-    }
-  }
+  // if (context === "tournament") {
+  //   // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
+  //   document.getElementById("tournamentMatches").style.display = "none";
+  // } else if (context === "solo") {
+  //   // Si le contexte est solo, cacher tout le formulaire de jeu
+  //   let gameForm = document.getElementById("gameForm");
+  //   if (gameForm) {
+  //     gameForm.style.display = "none";
+  //   }
+  // }
 
   // Initialiser les scores et l'historique des sets
   currentGame = 0;
@@ -201,7 +214,7 @@ function handleGameEnd(winner) {
   currentGame++;
 
   function updateResults() {
-    const resultDiv = document.getElementById("game_panel");
+    const resultDiv = document.getElementById("app_bottom");
     if (resultDiv) {
       // Mettre à jour le titre du jeu
       
@@ -237,14 +250,17 @@ function handleGameEnd(winner) {
 function displayResults(finalWinner) {
   const username = localStorage.getItem("username");
 
+  const appBottom = document.getElementById("app_bottom");
+  appBottom .innerHTML = ``;
+
   // Vérifiez et créez l'élément result si nécessaire
-  let resultDiv = document.getElementById("game_panel");
-  if (!resultDiv) {
-    resultDiv = document.createElement('div');
-    resultDiv.id = "game_panel";
-    document.body.appendChild(resultDiv);
-   console.log("in displayResult(): Creating new GamePannel");
-  }
+  let resultDiv = document.getElementById("app_main");
+  // if (!resultDiv) {
+  //   resultDiv = document.createElement('div');
+  //   resultDiv.id = "gam";
+  //   document.body.appendChild(resultDiv);
+  //  console.log("in displayResult(): Creating new GamePannel");
+  // }
 
   // Masquer le canvas pong
   const pongCanvas = document.getElementById("pong");
@@ -261,7 +277,7 @@ function displayResults(finalWinner) {
     Winner: ${finalWinner}<br>
     Number of Games: ${numberOfGames}<br>
     Points to Win: ${pointsToWin}<br>
-    <button id="backButton">Retour</button>
+    <button id="backButton">Retour au tournoi</button>
     <h3>Set History:</h3>
   `;
 
