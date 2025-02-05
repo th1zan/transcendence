@@ -21,9 +21,7 @@ class TournamentPlayerSerializer(serializers.ModelSerializer):
 class PongMatchSerializer(serializers.ModelSerializer):
     player1_name = serializers.SerializerMethodField()
     player2_name = serializers.SerializerMethodField()
-    winner_name = (
-        serializers.SerializerMethodField()
-    )  # Ajout pour afficher le nom du gagnant
+    winner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = PongMatch
@@ -93,7 +91,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
             username=validated_data["username"],
-            #email=validated_data["email"],
+            # email=validated_data["email"],
             password=validated_data["password"],
         )
         return user

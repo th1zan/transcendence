@@ -66,7 +66,11 @@ function updateGamePanel() {
   const gamePanel = document.getElementById("app_bottom");
   if (gamePanel) {
     gamePanel.style.display = "block";
-    
+ 
+    gamePanel.innerHTML = `
+      <div id="summary"></div>
+   `;
+   
     // Ajouter le bouton "Quit Game"
     if (!document.getElementById("quitGameButton")) { // Éviter de créer plusieurs boutons
       const quitButton = document.createElement("button");
@@ -85,7 +89,6 @@ function updateGamePanel() {
       };
       gamePanel.appendChild(quitButton);
     }
-
   }
 
   console.log("Call to updateGamePanel");
@@ -106,7 +109,9 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   console.log("Valeur de player2 dans startGameSetup:", player2);
 
   const appTop = document.getElementById("app_top");
-  appTop.innerHTML = ``;
+  if (appTop) {
+    appTop.style.display = "none";
+  }
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
@@ -114,10 +119,6 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   `;
 
 
-  //   const appBottom = document.getElementById("app_bottom");
-  // appTop.innerHTML = `
-  //
-  // `;
 
   let pongCanvas = document.getElementById("pong");
   // if (!pongCanvas) {
@@ -216,14 +217,8 @@ function handleGameEnd(winner) {
   function updateResults() {
     const resultDiv = document.getElementById("app_bottom");
     if (resultDiv) {
-      // Mettre à jour le titre du jeu
-      
       resultDiv.style.display = "block";
-      resultDiv.querySelector("h2").textContent = `Set ${currentGame + 1} of ${numberOfGames}`;
-
       let summary = `
-        ${player1}: ${player1Wins} wins<br>
-        ${player2}: ${player2Wins} wins<br>
         <h3>Set History:</h3>
       `;
 
@@ -241,25 +236,23 @@ function handleGameEnd(winner) {
     updateResults(); // Mettre à jour les résultats avant de démarrer le prochain jeu
     startPongGame(); // Démarrer la prochaine partie
   } else {
-    sendScore(); // Envoyer les scores au serveur
-    stopGameProcess();
-    displayResults(winner); // Afficher les résultats finaux
+    sendScore().then((matchID) => {
+      stopGameProcess();
+      displayResults(matchID); // Passer matchID comme argument
+    }).catch((error) => {
+      console.error("Error in game end processing:", error);
+    });
   }
+
 }
 
-function displayResults(finalWinner) {
+function displayResults(matchID) {
+  // const matchID = localStorage.getItem("matchID");
   const username = localStorage.getItem("username");
-
-  const appBottom = document.getElementById("app_bottom");
-  appBottom .innerHTML = ``;
-
-  // Vérifiez et créez l'élément result si nécessaire
-  let resultDiv = document.getElementById("app_main");
-  // if (!resultDiv) {
-  //   resultDiv = document.createElement('div');
-  //   resultDiv.id = "gam";
-  //   document.body.appendChild(resultDiv);
-  //  console.log("in displayResult(): Creating new GamePannel");
+  const appTop = document.getElementById("app_top");
+  
+  // if (appTop) {
+  //   appTop.style.display = "none";  
   // }
 
   // Masquer le canvas pong
@@ -267,50 +260,75 @@ function displayResults(finalWinner) {
   if (pongCanvas) {
     pongCanvas.style.display = "none";
   }
+  
+  // const appBottom = document.getElementById("app_bottom");
+  // if (appBottom) {
+  //   appBottom.innerHTML = ``;  
+  // }
 
-  // Afficher le résultat
+  let resultDiv = document.getElementById("app_main");
   resultDiv.style.display = "block";
 
-  let summary = `
-    ${player1}: ${player1Wins} wins<br>
-    ${player2}: ${player2Wins} wins<br>
-    Winner: ${finalWinner}<br>
-    Number of Games: ${numberOfGames}<br>
-    Points to Win: ${pointsToWin}<br>
-    <button id="backButton">Retour au tournoi</button>
-    <h3>Set History:</h3>
-  `;
+  fetch(`/api/scores/${matchID}/`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    let summary = `
+      <button id="backButton">Retour au tournoi</button>
+      <br>
+      <br>
+      ${data.player1_name}: ${data.player1_sets_won} wins<br>
+      ${data.player2_name}: ${data.player2_sets_won} wins<br>
+      Winner: ${data.winner_name}<br>
+      Number of Games: ${data.sets_to_win}<br>
+      Points to Win: ${data.points_per_set}<br>
+      <h3>Set History:</h3>
+    `;
 
-  console.log("setHistory lors de l'affichage des résultats :", setHistory);
+    if (data.sets && Array.isArray(data.sets)) {
+      data.sets.forEach((set, index) => {
+        summary += `Set ${index + 1}: ${data.player1_name} ${set.player1_score} - ${data.player2_name} ${set.player2_score}<br>`;
+      });
+    } else {
+      summary += "No sets recorded.";
+    }
 
-  setHistory.forEach((set, index) => {
-    summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
+    let summaryDiv = document.getElementById("summary");
+    if (!summaryDiv) {
+      summaryDiv = document.createElement('div');
+      summaryDiv.id = "summary";
+      resultDiv.appendChild(summaryDiv);
+    }
+    summaryDiv.innerHTML = summary;
+
+    const backButton = document.getElementById("backButton");
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        summaryDiv.innerHTML = ""; 
+
+        if (typeof context !== 'undefined' && context !== "solo") {
+          const tournamentName = localStorage.getItem("tournamentName");
+          DisplayTournamentGame();
+        } else {
+          displayWelcomePage(username);
+        }
+      });
+    }
+  })
+  .catch(error => {
+    console.error("Erreur lors de la récupération des résultats du match :", error);
+    // Gérer l'erreur ici, par exemple en affichant un message à l'utilisateur
   });
-
-  // Assurez-vous que l'élément summary existe
-  let summaryDiv = document.getElementById("summary");
-  if (!summaryDiv) {
-    summaryDiv = document.createElement('div');
-    summaryDiv.id = "summary";
-    resultDiv.appendChild(summaryDiv);
-  }
-  summaryDiv.innerHTML = summary;
-
-  // Attacher un écouteur d'événement au bouton après l'insertion dans le DOM
-   const backButton = document.getElementById("backButton");
-  if (backButton) {
-    backButton.addEventListener("click", () => {
-      summaryDiv.innerHTML = ""; // Effacer le summary
-
-      if (typeof context !== 'undefined' && context !== "solo") {
-        const tournamentName = localStorage.getItem("tournamentName")
-        DisplayTournamentGame();
-      } else {
-        // Retourner à la page d'accueil si context est "solo"
-        displayWelcomePage(username);
-      }
-    });
-  }
 }
 
 // Dimensions et objets du jeu
@@ -438,6 +456,7 @@ function sendScore() {
 
   console.log("Valeur de player1 avant l'envoi :", player1); 
   console.log("setHistory avant l'envoi:", setHistory);
+  console.log("matchID avant l'envoi:", matchID);
 
   // Déterminer le gagnant
   let winner = null;
@@ -451,12 +470,11 @@ function sendScore() {
   const method = matchID ? "PUT" : "POST";
   const url = matchID ? `/api/scores/${matchID}/` : "/api/scores/";
 
-  
   console.log("methode :", method, " et match ID: ", matchID);
 
-  fetch(url, {
+  return fetch(url, {
     method: method,
-    credentials: "include", // Inclure les cookies dans la requête
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -483,9 +501,19 @@ function sendScore() {
     })
     .then((data) => {
       console.log("Score soumis :", data);
+      // Si c'est un POST (nouvelle création), mettre à jour matchID dans localStorage
+      if (method === "POST") {
+        localStorage.setItem("matchID", data.id);  // Supposant que 'id' est le champ de l'ID du match dans la réponse
+        console.log("matchID après création:", data.id);
+        return data.id; // Retourner le nouvel ID du match
+      } else {
+        console.log("matchID après mise à jour:", matchID);
+        return matchID; // Retourner l'ID du match existant
+      }
     })
     .catch((error) => {
       console.error("Erreur lors de l'envoi du score :", error);
+      throw error; // Propager l'erreur pour que l'appelant puisse la gérer si nécessaire
     });
 }
 

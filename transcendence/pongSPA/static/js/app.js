@@ -177,11 +177,12 @@ export function displayWelcomePage() {
   */
  
   const appDiv = document.getElementById("app");
+
   appDiv.innerHTML = `
-    <div id="app_top">
+    <div id="app_top" style></div>
+    <div id="app_main"> 
       <h2>Bonjour ${username}</h2>
     </div>
-    <div id="app_main"></div>
     <div id="app_bottom"></div>
     <br>
   `;
@@ -202,7 +203,7 @@ export function displayWelcomePage() {
     <br>
     <button id="settingsButton">⚙️ Paramètres</button>
     <br>
-    <br>
+    <br> ,
     <br>
     <br>
     <button id="logoutButton">🚪 Déconnexion</button>
@@ -231,6 +232,9 @@ appTop.innerHTML = `
     </div>
   </div>
 `;  
+
+let resultDiv = document.getElementById("app_main");
+  resultDiv.style.display = "block";
 
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
   
@@ -373,7 +377,7 @@ export function displayStats() {
 
 }
 
-function displayResults(data) {
+function displayUserResults(data) {
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <h3>Vos résultats :</h3>
@@ -422,7 +426,7 @@ function fetchResultats() {
     .then((response) => response.json())
     .then((data) => {
       console.log(data); // Pour le débogage
-      displayResults(data); // Appelle la fonction pour afficher les résultats
+      displayUserResults(data); // Appelle la fonction pour afficher les résultats
     });
 }
 
@@ -468,8 +472,12 @@ function fetchRanking() {
 function displayGameForm() { 
 
   const username = localStorage.getItem("username");
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
+  
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = ` `;
+
+  const appTop = document.getElementById("app_top");
+  appTop.innerHTML = `
     <h3>Pong Game</h3>
     <form id="gameForm">
       <label for="player1">Player 1 Name:</label>
@@ -482,11 +490,7 @@ function displayGameForm() {
       <input type="number" id="pointsToWin" value="3" min="1"><br><br>
       <button type="button" id="startGameButton">Start Game</button>
     </form>
-    <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
-    <div id="game_panel" style="display: none;">
-      <h2>Game Results</h2>
-      <p id="summary"></p>
-    </div>
+   
   `;
   console.log("Valeur de username dans displayGameForm :", username);
   

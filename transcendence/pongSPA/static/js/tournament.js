@@ -5,11 +5,16 @@ import { displayTournament, displayWelcomePage } from "./app.js";
 
 function displayTournamentGameList(data){
 
+  const tournamentName =localStorage.getItem("tournamentName");
+  
   const appBottom = document.getElementById("app_bottom");
   appBottom .innerHTML = ``;
 
   const tournamentMatchesDiv = document.getElementById("app_main");
-  tournamentMatchesDiv.innerHTML = "<h3>Liste des matchs :</h3>";
+   tournamentMatchesDiv.innerHTML = `
+    <h2>Tournois sélectionné ${tournamentName}</h2>
+    <h3>Liste des matchs :</h3>
+  `;
 
   let playButtonDisplayed = false; // Variable pour contrôler l'affichage du bouton
 
