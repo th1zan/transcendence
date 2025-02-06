@@ -154,11 +154,11 @@ export function displayWelcomePage() {
     <div style="background-color: black;" class="p-1 h-100  d-flex">
       <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
         <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
-          <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="button" aria-controls="v-pills-home" aria-selected="true">Play</a>
-          <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">New Tornament</a>
+          <a class="nav-link active mb-4 mt-4" id="playButton" data-toggle="pill" href="#v-pills-home" role="button" aria-controls="v-pills-home" aria-selected="true">Play</a>
+          <a class="nav-link active" id="newTournamentButton" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">New Tournament</a>
           <div class="flex-grow-1"></div>
-          <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Delete account</a>
-          <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Log out</a>
+          <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Delete account</a>
+          <a class="nav-link text-danger" id="deleteAccountButton" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Log out</a>
       </div>
       <div style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
       <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixeqd; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
@@ -167,9 +167,9 @@ export function displayWelcomePage() {
       <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
       </div>
       <div class="container row" style="" >
-      <div style="background-color: teal;" class="col-4"> blabla 1 </div>
-      <div style="background-color: olive;" class="col-4"> blabla 2 </div>
-      <div style="background-color: blue;" class="col-4"> blabla 3 </div>
+      <div class="col-4"> blabla 1 </div>
+      <div class="col-4"> blabla 2 </div>
+      <div class="col-4"> blabla 3 </div>
 
       </div>
       </div>
