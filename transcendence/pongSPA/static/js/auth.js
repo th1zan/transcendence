@@ -105,13 +105,13 @@ export function logout() {
     });
 }
 
-export function createAccount(newUsername, newPassword) {
+export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
   fetch("/api/auth/register/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ username: newUsername, password: newPassword }),
+    body: JSON.stringify({ username: newUsername, password: newPassword, privacy_policy_accepted: privacyPolicyAccepted }),
     credentials: 'omit'
   })
     .then((response) => {
