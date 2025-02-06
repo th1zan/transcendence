@@ -301,6 +301,7 @@ function initializePlayerManagement() {
   const playerContainer = document.getElementById('playerContainer');
   const addButton = document.getElementById('addPlayerButton');
   let playerCount = 1;
+  const players = new Set(); // Utiliser un Set pour une vérification rapide de l'unicité
 
   // Ajout automatique du premier joueur
   addPlayer(playerContainer, playerCount++, localStorage.getItem('username') || '');
@@ -315,10 +316,16 @@ function initializePlayerManagement() {
       return;
     }
 
+    if (players.has(playerName.toLowerCase())) {
+      alert("Ce joueur est déjà ajouté.");
+      return;
+    }
+
     try {
       const userData = await checkUserExists(playerName);
       updatePlayerStatus(lastInput.parentElement, userData);
       addPlayer(playerContainer, playerCount++);
+      players.add(playerName.toLowerCase()); // Ajouter le nom en minuscule pour vérifier l'unicité
     } catch (error) {
       handleError(error, "Erreur lors de la vérification de l'utilisateur");
     }
