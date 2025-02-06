@@ -178,14 +178,28 @@ export function displayWelcomePage() {
  
   const appDiv = document.getElementById("app");
 
-  appDiv.innerHTML = `
-    <div id="app_top" style></div>
-    <div id="app_main"> 
-      <h2>Bonjour ${username}</h2>
-    </div>
-    <div id="app_bottom"></div>
-    <br>
-  `;
+  // Vérifiez si les conteneurs existent déjà
+  const appTop = document.getElementById("app_top");
+  const appMain = document.getElementById("app_main");
+  const appBottom = document.getElementById("app_bottom");
+
+  if (!appTop || !appMain || !appBottom) {
+    // Initialisation si les éléments n'existent pas
+    appDiv.innerHTML = `
+      <div id="app_top"></div>
+      <div id="app_main">
+        <h2>Bonjour ${username}</h2>
+      </div>
+      <div id="app_bottom"></div>
+      <br>
+    `;
+  } else {
+    // Mise à jour si les éléments existent déjà
+    appMain.innerHTML = `<h2>Bonjour ${username}</h2>`;
+    // Réinitialisez app_top et app_bottom si nécessaire
+    appTop.innerHTML = '';
+    appBottom.innerHTML = '';
+  }
 
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = `
@@ -203,7 +217,7 @@ export function displayWelcomePage() {
     <br>
     <button id="settingsButton">⚙️ Paramètres</button>
     <br>
-    <br> ,
+    <br>
     <br>
     <br>
     <button id="logoutButton">🚪 Déconnexion</button>
@@ -220,44 +234,55 @@ export function displayWelcomePage() {
 
 export function displayTournament() {
 
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
   const appTop = document.getElementById("app_top");
-appTop.innerHTML = `
-  <h3>Tournament</h3>
-  <br>
-  <div class="d-flex align-items-center">
-    <button id="newTournamentButton" class="me-2">Nouveau tournoi</button>
-    <div id="searchTournament" class="d-flex align-items-center">
-      <button id="tournamentSearchButton" class="btn btn-primary mx-2">Rechercher un tournoi</button>
-      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" class="me-2">
+  appTop.innerHTML = `
+    <h3>Tournament</h3>
+    <br>
+    <div class="d-flex align-items-center">
+      <button id="newTournamentButton" class="me-2">Nouveau tournoi</button>
+      <div id="searchTournament" class="d-flex align-items-center">
+        <button id="tournamentSearchButton" class="btn btn-primary mx-2">Rechercher un tournoi</button>
+        <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" class="me-2">
+      </div>
     </div>
-  </div>
-`;  
+  `;  
 
-let resultDiv = document.getElementById("app_main");
-  resultDiv.style.display = "block";
+  let resultDiv = document.getElementById("app_main");
+    resultDiv.style.display = "block";
 
-  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-  
-  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
-    const tournamentNameInput = document.getElementById("tournamentNameInput");
-    if (!tournamentNameInput) {
-      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
-      return;
-    }
+    document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+    
+    document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+      const tournamentNameInput = document.getElementById("tournamentNameInput");
+      if (!tournamentNameInput) {
+        console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
+        return;
+      }
 
-    const tournamentName = tournamentNameInput.value;
-    if (!tournamentName) {
-      alert("Veuillez entrer un nom de tournoi.");
-      return;
-    }
+      const tournamentName = tournamentNameInput.value;
+      if (!tournamentName) {
+        alert("Veuillez entrer un nom de tournoi.");
+        return;
+      }
 
-    localStorage.setItem("tournamentName", tournamentName);
-    validateSearch();
-  });
+      localStorage.setItem("tournamentName", tournamentName);
+      validateSearch();
+    });
 }
 
 
 export function displayFriends() {
+
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <h3>👥 Friends Management</h3>
@@ -285,8 +310,12 @@ export function displayFriends() {
 
 function displayHTMLforSettings(user) {
 
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+  
   const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
-
   const appTop = document.getElementById("app_top");
   
   appTop.innerHTML = `
@@ -342,7 +371,7 @@ function displayHTMLforSettings(user) {
 
 export function displaySettings() {
   
-// fetch the user settings
+// 1. fetch the user's settings
   fetch("/api/auth/user/", {
     method: "GET",
     credentials: "include", // Ensures authentication cookies are sent
@@ -354,6 +383,7 @@ export function displaySettings() {
       return response.json();
     })
     .then(user => {
+      //2. display the settings
       displayHTMLforSettings(user);
     })
     .catch(error => {
@@ -364,6 +394,11 @@ export function displaySettings() {
 
 export function displayStats() {
 
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
   <h3>Statistiques</h3>
@@ -371,13 +406,17 @@ export function displayStats() {
     <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
   `;
 
-
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
-
 }
 
 function displayUserResults(data) {
+  
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <h3>Vos résultats :</h3>
@@ -432,6 +471,12 @@ function fetchResultats() {
 
 
 function displayRanking(data) {
+  
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <h3>Classement des joueurs :</h3>
@@ -469,13 +514,16 @@ function fetchRanking() {
       });
 }
 
-function displayGameForm() { 
+export function displayGameForm() { 
+
+ //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
   const username = localStorage.getItem("username");
+  localStorage.setItem("context", "solo");
   
-  const appMain = document.getElementById("app_main");
-  appMain.innerHTML = ` `;
-
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <h3>Pong Game</h3>
@@ -499,6 +547,7 @@ function displayGameForm() {
     const player2 = document.getElementById("player2").value.trim();
     const numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
     const pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 3;
-    startGameSetup(player1, player2, numberOfGames, pointsToWin, "solo");
+    
+    startGameSetup(player1, player2, numberOfGames, pointsToWin);
   });
 }

@@ -3,7 +3,8 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import CustomUser, Player, PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
+                     TournamentPlayer)
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -18,10 +19,17 @@ class TournamentPlayerSerializer(serializers.ModelSerializer):
         fields = ["player"]
 
 
+class PongSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PongSet
+        fields = "__all__"
+
+
 class PongMatchSerializer(serializers.ModelSerializer):
     player1_name = serializers.SerializerMethodField()
     player2_name = serializers.SerializerMethodField()
     winner_name = serializers.SerializerMethodField()
+    sets = PongSetSerializer(many=True, read_only=True)
 
     class Meta:
         model = PongMatch
@@ -40,6 +48,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "player1_name",
             "player2_name",
             "winner_name",
+            "sets",
         ]
         extra_kwargs = {
             "user1": {"allow_null": True},
@@ -58,12 +67,6 @@ class PongMatchSerializer(serializers.ModelSerializer):
 
     def get_winner_name(self, obj):
         return obj.winner.player if obj.winner else "No winner"
-
-
-class PongSetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PongSet
-        fields = "__all__"
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

@@ -1,4 +1,4 @@
-import { displayWelcomePage } from "./app.js";
+import { displayWelcomePage, displayGameForm } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
@@ -8,7 +8,6 @@ let user1 = "default_user1";
 let user2 = "default_user2";
 let player1 = "default_player1";
 let player2 = "default_player2";
-let context = "solo"
 let numberOfGames = 1;
 let pointsToWin = 1;
 let currentGame = 0;
@@ -41,6 +40,8 @@ function connectWebSocket()
 
 // Démarrer le jeu Pong
 function startPongGame() {
+
+
   const canvas = document.getElementById("pong");
 
   if (!canvas) {
@@ -80,6 +81,7 @@ function updateGamePanel() {
         stopGameProcess();
         
         // Déterminer la fonction à appeler ensuite en fonction du contexte
+        const context = localStorage.getItem("context");
         if (context === "tournament") {
           DisplayTournamentGame();
         } else if (context === "solo") {
@@ -94,7 +96,8 @@ function updateGamePanel() {
   console.log("Call to updateGamePanel");
 }
 
-export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
+export function startGameSetup(p1, p2, numGames, ptsToWin) {
+
   // Mettre à jour les variables globales
   user1 = p1;
   user2 = p2;
@@ -102,47 +105,25 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   player2 = p2;
   numberOfGames = numGames;
   pointsToWin = ptsToWin;
-  context = ctxt;
   shouldReconnect = true;
   
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
 
-  const appTop = document.getElementById("app_top");
-  if (appTop) {
-    appTop.style.display = "none";
-  }
+ //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
+  //create a canva for the game in the div "app_main"
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <canvas id="pong" width="800" height="400"></canvas>
   `;
 
-
-
-  let pongCanvas = document.getElementById("pong");
-  // if (!pongCanvas) {
-  //   pongCanvas = document.createElement('canvas');
-  //   pongCanvas.id = "pong";
-  //   pongCanvas.width = 800; // Définir la largeur du canvas
-  //   pongCanvas.height = 400; // Définir la hauteur du canvas
-  //   document.body.appendChild(pongCanvas);
-  // }
+  // let pongCanvas = document.getElementById("pong");
   //
-  //
-  pongCanvas.style.display = "block";
-
-  // Gérer l'affichage en fonction du contexte
-  // if (context === "tournament") {
-  //   // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
-  //   document.getElementById("tournamentMatches").style.display = "none";
-  // } else if (context === "solo") {
-  //   // Si le contexte est solo, cacher tout le formulaire de jeu
-  //   let gameForm = document.getElementById("gameForm");
-  //   if (gameForm) {
-  //     gameForm.style.display = "none";
-  //   }
-  // }
+  // pongCanvas.style.display = "block";
 
   // Initialiser les scores et l'historique des sets
   currentGame = 0;
@@ -210,25 +191,27 @@ function saveSetResult() {
   });
 }
 
+function updateResults() {
+  const resultDiv = document.getElementById("app_bottom");
+  if (resultDiv) {
+    resultDiv.style.display = "block";
+    let summary = `
+      <h3>Set History:</h3>
+    `;
+
+    setHistory.forEach((set, index) => {
+      summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
+    });
+
+    document.getElementById("summary").innerHTML = summary;
+  }
+}
+
 function handleGameEnd(winner) {
   clearInterval(gameInterval); // Arrêter la boucle de jeu
   currentGame++;
 
-  function updateResults() {
-    const resultDiv = document.getElementById("app_bottom");
-    if (resultDiv) {
-      resultDiv.style.display = "block";
-      let summary = `
-        <h3>Set History:</h3>
-      `;
-
-      setHistory.forEach((set, index) => {
-        summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
-      });
-
-      document.getElementById("summary").innerHTML = summary;
-    }
-  }
+  updateResults();
 
   if (currentGame < numberOfGames) {
     alert(`${winner} wins this game! Starting the next game...`);
@@ -247,27 +230,14 @@ function handleGameEnd(winner) {
 }
 
 function displayResults(matchID) {
-  // const matchID = localStorage.getItem("matchID");
+  let gameType = localStorage.getItem("context"); // Si non défini, on suppose que c'est une partie solo
+
+  // Empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
   const username = localStorage.getItem("username");
-  const appTop = document.getElementById("app_top");
-  
-  // if (appTop) {
-  //   appTop.style.display = "none";  
-  // }
-
-  // Masquer le canvas pong
-  const pongCanvas = document.getElementById("pong");
-  if (pongCanvas) {
-    pongCanvas.style.display = "none";
-  }
-  
-  // const appBottom = document.getElementById("app_bottom");
-  // if (appBottom) {
-  //   appBottom.innerHTML = ``;  
-  // }
-
-  let resultDiv = document.getElementById("app_main");
-  resultDiv.style.display = "block";
 
   fetch(`/api/scores/${matchID}/`, {
     method: "GET",
@@ -283,32 +253,29 @@ function displayResults(matchID) {
     return response.json();
   })
   .then(data => {
+    let buttonText = gameType === 'tournament' ? 'Retour au tournoi' : 'Nouvelle partie';
+
     let summary = `
-      <button id="backButton">Retour au tournoi</button>
-      <br>
-      <br>
-      ${data.player1_name}: ${data.player1_sets_won} wins<br>
-      ${data.player2_name}: ${data.player2_sets_won} wins<br>
-      Winner: ${data.winner_name}<br>
-      Number of Games: ${data.sets_to_win}<br>
-      Points to Win: ${data.points_per_set}<br>
-      <h3>Set History:</h3>
+      <button id="backButton">${buttonText}</button>
+      <br><br>
+      <strong>${data.player1_name} vs ${data.player2_name}</strong><br>
+      <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Nombre de sets)<br>
+      <strong>Vainqueur: ${data.winner_name}</strong><br>
+      <h3>Détails des sets:</h3>
     `;
 
     if (data.sets && Array.isArray(data.sets)) {
       data.sets.forEach((set, index) => {
-        summary += `Set ${index + 1}: ${data.player1_name} ${set.player1_score} - ${data.player2_name} ${set.player2_score}<br>`;
+        summary += `
+          <strong>Set n°${index + 1}:</strong><br>
+          ${set.player1_score} - ${set.player2_score}<br>
+        `;
       });
     } else {
-      summary += "No sets recorded.";
+      summary += "Aucun set enregistré.";
     }
 
-    let summaryDiv = document.getElementById("summary");
-    if (!summaryDiv) {
-      summaryDiv = document.createElement('div');
-      summaryDiv.id = "summary";
-      resultDiv.appendChild(summaryDiv);
-    }
+    let summaryDiv = document.getElementById("app_main");
     summaryDiv.innerHTML = summary;
 
     const backButton = document.getElementById("backButton");
@@ -316,20 +283,20 @@ function displayResults(matchID) {
       backButton.addEventListener("click", () => {
         summaryDiv.innerHTML = ""; 
 
-        if (typeof context !== 'undefined' && context !== "solo") {
-          const tournamentName = localStorage.getItem("tournamentName");
+        if (gameType === 'tournament') {
           DisplayTournamentGame();
         } else {
-          displayWelcomePage(username);
+          displayGameForm();
         }
       });
     }
   })
   .catch(error => {
     console.error("Erreur lors de la récupération des résultats du match :", error);
-    // Gérer l'erreur ici, par exemple en affichant un message à l'utilisateur
+    // Vous pourriez aussi vouloir afficher un message d'erreur à l'utilisateur ici
   });
 }
+
 
 // Dimensions et objets du jeu
 const paddleWidth = 10,
@@ -444,9 +411,9 @@ function sendScore() {
   let tournament = null;
   let isTournamentMatch = false;
   const matchID = localStorage.getItem("matchID");
-
+  const context = localStorage.getItem("context");
   // Vérifier le contexte
-  if (typeof context !== 'undefined' && context !== "solo") {
+  if (context !== "solo") {
     const tournamentID = localStorage.getItem("tournamentId");
     if (tournamentID) {
       tournament = tournamentID;
@@ -531,17 +498,10 @@ function stopGameProcess() {
     console.log("WebSocket déconnecté");
   }
 
-  // Masquer le canvas
-  const pongCanvas = document.getElementById("pong");
-  if (pongCanvas) {
-    pongCanvas.style.display = "none";
-  }
-
-  // Masquer le game_panel
-  const gamePanel = document.getElementById("game_panel");
-  if (gamePanel) {
-    gamePanel.style.display = "none";
-  }
+ //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
   // Désactiver d'autres écouteurs si nécessaire
   // canvas.removeEventListener('mousemove', handleMouseMove);

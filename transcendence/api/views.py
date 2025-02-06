@@ -8,7 +8,6 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -25,30 +24,17 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
+from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
+                                                             OutstandingToken)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-from .models import (
-    CustomUser,
-    FriendRequest,
-    Notification,
-    Player,
-    PongMatch,
-    PongSet,
-    Tournament,
-    TournamentPlayer,
-)
-from .serializers import (
-    PongMatchSerializer,
-    PongSetSerializer,
-    TournamentPlayerSerializer,
-    TournamentSerializer,
-    UserRegisterSerializer,
-)
+from .models import (CustomUser, FriendRequest, Notification, Player,
+                     PongMatch, PongSet, Tournament, TournamentPlayer)
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer,
+                          UserRegisterSerializer)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
 
@@ -88,14 +74,45 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
+    # Optimized get method (but less understandable):
+    # def get(self, request, pk):
+    #     try:
+    #         # Utiliser prefetch_related pour charger les sets associés
+    #         match = (
+    #             PongMatch.objects.select_related("winner", "player1", "player2")
+    #             .prefetch_related(Prefetch("sets", queryset=PongSet.objects.all()))
+    #             .get(pk=pk)
+    #         )
+    #
+    #         serializer = PongMatchSerializer(match)
+    #         return Response(serializer.data)
+    #     except PongMatch.DoesNotExist:
+    #         return Response(
+    #             {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+    #         )
 
     def get(self, request, pk):
         try:
-            match = PongMatch.objects.select_related(
-                "winner", "player1", "player2"
-            ).get(pk=pk)
-            serializer = PongMatchSerializer(match)
-            return Response(serializer.data)
+            # Charger le match
+            match = PongMatch.objects.get(pk=pk)
+
+            # Charger les relations une par une
+            winner = match.winner  # Nouvelle requête pour le gagnant
+            player1 = match.player1  # Nouvelle requête pour player1
+            player2 = match.player2  # Nouvelle requête pour player2
+            sets = match.sets.all()  # Nouvelle requête pour les sets
+
+            # Sérialiser le match
+            match_serializer = PongMatchSerializer(match)
+
+            # Sérialiser les sets séparément
+            sets_serializer = PongSetSerializer(sets, many=True)
+
+            # Combiner les données du match et des sets dans une seule réponse
+            response_data = match_serializer.data
+            response_data["sets"] = [set_data for set_data in sets_serializer.data]
+
+            return Response(response_data)
         except PongMatch.DoesNotExist:
             return Response(
                 {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND

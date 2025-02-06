@@ -10,9 +10,15 @@ class CustomUser(AbstractUser):
     email = models.EmailField(max_length=255, blank=True, null=True)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=15, unique=True, blank=True, null=True)  # We might use phone number for 2FA
-    avatar = models.ImageField(upload_to="avatars/", default='avatars/default.png', blank=True, null=True) # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
-    friends = models.ManyToManyField("self", symmetrical=True, blank=True)  # Friend list (Many-to-Many)
+    phone_number = models.CharField(
+        max_length=15, unique=True, blank=True, null=True
+    )  # We might use phone number for 2FA
+    avatar = models.ImageField(
+        upload_to="avatars/", default="avatars/default.png", blank=True, null=True
+    )  # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
+    friends = models.ManyToManyField(
+        "self", symmetrical=True, blank=True
+    )  # Friend list (Many-to-Many)
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
@@ -69,15 +75,15 @@ class PongMatch(models.Model):
         null=True,
         blank=True,
     )
-    player1 = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name="matches_as_player1"
-    )
     user2 = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         related_name="opponent_matches",
         null=True,
         blank=True,
+    )
+    player1 = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="matches_as_player1"
     )
     player2 = models.ForeignKey(
         Player, on_delete=models.CASCADE, related_name="matches_as_player2"
@@ -119,24 +125,24 @@ class PongSet(models.Model):
 class FriendRequest(models.Model):
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name='sent_friend_requests',
-        on_delete=models.CASCADE
+        related_name="sent_friend_requests",
+        on_delete=models.CASCADE,
     )
     receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name='received_friend_requests',
-        on_delete=models.CASCADE
+        related_name="received_friend_requests",
+        on_delete=models.CASCADE,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('declined', 'Declined'),
+        ("pending", "Pending"),
+        ("accepted", "Accepted"),
+        ("declined", "Declined"),
     )
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
 
     class Meta:
-        unique_together = ('sender', 'receiver')
+        unique_together = ("sender", "receiver")
 
     def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username} ({self.status})"
@@ -144,9 +150,7 @@ class FriendRequest(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name='notifications',
-        on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, related_name="notifications", on_delete=models.CASCADE
     )
     message = models.TextField()
     notification_type = models.CharField(max_length=50)

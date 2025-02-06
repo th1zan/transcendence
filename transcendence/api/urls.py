@@ -1,33 +1,18 @@
-from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import path
 
 from . import views
-from .views import (
-	#AddFriendView,
-    AnonymizeAccountView,
-    CustomTokenObtainPairView,
-    CustomTokenRefreshView,
-    CustomUser,
-    DeleteAccountView,
-    FriendsOnlineStatusView,
-    ListFriendsView,
-    LogoutView,
-    PongMatchDetail,
-    PongMatchList,
-    PongScoreView,
-	SendFriendRequestView,
-    RankingView,
-	RemoveFriendView,
-	RespondToFriendRequestView,
-    TournamentCreationView,
-    TournamentMatchesView,
-    TournamentSearchView,
-    UploadAvatarView,
-    UserDetailView,
-    UserRegisterView,
-	ViewFriendRequestsView,
-)
+from .views import (AnonymizeAccountView,  # AddFriendView,
+                    CustomTokenObtainPairView, CustomTokenRefreshView,
+                    CustomUser, DeleteAccountView, FriendsOnlineStatusView,
+                    ListFriendsView, LogoutView, PongMatchDetail,
+                    PongMatchList, PongScoreView, RankingView,
+                    RemoveFriendView, RespondToFriendRequestView,
+                    SendFriendRequestView, TournamentCreationView,
+                    TournamentMatchesView, TournamentSearchView,
+                    UploadAvatarView, UserDetailView, UserRegisterView,
+                    ViewFriendRequestsView)
 
 urlpatterns = [
     path("results/", PongMatchList.as_view(), name="pongmatch-list"),
@@ -38,17 +23,33 @@ urlpatterns = [
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
-    path("auth/anonymize-account/",AnonymizeAccountView.as_view(),name="anonymize-account"),
+    path(
+        "auth/anonymize-account/",
+        AnonymizeAccountView.as_view(),
+        name="anonymize-account",
+    ),
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
-	path("auth/user/", UserDetailView.as_view(), name="user-detail"),
-	path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
-	#path('friends/add/', AddFriendView.as_view(), name='add_friend'),
+    path("auth/user/", UserDetailView.as_view(), name="user-detail"),
+    path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
+    # path('friends/add/', AddFriendView.as_view(), name='add_friend'),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
-	path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
-	path("friends/status/", FriendsOnlineStatusView.as_view(), name="friends_status"),
-	path("friends/send-request/", SendFriendRequestView.as_view(), name="send_friend_request"),
-	path("friends/requests/", ViewFriendRequestsView.as_view(), name="view_friend_requests"),  # View pending requests
-    path("friends/respond/", RespondToFriendRequestView.as_view(), name="respond_friend_request"),  # Accept/Decline reques
+    path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
+    path("friends/status/", FriendsOnlineStatusView.as_view(), name="friends_status"),
+    path(
+        "friends/send-request/",
+        SendFriendRequestView.as_view(),
+        name="send_friend_request",
+    ),
+    path(
+        "friends/requests/",
+        ViewFriendRequestsView.as_view(),
+        name="view_friend_requests",
+    ),  # View pending requests
+    path(
+        "friends/respond/",
+        RespondToFriendRequestView.as_view(),
+        name="respond_friend_request",
+    ),  # Accept/Decline reques
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
         "tournament/matches/",
