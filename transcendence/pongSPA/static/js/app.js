@@ -31,7 +31,51 @@ document.addEventListener("DOMContentLoaded", () => {
   
   //4. Plan the refreshing interval for the authentification Token 
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
+
+  history.replaceState({ page: 'login' }, '', '/login'); // Initial state
+
+  // Écouteur pour les changements d'état de l'historique
+  window.addEventListener("popstate", function(event) {
+    handleRouteChange(event.state ? event.state.page : 'welcome');
+  });
 });
+
+function handleRouteChange(route) {
+  switch(route) {
+    case 'login':
+      displayConnectionFormular();
+      break;
+    case 'register':
+      displayRegistrationForm();
+      break;
+    case 'welcome':
+      displayWelcomePage();
+      break;
+        case 'game':
+      displayGameForm();
+      break;
+    case 'tournament':
+      displayTournament();
+      break;
+    case 'statistics':
+      displayStats();
+      break;
+    case 'userStats':
+      displayUserResults();
+      break;
+    case 'ranking':
+      displayRanking();
+      break;
+    case 'friends':
+      displayFriends();
+      break;
+    case 'settings':
+      displaySettings();
+      break;
+    default:
+      displayWelcomePage(); // Par défaut, retour à la page d'accueil
+  }
+}
 
 export function displayConnectionFormular() {
   const appDiv = document.getElementById("app");
@@ -97,6 +141,8 @@ export function displayConnectionFormular() {
   document
     .getElementById("signupButton")
     .addEventListener("click", displayRegistrationForm);
+
+  history.pushState({ page: 'login' }, '', '/login');
 }
 
 // account creation 
@@ -156,10 +202,14 @@ function displayRegistrationForm() {
   document
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
+
+
+  history.pushState({ page: 'register' }, '', '/register');
 }
 
 export function displayWelcomePage() {
 
+   
   /*when this displayWelcomePage() function is called,
   we can use and fill these HTML containers from index.html,
   they are identified by their id:
@@ -230,6 +280,9 @@ export function displayWelcomePage() {
   document.getElementById("settingsButton").addEventListener("click", displaySettings);
   document.getElementById("logoutButton").addEventListener("click", logout);
 
+  
+  history.pushState({ page: 'welcome' }, '', '/welcome');
+
 }
 
 export function displayTournament() {
@@ -274,6 +327,8 @@ export function displayTournament() {
       localStorage.setItem("tournamentName", tournamentName);
       validateSearch();
     });
+
+  history.pushState({ page: 'tournament' }, '', '/tournament');
 }
 
 
@@ -307,6 +362,7 @@ export function displayFriends() {
   });
   fetchFriendRequests();
   fetchFriends();
+  history.pushState({ page: 'friends' }, '', '/friends');
 }
 
 function displayHTMLforSettings(user) {
@@ -390,6 +446,8 @@ export function displaySettings() {
     .catch(error => {
     console.error("Error loading user data:", error);
     });
+
+  history.pushState({ page: 'settings' }, '', '/settings');
 }
 
 
@@ -409,12 +467,15 @@ export function displayStats() {
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+
+
+  history.pushState({ page: 'statistics' }, '', '/statistics');
 }
 
 function displayUserResults(data) {
   
   //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
+  // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -450,6 +511,8 @@ function displayUserResults(data) {
   }
 
   document.getElementById("backButton").addEventListener("click", displayStats);
+
+  history.pushState({ page: 'userStats' }, '', '/userStats');
 }
 
 
@@ -474,7 +537,7 @@ function fetchResultats() {
 function displayRanking(data) {
   
   //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
+  // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -498,6 +561,8 @@ function displayRanking(data) {
     rankingDiv.innerHTML += "<p>Aucun classement trouvé.</p>";
   }
   document.getElementById("backButton").addEventListener("click", displayStats);
+
+  history.pushState({ page: 'ranking' }, '', '/ranking');
 }
 
 function fetchRanking() {
