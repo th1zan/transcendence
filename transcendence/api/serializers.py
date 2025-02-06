@@ -71,7 +71,7 @@ class PongSetSerializer(serializers.ModelSerializer):
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["username", "password"]  # ("username", "password")
+        fields = ["username", "password", "privacy_policy_accepted"]  # ("username", "password")
 
     def validate_username(self, value):
         if CustomUser.objects.filter(username=value).exists():
@@ -89,11 +89,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
                 "Le mot de passe doit contenir au moins 3 caractères."
             )
         return value
-
+    def validate_privacy_policy_accepted(self, value):
+        if not value:
+            raise serializers.ValidationError("Vous devez accepter la politique de confidentialité pour vous inscrire.")
+        return value
+    
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
             username=validated_data["username"],
             #email=validated_data["email"],
             password=validated_data["password"],
+            privacy_policy_accepted=validated_data["privacy_policy_accepted"],
+
         )
         return user

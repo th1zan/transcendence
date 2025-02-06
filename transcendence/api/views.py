@@ -297,11 +297,18 @@ class UserRegisterView(APIView):
 
         if serializer.is_valid():
             username = serializer.validated_data.get("username")
-            email = serializer.validated_data.get(
-                "email", None
-            )  # Email might not be provided
+            privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted", False)
+            #email = serializer.validated_data.get("email", None)  # Email might not be provided
 
-            # Vérifier si le username existe déjà
+            # Ensure the user has accepted the Privacy Policy
+            if not privacy_policy_accepted:
+                logger.error("Privacy Policy not accepted for user: %s", username)
+                return Response(
+                    {"error": "You must accept the Privacy Policy to register."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Check if the username already exists
             if CustomUser.objects.filter(username=username).exists():
                 logger.error("Username already exists: %s", username)
                 return Response(
@@ -315,6 +322,8 @@ class UserRegisterView(APIView):
                     username=username,
                     #email=email,  # Pass None if email is not provided
                     password=serializer.validated_data.get("password"),
+                    privacy_policy_accepted=privacy_policy_accepted,
+
                 )
                 logger.info("User created: %s", user.username)
 

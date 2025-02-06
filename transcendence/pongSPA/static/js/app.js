@@ -109,7 +109,7 @@ function displayRegistrationForm() {
               type="text" 
               id="newUsername" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre nom d'utilisateur" 
+              placeholder="Enter your username" 
               required 
             />
           </div>
@@ -119,22 +119,28 @@ function displayRegistrationForm() {
               type="password" 
               id="newPassword" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre mot de passe" 
+              placeholder="Enter your password" 
               required 
             />
+          </div>
+          <div class="form-check mb-4">
+            <input type="checkbox" class="form-check-input" id="privacyPolicyAccepted" required>
+            <label class="form-check-label" for="privacyPolicyAccepted" style="font-size: 1rem;">
+              I accept the <a href="/privacy-policy" target="_blank">Privacy Policy</a>
+            </label>
           </div>
           <button 
             type="submit" 
             class="btn btn-success w-100 py-3" 
             style="font-size: 1.3rem;">
-            Créer le compte
+            Create Account
           </button>
         </form>
         <button 
           id="backToLoginButton" 
           class="btn btn-primary w-100 mt-4 py-3" 
           style="font-size: 1.3rem;">
-          Retour à la connexion
+          Back to Login
         </button>
       </div>
     </div>
@@ -146,7 +152,13 @@ function displayRegistrationForm() {
       event.preventDefault();
       const newUsername = document.getElementById("newUsername").value;
       const newPassword = document.getElementById("newPassword").value;
-      createAccount(newUsername, newPassword);
+      const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
+
+      if (!privacyPolicyAccepted) {
+        alert("You must accept the Privacy Policy to register.");
+        return;
+      }
+      createAccount(newUsername, newPassword, privacyPolicyAccepted);
     });
 
   document

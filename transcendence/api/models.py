@@ -13,6 +13,7 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=15, unique=True, blank=True, null=True)  # We might use phone number for 2FA
     avatar = models.ImageField(upload_to="avatars/", default='avatars/default.png', blank=True, null=True) # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
     friends = models.ManyToManyField("self", symmetrical=True, blank=True)  # Friend list (Many-to-Many)
+    privacy_policy_accepted = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
