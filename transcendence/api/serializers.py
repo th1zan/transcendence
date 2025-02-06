@@ -10,7 +10,14 @@ from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
 class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
-        fields = ["tournament_name", "date", "number_of_games", "points_to_win"]
+        fields = [
+            "id",
+            "tournament_name",
+            "date",
+            "number_of_games",
+            "points_to_win",
+            "is_finished",
+        ]
 
 
 class TournamentPlayerSerializer(serializers.ModelSerializer):
@@ -49,6 +56,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "player2_name",
             "winner_name",
             "sets",
+            "is_played",
         ]
         extra_kwargs = {
             "user1": {"allow_null": True},

@@ -953,10 +953,37 @@ class TournamentSearchView(APIView):
         name = request.GET.get("name", "")
         tournaments = Tournament.objects.filter(tournament_name__icontains=name)
         data = [
-            {"id": t.id, "tournament_name": t.tournament_name, "date": t.date}
+            {
+                "id": t.id,
+                "tournament_name": t.tournament_name,
+                "date": t.date,
+                "is_finished": t.is_finished,
+            }
             for t in tournaments
         ]
         return JsonResponse(data, safe=False)
+
+
+class UserTournamentsView(APIView):
+    permission_classes = [
+        IsAuthenticated
+    ]  # Assurez-vous que seuls les utilisateurs authentifiés peuvent accéder
+
+    def get(self, request):
+        # Utiliser l'utilisateur connecté pour filtrer les tournois
+        username = request.user.username
+        try:
+            # Supposons que vous avez une relation entre Tournament et Player via TournamentPlayer
+            user_tournaments = Tournament.objects.filter(
+                tournamentplayer__player__user__username=username  # Cette relation dépend de comment vos modèles sont liés
+            ).distinct()  # Utiliser distinct pour éviter les doublons si un utilisateur est dans plusieurs matchs du même tournoi
+
+            serializer = TournamentSerializer(user_tournaments, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class RankingView(APIView):

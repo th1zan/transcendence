@@ -2,6 +2,8 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import now
 
@@ -54,6 +56,11 @@ class Tournament(models.Model):
     date = models.DateField()
     number_of_games = models.IntegerField(default=1)
     points_to_win = models.IntegerField(default=3)
+    is_finished = models.BooleanField(default=False)
+
+    def is_tournament_finished(self):
+        # Tous les matchs du tournoi doivent avoir été joués pour que le tournoi soit considéré comme terminé
+        return all(match.is_match_played() for match in self.matches.all())
 
     def __str__(self):
         return self.tournament_name
@@ -107,6 +114,14 @@ class PongMatch(models.Model):
         null=True,
         blank=True,
     )
+    is_played = models.BooleanField(default=False)
+
+    def is_match_played(self):
+        return (
+            self.player1_sets_won != 0
+            or self.player2_sets_won != 0
+            or self.winner is not None
+        )
 
     def __str__(self):
         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
@@ -159,3 +174,13 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:20]}..."
+
+
+@receiver(post_save, sender=PongMatch)
+def update_tournament_status_on_match_update(sender, instance, **kwargs):
+    if instance.is_tournament_match and instance.is_match_played():
+        tournament = instance.tournament
+        if tournament:
+            # Réévaluez si le tournoi est terminé après chaque match joué dans un tournoi
+            tournament.is_finished = tournament.is_tournament_finished()
+            tournament.save()

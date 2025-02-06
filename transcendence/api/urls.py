@@ -3,8 +3,8 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
-from .views import (AnonymizeAccountView,  # AddFriendView,
-                    CustomTokenObtainPairView, CustomTokenRefreshView,
+from .views import AnonymizeAccountView  # AddFriendView,
+from .views import (CustomTokenObtainPairView, CustomTokenRefreshView,
                     CustomUser, DeleteAccountView, FriendsOnlineStatusView,
                     ListFriendsView, LogoutView, PongMatchDetail,
                     PongMatchList, PongScoreView, RankingView,
@@ -12,9 +12,10 @@ from .views import (AnonymizeAccountView,  # AddFriendView,
                     SendFriendRequestView, TournamentCreationView,
                     TournamentMatchesView, TournamentSearchView,
                     UploadAvatarView, UserDetailView, UserRegisterView,
-                    ViewFriendRequestsView)
+                    UserTournamentsView, ViewFriendRequestsView)
 
 urlpatterns = [
+    path("user/tournaments/", UserTournamentsView.as_view(), name="user-tournaments"),
     path("results/", PongMatchList.as_view(), name="pongmatch-list"),
     path("results/<int:pk>/", PongMatchDetail.as_view(), name="pongmatch-detail"),
     path("scores/", PongScoreView.as_view(), name="pong-score"),

@@ -1,5 +1,5 @@
 import { startGameSetup } from "./pong.js";
-import { createTournamentForm, validateSearch } from "./tournament.js";
+import { createTournamentForm, validateSearch, displayUserTournaments } from "./tournament.js";
 import {
   anonymizeAccount,
   createAccount,
@@ -252,8 +252,9 @@ export function displayTournament() {
     </div>
   `;  
 
-  let resultDiv = document.getElementById("app_main");
-    resultDiv.style.display = "block";
+  displayUserTournaments();
+  // let resultDiv = document.getElementById("app_main");
+  //   resultDiv.style.display = "block";
 
     document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
     

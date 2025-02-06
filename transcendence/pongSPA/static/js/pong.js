@@ -457,7 +457,7 @@ function sendScore() {
       points_per_set: pointsToWin,
       tournament: tournament,
       is_tournament_match: isTournamentMatch,
-      winner: winner, // Ajouter le gagnant
+      winner: winner,
     }),
   })
     .then((response) => {
