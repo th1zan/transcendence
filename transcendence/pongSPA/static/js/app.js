@@ -161,7 +161,7 @@ export function displayWelcomePage() {
           <a class="nav-link text-danger" id="v-pills-settings-tab" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Log out</a>
       </div>
       <div style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
-      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixed; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
+      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixeqd; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
       <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
       <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px ; height:60%; background-color: red;">
       <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
