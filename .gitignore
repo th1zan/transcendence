@@ -169,3 +169,7 @@ yarn-error.log
 
 # macOS system files
 .DS_Store
+
+# static files generated
+*/static_files/
+
