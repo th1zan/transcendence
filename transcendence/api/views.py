@@ -713,39 +713,6 @@ class RespondToFriendRequestView(APIView):
 
         return Response({"message": message}, status=200)
 
-# class ConfirmFriendRequestView(APIView):
-#     permission_classes = [IsAuthenticated]
-    
-#     def post(self, request):
-#         sender_username = request.data.get('username')
-#         try:
-#             sender = CustomUser.objects.get(username=sender_username)
-#         except CustomUser.DoesNotExist:
-#             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-#         try:
-#             friend_request = FriendRequest.objects.get(
-#                 sender=sender,
-#                 receiver=request.user,
-#                 status='pending'
-#             )
-#         except FriendRequest.DoesNotExist:
-#             return Response({"error": "No pending friend request from this user."}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         friend_request.status = 'accepted'
-#         friend_request.save()
-        
-#         # Optionally, update both users’ friend lists (depending on your overall user management)
-        
-#         # Create a notification for the sender
-#         Notification.objects.create(
-#             user=sender,
-#             message=f"{request.user.username} accepted your friend request."
-#         )
-        
-#         # (Optional) Push the notification over WebSockets here
-        
-#         return Response({"message": "Friend request accepted."}, status=status.HTTP_200_OK)
 
 import logging
 

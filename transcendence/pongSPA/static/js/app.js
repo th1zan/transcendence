@@ -33,7 +33,7 @@ export function displayConnectionFormular() {
 
   header.innerHTML = `
     <div class="container-fluidner mt-5 custom-container">
-		  <h1 class="text-center custom-title">Bienvenue sur la page d'accueil</h1>
+		  <h1 class="text-center custom-title">Welcome to the Home Page</h1>
 	  </div>
   `;
 
@@ -44,12 +44,12 @@ export function displayConnectionFormular() {
         <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
         <form id="loginForm">
           <div class="form-group mb-4">
-            <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
+            <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Username</label>
             <input 
               type="text" 
               id="username" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre nom" 
+              placeholder="Enter your username" 
               required 
             />
           </div>
@@ -59,7 +59,7 @@ export function displayConnectionFormular() {
               type="password" 
               id="password" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre mot de passe" 
+              placeholder="Enter your password" 
               required 
             />
           </div>
@@ -67,14 +67,14 @@ export function displayConnectionFormular() {
             type="submit" 
             class="btn btn-success w-100 py-3" 
             style="font-size: 1.3rem;">
-            Se connecter
+            Sign In
           </button>
         </form>
         <button 
           id="signupButton" 
           class="btn btn-primary w-100 mt-4 py-3" 
           style="font-size: 1.3rem;">
-          Créer un compte
+          Create Account
         </button>
       </div>
     </div>
@@ -101,10 +101,10 @@ function displayRegistrationForm() {
     appDiv.innerHTML = `
     <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
       <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5" style="color: #007bff; font-size: 2.5rem;">Créer un compte</h2>
+        <h2 class="text-center mb-5" style="color: #007bff; font-size: 2.5rem;">Create Account</h2>
         <form id="signupForm">
           <div class="form-group mb-4">
-            <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
+            <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Username</label>
             <input 
               type="text" 
               id="newUsername" 
@@ -257,31 +257,31 @@ export function displayWelcomePage() {
 
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h2>Bonjour ${username}</h2>
+    <h2>Hello ${username}</h2>
     <br>
     <div id="tournamentList"></div>
   `;
 
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = `
-    <button id="playButton">🎮 Jouer une partie</button>
+    <button id="playButton">Play a Game</button>
     <br>
     <br>
-    <button id="tournamentButton">🏆 Tournament</button>
+    <button id="tournamentButton">Tournament</button>
     <br>
     <br>
-    <button id="statsButton">📊 Statistiques</button>
+    <button id="statsButton">Statistics</button>
     <br>
     <br>
-    <button id="friendsButton">👥 Amis</button>
+    <button id="friendsButton">Friends</button>
     <br>
     <br>
-    <button id="settingsButton">⚙️ Paramètres</button>
+    <button id="settingsButton">Settings</button>
     <br>
     <br>
     <br>
     <br>
-    <button id="logoutButton">🚪 Déconnexion</button>
+    <button id="logoutButton">Logout</button>
       `;
 
   // Attacher les écouteurs d'événements aux boutons
@@ -300,13 +300,13 @@ export function displayTournament() {
   appDiv.innerHTML = `
    <h3>Tournament</h3>
     <br>
-    <button id="newTournamentButton">Nouveau tournoi</button> 
+    <button id="newTournamentButton">New Tournament</button> 
     <br>
     <br>
     <div id="searchTournament">
-      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
+      <input type="text" id="tournamentNameInput" placeholder="Tournament name" />
       <br>
-      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher un tournoi</button>
+      <button id="tournamentSearchButton" class="btn btn-primary">Search for Tournament</button>
     </div>
   `;
 
@@ -315,13 +315,13 @@ export function displayTournament() {
   document.getElementById("tournamentSearchButton").addEventListener("click", () => {
     const tournamentNameInput = document.getElementById("tournamentNameInput");
     if (!tournamentNameInput) {
-      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
+      console.error("The element 'tournamentNameInput' is not available.");
       return;
     }
 
     const tournamentName = tournamentNameInput.value;
     if (!tournamentName) {
-      alert("Veuillez entrer un nom de tournoi.");
+      alert("Please enter a tournament name.");
       return;
     }
 
@@ -336,13 +336,13 @@ export function displayTournament() {
 export function displayFriends() {
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h3>👥 Friends Management</h3>
+    <h3>Friends</h3>
     <br>
     <div>
-      <input type="text" id="friendUsername" placeholder="Nom d'utilisateur" class="form-control" />
+      <input type="text" id="friendUsername" placeholder="Username" class="form-control" />
       <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
     </div>
-    <h4>Demandes d'amis en attente</h4>
+    <h4>Pending Friend Requests</h4>
     <ul id="friendRequests" class="list-group"></ul>
     <br>
     <h4>My Friends</h4>
@@ -377,7 +377,7 @@ export function displaySettings() {
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = `
     <div class="container mt-4">
-      <h3 class="text-center">Gestion du compte</h3>
+      <h3 class="text-center">Account Management</h3>
 
       <div class="card shadow-sm p-4 mt-3">
         <h4 class="text-center">Update Profile Picture</h4>
@@ -415,8 +415,8 @@ export function displaySettings() {
 
       <!-- Account Actions -->
       <div class="d-flex justify-content-center mt-4">
-      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Supprimer le compte</button>
-      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
+      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Delete Account</button>
+      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymize Account</button>
        </div>
     `;
 
@@ -437,10 +437,10 @@ export function displayStats() {
   appDiv.innerHTML = `
   <h3>Statistiques</h3>
     <div id="resultats"></div>
-    <button id="viewResultsButton">Vos résultats</button>
+    <button id="viewResultsButton">Your Results</button>
     <br>
     <br>
-    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
+    <button id="viewRankingButton">Overall Ranking</button> <!-- Nouveau bouton -->
     <div id="ranking"></div> <!-- Div pour afficher le classement -->
   `;
 
@@ -463,20 +463,20 @@ function fetchResultats() {
       console.log(data); // Vérifiez ce que vous recevez
       const appDiv = document.getElementById("app");
       appDiv.innerHTML = `
-        <button id="backButton" class="btn btn-secondary">Retour</button>
-        <h3>Vos résultats :</h3>
+        <button id="backButton" class="btn btn-secondary">Back</button>
+        <h3>Your Results:</h3>
         <div id="resultats"></div>
       `;
 
       const resultatsDiv = document.getElementById("resultats");
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((match) => {
-          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Date inconnue";
-          const player1 = match.player1_name || "Joueur 1 inconnu";
-          const player2 = match.player2_name || "Joueur 2 inconnu";
-          const winner = match.winner || "En cours";
+          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+          const player1 = match.player1_name || "Unknown Player 1";
+          const player2 = match.player2_name || "Unknown Player 2";
+          const winner = match.winner || "In Progress";
           const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-          const tournamentInfo = match.tournament ? ` (Tournoi: ${match.tournament_name || 'Inconnu'})` : "";
+          const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
 
           resultatsDiv.innerHTML += `
               <p>
@@ -489,7 +489,7 @@ function fetchResultats() {
               </p>`;
         });
       } else {
-        resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
+        resultatsDiv.innerHTML += "<p>No results found.</p>";
       }
 
       document.getElementById("backButton").addEventListener("click", displayStats);
@@ -509,15 +509,15 @@ function fetchRanking() {
       console.log(data); // Vérifiez ce que vous recevez
       const appDiv = document.getElementById("app");
       appDiv.innerHTML = `
-        <button id="backButton" class="btn btn-secondary">Retour</button>
-        <h3>Classement des joueurs :</h3>
+        <button id="backButton" class="btn btn-secondary">Back</button>
+        <h3>Player Ranking:</h3>
         <div id="ranking"></div>
       `;
 
       const rankingDiv = document.getElementById("ranking");
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((player) => {
-          const playerName = player.name || "Nom inconnu";
+          const playerName = player.name || "Unknown Name";
           const totalWins = player.total_wins || 0;
           rankingDiv.innerHTML += `
               <p>
@@ -525,7 +525,7 @@ function fetchRanking() {
               </p>`;
         });
       } else {
-        rankingDiv.innerHTML += "<p>Aucun classement trouvé.</p>";
+        rankingDiv.innerHTML += "<p>No ranking found.</p>";
       }
 
       // Ajoutez un écouteur d'événement pour le bouton de retour
@@ -556,7 +556,7 @@ function displayGameForm() {
       <p id="summary"></p>
     </div>
   `;
-  console.log("Valeur de username dans displayGameForm :", username);
+  console.log("Username value in displayGameForm:", username);
   
   document.getElementById("startGameButton").addEventListener("click", () => {
     const player1 = username;

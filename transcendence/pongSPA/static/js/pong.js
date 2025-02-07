@@ -24,17 +24,17 @@ function connectWebSocket()
 {
   ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
 
-  ws.onopen = () => console.log("WebSocket connecté");
+  ws.onopen = () => console.log("WebSocket connected");
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
       computer.y = data.y;
     }
   };
-  ws.onerror = (error) => console.error("WebSocket erreur :", error);
+  ws.onerror = (error) => console.error("WebSocket error:", error);
   ws.onclose = () => {
     if (shouldReconnect) {
-      console.log("WebSocket déconnecté. Reconnexion...");
+      console.log("WebSocket disconnected. Reconnecting...");
       setTimeout(connectWebSocket, 1000);
     }
   };}
@@ -44,7 +44,7 @@ function startPongGame() {
   const canvas = document.getElementById("pong");
 
   if (!canvas) {
-    console.error("Canvas introuvable. Réessayez dans 100 ms.");
+    console.error("Canvas not found. Please try again in 100 ms.");
     setTimeout(startPongGame, 100);
     return;
   }
@@ -102,8 +102,8 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   context = ctxt;
   shouldReconnect = true;
   
-  console.log("Valeur de player1 dans startGameSetup:", player1);
-  console.log("Valeur de player2 dans startGameSetup:", player2);
+  console.log("Value of player1 in startGameSetup:", player1);
+  console.log("Value of player2 in startGameSetup:", player2);
 
   // Vérifier et créer pong si nécessaire
   let pongCanvas = document.getElementById("pong");
@@ -261,7 +261,7 @@ function displayResults(finalWinner) {
     Winner: ${finalWinner}<br>
     Number of Games: ${numberOfGames}<br>
     Points to Win: ${pointsToWin}<br>
-    <button id="backButton">Retour</button>
+    <button id="backButton">Back</button>
     <h3>Set History:</h3>
   `;
 
