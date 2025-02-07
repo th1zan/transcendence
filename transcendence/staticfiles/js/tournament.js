@@ -4,15 +4,15 @@ import { displayTournament, displayWelcomePage } from "./app.js";
 
 export function DisplayTournamentGame() {
   const tournamentName = localStorage.getItem("tournamentName");
-  console.log("Nom du tournois: ", tournamentName); 
+  console.log("Nom du tournois: ", tournamentName);
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h2>Tournois : ${tournamentName}</h2>
-    <div id="tournamentMatches"></div>    
+    <div id="tournamentMatches"></div>
     <div id="game_panel" style="display: none;">
       <h2>Game Results</h2>
       <p id="summary"></p>
-    </div>    
+    </div>
     <button id="backToSearchButton" class="btn btn-secondary">Retour à la recherche</button>
     <canvas id="pong" width="800" height="400"></canvas>
   `;
@@ -43,7 +43,7 @@ export function DisplayTournamentGame() {
         data.forEach((match) => {
           const date = new Date(match.date_played).toLocaleString();
           const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
-          
+
           // Détermine le texte du gagnant ou "match à jouer"
           const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match à jouer" : match.winner || "En cours";
 
@@ -59,10 +59,10 @@ export function DisplayTournamentGame() {
           // Afficher le bouton "Commencer le jeu" uniquement pour le premier match à jouer
           if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
             matchHTML += `
-              <button class="startGameButton" 
-                      data-player1="${match.player1_name}" 
-                      data-player2="${match.player2_name}" 
-                      data-sets-to-win="${match.sets_to_win}" 
+              <button class="startGameButton"
+                      data-player1="${match.player1_name}"
+                      data-player2="${match.player2_name}"
+                      data-sets-to-win="${match.sets_to_win}"
                       data-points-per-set="${match.points_per_set}"
                       data-match-id="${match.id}">Commencer le jeu</button>
             `;
@@ -100,8 +100,9 @@ export function DisplayTournamentGame() {
 }
 
 export function createTournamentForm() {
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
+    const interactiveDiv = document.getElementById("interactivePart");
+
+    interactiveDiv.innerHTML = `
      <form id="tournamentForm">
         <input type="text" id="tournamentName" placeholder="Nom du tournoi" required>
         <div id="playerContainer"></div>
@@ -125,10 +126,10 @@ export function createTournamentForm() {
     const username = localStorage.getItem('username');
     const initialPlayerDiv = document.createElement('div');
     initialPlayerDiv.innerHTML = `
-        Joueur n° : ${playerCount} 
-        <input type="text" 
-               placeholder="Pseudo" 
-               value="${username || ''}" 
+        Joueur n° : ${playerCount}
+        <input type="text"
+               placeholder="Pseudo"
+               value="${username || ''}"
                ${username ? 'readonly' : ''}>
     `;
     playerContainer.appendChild(initialPlayerDiv);
@@ -184,7 +185,7 @@ export function createTournamentForm() {
 
      submitButton.onclick = () => {
     const tournamentName = document.getElementById('tournamentName').value.trim();
-    
+
     // Vérification du nom du tournoi
     if (!tournamentName) {
         alert("Le nom du tournoi ne peut pas être vide");
@@ -192,7 +193,7 @@ export function createTournamentForm() {
     }
 
     localStorage.setItem("tournamentName", tournamentName);
-    
+
     players = Array.from(playerContainer.querySelectorAll('input'))
         .map(input => input.value.trim())
         .filter(name => name !== '');
@@ -203,7 +204,7 @@ export function createTournamentForm() {
     }
     // Affichage du contenu de players dans la console
     // console.log("Players array:", players);
-    
+
     const numberOfGames = document.getElementById('numberOfGames').value;
     const pointsToWin = document.getElementById('pointsToWin').value;
     sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin);
@@ -216,7 +217,7 @@ function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
             tournament_name: tournamentName,
             players: players,  // Directly use players array without transforming to objects
             number_of_games: numberOfGames,
@@ -229,7 +230,7 @@ function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin
     .then((data) => {
         console.log("Tournoi créé :", data);
         localStorage.setItem("tournamentId", data.tournament_id);
-      
+
         DisplayTournamentGame();
     })
     .catch((error) => {

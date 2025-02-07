@@ -23,12 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Clear local storage
   localStorage.clear();
 
-  let login = true; // test
+  let login = false; // test
   if (login == false) {
     displayConnectionFormular();
   }
   else {
-    displayInteractivePart();
+    displayInteractiveMenu();
     displayWelcomePage();
   }
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
@@ -73,7 +73,7 @@ export function displayConnectionFormular() {
           </button>
         </form>
         <button
-          id="signupButton"
+          id="displaySignupButton"
           class="btn btn-primary w-100 mt-4 py-3"
           style="font-size: 1.3rem;">
           Créer un compte
@@ -93,7 +93,7 @@ export function displayConnectionFormular() {
     });
 
   document
-    .getElementById("signupButton")
+    .getElementById("displaySignupButton")
     .addEventListener("click", displayRegistrationForm);
 }
 
@@ -249,28 +249,36 @@ export function displayPrivacyPolicy() {
   document.getElementById("backToRegisterButton").addEventListener("click", displayRegistrationForm);
 }
 
-export function displayInteractivePart() {
+export function displayInteractiveMenu() {
   const username = localStorage.getItem("username");
 
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h2 class="text-center">Bonjour ${username}</h2>
-    <div style="background-color: black;" class="p-1 h-100  d-flex">
-      <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
-        <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
-          <a class="nav-link active mb-4 mt-4" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
-          <a class="nav-link active" id="newTournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
-          <div class="flex-grow-1"></div>
-          <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Delete account</a>
-          <a class="nav-link text-danger" id="deleteAccountButton" data-toggle="pill" role="tab"  aria-selected="false">Log out</a>
-      </div>
-      <div id="interactivePart" style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
-      </div>
-      `;
+  <div style="background-color: black;" class="p-1 h-100  d-flex">
+  <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
+  <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
+  <a class="nav-link active mb-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
+  <a class="nav-link active mb-2" id="newTournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
+  <a class="nav-link active mb-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
+  <a class="nav-link active mb-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
+  <a class="nav-link active mb-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
+  <a class="nav-link active mb-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
+  <div class="flex-grow-1"></div>
+          <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
+          <a class="nav-link text-danger" id="deleteAccountButton" data-toggle="pill" role="tab"  aria-selected="false">Delete account</a>
+          </div>
+          <div id="interactivePart" style="background-color: #596f6f;" class="p-1 h-100 flex-grow-1" >
+          </div>
+          `;
 
+          //<h2 class="text-center">Bonjour ${username}</h2>
   // Attacher les écouteurs d'événements aux boutons
   document.getElementById("playButton").addEventListener("click", displayGameForm);
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("statsButton").addEventListener("click", displayStats);
+  document.getElementById("friendsButton").addEventListener("click", displayFriends);
+  document.getElementById("welcomeButton").addEventListener("click", displayWelcomePage);
+  document.getElementById("settingsButton").addEventListener("click", displaySettings);
   document.getElementById("logoutButton").addEventListener("click", logout);
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
 
@@ -408,8 +416,9 @@ export function displayTournament() {
 
 
 export function displayFriends() {
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
+  const interactiveDiv = document.getElementById("interactivePart");
+
+  interactiveDiv.innerHTML = `
     <h3>👥 Friends Management</h3>
     <br>
     <div>
@@ -448,8 +457,8 @@ export function displaySettings() {
     .then(user => {
       const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
 
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
+    const interactiveDiv = document.getElementById("interactivePart");
+    interactiveDiv.innerHTML = `
     <div class="container mt-4">
       <h3 class="text-center">Gestion du compte</h3>
 
@@ -507,8 +516,9 @@ export function displaySettings() {
 
 export function displayStats() {
 
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
+  const interactiveDiv = document.getElementById("interactivePart");
+
+  interactiveDiv.innerHTML = `
   <h3>Statistiques</h3>
     <div id="resultats"></div>
     <button id="viewResultsButton">Vos résultats</button>
@@ -610,8 +620,9 @@ function fetchRanking() {
 function displayGameForm() {
 
   const username = localStorage.getItem("username");
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
+  const interactiveDiv = document.getElementById("interactivePart");
+
+  interactiveDiv.innerHTML = `
     <h3>Pong Game</h3>
     <form id="gameForm">
       <label for="player1">Player 1 Name:</label>

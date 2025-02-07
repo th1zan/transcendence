@@ -1,4 +1,4 @@
-import { displayWelcomePage } from "./app.js";
+import { displayInteractiveMenu, displayWelcomePage } from "./app.js";
 import { displayConnectionFormular } from "./app.js";
 
 export function getToken(username, password) {
@@ -27,6 +27,7 @@ export function getToken(username, password) {
         //   console.log(localStorage.getItem("access_token"));
         //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
         localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+        displayInteractiveMenu();
         displayWelcomePage();
       } else {
         alert("Connection error. Please retry.");
@@ -233,8 +234,8 @@ export function uploadAvatar() {
   })
     .then(response => {
       if (!response.ok) {
-        return response.json().then(error => { 
-          throw new Error(error.error || "Upload failed."); 
+        return response.json().then(error => {
+          throw new Error(error.error || "Upload failed.");
         });
       }
       return response.json();
