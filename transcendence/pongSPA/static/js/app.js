@@ -1,12 +1,16 @@
 import { startGameSetup } from "./pong.js";
 import { createTournamentForm, validateSearch } from "./tournament.js";
 import {
-  getToken,
-  refreshToken,
-  deleteAccount,
-  logout,
+  anonymizeAccount,
   createAccount,
+  deleteAccount,
+  getToken,
+  logout,
+  refreshToken,
+  updateProfile,
+  uploadAvatar,
 } from "./auth.js";
+import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Clear all cookies
@@ -19,8 +23,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Clear local storage
   localStorage.clear();
 
-  //displayConnectionFormular();
-  displayWelcomePage();
+  let login = true; // test
+  if (login == false) {
+    displayConnectionFormular();
+  }
+  else {
+    displayInteractivePart();
+    displayWelcomePage();
+  }
+  setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 });
 
 export function displayConnectionFormular() {
@@ -70,7 +81,7 @@ export function displayConnectionFormular() {
       </div>
     </div>
     `;
-  setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
+  // setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
   document
     .getElementById("loginForm")
@@ -100,7 +111,7 @@ function displayRegistrationForm() {
               type="text"
               id="newUsername"
               class="form-control form-control-lg"
-              placeholder="Entrez votre nom d'utilisateur"
+              placeholder="Enter your username"
               required
             />
           </div>
@@ -110,22 +121,28 @@ function displayRegistrationForm() {
               type="password"
               id="newPassword"
               class="form-control form-control-lg"
-              placeholder="Entrez votre mot de passe"
+              placeholder="Enter your password"
               required
             />
+          </div>
+          <div class="form-check mb-4">
+            <input type="checkbox" id="privacyPolicyAccepted" required />
+            <label for="privacyPolicyAccepted">
+              I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+            </label>
           </div>
           <button
             type="submit"
             class="btn btn-success w-100 py-3"
             style="font-size: 1.3rem;">
-            Créer le compte
+            Create Account
           </button>
         </form>
         <button
           id="backToLoginButton"
           class="btn btn-primary w-100 mt-4 py-3"
           style="font-size: 1.3rem;">
-          Retour à la connexion
+          Back to Login
         </button>
       </div>
     </div>
@@ -137,44 +154,145 @@ function displayRegistrationForm() {
       event.preventDefault();
       const newUsername = document.getElementById("newUsername").value;
       const newPassword = document.getElementById("newPassword").value;
-      createAccount(newUsername, newPassword);
+      const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
+
+      if (!privacyPolicyAccepted) {
+        alert("You must accept the Privacy Policy to register.");
+        return;
+      }
+      createAccount(newUsername, newPassword, privacyPolicyAccepted);
     });
 
   document
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
+  document
+    .getElementById("privacyPolicyLink")
+    .addEventListener("click", function (event) {
+    event.preventDefault(); // Prevent full-page reload
+    displayPrivacyPolicy(); // Load Privacy Policy inside #app
+  });
 }
 
-// homepage
-export function displayWelcomePage() {
+export function displayPrivacyPolicy() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p><strong>Effective Date:</strong> 06.02.2025</p>
+
+      <h2>1. Introduction</h2>
+      <p>
+        We respect your privacy and are committed to protecting your personal data.
+        This Privacy Policy explains how we collect, use, and protect your information in compliance with GDPR.
+      </p>
+
+      <h2>2. Data We Collect</h2>
+      <p>When you register and use our services, we collect:</p>
+      <ul>
+        <li><strong>Account Information:</strong> Username, password, email address, phone number, and avatar (if provided).</li>
+        <li><strong>Game & Profile Data:</strong> Match history, friend lists, and tournament participation.</li>
+      </ul>
+
+      <h2>3. How We Use Your Data</h2>
+      <p>Your data is used only for the following purposes:</p>
+      <ul>
+        <li>To create and manage your account.</li>
+        <li>To enable participation in games and tournaments.</li>
+        <li>To allow you to connect with friends and manage your profile.</li>
+        <li>To comply with legal obligations.</li>
+      </ul>
+
+      <h2>4. Legal Basis for Processing</h2>
+      <p>We process your data based on the following legal grounds:</p>
+      <ul>
+        <li><strong>Consent:</strong> You provide explicit consent when registering.</li>
+        <li><strong>Contractual Obligation:</strong> Processing is necessary to provide our services.</li>
+        <li><strong>Legal Compliance:</strong> We process your data to comply with laws.</li>
+      </ul>
+
+      <h2>5. Data Sharing</h2>
+      <p>We do not sell or share your data with third parties except:</p>
+      <ul>
+        <li>When required by law.</li>
+        <li>To provide essential services (e.g., hosting, security).</li>
+      </ul>
+
+      <h2>6. Your Rights Under GDPR</h2>
+      <p>As a user, you have the right to:</p>
+      <ul>
+        <li><strong>Access:</strong> Request a copy of your personal data.</li>
+        <li><strong>Rectification:</strong> Correct inaccurate or incomplete data.</li>
+        <li><strong>Erasure:</strong> Request deletion of your account and associated data.</li>
+        <li><strong>Restriction:</strong> Limit processing of your data in certain cases.</li>
+        <li><strong>Portability:</strong> Request a copy of your data in a structured format.</li>
+        <li><strong>Withdraw Consent:</strong> Stop processing based on consent at any time.</li>
+      </ul>
+
+      <h2>7. Data Retention</h2>
+      <p>Your data is stored only as long as necessary to provide our services or comply with legal obligations.</p>
+
+      <h2>8. Security Measures</h2>
+      <p>We take appropriate security measures to protect your data. However, we advise keeping your credentials safe.</p>
+
+      <h2>9. Contact Information</h2>
+      <p>If you have questions or requests regarding your data, please contact us at: pong42@gmail.com</p>
+
+      <h2>10. Updates to This Policy</h2>
+      <p>We may update this Privacy Policy. Changes will be posted on this page.</p>
+
+      <button id="backToRegisterButton" class="btn btn-primary">Back to Registration</button>
+    </div>
+  `;
+
+  // Handle back navigation to registration form
+  document.getElementById("backToRegisterButton").addEventListener("click", displayRegistrationForm);
+}
+
+export function displayInteractivePart() {
   const username = localStorage.getItem("username");
+
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
     <h2 class="text-center">Bonjour ${username}</h2>
     <div style="background-color: black;" class="p-1 h-100  d-flex">
       <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
         <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
-          <a class="nav-link active mb-4 mt-4" id="playButton" data-toggle="pill" href="#v-pills-home" role="button" aria-controls="v-pills-home" aria-selected="true">Play</a>
-          <a class="nav-link active" id="newTournamentButton" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">New Tournament</a>
+          <a class="nav-link active mb-4 mt-4" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
+          <a class="nav-link active" id="newTournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
           <div class="flex-grow-1"></div>
-          <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Delete account</a>
-          <a class="nav-link text-danger" id="deleteAccountButton" data-toggle="pill" href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Log out</a>
+          <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Delete account</a>
+          <a class="nav-link text-danger" id="deleteAccountButton" data-toggle="pill" role="tab"  aria-selected="false">Log out</a>
       </div>
-      <div style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
-      <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixeqd; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
-      <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
-      <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px ; height:60%; background-color: red;">
-      <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
+      <div id="interactivePart" style="background-color: #212424;" class="p-1 h-100 flex-grow-1" >
       </div>
-      <div class="container row" style="" >
-      <div class="col-4"> blabla 1 </div>
-      <div class="col-4"> blabla 2 </div>
-      <div class="col-4"> blabla 3 </div>
+      `;
 
-      </div>
-      </div>
-      </div>
-      </div>
+  // Attacher les écouteurs d'événements aux boutons
+  document.getElementById("playButton").addEventListener("click", displayGameForm);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+
+}
+
+// homepage
+export function displayWelcomePage() {
+  const interactiveDiv = document.getElementById("interactivePart");
+  interactiveDiv.innerHTML = `
+        <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixeqd; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
+          <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
+            <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px ; height:60%; background-color: red;">
+              <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
+            </div>
+            <div class="container row" style="" >
+              <div class="col-4"> blabla 1 </div>
+              <div class="col-4"> blabla 2 </div>
+              <div class="col-4"> blabla 3 </div>
+
+            </div>
+          </div>
+        </div>
       `;
 
       //<a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
@@ -184,34 +302,6 @@ export function displayWelcomePage() {
       //  <div class="tab-pane fade" id="v-pills-messages" role="tabpanel" aria-labelledby="v-pills-messages-tab">...</div>
       //  <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">...</div>
       //</div>
-
-  // Attacher les écouteurs d'événements aux boutons
-  document.getElementById("playButton").addEventListener("click", displayGameForm);
-  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-  document.getElementById("logoutButton").addEventListener("click", logout);
-  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-
-  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
-    const tournamentNameInput = document.getElementById("tournamentNameInput");
-    if (!tournamentNameInput) {
-      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
-      return;
-    }
-
-    const tournamentName = tournamentNameInput.value;
-    if (!tournamentName) {
-      alert("Veuillez entrer un nom de tournoi.");
-      return;
-    }
-
-    localStorage.setItem("tournamentName", tournamentName);
-    validateSearch();
-  });
-
-  // Ajouter un écouteur d'événement pour le bouton "Classement général"
-
-  document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
-  document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 }
 
 
@@ -239,28 +329,62 @@ export function displayWelcomePage2() {
       <button id="tournamentSearchButton" class="btn btn-primary">Rechercher</button>
     </div>
     <br>
+    <h2>Bonjour ${username}</h2>
     <br>
     <div id="tournamentList"></div>
-    <br>
-    <h3>Gestion du compte</h3>
-    <button id="logoutButton">Déconnexion</button>
-    <br>
-    <button id="deleteAccountButton" class="btn btn-danger">Supprimer le compte</button>
-    <br>
-    <br>
-    <h3>Statistiques</h3>
-    <div id="resultats"></div>
-    <button id="viewResultsButton">Vos résultats</button>
-    <br>
-    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
-    <div id="ranking"></div> <!-- Div pour afficher le classement -->
   `;
+
+  const menuDiv = document.getElementById("menu");
+  menuDiv.innerHTML = `
+    <button id="playButton">🎮 Jouer une partie</button>
+    <br>
+    <br>
+    <button id="tournamentButton">🏆 Tournament</button>
+    <br>
+    <br>
+    <button id="statsButton">📊 Statistiques</button>
+    <br>
+    <br>
+    <button id="friendsButton">👥 Amis</button>
+    <br>
+    <br>
+    <button id="settingsButton">⚙️ Paramètres</button>
+    <br>
+    <br>
+    <br>
+    <br>
+    <button id="logoutButton">🚪 Déconnexion</button>
+      `;
 
   // Attacher les écouteurs d'événements aux boutons
   document.getElementById("playButton").addEventListener("click", displayGameForm);
-  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("tournamentButton").addEventListener("click", displayTournament);
+  document.getElementById("statsButton").addEventListener("click", displayStats);
+  document.getElementById("friendsButton").addEventListener("click", displayFriends);
+  document.getElementById("settingsButton").addEventListener("click", displaySettings);
   document.getElementById("logoutButton").addEventListener("click", logout);
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+
+
+}
+
+export function displayTournament() {
+
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+   <h3>Tournament</h3>
+    <br>
+    <button id="newTournamentButton">Nouveau tournoi</button>
+    <br>
+    <br>
+    <div id="searchTournament">
+      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
+      <br>
+      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher un tournoi</button>
+    </div>
+  `;
+
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
   document.getElementById("tournamentSearchButton").addEventListener("click", () => {
     const tournamentNameInput = document.getElementById("tournamentNameInput");
@@ -279,10 +403,124 @@ export function displayWelcomePage2() {
     validateSearch();
   });
 
-  // Ajouter un écouteur d'événement pour le bouton "Classement général"
+
+}
+
+
+export function displayFriends() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+    <h3>👥 Friends Management</h3>
+    <br>
+    <div>
+      <input type="text" id="friendUsername" placeholder="Nom d'utilisateur" class="form-control" />
+      <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
+    </div>
+    <h4>Demandes d'amis en attente</h4>
+    <ul id="friendRequests" class="list-group"></ul>
+    <br>
+    <h4>My Friends</h4>
+    <ul id="friendList" class="list-group"></ul>
+  `;
+
+  document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
+    const friendUsername = document.getElementById("friendUsername").value.trim();
+    if (friendUsername) {
+      sendFriendRequest(friendUsername);
+    }
+  });
+  fetchFriendRequests();
+  fetchFriends();
+}
+
+
+export function displaySettings() {
+  fetch("/api/auth/user/", {
+    method: "GET",
+    credentials: "include", // Ensures authentication cookies are sent
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch user data.");
+      }
+      return response.json();
+    })
+    .then(user => {
+      const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+
+    const appDiv = document.getElementById("app");
+    appDiv.innerHTML = `
+    <div class="container mt-4">
+      <h3 class="text-center">Gestion du compte</h3>
+
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Update Profile Picture</h4>
+        <div class="d-flex flex-column align-items-center">
+          <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+
+          <div class="mt-3 w-75">
+            <label class="form-label">Choose a new profile picture:</label>
+            <div class="input-group">
+              <input type="file" id="avatarInput" accept="image/*" class="form-control">
+              <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Profile Information Update -->
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Edit Profile Information</h4>
+        <div class="form-group mt-2">
+          <label>Username:</label>
+          <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+        </div>
+        <div class="form-group mt-2">
+          <label>Email:</label>
+          <input type="email" id="emailInput" class="form-control" value="${user.email}">
+        </div>
+        <div class="form-group mt-2">
+          <label>Phone Number:</label>
+          <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Account Actions -->
+      <div class="d-flex justify-content-center mt-4">
+      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Supprimer le compte</button>
+      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
+       </div>
+    `;
+
+    document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+    document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+    document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+  })
+  .catch(error => {
+    console.error("Error loading user data:", error);
+  });
+}
+
+
+export function displayStats() {
+
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+  <h3>Statistiques</h3>
+    <div id="resultats"></div>
+    <button id="viewResultsButton">Vos résultats</button>
+    <br>
+    <br>
+    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
+    <div id="ranking"></div> <!-- Div pour afficher le classement -->
+  `;
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+
 }
 
 function fetchResultats() {
@@ -328,18 +566,7 @@ function fetchResultats() {
         resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
       }
 
-      // Ajoutez un écouteur d'événement pour le bouton de retour
-      document.getElementById("backButton").addEventListener("click", () => {
-        const username = localStorage.getItem("username");
-        if (username) {
-          displayWelcomePage(username);
-        } else {
-          console.error("Nom d'utilisateur non trouvé dans le stockage local.");
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la récupération des résultats:", error);
+      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
@@ -376,17 +603,7 @@ function fetchRanking() {
       }
 
       // Ajoutez un écouteur d'événement pour le bouton de retour
-      document.getElementById("backButton").addEventListener("click", () => {
-        const username = localStorage.getItem("username");
-        if (username) {
-          displayWelcomePage(username);
-        } else {
-          console.error("Nom d'utilisateur non trouvé dans le stockage local.");
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la récupération du classement:", error);
+      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
@@ -395,7 +612,7 @@ function displayGameForm() {
   const username = localStorage.getItem("username");
   const appDiv = document.getElementById("app");
   appDiv.innerHTML = `
-    <h1>Pong Game</h1>
+    <h3>Pong Game</h3>
     <form id="gameForm">
       <label for="player1">Player 1 Name:</label>
       <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
@@ -408,7 +625,7 @@ function displayGameForm() {
       <button type="button" id="startGameButton">Start Game</button>
     </form>
     <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
-    <div id="result" style="display: none;">
+    <div id="game_panel" style="display: none;">
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>

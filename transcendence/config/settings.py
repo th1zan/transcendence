@@ -8,6 +8,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 
 from datetime import timedelta
 from pathlib import Path
@@ -40,16 +41,16 @@ CHANNEL_LAYERS = {
 # Application definition
 
 INSTALLED_APPS = [
+    "api.apps.ApiConfig",  # should be palced before 'django.contrib.admin' because there is a dependence between both.
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-	"channels",
+    "channels",
     "config",
     "pongSPA",
-    "api.apps.ApiConfig",
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -58,7 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-	"whitenoise.middleware.WhiteNoiseMiddleware", 
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -102,6 +103,23 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         # 'NAME': env('DB_NAME'),
+#         # 'USER': env('DB_USER'),
+#         # 'PASSWORD': env('DB_PASSWORD'),
+#         # 'HOST': env('DB_HOST'),
+#         # 'PORT': env('DB_PORT', default='5432'),
+# 		  'NAME': "database_name",
+#         'USER': "database_user",
+#         'PASSWORD': "your_password",
+#         'HOST': "localhost",
+#         # 'DB_PORT': 5432,
+#     }
+# }
+
+AUTH_USER_MODEL = "api.CustomUser"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -150,7 +168,9 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+#MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
 
 # Charger les variables du fichier .env
 load_dotenv()
@@ -160,7 +180,6 @@ REST_FRAMEWORK = {
         "api.authentication.CookieJWTAuthentication",  # Replace with the actual path instead of  "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 

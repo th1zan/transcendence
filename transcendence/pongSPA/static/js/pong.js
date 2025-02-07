@@ -14,6 +14,7 @@ let pointsToWin = 1;
 let currentGame = 0;
 let player1Wins = 0;
 let player2Wins = 0;
+let shouldReconnect = true;
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -31,12 +32,12 @@ function connectWebSocket()
     }
   };
   ws.onerror = (error) => console.error("WebSocket erreur :", error);
-  ws.onclose = () => 
-  {
-    console.log("WebSocket déconnecté. Reconnexion...");
-    setTimeout(connectWebSocket, 1000);
-  };
-}
+  ws.onclose = () => {
+    if (shouldReconnect) {
+      console.log("WebSocket déconnecté. Reconnexion...");
+      setTimeout(connectWebSocket, 1000);
+    }
+  };}
 
 // Démarrer le jeu Pong
 function startPongGame() {
@@ -61,6 +62,35 @@ function startPongGame() {
   }, 1000 / fps);
 }
 
+function updateGamePanel() {
+  const gamePanel = document.getElementById("game_panel");
+  if (gamePanel) {
+    gamePanel.style.display = "block";
+    
+    // Ajouter le bouton "Quit Game"
+    if (!document.getElementById("quitGameButton")) { // Éviter de créer plusieurs boutons
+      const quitButton = document.createElement("button");
+      quitButton.id = "quitGameButton";
+      quitButton.textContent = "Quit Game";
+      quitButton.onclick = function() {
+        stopGameProcess();
+        
+        // Déterminer la fonction à appeler ensuite en fonction du contexte
+        if (context === "tournament") {
+          DisplayTournamentGame();
+        } else if (context === "solo") {
+          const username = localStorage.getItem("username");
+          displayWelcomePage(username);
+        }
+      };
+      gamePanel.appendChild(quitButton);
+    }
+
+  }
+
+  console.log("Call to updateGamePanel");
+}
+
 export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   // Mettre à jour les variables globales
   user1 = p1;
@@ -70,19 +100,22 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   numberOfGames = numGames;
   pointsToWin = ptsToWin;
   context = ctxt;
-
+  shouldReconnect = true;
+  
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
 
   // Vérifier et créer pong si nécessaire
   let pongCanvas = document.getElementById("pong");
-  if (!pongCanvas) {
-    pongCanvas = document.createElement('canvas');
-    pongCanvas.id = "pong";
-    pongCanvas.width = 800; // Définir la largeur du canvas
-    pongCanvas.height = 400; // Définir la hauteur du canvas
-    document.body.appendChild(pongCanvas);
-  }
+  // if (!pongCanvas) {
+  //   pongCanvas = document.createElement('canvas');
+  //   pongCanvas.id = "pong";
+  //   pongCanvas.width = 800; // Définir la largeur du canvas
+  //   pongCanvas.height = 400; // Définir la hauteur du canvas
+  //   document.body.appendChild(pongCanvas);
+  // }
+  //
+  //
   pongCanvas.style.display = "block";
 
   // Gérer l'affichage en fonction du contexte
@@ -103,6 +136,7 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   player2Wins = 0;
   setHistory = [];
 
+  updateGamePanel();
   // Démarrer le jeu Pong
   startPongGame();
 }
@@ -166,13 +200,37 @@ function handleGameEnd(winner) {
   clearInterval(gameInterval); // Arrêter la boucle de jeu
   currentGame++;
 
+  function updateResults() {
+    const resultDiv = document.getElementById("game_panel");
+    if (resultDiv) {
+      // Mettre à jour le titre du jeu
+      
+      resultDiv.style.display = "block";
+      resultDiv.querySelector("h2").textContent = `Set ${currentGame + 1} of ${numberOfGames}`;
+
+      let summary = `
+        ${player1}: ${player1Wins} wins<br>
+        ${player2}: ${player2Wins} wins<br>
+        <h3>Set History:</h3>
+      `;
+
+      setHistory.forEach((set, index) => {
+        summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
+      });
+
+      document.getElementById("summary").innerHTML = summary;
+    }
+  }
+
   if (currentGame < numberOfGames) {
     alert(`${winner} wins this game! Starting the next game...`);
     resetScores();
+    updateResults(); // Mettre à jour les résultats avant de démarrer le prochain jeu
     startPongGame(); // Démarrer la prochaine partie
   } else {
     sendScore(); // Envoyer les scores au serveur
-    displayResults(winner);
+    stopGameProcess();
+    displayResults(winner); // Afficher les résultats finaux
   }
 }
 
@@ -180,11 +238,12 @@ function displayResults(finalWinner) {
   const username = localStorage.getItem("username");
 
   // Vérifiez et créez l'élément result si nécessaire
-  let resultDiv = document.getElementById("result");
+  let resultDiv = document.getElementById("game_panel");
   if (!resultDiv) {
     resultDiv = document.createElement('div');
-    resultDiv.id = "result";
+    resultDiv.id = "game_panel";
     document.body.appendChild(resultDiv);
+   console.log("in displayResult(): Creating new GamePannel");
   }
 
   // Masquer le canvas pong
@@ -412,4 +471,40 @@ function sendScore() {
     .catch((error) => {
       console.error("Erreur lors de l'envoi du score :", error);
     });
+}
+
+function stopGameProcess() {
+  // Arrêter l'intervalle de jeu
+  if (gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
+
+  // Fermer la connexion WebSocket
+  shouldReconnect = false;  // Désactiver la reconnexion automatique
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.close();
+    console.log("WebSocket déconnecté");
+  }
+
+  // Masquer le canvas
+  const pongCanvas = document.getElementById("pong");
+  if (pongCanvas) {
+    pongCanvas.style.display = "none";
+  }
+
+  // Masquer le game_panel
+  const gamePanel = document.getElementById("game_panel");
+  if (gamePanel) {
+    gamePanel.style.display = "none";
+  }
+
+  // Désactiver d'autres écouteurs si nécessaire
+  // canvas.removeEventListener('mousemove', handleMouseMove);
+
+  // Réinitialiser les variables de jeu
+  player1Wins = 0;
+  player2Wins = 0;
+  currentGame = 0;
+  setHistory = [];
 }
