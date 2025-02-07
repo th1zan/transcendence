@@ -124,9 +124,9 @@ function displayRegistrationForm() {
             />
           </div>
           <div class="form-check mb-4">
-            <input type="checkbox" class="form-check-input" id="privacyPolicyAccepted" required>
-            <label class="form-check-label" for="privacyPolicyAccepted" style="font-size: 1rem;">
-              I accept the <a href="/privacy-policy" target="_blank">Privacy Policy</a>
+            <input type="checkbox" id="privacyPolicyAccepted" required />
+            <label for="privacyPolicyAccepted">
+              I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
             </label>
           </div>
           <button 
@@ -164,6 +164,87 @@ function displayRegistrationForm() {
   document
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
+  document
+    .getElementById("privacyPolicyLink")
+    .addEventListener("click", function (event) {
+    event.preventDefault(); // Prevent full-page reload
+    displayPrivacyPolicy(); // Load Privacy Policy inside #app
+  });
+}
+
+export function displayPrivacyPolicy() {
+  const appDiv = document.getElementById("app");
+  appDiv.innerHTML = `
+    <div class="container">
+      <h1>Privacy Policy</h1>
+      <p><strong>Effective Date:</strong> 06.02.2025</p>
+
+      <h2>1. Introduction</h2>
+      <p>
+        We respect your privacy and are committed to protecting your personal data. 
+        This Privacy Policy explains how we collect, use, and protect your information in compliance with GDPR.
+      </p>
+
+      <h2>2. Data We Collect</h2>
+      <p>When you register and use our services, we collect:</p>
+      <ul>
+        <li><strong>Account Information:</strong> Username, password, email address, phone number, and avatar (if provided).</li>
+        <li><strong>Game & Profile Data:</strong> Match history, friend lists, and tournament participation.</li>
+      </ul>
+
+      <h2>3. How We Use Your Data</h2>
+      <p>Your data is used only for the following purposes:</p>
+      <ul>
+        <li>To create and manage your account.</li>
+        <li>To enable participation in games and tournaments.</li>
+        <li>To allow you to connect with friends and manage your profile.</li>
+        <li>To comply with legal obligations.</li>
+      </ul>
+
+      <h2>4. Legal Basis for Processing</h2>
+      <p>We process your data based on the following legal grounds:</p>
+      <ul>
+        <li><strong>Consent:</strong> You provide explicit consent when registering.</li>
+        <li><strong>Contractual Obligation:</strong> Processing is necessary to provide our services.</li>
+        <li><strong>Legal Compliance:</strong> We process your data to comply with laws.</li>
+      </ul>
+
+      <h2>5. Data Sharing</h2>
+      <p>We do not sell or share your data with third parties except:</p>
+      <ul>
+        <li>When required by law.</li>
+        <li>To provide essential services (e.g., hosting, security).</li>
+      </ul>
+
+      <h2>6. Your Rights Under GDPR</h2>
+      <p>As a user, you have the right to:</p>
+      <ul>
+        <li><strong>Access:</strong> Request a copy of your personal data.</li>
+        <li><strong>Rectification:</strong> Correct inaccurate or incomplete data.</li>
+        <li><strong>Erasure:</strong> Request deletion of your account and associated data.</li>
+        <li><strong>Restriction:</strong> Limit processing of your data in certain cases.</li>
+        <li><strong>Portability:</strong> Request a copy of your data in a structured format.</li>
+        <li><strong>Withdraw Consent:</strong> Stop processing based on consent at any time.</li>
+      </ul>
+
+      <h2>7. Data Retention</h2>
+      <p>Your data is stored only as long as necessary to provide our services or comply with legal obligations.</p>
+
+      <h2>8. Security Measures</h2>
+      <p>We take appropriate security measures to protect your data. However, we advise keeping your credentials safe.</p>
+
+      <h2>9. Contact Information</h2>
+      <p>If you have questions or requests regarding your data, please contact us at: pong42@gmail.com</p>
+
+      <h2>10. Updates to This Policy</h2>
+      <p>We may update this Privacy Policy. Changes will be posted on this page.</p>
+
+      <button id="backToRegisterButton" class="btn btn-primary">Back to Registration</button>
+    </div>
+  `;
+
+  // Handle back navigation to registration form
+  document.getElementById("backToRegisterButton").addEventListener("click", displayRegistrationForm);
 }
 
 export function displayWelcomePage() {
