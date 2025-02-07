@@ -294,68 +294,50 @@ class UserRegisterView(APIView):
         logger.info("Received data: %s", request.data)
         serializer = self.serializer_class(data=request.data)
         logger.info("Serializer validation result: %s", serializer.is_valid())
-
-        if serializer.is_valid():
-            username = serializer.validated_data.get("username")
-            privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted", False)
-            #email = serializer.validated_data.get("email", None)  # Email might not be provided
-
-            # Ensure the user has accepted the Privacy Policy
-            if not privacy_policy_accepted:
-                logger.error("Privacy Policy not accepted for user: %s", username)
-                return Response(
-                    {"error": "You must accept the Privacy Policy to register."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Check if the username already exists
-            if CustomUser.objects.filter(username=username).exists():
-                logger.error("Username already exists: %s", username)
-                return Response(
-                    {"error": "Username already exists."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            logger.info("Creating user with data: %s", serializer.validated_data)
-            try:
-                user = CustomUser.objects.create_user(
-                    username=username,
-                    #email=email,  # Pass None if email is not provided
-                    password=serializer.validated_data.get("password"),
-                    privacy_policy_accepted=privacy_policy_accepted,
-
-                )
-                logger.info("User created: %s", user.username)
-
-                # Création du joueur
-                player = Player.objects.create(
-                    user=user,
-                    player=username,
-                )
-                logger.info("Player created for user: %s", user.username)
-
-                return Response(
-                    {"success": "User and player created successfully."},
-                    status=status.HTTP_201_CREATED,
-                )
-            except IntegrityError as e:
-                # This would catch unique constraint errors
-                logger.error("Integrity error creating user or player: %s", str(e))
-                return Response(
-                    {
-                        "error": "Could not create user or player. Email might be already in use."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            except Exception as e:
-                logger.error("Error creating user or player: %s", str(e))
-                return Response(
-                    {"error": "Could not create user or player."},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-        else:
+        
+        # Check if the serializer is valid
+        if not serializer.is_valid():
             logger.error("Validation errors: %s", serializer.errors)
+            # Return detailed error messages from the serializer
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # At this point the serializer is valid so we can create the user
+        try:
+            # Create the user using validated data from the serializer
+            user = CustomUser.objects.create_user(
+                username = serializer.validated_data.get("username"),
+                password=serializer.validated_data.get("password"),
+                privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted")
+                #email = serializer.validated_data.get("email", None)  # Email might not be provided
+            )
+            logger.info("User created: %s", user.username)
+
+            # Création du joueur
+            player = Player.objects.create(
+                user=user,
+                player=serializer.validated_data.get("username"),
+            )
+            logger.info("Player created for user: %s", user.username)
+
+            return Response(
+                {"success": "User and player created successfully."},
+                status=status.HTTP_201_CREATED,
+            )
+        except IntegrityError as e:
+            # This would catch unique constraint errors
+            logger.error("Integrity error creating user or player: %s", str(e))
+            return Response(
+                {
+                    "error": "Could not create user or player. Email might be already in use."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.error("Error creating user or player: %s", str(e))
+            return Response(
+                {"error": "Could not create user or player."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 
 class LogoutView(APIView):

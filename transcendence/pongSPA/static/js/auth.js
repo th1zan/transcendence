@@ -116,10 +116,8 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
   })
     .then((response) => {
       if (!response.ok) {
-        return response.json().then((data) => {
-          throw new Error(
-            data.detail || data.error || "Erreur lors de la création du compte."
-          );
+        return response.json().then((error) => {
+          throw error;
       });
     }
     return response.json();
@@ -127,23 +125,30 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
     .then((data) => {
       if (data.success) {
         localStorage.setItem("username", newUsername);
-        alert(
-          "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
-        );
+        alert("Account created successfully. You can now log in.");
         displayConnectionFormular();
       } else {
-        alert("Erreur lors de la création du compte. Veuillez réessayer.");
+        alert("Error creating account. Please try again.");
       }
     })
     .catch((error) => {
-      console.error("Erreur lors de la création du compte :", error);
-      alert(error.message);
+      console.error("Error creating account:", error);
+      // Construct a detailed error message from the JSON error object
+      let errorMessage = "Registration error:\n";
+      for (const field in error) {
+        if (Array.isArray(error[field])) {
+          errorMessage += `${field}: ${error[field].join(", ")}\n`;
+        } else {
+          errorMessage += `${field}: ${error[field]}\n`;
+        }
+      }
+      alert(errorMessage);
     });
 }
 
 export function deleteAccount() {
   const confirmDelete = confirm(
-    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+    "Are you sure you want to delete your account? This action is irreversible.",
   );
 
   if (!confirmDelete) return;

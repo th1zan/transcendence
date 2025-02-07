@@ -164,7 +164,8 @@ function displayRegistrationForm() {
   document
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
-  document
+  
+    document
     .getElementById("privacyPolicyLink")
     .addEventListener("click", function (event) {
     event.preventDefault(); // Prevent full-page reload
@@ -174,6 +175,10 @@ function displayRegistrationForm() {
 
 export function displayPrivacyPolicy() {
   const appDiv = document.getElementById("app");
+  if (!appDiv) {
+    console.error("Element #app not found");
+    return;
+  }
   appDiv.innerHTML = `
     <div class="container">
       <h1>Privacy Policy</h1>
