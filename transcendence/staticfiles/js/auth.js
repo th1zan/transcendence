@@ -105,13 +105,14 @@ export function logout() {
     });
 }
 
-export function createAccount(newUsername, newPassword) {
+export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
   fetch("/api/auth/register/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ username: newUsername, password: newPassword }),
+    body: JSON.stringify({ username: newUsername, password: newPassword, privacy_policy_accepted: privacyPolicyAccepted }),
+    credentials: 'omit'
   })
     .then((response) => {
       if (!response.ok) {
@@ -175,5 +176,111 @@ export function deleteAccount() {
         console.error("Erreur lors de la suppression du compte :", error);
         alert("Une erreur est survenue : " + error.message);
       }
+    });
+}
+
+export function anonymizeAccount() {
+  const confirmAnonymize = confirm(
+    "Êtes-vous sûr de vouloir anonymiser votre compte ? Cette action est irréversible."
+  );
+  if (!confirmAnonymize) return;
+
+  fetch("/api/auth/anonymize-account/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((error) => {
+          throw new Error(
+            error.error || "Échec de l'anonymisation du compte."
+          );
+        });
+      }
+      return response.json();
+    })
+    .then((data) => {
+      alert(data.message || "Votre compte a été anonymisé avec succès.");
+      localStorage.clear();
+      window.location.href = "/";
+    })
+    .catch((error) => {
+      console.error("Erreur lors de l'anonymisation du compte :", error);
+      alert("Une erreur est survenue : " + error.message);
+    });
+}
+
+export function uploadAvatar() {
+  const input = document.getElementById("avatarInput");
+  const file = input.files[0];
+
+  if (!file) {
+    alert("Please select a file.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  fetch("/api/auth/upload-avatar/", {
+    method: "POST",
+    credentials: "include", // Ensures authentication
+    body: formData,
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(error => { 
+          throw new Error(error.error || "Upload failed."); 
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Profile picture updated successfully!");
+      const profilePic = document.getElementById("profilePic");
+
+      if (profilePic && data.avatar_url) {
+        profilePic.src = data.avatar_url + "?t=" + new Date().getTime(); // Prevents caching issues
+      }
+    })
+    .catch(error => {
+      console.error("Error uploading profile picture:", error);
+      alert("Error: " + error.message);
+    });
+}
+
+export function updateProfile() {
+  const username = document.getElementById("usernameInput").value;
+  const email = document.getElementById("emailInput").value;
+  const phoneNumber = document.getElementById("phoneInput").value;
+
+  fetch("/api/auth/user/", {
+    method: "PUT",
+    credentials: "include", // Send authentication cookies
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      email: email,
+      phone_number: phoneNumber
+    }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to update profile.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Profile updated successfully!");
+    })
+    .catch(error => {
+      console.error("Error updating profile:", error);
+      alert("An error occurred: " + error.message);
     });
 }
