@@ -21,22 +21,34 @@ let setHistory = [];
 // Ouvrir une connexion websocket avec le serveur
 function connectWebSocket()
 {
-  ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
+  // use automativally the right socket 
+  let ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  let ws_path = ws_scheme + "://" + window.location.host + "/ws/pong_ai/";
+  let ws = new WebSocket(ws_path);
 
+  //open socket
   ws.onopen = () => console.log("WebSocket connecté");
+
+  //message on a socket
   ws.onmessage = (event) => {
+    console.log("Message reçu :", event.data);
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
+      console.log("Mise à jour de la position de la raquette :", data.y);
       computer.y = data.y;
-    }
+      }
   };
+
   ws.onerror = (error) => console.error("WebSocket erreur :", error);
-  ws.onclose = () => {
+
+  ws.onclose = (event) => {
+    console.log("WebSocket déconnecté, code :", event.code, "raison :", event.reason);
     if (shouldReconnect) {
-      console.log("WebSocket déconnecté. Reconnexion...");
+      console.log("Reconnexion dans 1 seconde...");
       setTimeout(connectWebSocket, 1000);
     }
-  };}
+  };
+}
 
 // Démarrer le jeu Pong
 function startPongGame() {
@@ -178,7 +190,9 @@ function update() {
 
   //Envoyer la position de la balle au serveur
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
+    const message = JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y });
+    ws.send(message);
+    console.log("Position de la balle envoyée :", message);
   }
 }
 
