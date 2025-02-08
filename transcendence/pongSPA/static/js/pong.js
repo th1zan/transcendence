@@ -21,14 +21,15 @@ let setHistory = [];
 // Ouvrir une connexion websocket avec le serveur
 function connectWebSocket()
 {
-  // use automativally the right socket 
+    //OLD line for history
+   // ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
+
   let ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
   let ws_path = ws_scheme + "://" + window.location.host + "/ws/pong_ai/";
-  let ws = new WebSocket(ws_path);
+  ws = new WebSocket(ws_path); 
 
   //open socket
   ws.onopen = () => console.log("WebSocket connecté");
-
   //message on a socket
   ws.onmessage = (event) => {
     console.log("Message reçu :", event.data);

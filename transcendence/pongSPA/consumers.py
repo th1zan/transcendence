@@ -17,6 +17,7 @@ class PongAIConsumer(AsyncWebsocketConsumer):
         logger.info(f"WebSocket connecté pour l'utilisateur: {self.scope['user']}")
 
     async def disconnect(self, close_code):
+        # pass
         logger.info(f"WebSocket déconnecté avec code: {close_code}")
 
     async def receive(self, text_data):
