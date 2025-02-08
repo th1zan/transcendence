@@ -332,59 +332,50 @@ class UserRegisterView(APIView):
         logger.info("Received data: %s", request.data)
         serializer = self.serializer_class(data=request.data)
         logger.info("Serializer validation result: %s", serializer.is_valid())
-
-        if serializer.is_valid():
-            username = serializer.validated_data.get("username")
-            email = serializer.validated_data.get(
-                "email", None
-            )  # Email might not be provided
-
-            # Vérifier si le username existe déjà
-            if CustomUser.objects.filter(username=username).exists():
-                logger.error("Username already exists: %s", username)
-                return Response(
-                    {"error": "Username already exists."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            logger.info("Creating user with data: %s", serializer.validated_data)
-            try:
-                user = CustomUser.objects.create_user(
-                    username=username,
-                    # email=email,  # Pass None if email is not provided
-                    password=serializer.validated_data.get("password"),
-                )
-                logger.info("User created: %s", user.username)
-
-                # Création du joueur
-                player = Player.objects.create(
-                    user=user,
-                    player=username,
-                )
-                logger.info("Player created for user: %s", user.username)
-
-                return Response(
-                    {"success": "User and player created successfully."},
-                    status=status.HTTP_201_CREATED,
-                )
-            except IntegrityError as e:
-                # This would catch unique constraint errors
-                logger.error("Integrity error creating user or player: %s", str(e))
-                return Response(
-                    {
-                        "error": "Could not create user or player. Email might be already in use."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            except Exception as e:
-                logger.error("Error creating user or player: %s", str(e))
-                return Response(
-                    {"error": "Could not create user or player."},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-        else:
+        
+        # Check if the serializer is valid
+        if not serializer.is_valid():
             logger.error("Validation errors: %s", serializer.errors)
+            # Return detailed error messages from the serializer
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # At this point the serializer is valid so we can create the user
+        try:
+            # Create the user using validated data from the serializer
+            user = CustomUser.objects.create_user(
+                username = serializer.validated_data.get("username"),
+                password=serializer.validated_data.get("password"),
+                privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted")
+                #email = serializer.validated_data.get("email", None)  # Email might not be provided
+            )
+            logger.info("User created: %s", user.username)
+
+            # Création du joueur
+            player = Player.objects.create(
+                user=user,
+                player=serializer.validated_data.get("username"),
+            )
+            logger.info("Player created for user: %s", user.username)
+
+            return Response(
+                {"success": "User and player created successfully."},
+                status=status.HTTP_201_CREATED,
+            )
+        except IntegrityError as e:
+            # This would catch unique constraint errors
+            logger.error("Integrity error creating user or player: %s", str(e))
+            return Response(
+                {
+                    "error": "Could not create user or player. Email might be already in use."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.error("Error creating user or player: %s", str(e))
+            return Response(
+                {"error": "Could not create user or player."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 
 class LogoutView(APIView):
@@ -779,40 +770,6 @@ class RespondToFriendRequestView(APIView):
 
         return Response({"message": message}, status=200)
 
-
-# class ConfirmFriendRequestView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         sender_username = request.data.get('username')
-#         try:
-#             sender = CustomUser.objects.get(username=sender_username)
-#         except CustomUser.DoesNotExist:
-#             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-
-#         try:
-#             friend_request = FriendRequest.objects.get(
-#                 sender=sender,
-#                 receiver=request.user,
-#                 status='pending'
-#             )
-#         except FriendRequest.DoesNotExist:
-#             return Response({"error": "No pending friend request from this user."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         friend_request.status = 'accepted'
-#         friend_request.save()
-
-#         # Optionally, update both users’ friend lists (depending on your overall user management)
-
-#         # Create a notification for the sender
-#         Notification.objects.create(
-#             user=sender,
-#             message=f"{request.user.username} accepted your friend request."
-#         )
-
-#         # (Optional) Push the notification over WebSockets here
-
-#         return Response({"message": "Friend request accepted."}, status=status.HTTP_200_OK)
 
 import logging
 

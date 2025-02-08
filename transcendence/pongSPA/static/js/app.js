@@ -83,7 +83,7 @@ export function displayConnectionFormular() {
 
   header.innerHTML = `
     <div class="container-fluidner mt-5 custom-container">
-		  <h1 class="text-center custom-title">Bienvenue sur la page d'accueil</h1>
+		  <h1 class="text-center custom-title">Welcome to the Home Page</h1>
 	  </div>
   `;
 
@@ -93,12 +93,12 @@ export function displayConnectionFormular() {
         <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
         <form id="loginForm">
           <div class="form-group mb-4">
-            <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
+            <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Username</label>
             <input 
               type="text" 
               id="username" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre nom" 
+              placeholder="Enter your username" 
               required 
             />
           </div>
@@ -108,7 +108,7 @@ export function displayConnectionFormular() {
               type="password" 
               id="password" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre mot de passe" 
+              placeholder="Enter your password" 
               required 
             />
           </div>
@@ -116,14 +116,14 @@ export function displayConnectionFormular() {
             type="submit" 
             class="btn btn-success w-100 py-3" 
             style="font-size: 1.3rem;">
-            Se connecter
+            Sign In
           </button>
         </form>
         <button 
           id="signupButton" 
           class="btn btn-primary w-100 mt-4 py-3" 
           style="font-size: 1.3rem;">
-          Créer un compte
+          Create Account
         </button>
       </div>
     </div>
@@ -151,15 +151,15 @@ function displayRegistrationForm() {
     appDiv.innerHTML = `
     <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
       <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5" style="color: #007bff; font-size: 2.5rem;">Créer un compte</h2>
+        <h2 class="text-center mb-5" style="color: #007bff; font-size: 2.5rem;">Create Account</h2>
         <form id="signupForm">
           <div class="form-group mb-4">
-            <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
+            <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Username</label>
             <input 
               type="text" 
               id="newUsername" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre nom d'utilisateur" 
+              placeholder="Enter your username" 
               required 
             />
           </div>
@@ -169,22 +169,28 @@ function displayRegistrationForm() {
               type="password" 
               id="newPassword" 
               class="form-control form-control-lg" 
-              placeholder="Entrez votre mot de passe" 
+              placeholder="Enter your password" 
               required 
             />
+          </div>
+          <div class="form-check mb-4">
+            <input type="checkbox" id="privacyPolicyAccepted" required />
+            <label for="privacyPolicyAccepted">
+              I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+            </label>
           </div>
           <button 
             type="submit" 
             class="btn btn-success w-100 py-3" 
             style="font-size: 1.3rem;">
-            Créer le compte
+            Create Account
           </button>
         </form>
         <button 
           id="backToLoginButton" 
           class="btn btn-primary w-100 mt-4 py-3" 
           style="font-size: 1.3rem;">
-          Retour à la connexion
+          Back to Login
         </button>
       </div>
     </div>
@@ -196,7 +202,13 @@ function displayRegistrationForm() {
       event.preventDefault();
       const newUsername = document.getElementById("newUsername").value;
       const newPassword = document.getElementById("newPassword").value;
-      createAccount(newUsername, newPassword);
+      const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
+
+      if (!privacyPolicyAccepted) {
+        alert("You must accept the Privacy Policy to register.");
+        return;
+      }
+      createAccount(newUsername, newPassword, privacyPolicyAccepted);
     });
 
   document
@@ -253,24 +265,24 @@ export function displayWelcomePage() {
 
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = `
-    <button id="playButton">🎮 Jouer une partie</button>
+    <button id="playButton">Play a Game</button>
     <br>
     <br>
-    <button id="tournamentButton">🏆 Tournament</button>
+    <button id="tournamentButton">Tournament</button>
     <br>
     <br>
-    <button id="statsButton">📊 Statistiques</button>
+    <button id="statsButton">Statistics</button>
     <br>
     <br>
-    <button id="friendsButton">👥 Amis</button>
+    <button id="friendsButton">Friends</button>
     <br>
     <br>
-    <button id="settingsButton">⚙️ Paramètres</button>
+    <button id="settingsButton">Settings</button>
     <br>
     <br>
     <br>
     <br>
-    <button id="logoutButton">🚪 Déconnexion</button>
+    <button id="logoutButton">Logout</button>
       `;
 
   document.getElementById("playButton").addEventListener("click", displayGameForm);
@@ -344,10 +356,10 @@ export function displayFriends() {
     <h3>👥 Friends Management</h3>
     <br>
     <div>
-      <input type="text" id="friendUsername" placeholder="Nom d'utilisateur" class="form-control" />
+      <input type="text" id="friendUsername" placeholder="Username" class="form-control" />
       <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
     </div>
-    <h4>Demandes d'amis en attente</h4>
+    <h4>Pending Friend Requests</h4>
     <ul id="friendRequests" class="list-group"></ul>
     <br>
     <h4>My Friends</h4>
@@ -444,6 +456,60 @@ export function displaySettings() {
       displayHTMLforSettings(user);
     })
     .catch(error => {
+    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+
+    const appDiv = document.getElementById("app");
+    appDiv.innerHTML = `
+    <div class="container mt-4">
+      <h3 class="text-center">Account Management</h3>
+
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Update Profile Picture</h4>
+        <div class="d-flex flex-column align-items-center">
+          <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+          
+          <div class="mt-3 w-75">
+            <label class="form-label">Choose a new profile picture:</label>
+            <div class="input-group">
+              <input type="file" id="avatarInput" accept="image/*" class="form-control">
+              <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Profile Information Update -->
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Edit Profile Information</h4>
+        <div class="form-group mt-2">
+          <label>Username:</label>
+          <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+        </div>
+        <div class="form-group mt-2">
+          <label>Email:</label>
+          <input type="email" id="emailInput" class="form-control" value="${user.email}">
+        </div>
+        <div class="form-group mt-2">
+          <label>Phone Number:</label>
+          <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Account Actions -->
+      <div class="d-flex justify-content-center mt-4">
+      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Delete Account</button>
+      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymize Account</button>
+       </div>
+    `;
+
+    document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+    document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+    document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+  })
+  .catch(error => {
     console.error("Error loading user data:", error);
     });
 
@@ -460,9 +526,12 @@ export function displayStats() {
 
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
-  <h3>Statistiques</h3>
-    <button id="viewResultsButton">Vos résultats</button>
-    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
+  <h3>Statistics</h3>
+    <button id="viewResultsButton">Your Results</button>
+    <br>
+    <br>
+    <button id="viewRankingButton">Overall Ranking</button> <!-- Nouveau bouton -->
+    <div id="ranking"></div> <!-- Div pour afficher le classement -->
   `;
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
@@ -530,6 +599,39 @@ function fetchResultats() {
     .then((data) => {
       console.log(data); // Pour le débogage
       displayUserResults(data); // Appelle la fonction pour afficher les résultats
+      console.log(data); // Vérifiez ce que vous recevez
+      const appDiv = document.getElementById("app");
+      appDiv.innerHTML = `
+        <button id="backButton" class="btn btn-secondary">Back</button>
+        <h3>Your Results:</h3>
+        <div id="resultats"></div>
+      `;
+
+      const resultatsDiv = document.getElementById("resultats");
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach((match) => {
+          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+          const player1 = match.player1_name || "Unknown Player 1";
+          const player2 = match.player2_name || "Unknown Player 2";
+          const winner = match.winner || "In Progress";
+          const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+          const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
+
+          resultatsDiv.innerHTML += `
+              <p>
+                  ${date} - ${player1} vs ${player2}
+                  <br>
+                  Score: ${score}
+                  <br>
+                  Winner: ${winner}${tournamentInfo}
+                  <br>
+              </p>`;
+        });
+      } else {
+        resultatsDiv.innerHTML += "<p>No results found.</p>";
+      }
+
+      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
@@ -564,7 +666,6 @@ function displayRanking(data) {
 
   history.pushState({ page: 'ranking' }, '', '/ranking');
 }
-
 function fetchRanking() {
   fetch("/api/ranking/", {
     method: "GET",
@@ -577,7 +678,30 @@ function fetchRanking() {
     .then((data) => {
       console.log(data);
       displayRanking(data);
-      });
+      const appDiv = document.getElementById("app_top");
+      appDiv.innerHTML = `
+        <button id="backButton" class="btn btn-secondary">Back</button>
+        <h3>Player Ranking:</h3>
+        <div id="ranking"></div>
+      `;
+
+      const rankingDiv = document.getElementById("ranking");
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach((player) => {
+          const playerName = player.name || "Unknown Name";
+          const totalWins = player.total_wins || 0;
+          rankingDiv.innerHTML += `
+              <p>
+                  ${playerName} - Total Wins: ${totalWins}
+              </p>`;
+        });
+      } else {
+        rankingDiv.innerHTML += "<p>No ranking found.</p>";
+      }
+
+      // Ajoutez un écouteur d'événement pour le bouton de retour
+      document.getElementById("backButton").addEventListener("click", displayStats);
+    });
 }
 
 export function displayGameForm() { 
@@ -606,7 +730,7 @@ export function displayGameForm() {
     </form>
    
   `;
-  console.log("Valeur de username dans displayGameForm :", username);
+  console.log("Username value in displayGameForm:", username);
   
   document.getElementById("startGameButton").addEventListener("click", () => {
     const player1 = username;

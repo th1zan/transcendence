@@ -1,31 +1,7 @@
 
-// this adds a friend automatically 
-// export function addFriend(friendUsername) {
-// 	fetch("/api/friends/add/", {
-// 	  method: "POST",
-// 	  headers: {
-// 		"Content-Type": "application/json",
-// 	  },
-// 	  credentials: "include",
-// 	  body: JSON.stringify({ username: friendUsername }),
-// 	})
-// 	  .then((response) => response.json())
-// 	  .then((data) => {
-// 		if (data.error) {
-// 		  alert("Erreur : " + data.error);
-// 		} else {
-// 		  alert(data.message);
-// 		  fetchFriends(); // Refresh the friend list
-// 		}
-// 	  })
-// 	  .catch((error) => {
-// 		console.error("Erreur lors de l'ajout d'ami :", error);
-// 		alert("Une erreur est survenue.");
-// 	  });
-//   }
-
+// TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
 export function sendFriendRequest(friendUsername) {
-	fetch("/api/friends/send-request/", {  // Updated endpoint
+	fetch("/api/friends/send-request/", {
 	  method: "POST",
 	  headers: {
 		"Content-Type": "application/json",
@@ -36,19 +12,19 @@ export function sendFriendRequest(friendUsername) {
 	  .then((response) => response.json())
 	  .then((data) => {
 		if (data.error) {
-		  alert("Erreur : " + data.error);
+		  alert("Error: " + data.error);
 		} else {
-		  alert(`Demande d'ami envoyée à ${friendUsername}.`);
+		  alert(`Friend request sent to ${friendUsername}.`);
 		}
 	  })
 	  .catch((error) => {
-		console.error("Erreur lors de l'envoi de la demande d'ami :", error);
-		alert("Une erreur est survenue.");
+		console.error("Error sending friend request:", error);
+		alert("An error occurred.");
 	  });
   }
 
 export function removeFriend(friendUsername) {
-	if (!confirm(`Voulez-vous vraiment supprimer ${friendUsername} de votre liste d'amis ?`)) {
+	if (!confirm(`Do you really want to remove ${friendUsername} from your friends list?`)) {
 	  return;
 	}
   
@@ -63,15 +39,15 @@ export function removeFriend(friendUsername) {
 	  .then((response) => response.json())
 	  .then((data) => {
 		if (data.error) {
-		  alert("Erreur : " + data.error);
+		  alert("Error: " + data.error);
 		} else {
 		  alert(data.message);
 		  fetchFriends(); // Refresh friend list
 		}
 	  })
 	  .catch((error) => {
-		console.error("Erreur lors de la suppression d'ami :", error);
-		alert("Une erreur est survenue.");
+		console.error("Error removing friend:", error);
+		alert("An error occurred.");
 	  });
   }
 
@@ -88,7 +64,7 @@ export function respondToFriendRequest(friendUsername, action) {
 	  .then((response) => response.json())
 	  .then((data) => {
 		if (data.error) {
-		  alert("Erreur : " + data.error);
+		  alert("Error: " + data.error);
 		} else {
 		  alert(data.message);
 		  fetchFriendRequests(); // Refresh the friend request list
@@ -96,8 +72,8 @@ export function respondToFriendRequest(friendUsername, action) {
 		}
 	  })
 	  .catch((error) => {
-		console.error("Erreur lors de la réponse à la demande d'ami :", error);
-		alert("Une erreur est survenue.");
+		console.error("Error responding to friend request:", error);
+		alert("An error occurred.");
 	  });
   }
 
@@ -118,8 +94,8 @@ export function respondToFriendRequest(friendUsername, action) {
 		  listItem.innerHTML = `
 			<span>${request.sender}</span>
 			<div>
-			  <button class="btn btn-success btn-sm accept-request" data-username="${request.sender}">✅ Accepter</button>
-			  <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">❌ Refuser</button>
+			  <button class="btn btn-success btn-sm accept-request" data-username="${request.sender}">Accept</button>
+			  <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">Decline</button>
 			</div>
 		  `;
 		  requestList.appendChild(listItem);
@@ -140,7 +116,7 @@ export function respondToFriendRequest(friendUsername, action) {
 		  });
 		});
 	  })
-	  .catch(error => console.error("Erreur lors de la récupération des demandes d'amis :", error));
+	  .catch(error => console.error("Error fetching friend requests:", error));
   }
 
 export function fetchFriends() {
@@ -170,14 +146,14 @@ export function fetchFriends() {
 			  const lastSeen = friendStatus ? friendStatus.last_seen : "Never";
   
 			  const statusBadge = isOnline
-				? `<span class="badge bg-success">🟢 En ligne</span>`
-				: `<span class="badge bg-secondary">⚫ Hors ligne (vu: ${lastSeen})</span>`;
+				? `<span class="badge bg-success">🟢 Online</span>`
+				: `<span class="badge ">⚫ Offline (last seen: ${lastSeen})</span>`;
 
 		  const listItem = document.createElement("li");
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
 			<span>${friend.username} ${statusBadge}</span>
-			<button class="btn btn-danger btn-sm remove-friend" data-username="${friend.username}">❌ Supprimer</button>
+			<button class="btn btn-danger btn-sm remove-friend" data-username="${friend.username}">Remove</button>
 		  `;
 		  friendList.appendChild(listItem);
 		});
@@ -189,7 +165,7 @@ export function fetchFriends() {
 			});
 		});
 	  })
-	  .catch((error) => console.error("Erreur lors de la récupération des statuts d'amis :", error));
+	  .catch((error) => console.error("Error fetching friend statuses:", error));
     })
-	.catch((error) => console.error("Erreur lors de la récupération des amis :", error));
+	.catch((error) => console.error("Error fetching friends:", error));
   }

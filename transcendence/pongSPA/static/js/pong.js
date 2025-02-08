@@ -58,7 +58,7 @@ function startPongGame() {
   const canvas = document.getElementById("pong");
 
   if (!canvas) {
-    console.error("Canvas introuvable. Réessayez dans 100 ms.");
+    console.error("Canvas not found. Please try again in 100 ms.");
     setTimeout(startPongGame, 100);
     return;
   }
@@ -120,8 +120,8 @@ export function startGameSetup(p1, p2, numGames, ptsToWin) {
   pointsToWin = ptsToWin;
   shouldReconnect = true;
   
-  console.log("Valeur de player1 dans startGameSetup:", player1);
-  console.log("Valeur de player2 dans startGameSetup:", player2);
+  console.log("Value of player1 in startGameSetup:", player1);
+  console.log("Value of player2 in startGameSetup:", player2);
 
  //empty all the containers
   document.getElementById('app_top').innerHTML = '';

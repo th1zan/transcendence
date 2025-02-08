@@ -1,4 +1,4 @@
-# from django.contrib.auth.models import User
+import re
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
@@ -80,29 +80,48 @@ class PongMatchSerializer(serializers.ModelSerializer):
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["username", "password"]  # ("username", "password")
+        fields = ["username", "password", "privacy_policy_accepted"]
 
     def validate_username(self, value):
         if CustomUser.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
+            raise serializers.ValidationError("This username is already taken.")
         return value
 
+    def validate_password(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("The password must contain at least 3 characters.")
+        #Check for minimum length
+        # if len(value) < 8:
+        #     raise serializers.ValidationError("The password must contain at least 8 characters.")
+        # # Check for at least one digit
+        # if not re.search(r"\d", value):
+        #     raise serializers.ValidationError("The password must contain at least one digit.")
+        # # Check for at least one uppercase letter
+        # if not re.search(r"[A-Z]", value):
+        #     raise serializers.ValidationError("The password must contain at least one uppercase letter.")
+        # # Check for at least one lowercase letter
+        # if not re.search(r"[a-z]", value):
+        #     raise serializers.ValidationError("The password must contain at least one lowercase letter.")
+        # # Check for at least one special character
+        # if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
+        #     raise serializers.ValidationError("The password must contain at least one special character.")
+        return value
+    
+    def validate_privacy_policy_accepted(self, value):
+        if not value:
+            raise serializers.ValidationError("You must accept the privacy policy to register.")
+        return value
+    
     # def validate_email(self, value):
     #     if CustomUser.objects.filter(email=value).exists():
     #         raise serializers.ValidationError("A user with that email already exists.")
     #     return value
-
-    def validate_password(self, value):
-        if len(value) < 3:
-            raise serializers.ValidationError(
-                "Le mot de passe doit contenir au moins 3 caractères."
-            )
-        return value
-
+    
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
             username=validated_data["username"],
-            # email=validated_data["email"],
             password=validated_data["password"],
+            privacy_policy_accepted=validated_data["privacy_policy_accepted"],
+            #email=validated_data["email"],
         )
         return user

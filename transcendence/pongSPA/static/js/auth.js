@@ -105,21 +105,19 @@ export function logout() {
     });
 }
 
-export function createAccount(newUsername, newPassword) {
+export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
   fetch("/api/auth/register/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ username: newUsername, password: newPassword }),
+    body: JSON.stringify({ username: newUsername, password: newPassword, privacy_policy_accepted: privacyPolicyAccepted }),
     credentials: 'omit'
   })
     .then((response) => {
       if (!response.ok) {
-        return response.json().then((data) => {
-          throw new Error(
-            data.detail || data.error || "Erreur lors de la création du compte."
-          );
+        return response.json().then((error) => {
+          throw error;
       });
     }
     return response.json();
@@ -127,23 +125,30 @@ export function createAccount(newUsername, newPassword) {
     .then((data) => {
       if (data.success) {
         localStorage.setItem("username", newUsername);
-        alert(
-          "Compte créé avec succès. Vous pouvez maintenant vous connecter.",
-        );
+        alert("Account created successfully. You can now log in.");
         displayConnectionFormular();
       } else {
-        alert("Erreur lors de la création du compte. Veuillez réessayer.");
+        alert("Error creating account. Please try again.");
       }
     })
     .catch((error) => {
-      console.error("Erreur lors de la création du compte :", error);
-      alert(error.message);
+      console.error("Error creating account:", error);
+      // Construct a detailed error message from the JSON error object
+      let errorMessage = "Registration error:\n";
+      for (const field in error) {
+        if (Array.isArray(error[field])) {
+          errorMessage += `${field}: ${error[field].join(", ")}\n`;
+        } else {
+          errorMessage += `${field}: ${error[field]}\n`;
+        }
+      }
+      alert(errorMessage);
     });
 }
 
 export function deleteAccount() {
   const confirmDelete = confirm(
-    "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+    "Are you sure you want to delete your account? This action is irreversible.",
   );
 
   if (!confirmDelete) return;
@@ -157,12 +162,12 @@ export function deleteAccount() {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error("Échec de la suppression du compte.");
+        throw new Error("Account deletion failed.");
       }
       return response.json();
     })
     .then((data) => {
-      alert("Compte supprimé avec succès !");
+      alert("Account successfully deleted!");
       localStorage.clear(); // Clear all user data from localStorage
 
       // Force page redirection and prevent lingering JavaScript
@@ -173,15 +178,15 @@ export function deleteAccount() {
     .catch((error) => {
       if (error.name !== "AbortError") {
         // Prevent errors due to reload interruption
-        console.error("Erreur lors de la suppression du compte :", error);
-        alert("Une erreur est survenue : " + error.message);
+        console.error("Error deleting account:", error);
+        alert("An error occurred:" + error.message);
       }
     });
 }
 
 export function anonymizeAccount() {
   const confirmAnonymize = confirm(
-    "Êtes-vous sûr de vouloir anonymiser votre compte ? Cette action est irréversible."
+    "Are you sure you want to anonymize your account? This action is irreversible."
   );
   if (!confirmAnonymize) return;
 
@@ -197,20 +202,20 @@ export function anonymizeAccount() {
       if (!response.ok) {
         return response.json().then((error) => {
           throw new Error(
-            error.error || "Échec de l'anonymisation du compte."
+            error.error || "Account anonymization failed."
           );
         });
       }
       return response.json();
     })
     .then((data) => {
-      alert(data.message || "Votre compte a été anonymisé avec succès.");
+      alert(data.message || "Your account has been anonymized successfully.");
       localStorage.clear();
       window.location.href = "/";
     })
     .catch((error) => {
-      console.error("Erreur lors de l'anonymisation du compte :", error);
-      alert("Une erreur est survenue : " + error.message);
+      console.error("Error anonymizing account:", error);
+      alert("An error occurred: " + error.message);
     });
 }
 
