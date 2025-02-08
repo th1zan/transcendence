@@ -3,30 +3,15 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
-from .views import (
-    AnonymizeAccountView,
-    CustomTokenObtainPairView,
-    CustomTokenRefreshView,
-    CustomUser,
-    DeleteAccountView,
-    FriendsOnlineStatusView,
-    ListFriendsView,
-    LogoutView,
-    PongMatchDetail,
-    PongMatchList,
-    PongScoreView,
-	SendFriendRequestView,
-    RankingView,
-	RemoveFriendView,
-	RespondToFriendRequestView,
-    TournamentCreationView,
-    TournamentMatchesView,
-    TournamentSearchView,
-    UploadAvatarView,
-    UserDetailView,
-    UserRegisterView,
-	ViewFriendRequestsView,
-)
+from .views import (AnonymizeAccountView, CustomTokenObtainPairView,
+                    CustomTokenRefreshView, CustomUser, DeleteAccountView,
+                    FriendsOnlineStatusView, ListFriendsView, LogoutView,
+                    PongMatchDetail, PongMatchList, PongScoreView, RankingView,
+                    RemoveFriendView, RespondToFriendRequestView,
+                    SendFriendRequestView, TournamentCreationView,
+                    TournamentMatchesView, TournamentSearchView,
+                    UploadAvatarView, UserDetailView, UserRegisterView,
+                    UserTournamentsView, ViewFriendRequestsView)
 
 urlpatterns = [
     path("user/tournaments/", UserTournamentsView.as_view(), name="user-tournaments"),
@@ -44,8 +29,8 @@ urlpatterns = [
         name="anonymize-account",
     ),
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
-	path("auth/user/", UserDetailView.as_view(), name="user-detail"),
-	path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
+    path("auth/user/", UserDetailView.as_view(), name="user-detail"),
+    path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
     path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
     path("friends/status/", FriendsOnlineStatusView.as_view(), name="friends_status"),

@@ -531,7 +531,6 @@ export function displayStats() {
     <br>
     <br>
     <button id="viewRankingButton">Overall Ranking</button> <!-- Nouveau bouton -->
-    <div id="ranking"></div> <!-- Div pour afficher le classement -->
   `;
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
@@ -579,7 +578,6 @@ function displayUserResults(data) {
     resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
   }
 
-  document.getElementById("backButton").addEventListener("click", displayStats);
 
   history.pushState({ page: 'userStats' }, '', '/userStats');
 }
@@ -600,14 +598,13 @@ function fetchResultats() {
       console.log(data); // Pour le débogage
       displayUserResults(data); // Appelle la fonction pour afficher les résultats
       console.log(data); // Vérifiez ce que vous recevez
-      const appDiv = document.getElementById("app");
+      const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <button id="backButton" class="btn btn-secondary">Back</button>
         <h3>Your Results:</h3>
-        <div id="resultats"></div>
+        <div id="results"></div>
       `;
 
-      const resultatsDiv = document.getElementById("resultats");
+      const resultatsDiv = document.getElementById("results");
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((match) => {
           const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
@@ -619,7 +616,9 @@ function fetchResultats() {
 
           resultatsDiv.innerHTML += `
               <p>
-                  ${date} - ${player1} vs ${player2}
+                  ${date}
+                  <br>
+                  ${player1} vs ${player2}
                   <br>
                   Score: ${score}
                   <br>
@@ -631,7 +630,6 @@ function fetchResultats() {
         resultatsDiv.innerHTML += "<p>No results found.</p>";
       }
 
-      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
@@ -660,12 +658,13 @@ function displayRanking(data) {
           </p>`;
     });
   } else {
-    rankingDiv.innerHTML += "<p>Aucun classement trouvé.</p>";
+    rankingDiv.innerHTML += "<p>Any ranking found for this user.</p>";
   }
-  document.getElementById("backButton").addEventListener("click", displayStats);
 
   history.pushState({ page: 'ranking' }, '', '/ranking');
 }
+
+
 function fetchRanking() {
   fetch("/api/ranking/", {
     method: "GET",
@@ -678,9 +677,8 @@ function fetchRanking() {
     .then((data) => {
       console.log(data);
       displayRanking(data);
-      const appDiv = document.getElementById("app_top");
+      const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <button id="backButton" class="btn btn-secondary">Back</button>
         <h3>Player Ranking:</h3>
         <div id="ranking"></div>
       `;
@@ -699,8 +697,6 @@ function fetchRanking() {
         rankingDiv.innerHTML += "<p>No ranking found.</p>";
       }
 
-      // Ajoutez un écouteur d'événement pour le bouton de retour
-      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
