@@ -14,8 +14,8 @@ function displayTournamentGameList(data){
   
   const tournamentMatchesDiv = document.getElementById("app_main");
   tournamentMatchesDiv.innerHTML = `
-    <h2>Tournois sélectionné ${tournamentName}</h2>
-    <h3>Liste des matchs :</h3>
+    <h2>Selected Tournament: ${tournamentName}</h2>
+    <h3>Match List:</h3>
   `;
 
   let playButtonDisplayed = false; // Variable pour contrôler l'affichage du bouton
@@ -26,7 +26,7 @@ function displayTournamentGameList(data){
       const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
       
       // Détermine le texte du gagnant ou "match à jouer"
-      const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match à jouer" : match.winner || "En cours";
+      const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match to be played" : match.winner || "In progress";
 
       let matchHTML = `
         <p>
@@ -45,7 +45,7 @@ function displayTournamentGameList(data){
                   data-player2="${match.player2_name}" 
                   data-sets-to-win="${match.sets_to_win}" 
                   data-points-per-set="${match.points_per_set}"
-                  data-match-id="${match.id}">Commencer le jeu</button>
+                  data-match-id="${match.id}">Start Game</button>
         `;
         playButtonDisplayed = true; // Mettre à jour la variable pour indiquer que le bouton a été affiché
       }
@@ -71,7 +71,7 @@ function displayTournamentGameList(data){
     displayTournamentStandings(data);
   }
   else {
-    tournamentMatchesDiv.innerHTML += "<p>Aucun match trouvé pour ce tournoi.</p>";
+    tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
   }
 }
 
@@ -82,15 +82,15 @@ function displayTournamentStandings(data) {
   // Ici, nous devons calculer les standings à partir des données des matchs
   const standings = calculateStandings(data);
 
-  let standingsHTML = "<h3>Classement :</h3>";
+  let standingsHTML = "<h3>Standings:</h3>";
   standingsHTML += `
     <table>
       <thead>
         <tr>
-          <th>Joueur</th>
-          <th>Victoires</th>
-          <th>Points marqués</th>
-          <th>Points encaissés</th>
+          <th>Player</th>
+          <th>Wins</th>
+          <th>Points Scored</th>
+          <th>Points Conceded</th>
         </tr>
       </thead>
       <tbody>
@@ -157,23 +157,23 @@ export function DisplayTournamentGame() {
   const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
 
-  console.log("Nom du tournois: ", tournamentName);
+  console.log("Tournament name: ", tournamentName);
   if (!tournamentId) {
-    console.error("Aucun ID de tournoi trouvé. Veuillez créer un tournoi d'abord.");
+    console.error("No tournament ID found. Please create a tournament first.");
     return;
   } else {
-    console.error("L'ID du tournois est: ", tournamentId);
+    console.error("Tournament ID is: ", tournamentId);
   }
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <h2>Tournois : ${tournamentName}</h2>
+    <h2>Tournament: ${tournamentName}</h2>
     <div id="tournamentMatches"></div>    
     <div id="game_panel" style="display: none;">
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>    
-    <!-- <button id="backToSearchButton" class="btn btn-secondary">Retour à la recherche</button> -->
+    <!-- <button id="backToSearchButton" class="btn btn-secondary">Back to Search</button> -->
     <!-- <canvas id="pong" width="800" height="400"></canvas> -->
   `;
  
@@ -188,7 +188,7 @@ export function DisplayTournamentGame() {
       displayTournamentGameList(data);
     })
     .catch((error) => {
-      console.error("Erreur lors de la récupération des matchs du tournoi:", error);
+      console.error("Error retrieving tournament matches:", error);
     })
 }
 
@@ -211,15 +211,15 @@ export function createTournamentForm() {
 function getTournamentFormHTML() {
   return `
     <form id="tournamentForm">
-      <input type="text" id="tournamentName" placeholder="Nom du tournoi" required>
+      <input type="text" id="tournamentName" placeholder="Tournament Name" required>
       <div id="playerContainer"></div>
-      <button type="button" id="addPlayerButton">Ajouter un joueur</button>
+      <button type="button" id="addPlayerButton">Add a Player</button>
       <br><br>
-      <label for="numberOfGames">Nombre de jeux :</label>
+      <label for="numberOfGames">Number of Games:</label>
       <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-      <label for="pointsToWin">Points à gagner :</label>
+      <label for="pointsToWin">Points to Win:</label>
       <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-      <button type="button" id="submitButton">Soumettre</button>
+      <button type="button" id="submitButton">Submit</button>
     </form>
   `;
 }
@@ -239,12 +239,12 @@ function initializePlayerManagement() {
     const playerName = lastInput.value.trim();
 
     if (!playerName) {
-      alert("Veuillez remplir le pseudo du joueur actuel avant d'ajouter un nouveau");
+      alert("Please fill in the current player's username before adding a new one.");
       return;
     }
 
     if (players.has(playerName.toLowerCase())) {
-      alert("Ce joueur est déjà ajouté.");
+      alert("This player is already added.");
       return;
     }
 
@@ -254,7 +254,7 @@ function initializePlayerManagement() {
       addPlayer(playerContainer, playerCount++);
       players.add(playerName.toLowerCase()); // Ajouter le nom en minuscule pour vérifier l'unicité
     } catch (error) {
-      handleError(error, "Erreur lors de la vérification de l'utilisateur");
+      handleError(error, "Error checking user existence");
     }
   };
 }
@@ -269,7 +269,7 @@ async function checkUserExists(username) {
 
 function addPlayer(container, count, initialValue = '') {
   const playerDiv = document.createElement('div');
-  playerDiv.innerHTML = `Joueur n° : ${count} <input type="text" placeholder="Pseudo" value="${initialValue}" ${initialValue ? 'readonly' : ''}>`;
+  playerDiv.innerHTML = `Player No.: ${count} <input type="text" placeholder="Pseudo" value="${initialValue}" ${initialValue ? 'readonly' : ''}>`;
   container.appendChild(playerDiv);
 }
 
@@ -278,10 +278,10 @@ function updatePlayerStatus(playerDiv, userData) {
   statusSpan.style.marginLeft = '10px';
 
   if (userData.exists) {
-    statusSpan.textContent = userData.is_guest ? '❌ Invité' : '✔️ Authentifié';
+    statusSpan.textContent = userData.is_guest ? '❌ Guest' : '✔️  Authenticated';
     playerDiv.setAttribute('data-user-id', userData.is_guest ? '' : userData.user_id);
   } else {
-    statusSpan.textContent = '❌ Invité';
+    statusSpan.textContent = '❌ Guest';
     playerDiv.setAttribute('data-user-id', '');
   }
 
@@ -294,7 +294,7 @@ function setupSubmitHandler() {
   submitButton.onclick = () => {
     const tournamentName = document.getElementById('tournamentName').value.trim();
     if (!tournamentName) {
-      alert("Le nom du tournoi ne peut pas être vide");
+      alert("The tournament name cannot be empty");
       return;
     }
 
@@ -305,7 +305,7 @@ function setupSubmitHandler() {
       .filter(name => name !== '');
 
     if (players.length < 2) {
-      alert("Au moins 2 joueurs sont nécessaires pour créer un tournoi");
+      alert("At least 2 players are required to create a tournament");
       return;
     }
 
@@ -338,13 +338,13 @@ function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin
         return response.json();
     })
     .then((data) => {
-        console.log("Tournoi créé :", data);
+        console.log("Tournament created:", data);
         localStorage.setItem("tournamentId", data.tournament_id);
       
         DisplayTournamentGame();
     })
     .catch((error) => {
-        console.error("Erreur lors de la création du tournoi :", error);
+        console.error("Error creating tournament:", error);
     });
 }
 
@@ -362,7 +362,7 @@ export function validateSearch() {
   tournamentName = localStorage.getItem("tournamentName");
 
   if (!tournamentName) {
-    alert("Veuillez entrer un nom de tournoi.");
+    alert("Please enter a tournament name.");
     return;
   }
 
@@ -380,7 +380,7 @@ export function validateSearch() {
     .then((response) => response.json())
     .then((data) => {
       const tournamentListDiv = document.getElementById("tournamentList");
-      tournamentListDiv.innerHTML = "<h3>Tournois trouvés :</h3>";
+      tournamentListDiv.innerHTML = "<h3>Tournaments Found:</h3>";
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((tournament) => {
           const tournamentDiv = document.createElement('div');
@@ -388,8 +388,8 @@ export function validateSearch() {
           const emoji = tournament.is_finished ? '✅' : '🏓';
           tournamentDiv.innerHTML = `
             <p>
-              ${emoji} Nom: ${tournament.tournament_name}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
-              <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Sélectionner</button>
+              ${emoji} Name: ${tournament.tournament_name}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
+              <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
             </p>`;
           tournamentListDiv.appendChild(tournamentDiv);
         });
@@ -402,11 +402,11 @@ export function validateSearch() {
           });
         });
       } else {
-        tournamentListDiv.innerHTML += "<p>Aucun tournoi trouvé avec ce nom.</p>";
+        tournamentListDiv.innerHTML += "<p>No tournament found with that name.</p>";
       }
     })
     .catch((error) => {
-      console.error("Erreur lors de la recherche des tournois:", error);
+      console.error("Error while searching for tournaments:", error);
     });
 }
 
@@ -414,7 +414,7 @@ export function displayUserTournaments() {
   const username = localStorage.getItem("username");
 
   if (!username) {
-    alert("Veuillez vous connecter pour voir vos tournois.");
+    alert("Please log in to view your tournaments.");
     return;
   }
 
@@ -422,7 +422,7 @@ export function displayUserTournaments() {
   appMain.innerHTML = `
     <br>
     <br>
-    <button id="toggleAllTournaments">Afficher tous les tournois</button>
+    <button id="toggleAllTournaments">Show all tournaments</button>
     <br>
     <br>
     <div id="userTournamentList"></div>
@@ -438,7 +438,7 @@ export function displayUserTournaments() {
     .then((response) => response.json())
     .then((data) => {
       const userTournamentListDiv = document.getElementById("userTournamentList");
-      userTournamentListDiv.innerHTML = "<h3>Vos Tournois :</h3>";
+      userTournamentListDiv.innerHTML = "<h3>Your Tournaments:</h3>";
       
       // Inverser l'ordre des tournois
       const reversedData = data.slice().reverse();
@@ -449,8 +449,8 @@ export function displayUserTournaments() {
           const emoji = tournament.is_finished ? '✅' : '🏓';
           tournamentDiv.innerHTML = `
             <p class="${tournament.is_finished ? 'finished' : 'ongoing'}">
-              Nom: ${tournament.tournament_name} ${emoji}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
-              <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Sélectionner</button>
+              Name: ${tournament.tournament_name} ${emoji}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
+              <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
             </p>`;
           userTournamentListDiv.appendChild(tournamentDiv);
         });
@@ -460,12 +460,12 @@ export function displayUserTournaments() {
 
         document.getElementById("toggleAllTournaments").addEventListener('click', () => {
           const button = document.getElementById("toggleAllTournaments");
-          if (button.textContent === "Afficher tous les tournois") {
+          if (button.textContent === "Show all tournaments") {
             filterTournaments('all');
-            button.textContent = "Afficher uniquement les tournois en cours";
+            button.textContent = "Show only ongoing tournaments";
           } else {
             filterTournaments('ongoing');
-            button.textContent = "Afficher tous les tournois";
+            button.textContent = "Show all tournaments";
           }
         });
 
@@ -477,11 +477,11 @@ export function displayUserTournaments() {
           });
         });
       } else {
-        userTournamentListDiv.innerHTML += "<p>Vous ne participez à aucun tournoi.</p>";
+        userTournamentListDiv.innerHTML += "<p>You are not participating in any tournament.</p>";
       }
     })
     .catch((error) => {
-      console.error("Erreur lors de la récupération des tournois de l'utilisateur:", error);
+      console.error("Error retrieving user's tournaments:", error);
     });
 
   function filterTournaments(filter) {

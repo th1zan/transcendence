@@ -146,7 +146,7 @@ export function fetchFriends() {
 			  const lastSeen = friendStatus ? friendStatus.last_seen : "Never";
   
 			  const statusBadge = isOnline
-				? `<span class="badge bg-success">🟢 Online</span>`
+				? `<span class="badge ">🟢 Online</span>`
 				: `<span class="badge ">⚫ Offline (last seen: ${lastSeen})</span>`;
 
 		  const listItem = document.createElement("li");
