@@ -40,7 +40,7 @@ services:
       retries: 3
     networks:
         - backend
-    # command: ["redis-server", "--loglevel", "debug"]
+    command: ["redis-server", "--loglevel", "debug"]
   #********************************************************************************
   db:
     container_name: postgres
