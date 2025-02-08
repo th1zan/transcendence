@@ -29,23 +29,23 @@ function connectWebSocket()
   ws = new WebSocket(ws_path); 
 
   //open socket
-  ws.onopen = () => console.log("WebSocket connecté");
+  ws.onopen = () => console.log("WebSocket connected");
   //message on a socket
   ws.onmessage = (event) => {
-    console.log("Message reçu :", event.data);
+    console.log("Message received:", event.data);
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
-      console.log("Mise à jour de la position de la raquette :", data.y);
+      console.log("Updating paddle position:", data.y);
       computer.y = data.y;
       }
   };
 
-  ws.onerror = (error) => console.error("WebSocket erreur :", error);
+  ws.onerror = (error) => console.error("WebSocket error:", error);
 
   ws.onclose = (event) => {
-    console.log("WebSocket déconnecté, code :", event.code, "raison :", event.reason);
+    console.log("WebSocket disconnected, code:", event.code, "reason :", event.reason);
     if (shouldReconnect) {
-      console.log("Reconnexion dans 1 seconde...");
+      console.log("Reconnecting in 1 second...");
       setTimeout(connectWebSocket, 1000);
     }
   };
@@ -193,7 +193,7 @@ function update() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     const message = JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y });
     ws.send(message);
-    console.log("Position de la balle envoyée :", message);
+    console.log("Ball position sent: ", message);
   }
 }
 
@@ -268,15 +268,15 @@ function displayResults(matchID) {
     return response.json();
   })
   .then(data => {
-    let buttonText = gameType === 'tournament' ? 'Retour au tournoi' : 'Nouvelle partie';
+    let buttonText = gameType === 'tournament' ? 'Back to Tournament' : 'New Game';
 
     let summary = `
       <button id="backButton">${buttonText}</button>
       <br><br>
       <strong>${data.player1_name} vs ${data.player2_name}</strong><br>
-      <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Nombre de sets)<br>
-      <strong>Vainqueur: ${data.winner_name}</strong><br>
-      <h3>Détails des sets:</h3>
+      <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Number of sets)<br>
+      <strong>Winner: ${data.winner_name}</strong><br>
+      <h3>Set Details:</h3>
     `;
 
     if (data.sets && Array.isArray(data.sets)) {
@@ -287,7 +287,7 @@ function displayResults(matchID) {
         `;
       });
     } else {
-      summary += "Aucun set enregistré.";
+      summary += "No sets recorded.";
     }
 
     let summaryDiv = document.getElementById("app_main");
@@ -307,7 +307,7 @@ function displayResults(matchID) {
     }
   })
   .catch(error => {
-    console.error("Erreur lors de la récupération des résultats du match :", error);
+    console.error("Error retrieving match results:", error);
     // Vous pourriez aussi vouloir afficher un message d'erreur à l'utilisateur ici
   });
 }
@@ -436,9 +436,9 @@ function sendScore() {
     }
   }
 
-  console.log("Valeur de player1 avant l'envoi :", player1); 
-  console.log("setHistory avant l'envoi:", setHistory);
-  console.log("matchID avant l'envoi:", matchID);
+  console.log("Value of player1 before sending:", player1); 
+  console.log("setHistory before sending:", setHistory);
+  console.log("matchID before sending:", matchID);
 
   // Déterminer le gagnant
   let winner = null;
@@ -482,19 +482,19 @@ function sendScore() {
       return response.json();
     })
     .then((data) => {
-      console.log("Score soumis :", data);
+      console.log("Score submitted:", data);
       // Si c'est un POST (nouvelle création), mettre à jour matchID dans localStorage
       if (method === "POST") {
         localStorage.setItem("matchID", data.id);  // Supposant que 'id' est le champ de l'ID du match dans la réponse
-        console.log("matchID après création:", data.id);
+        console.log("matchID after creation:", data.id);
         return data.id; // Retourner le nouvel ID du match
       } else {
-        console.log("matchID après mise à jour:", matchID);
+        console.log("matchID after update:", matchID);
         return matchID; // Retourner l'ID du match existant
       }
     })
     .catch((error) => {
-      console.error("Erreur lors de l'envoi du score :", error);
+      console.error("Error sending score:", error);
       throw error; // Propager l'erreur pour que l'appelant puisse la gérer si nécessaire
     });
 }
@@ -510,7 +510,7 @@ function stopGameProcess() {
   shouldReconnect = false;  // Désactiver la reconnexion automatique
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.close();
-    console.log("WebSocket déconnecté");
+    console.log("WebSocket disconnected.");
   }
 
  //empty all the containers

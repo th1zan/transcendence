@@ -136,7 +136,7 @@ export function displayConnectionFormular() {
   const appDiv = document.getElementById("app_main");  appDiv.innerHTML = `
   	  <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
       <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Connexion</h2>
+        <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Welcome Back</h2>
         <form id="loginForm">
           <div class="form-group mb-4">
             <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Username</label>
@@ -149,7 +149,7 @@ export function displayConnectionFormular() {
             />
           </div>
           <div class="form-group mb-5">
-            <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Mot de passe</label>
+            <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Password</label>
             <input 
               type="password" 
               id="password" 
@@ -406,10 +406,10 @@ export function displayTournament() {
     <h3>Tournament</h3>
     <br>
     <div class="d-flex align-items-center">
-      <button id="newTournamentButton" class="me-2">Nouveau tournoi</button>
+      <button id="newTournamentButton" class="me-2">New Tournament</button>
       <div id="searchTournament" class="d-flex align-items-center">
-        <button id="tournamentSearchButton" class="btn btn-primary mx-2">Rechercher un tournoi</button>
-        <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" class="me-2">
+        <button id="tournamentSearchButton" class="btn btn-primary mx-2">Search for Tournament</button>
+        <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
       </div>
     </div>
   `;  
@@ -423,13 +423,13 @@ export function displayTournament() {
     document.getElementById("tournamentSearchButton").addEventListener("click", () => {
       const tournamentNameInput = document.getElementById("tournamentNameInput");
       if (!tournamentNameInput) {
-        console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
+        console.error("The element 'tournamentNameInput'  is not available.");
         return;
       }
 
       const tournamentName = tournamentNameInput.value;
       if (!tournamentName) {
-        alert("Veuillez entrer un nom de tournoi.");
+        alert("Please enter a tournament name.");
         return;
       }
 
@@ -450,14 +450,17 @@ export function displayFriends() {
 
   const appTop = document.getElementById("app_main");
   appTop.innerHTML = `
-    <h3>👥 Friends Management</h3>
+    <h3>Friends</h3>
     <br>
     <div>
       <input type="text" id="friendUsername" placeholder="Username" class="form-control" />
       <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
     </div>
+    <br>
+    <br>
     <h4>Pending Friend Requests</h4>
     <ul id="friendRequests" class="list-group"></ul>
+    <br>
     <br>
     <h4>My Friends</h4>
     <ul id="friendList" class="list-group"></ul>
@@ -645,7 +648,7 @@ function displayUserResults(data) {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <h3>Vos résultats :</h3>
+    <h3>Your Results: </h3>
     <div id="resultats"></div>
   `;
 
@@ -653,12 +656,12 @@ function displayUserResults(data) {
 
   if (Array.isArray(data) && data.length > 0) {
     data.forEach((match) => {
-      const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Date inconnue";
-      const player1 = match.player1_name || "Joueur 1 inconnu";
-      const player2 = match.player2_name || "Joueur 2 inconnu";
-      const winner = match.winner || "En cours";
+      const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+      const player1 = match.player1_name || "Unknown Player 1";
+      const player2 = match.player2_name || "Unknown Player 2";
+      const winner = match.winner || "In Progress";
       const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-      const tournamentInfo = match.tournament ? ` (Tournoi: ${match.tournament_name || 'Inconnu'})` : "";
+      const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
 
       resultatsDiv.innerHTML += `
         <p>
@@ -671,7 +674,7 @@ function displayUserResults(data) {
         </p>`;
     });
   } else {
-    resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
+    resultatsDiv.innerHTML += "<p>No results found.</p>";
   }
 
 
@@ -739,14 +742,14 @@ function displayRanking(data) {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <h3>Classement des joueurs :</h3>
+    <h3>Player Ranking:</h3>
     <div id="ranking"></div>
   `;
 
   const rankingDiv = document.getElementById("ranking");
   if (Array.isArray(data) && data.length > 0) {
     data.forEach((player) => {
-      const playerName = player.name || "Nom inconnu";
+      const playerName = player.name || "Unknown Name";
       const totalWins = player.total_wins || 0;
       rankingDiv.innerHTML += `
           <p>
@@ -754,7 +757,7 @@ function displayRanking(data) {
           </p>`;
     });
   } else {
-    rankingDiv.innerHTML += "<p>Any ranking found for this user.</p>";
+    rankingDiv.innerHTML += "<p>No ranking found for this user.</p>";
   }
 
 }
