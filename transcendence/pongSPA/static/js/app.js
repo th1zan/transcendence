@@ -199,8 +199,8 @@ function displayRegistrationForm() {
   document.getElementById('app_bottom').innerHTML = '';
 
 
-const appDiv = document.getElementById("app_main");
-appDiv.innerHTML = `
+const appForm = document.getElementById("app_form");
+appForm.innerHTML = `
 <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
   <div class="card p-5 shadow-lg" style="width: 30rem;">
     <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
@@ -284,7 +284,7 @@ export function displayWelcomePage() {
 
   //class and CSS definition for the div and navbar (menu) container
  const appDiv = document.getElementById('app');
-  appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
+  // appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
   Object.assign(appDiv, {
     style: {
       // width: '200px'
@@ -306,7 +306,7 @@ export function displayWelcomePage() {
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById('app_top');
-  appTop.className = "p-1 d-flex rounded";
+  // appTop.className = "p-1 d-flex rounded";
   appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
   appTop.innerHTML = `
     <div class="d-flex justify-content-between align-items-center w-100">
@@ -322,7 +322,7 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  appMain.className = "p-3 flex-grow-1";
+  // appMain.className = "p-3 flex-grow-1";
   appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
   appMain.innerHTML = `
     Contenu de la Welcome page
@@ -335,33 +335,30 @@ export function displayWelcomePage() {
     Footer de la page
   `;
 
-  const menuDiv = document.getElementById("menu");
+const menuNavBar = document.getElementById("menu");
 
-  menuDiv.innerHTML = `
-    <div class="d-flex flex-column h-100" style="background-color: #c2d4de;">
-      <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" width="90" height="100" />
+menuNavBar.innerHTML = `
+    <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4 my-sm-0 mx-sm-2" alt="Mvillarr" width="90" height="100" />
 
+    <!-- vieux boutons de tsanglar, à supprimer  -->
+    <!-- <button id="playButton" class="btn btn-link nav-link text-white mb-2" role="button" aria-selected="true">Play a Game</button> -->
+    <!-- <button id="tournamentButton" class="btn btn-link nav-link text-white mb-2">Tournament</button> -->
+    <!-- <button id="statsButton" class="btn btn-link nav-link text-white mb-2">Statistics</button> -->
+    <!-- <button id="friendsButton" class="btn btn-link nav-link text-white mb-2">Friends</button> -->
+    <!-- <button id="settingsButton" class="btn btn-link nav-link text-white mb-2">Settings</button> -->
+    <!-- <div class="flex-grow-1"></div> -->
+    <!-- <button id="logoutButton" class="btn btn-link nav-link text-danger">Logout</button> -->
+    
+    
+    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
+    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="tournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
+    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
+    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
+    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
 
-      <!-- <button id="playButton" class="btn btn-link nav-link text-white mb-2" role="button" aria-selected="true">Play a Game</button> -->
-      <!-- <button id="tournamentButton" class="btn btn-link nav-link text-white mb-2">Tournament</button> -->
-      <!-- <button id="statsButton" class="btn btn-link nav-link text-white mb-2">Statistics</button> -->
-      <!-- <button id="friendsButton" class="btn btn-link nav-link text-white mb-2">Friends</button> -->
-      <!-- <button id="settingsButton" class="btn btn-link nav-link text-white mb-2">Settings</button> -->
-      <!-- <div class="flex-grow-1"></div> -->
-      <!-- <button id="logoutButton" class="btn btn-link nav-link text-danger">Logout</button> -->
-     
-      
-      <a class="nav-link active mb-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
-      <a class="nav-link active mb-2" id="tournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
-      <a class="nav-link active mb-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
-      <a class="nav-link active mb-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
-      <a class="nav-link active mb-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
-
-      <a class="nav-link active mb-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
-      <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
-       
-    </div>
-  `;
+    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
+    <a class="nav-link text-danger mb-2 mb-sm-0 mx-sm-2" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
+`;
 
   
   //section non intégré dans le code pour le moment
@@ -798,42 +795,151 @@ function fetchRanking() {
     });
 }
 
-export function displayGameForm() { 
+function displayGameFormHTML(username) {
+  return `
+    <form id="gameForm">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+          <div style="flex: 1;">
+              <h3>Game Settings</h3>
+              <label>Game Mode:</label>
+              <button id="onePlayer" class="mode-button active" type="button">1 Player</button>
+              <button id="twoPlayers" class="mode-button" type="button">2 Players</button>
+              <br><br>
+              <label>Difficulty:</label>
+              <button class="difficulty-button active" id="easy" type="button">Easy</button>
+              <button class="difficulty-button" id="medium" type="button">Medium</button>
+              <button class="difficulty-button" id="hard" type="button">Hard</button>
+              <br><br>
+              <label>Design:</label>
+              <button class="design-button active" id="oldschool" type="button">Oldschool</button>
+              <button class="design-button" id="modern" type="button">Modern</button>
+          </div>
+          <div style="flex: 1;">
+              <h3>Match Settings</h3>
+              <label>Number of Games:</label>
+              <input type="number" id="numberOfGames" value="1" min="1" max="5" style="width: 60px;"><br><br>
+              <label>Sets per Game:</label>
+              <input type="number" id="setsPerGame" value="3" min="1" max="5" style="width: 60px;"><br><br>
+          </div>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-top: 20px;">
+          <div style="flex: 1;">
+              <h3>Player 1</h3>
+              <label>Name:</label>
+              <input type="text" id="player1" value="${username}" disabled>
+              <br>
+              <label>Control:</label>
+              <select id="control1">
+                  <option value="arrows" selected>Arrow Keys</option>
+                  <option value="wasd">WASD</option>
+                  <option value="mouse">Mouse</option>
+              </select>
+          </div>
+          <div style="flex: 1;" id="player2Container">
+              <h3>Player 2</h3>
+              <label>Name:</label>
+              <input type="text" id="player2" value="Bot-AI" disabled>
+              <br>
+              <div id="control2Container" style="display:none;">
+                  <label>Control:</label>
+                  <select id="control2">
+                      <option value="wasd" selected>WASD</option>
+                      <option value="arrows" disabled>Arrow Keys</option>
+                      <option value="mouse">Mouse</option>
+                  </select>
+              </div>
+          </div>
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button id="startGameButton" type="button">Start Game</button>
+      </div>
+    </form>
+  `;
+}
 
+
+export function displayGameForm() { 
   history.pushState({ page: 'game' }, 'Game', '#game');
- //empty all the containers
+  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const username = localStorage.getItem("username");
-  localStorage.setItem("context", "solo");
+  const username = localStorage.getItem("username") || "Player 1"; // From 'myanez-p' branch
+  localStorage.setItem("context", "solo"); // From HEAD
   
   const appMain = document.getElementById("app_main");
-  appMain.innerHTML = `
-    <h3>Pong Game</h3>
-    <form id="gameForm">
-      <label for="player1">Player 1 Name:</label>
-      <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
-      <label for="player2">Player 2 Name:</label>
-      <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
-      <label for="numberOfGames">Number of Games:</label>
-      <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-      <label for="pointsToWin">Points to Win:</label>
-      <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-      <button type="button" id="startGameButton">Start Game</button>
-    </form>
-   
-  `;
+  appMain.innerHTML = displayGameFormHTML(username);
+
   console.log("Username value in displayGameForm:", username);
-  
-  document.getElementById("startGameButton").addEventListener("click", () => {
-    const player1 = username;
-    const player2 = document.getElementById("player2").value.trim();
-    const numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
-    const pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 3;
-    
-    startGameSetup(player1, player2, numberOfGames, pointsToWin);
+
+  // Here we add the functionality from 'myanez-p' branch
+  function toggleActiveButton(group, selectedId) {
+      document.querySelectorAll(group).forEach(button => {
+          button.classList.remove("active");
+      });
+      document.getElementById(selectedId).classList.add("active");
+  }
+
+  document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
+      button.addEventListener("click", function() {
+          toggleActiveButton(`.${this.classList[0]}`, this.id);
+      });
   });
 
+  document.getElementById("onePlayer").addEventListener("click", function() {
+    document.getElementById("player2Container").style.display = "block";
+    document.getElementById("player2").value = "Bot-AI";
+    document.getElementById("player2").disabled = true;
+    document.getElementById("control2Container").style.display = "none";
+
+    document.getElementById("control1").value = "arrows";
+    document.getElementById("control2").value = "wasd";
+
+    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+  });
+
+  document.getElementById("twoPlayers").addEventListener("click", function() {
+    document.getElementById("player2Container").style.display = "block";
+    document.getElementById("player2").value = "player2";
+    document.getElementById("player2").disabled = false;
+    document.getElementById("control2Container").style.display = "block";
+
+    document.getElementById("control1").value = "arrows";
+    document.getElementById("control2").value = "wasd";
+
+    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+
+    document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
+    document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+  });
+
+  document.getElementById("control1").addEventListener("change", function () {
+    const selected = this.value;
+    const control2 = document.getElementById("control2");
+
+    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control2.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
+
+  document.getElementById("control2").addEventListener("change", function () {
+    const selected = this.value;
+    const control1 = document.getElementById("control1");
+
+    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control1.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
+
+  document.getElementById("startGameButton").addEventListener("click", () => {
+      const player1 = username;
+      const player2 = document.getElementById("player2").value.trim();
+      const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
+      const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
+
+      console.log("Start button clicked");
+      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+  });
 }
