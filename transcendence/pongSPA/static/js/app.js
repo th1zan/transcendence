@@ -532,6 +532,7 @@ function displayGameForm() {
   document.getElementById("onePlayer").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "Bot-AI";
+    gameSettings.player2 = "Bot-AI";
     document.getElementById("player2").disabled = true;
     document.getElementById("control2Container").style.display = "none";
 
@@ -547,6 +548,7 @@ function displayGameForm() {
   document.getElementById("twoPlayers").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "player2";
+    gameSettings.player2 = "player2";
     document.getElementById("player2").disabled = false;
     document.getElementById("control2Container").style.display = "block";
 

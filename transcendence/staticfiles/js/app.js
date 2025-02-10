@@ -540,6 +540,8 @@ function displayGameForm() {
 
     document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+
+    gameSettings.mode = "solo"; 
   });
 
   document.getElementById("twoPlayers").addEventListener("click", function() {
@@ -556,11 +558,12 @@ function displayGameForm() {
 
     document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
     document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+
+    gameSettings.mode = "multiplayer";
   });
 
   document.getElementById("numberOfGames").addEventListener("input", function() {
     gameSettings.numberOfGames = parseInt(this.value);
-    updateGameSettings();
   });
 
   document.getElementById("setsPerGame").addEventListener("input", function() {
@@ -592,14 +595,12 @@ function displayGameForm() {
   document.querySelectorAll(".difficulty-button").forEach(button => {
     button.addEventListener("click", function() {
       gameSettings.difficulty = this.id;
-      updateGameSettings();
     });
   });
 
   document.querySelectorAll(".design-button").forEach(button => {
     button.addEventListener("click", function() {
       gameSettings.design = this.id;
-      updateGameSettings();
     });
   });
 
