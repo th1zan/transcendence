@@ -14,6 +14,9 @@ let pointsToWin = 1;
 let currentGame = 0;
 let player1Wins = 0;
 let player2Wins = 0;
+let control1 = "arrows";
+let control2 = "wasd";
+let design = "oldschool";
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -27,7 +30,7 @@ function connectWebSocket()
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
-      computer.y = data.y;
+      opponent.y = data.y;
     }
   };
   ws.onerror = (error) => console.error("WebSocket erreur :", error);
@@ -52,7 +55,8 @@ function startPongGame() {
 
   initGameObjects(canvas);
   resetScores();
-  connectWebSocket(); 
+  if (context != "multiplayer" )
+    connectWebSocket(); 
 
   const fps = 50;
   gameInterval = setInterval(() => {
@@ -61,15 +65,18 @@ function startPongGame() {
   }, 1000 / fps);
 }
 
-export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
+export function startGameSetup(gameSettings) {
   // Mettre à jour les variables globales
-  user1 = p1;
-  user2 = p2;
-  player1 = p1;
-  player2 = p2;
-  numberOfGames = numGames;
-  pointsToWin = ptsToWin;
-  context = ctxt;
+  user1 = gameSettings.player1;
+  user2 = gameSettings.player2;
+  player1 = gameSettings.player1;
+  player2 = gameSettings.player2;
+  numberOfGames = gameSettings.numberOfGames;
+  pointsToWin = gameSettings.setsPerGame;
+  context = gameSettings.mode;
+  control1 = gameSettings.control1;
+  control2 = gameSettings.control2;
+  design = gameSettings.design;
 
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
@@ -89,7 +96,7 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
   if (context === "tournament") {
     // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
     document.getElementById("tournamentMatches").style.display = "none";
-  } else if (context === "solo") {
+  } else if (context === "solo" || context === "multiplayer") {
     // Si le contexte est solo, cacher tout le formulaire de jeu
     let gameForm = document.getElementById("gameForm");
     if (gameForm) {
@@ -109,7 +116,7 @@ export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
 
 function resetScores() {
   player.score = 0;
-  computer.score = 0;
+  opponent.score = 0;
 }
 
 function update() {
@@ -120,7 +127,7 @@ function update() {
     ball.velocityY = -ball.velocityY;
   }
 
-  let playerPaddle = ball.x < canvas.width / 2 ? player : computer;
+  let playerPaddle = ball.x < canvas.width / 2 ? player : opponent;
 
   if (collision(ball, playerPaddle)) {
     ball.velocityX = -ball.velocityX;
@@ -128,8 +135,8 @@ function update() {
   }
 
   if (ball.x - ball.radius < 0) {
-    computer.score++;
-    if (computer.score === pointsToWin) {
+    opponent.score++;
+    if (opponent.score === pointsToWin) {
       player2Wins++;
       saveSetResult();
       handleGameEnd(player2);
@@ -148,7 +155,7 @@ function update() {
   }
 
   //Envoyer la position de la balle au serveur
-  if (ws && ws.readyState === WebSocket.OPEN) {
+  if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
@@ -158,7 +165,7 @@ function saveSetResult() {
   setHistory.push({
     set_number: currentGame + 1,
     player1_score: player.score,
-    player2_score: computer.score,
+    player2_score: opponent.score,
   });
 }
 
@@ -241,7 +248,7 @@ function displayResults(finalWinner) {
 // Dimensions et objets du jeu
 const paddleWidth = 10,
   paddleHeight = 100;
-let canvas, player, computer, ball;
+let canvas, player, opponent, ball;
 
 // Initialisation des objets de jeu
 function initGameObjects(gameCanvas) {
@@ -256,7 +263,7 @@ function initGameObjects(gameCanvas) {
     score: 0,
   };
 
-  computer = {
+  opponent = {
     x: canvas.width - paddleWidth,
     y: canvas.height / 2 - paddleHeight / 2,
     width: paddleWidth,
@@ -275,11 +282,59 @@ function initGameObjects(gameCanvas) {
     color: "WHITE",
   };
 
-  // Contrôle du paddle du joueur avec la souris
-  canvas.addEventListener("mousemove", (event) => {
-    let rect = canvas.getBoundingClientRect();
-    player.y = event.clientY - rect.top - player.height / 2;
-  });
+  if (control1 === "mouse") {
+    canvas.addEventListener("mousemove", (event) => {
+      let rect = canvas.getBoundingClientRect();
+      let newY = event.clientY - rect.top - player.height / 2;
+      player.y = Math.max(0, Math.min(newY, canvas.height - paddleHeight));
+    });
+  } else if (control1 === "arrows" || control1 === "wasd") {
+    document.addEventListener("keydown", (event) => {
+      if (control1 === "arrows") {
+        if (event.key === "ArrowUp" && player.y > 0) {
+          player.y -= 20;
+          event.preventDefault();
+        } else if (event.key === "ArrowDown" && player.y < canvas.height - paddleHeight) {
+          player.y += 20;
+          event.preventDefault();
+        }
+      } else if (control1 === "wasd") {
+        if (event.key === "w" && player.y > 0) {
+          player.y -= 20;
+        } else if (event.key === "s" && player.y < canvas.height - paddleHeight) {
+          player.y += 20;
+        }
+      }
+    });
+  }
+
+  if (context === "multiplayer") {
+    if (control2 === "mouse") {
+      canvas.addEventListener("mousemove", (event) => {
+        let rect = canvas.getBoundingClientRect();
+        let newY = event.clientY - rect.top - opponent.height / 2;
+        opponent.y = event.clientY - rect.top - opponent.height / 2;
+      });
+    } else if (control2 === "arrows" || control2 === "wasd") {
+      document.addEventListener("keydown", (event) => {
+        if (control2 === "arrows") {
+          if (event.key === "ArrowUp" && opponent.y > 0) {
+            opponent.y -= 20;
+            event.preventDefault();
+          } else if (event.key === "ArrowDown" && opponent.y < canvas.height - paddleHeight) {
+            opponent.y += 20;
+            event.preventDefault();
+          }
+        } else if (control2 === "wasd") {
+          if (event.key === "w" && opponent.y > 0) {
+            opponent.y -= 20;
+          } else if (event.key === "s" && opponent.y < canvas.height - paddleHeight) {
+            opponent.y += 20;
+          }
+        }
+      });
+    }
+  }
 }
 
 // Dessiner un rectangle
@@ -304,27 +359,62 @@ function drawText(text, x, y, color, ctx) {
   ctx.fillText(text, x, y);
 }
 
+function drawGlowingRect(x, y, w, h, color, ctx) {
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = color;
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+  ctx.shadowBlur = 0;
+}
+
+function drawGlowingCircle(x, y, r, color, ctx) {
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = color;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2, false);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
 // Rendu du jeu
 function render(ctx) {
-  drawRect(0, 0, canvas.width, canvas.height, "#000", ctx); // Fond noir
-  drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE", ctx); // Score joueur
-  drawText(
-    computer.score,
-    (3 * canvas.width) / 4,
-    canvas.height / 5,
-    "WHITE",
-    ctx,
-  ); // Score ordinateur
-  drawRect(player.x, player.y, player.width, player.height, player.color, ctx); // Paddle joueur
-  drawRect(
-    computer.x,
-    computer.y,
-    computer.width,
-    computer.height,
-    computer.color,
-    ctx,
-  ); // Paddle ordinateur
-  drawCircle(ball.x, ball.y, ball.radius, ball.color, ctx); // Balle
+  if (design === "oldschool"){
+    drawRect(0, 0, canvas.width, canvas.height, "#000", ctx); // Fond noir
+    drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE", ctx); // Score joueur
+    drawText(
+      opponent.score,
+      (3 * canvas.width) / 4,
+      canvas.height / 5,
+      "WHITE",
+      ctx,
+    ); // Score ordinateur
+    drawRect(player.x, player.y, player.width, player.height, player.color, ctx); // Paddle joueur
+    drawRect(
+      opponent.x,
+      opponent.y,
+      opponent.width,
+      opponent.height,
+      opponent.color,
+      ctx,
+    ); // Paddle ordinateur
+    drawCircle(ball.x, ball.y, ball.radius, ball.color, ctx); // Balle
+  }
+  if (design === "modern"){
+    let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, "#0f0c29");
+    gradient.addColorStop(0.5, "#302b63");
+    gradient.addColorStop(1, "#24243e");
+    drawRect(0, 0, canvas.width, canvas.height, gradient, ctx);
+
+    drawGlowingRect(player.x, player.y, player.width, player.height, "#0ff", ctx);
+    drawGlowingRect(opponent.x, opponent.y, opponent.width, opponent.height, "#f0f", ctx);
+    drawGlowingCircle(ball.x, ball.y, ball.radius, "#ff0", ctx);
+
+    drawText(player.score, canvas.width / 4, canvas.height / 5, "#0ff", ctx);
+    drawText(opponent.score, (3 * canvas.width) / 4, canvas.height / 5, "#f0f", ctx);
+  }
 }
 
 // Vérifier les collisions

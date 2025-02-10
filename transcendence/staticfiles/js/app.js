@@ -435,74 +435,86 @@ function fetchRanking() {
 
 function displayGameForm() {
   const formContainer = document.getElementById("app");
-  const username = localStorage.getItem("username") || "Player 1";
+  const username = localStorage.getItem("username")
+
+  let gameSettings = {
+    mode: "solo",
+    difficulty: "easy",
+    design: "oldschool",
+    numberOfGames: 1, //entre 1 et 5
+    setsPerGame: 3, //entre 1 et 5
+    player1: localStorage.getItem("username"),
+    player2: "Bot-AI",
+    control1: "arrows",
+    control2: "wasd",
+  };
   
   formContainer.innerHTML = `
-    <form id="gameForm">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-          <div style="flex: 1;">
-              <h3>Game Settings</h3>
-              <label>Game Mode:</label>
-              <button id="onePlayer" class="mode-button active" type="button">1 Player</button>
-              <button id="twoPlayers" class="mode-button" type="button">2 Players</button>
-              <br><br>
-              <label>Difficulty:</label>
-              <button class="difficulty-button active" id="easy" type="button">Easy</button>
-              <button class="difficulty-button" id="medium" type="button">Medium</button>
-              <button class="difficulty-button" id="hard" type="button">Hard</button>
-              <br><br>
-              <label>Design:</label>
-              <button class="design-button active" id="oldschool" type="button">Oldschool</button>
-              <button class="design-button" id="modern" type="button">Modern</button>
-          </div>
-          <div style="flex: 1;">
-              <h3>Match Settings</h3>
-              <label>Number of Games:</label>
-              <input type="number" id="numberOfGames" value="1" min="1" max="5" style="width: 60px;"><br><br>
-              <label>Sets per Game:</label>
-              <input type="number" id="setsPerGame" value="3" min="1" max="5" style="width: 60px;"><br><br>
-          </div>
-      </div>
-      
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-top: 20px;">
-          <div style="flex: 1;">
-              <h3>Player 1</h3>
-              <label>Name:</label>
-              <input type="text" id="player1" value="${username}" disabled>
-              <br>
-              <label>Control:</label>
-              <select id="control1">
-                  <option value="arrows" selected>Arrow Keys</option>
-                  <option value="wasd">WASD</option>
-                  <option value="mouse">Mouse</option>
-              </select>
-          </div>
-          <div style="flex: 1;" id="player2Container">
-              <h3>Player 2</h3>
-              <label>Name:</label>
-              <input type="text" id="player2" value="Bot-AI" disabled>
-              <br>
-              <div id="control2Container" style="display:none;">
-                  <label>Control:</label>
-                  <select id="control2">
-                      <option value="wasd" selected>WASD</option>
-                      <option value="arrows" disabled>Arrow Keys</option>
-                      <option value="mouse">Mouse</option>
-                  </select>
-              </div>
-          </div>
-      </div>
-      <div style="text-align: center; margin-top: 20px;">
-        <button id="startGameButton" type="button">Start Game</button>
-      </div>
-    </form>
-
-    <div id="result" style="display: none;">
-      <h2>Game Results</h2>
-      <p id="summary"></p>
+  <form id="gameForm">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <div style="flex: 1;">
+            <h3>Game Settings</h3>
+            <label>Game Mode:</label>
+            <button id="onePlayer" class="mode-button ${gameSettings.mode === "solo" ? "active" : ""}" type="button">1 Player</button>
+            <button id="twoPlayers" class="mode-button ${gameSettings.mode === "multiplayer" ? "active" : ""}" type="button">2 Players</button>
+            <br><br>
+            <label>Difficulty:</label>
+            <button class="difficulty-button ${gameSettings.difficulty === "easy" ? "active" : ""}" id="easy" type="button">Easy</button>
+            <button class="difficulty-button ${gameSettings.difficulty === "medium" ? "active" : ""}" id="medium" type="button">Medium</button>
+            <button class="difficulty-button ${gameSettings.difficulty === "hard" ? "active" : ""}" id="hard" type="button">Hard</button>
+            <br><br>
+            <label>Design:</label>
+            <button class="design-button ${gameSettings.design === "oldschool" ? "active" : ""}" id="oldschool" type="button">Oldschool</button>
+            <button class="design-button ${gameSettings.design === "modern" ? "active" : ""}" id="modern" type="button">Modern</button>
+        </div>
+        <div style="flex: 1;">
+            <h3>Match Settings</h3>
+            <label>Number of Games:</label>
+            <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" style="width: 60px;"><br><br>
+            <label>Sets per Game:</label>
+            <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" style="width: 60px;"><br><br>
+        </div>
     </div>
-    <canvas id="pong" width="800" height="400" style="display: block; margin-top: 20px;"></canvas>  
-  `;
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-top: 20px;">
+        <div style="flex: 1;">
+            <h3>Player 1</h3>
+            <label>Name:</label>
+            <input type="text" id="player1" value="${gameSettings.player1}" disabled>
+            <br>
+            <label>Control:</label>
+            <select id="control1">
+                <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+                <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+            </select>
+        </div>
+        <div style="flex: 1;" id="player2Container">
+            <h3>Player 2</h3>
+            <label>Name:</label>
+            <input type="text" id="player2" value="${gameSettings.player2}" ${gameSettings.mode === "solo" ? "disabled" : ""}>
+            <br>
+            <div id="control2Container" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+                <label>Control:</label>
+                <select id="control2">
+                    <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="startGameButton" type="button">Start Game</button>
+    </div>
+  </form>
+
+  <div id="result" style="display: none;">
+    <h2>Game Results</h2>
+    <p id="summary"></p>
+  </div>
+  <canvas id="pong" width="800" height="400" style="display: block; margin-top: 20px;"></canvas>  
+`;
 
   function toggleActiveButton(group, selectedId) {
       document.querySelectorAll(group).forEach(button => {
@@ -546,8 +558,22 @@ function displayGameForm() {
     document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
   });
 
+  document.getElementById("numberOfGames").addEventListener("input", function() {
+    gameSettings.numberOfGames = parseInt(this.value);
+    updateGameSettings();
+  });
+
+  document.getElementById("setsPerGame").addEventListener("input", function() {
+    gameSettings.setsPerGame = parseInt(this.value);
+  });
+
+  document.getElementById("player2").addEventListener("input", function() {
+    gameSettings.player2 = this.value;
+  });
+
   document.getElementById("control1").addEventListener("change", function () {
     const selected = this.value;
+    gameSettings.control1 = this.value;
     const control2 = document.getElementById("control2");
 
     control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
@@ -556,10 +582,25 @@ function displayGameForm() {
 
   document.getElementById("control2").addEventListener("change", function () {
     const selected = this.value;
+    gameSettings.control2 = this.value;
     const control1 = document.getElementById("control1");
 
     control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
     control1.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
+
+  document.querySelectorAll(".difficulty-button").forEach(button => {
+    button.addEventListener("click", function() {
+      gameSettings.difficulty = this.id;
+      updateGameSettings();
+    });
+  });
+
+  document.querySelectorAll(".design-button").forEach(button => {
+    button.addEventListener("click", function() {
+      gameSettings.design = this.id;
+      updateGameSettings();
+    });
   });
 
   document.getElementById("startGameButton").addEventListener("click", () => {
@@ -569,6 +610,10 @@ function displayGameForm() {
       const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
 
       console.log("Start button clicked");
-      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+
+      console.log("Starting game with settings:", gameSettings);
+
+      //startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+      startGameSetup(gameSettings);
   });
 }

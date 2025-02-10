@@ -61,15 +61,15 @@ function startPongGame() {
   }, 1000 / fps);
 }
 
-export function startGameSetup(p1, p2, numGames, ptsToWin, ctxt = "solo") {
+export function startGameSetup(gameSettings) {
   // Mettre à jour les variables globales
-  user1 = p1;
-  user2 = p2;
-  player1 = p1;
-  player2 = p2;
-  numberOfGames = numGames;
-  pointsToWin = ptsToWin;
-  context = ctxt;
+  user1 = gameSettings.player1;
+  user2 = gameSettings.player2;
+  player1 = gameSettings.player1;
+  player2 = gameSettings.player2;
+  numberOfGames = gameSettings.numberOfGames;
+  pointsToWin = gameSettings.pointsToWin;
+  context = gameSettings.mode;
 
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
