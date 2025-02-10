@@ -4,23 +4,23 @@
 /* On utilise les # pour sélectionner des ID plutot que des . pour sélectionner des class  */
 
 
-html, body {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
+/* html, body { */
+/*     display: flex; */
+/*     flex-direction: column; */
+/*     height: 100%; */
+/* } */
 
-#app {
-    display: flex;
-    flex-grow: 1;
-    flex-direction: column;
-}
+/* #app { */
+/*     display: flex; */
+/*     flex-grow: 1; */
+/*     flex-direction: column; */
+/* } */
 
 /* Styles pour les divs semi-transparentes et texte noir */
-#app_top, #app_main, #app_bottom {
-    background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
-    color: black; /* Black text color */
-}
+/* #app_top, #app_main, #app_bottom { */
+/*     background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */ */
+/*     color: black; /* Black text color */ */
+/* } */
 
 /* .custom-container { */
    /* background-color: rgb(255, 255, 255); */
@@ -28,6 +28,6 @@ html, body {
    /* border-radius: 10px; Rounded corners */
 /* } */
 
-.custom-title {
-    color: rgb(0, 0, 0);
-}
+/* .custom-title { */
+/*     color: rgb(0, 0, 0); */
+/* } */

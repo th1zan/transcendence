@@ -128,10 +128,6 @@ function handleRouteChange(route) {
 
 export function displayConnectionFormular() {
   history.pushState({ page: 'login' }, '', '#login');
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
-
 
   const appDiv = document.getElementById("app_main");  appDiv.innerHTML = `
   	  <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
@@ -194,57 +190,54 @@ export function displayConnectionFormular() {
 function displayRegistrationForm() {
   history.pushState({ page: 'register' }, 'Register', '#register');
     //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
 
 
-const appForm = document.getElementById("app_form");
-appForm.innerHTML = `
-<div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
-  <div class="card p-5 shadow-lg" style="width: 30rem;">
-    <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
-    <form id="signupForm">
-      <div class="form-group mb-4">
-        <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
-        <input 
-          type="text" 
-          id="newUsername" 
-          class="form-control form-control-lg" 
-          placeholder="Enter your username" 
-          required 
-        />
+  const appDiv = document.getElementById("app_main");
+  appDiv.innerHTML = `
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+      <div class="card p-5 shadow-lg" style="width: 30rem;">
+        <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
+        <form id="signupForm">
+          <div class="form-group mb-4">
+            <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
+            <input 
+              type="text" 
+              id="newUsername" 
+              class="form-control form-control-lg" 
+              placeholder="Enter your username" 
+              required 
+            />
+          </div>
+          <div class="form-group mb-5">
+            <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
+            <input 
+              type="password" 
+              id="newPassword" 
+              class="form-control form-control-lg" 
+              placeholder="Enter your password" 
+              required 
+            />
+          </div>
+          <div class="form-check mb-4">
+            <input type="checkbox" id="privacyPolicyAccepted" required />
+            <label for="privacyPolicyAccepted">
+              I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+            </label>
+          </div>
+          <button 
+            type="submit" 
+            class="btn btn-success w-100 py-3 h5">
+            Create Account
+          </button>
+        </form>
+        <button 
+          id="backToLoginButton" 
+          class="btn btn-primary w-100 mt-4 py-3 h5">
+          Back to Login
+        </button>
       </div>
-      <div class="form-group mb-5">
-        <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
-        <input 
-          type="password" 
-          id="newPassword" 
-          class="form-control form-control-lg" 
-          placeholder="Enter your password" 
-          required 
-        />
-      </div>
-      <div class="form-check mb-4">
-        <input type="checkbox" id="privacyPolicyAccepted" required />
-        <label for="privacyPolicyAccepted">
-          I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
-        </label>
-      </div>
-      <button 
-        type="submit" 
-        class="btn btn-success w-100 py-3 h5">
-        Create Account
-      </button>
-    </form>
-    <button 
-      id="backToLoginButton" 
-      class="btn btn-primary w-100 mt-4 py-3 h5">
-      Back to Login
-    </button>
-  </div>
-</div>
-`;
+    </div>
+  `;
 
   document
     .getElementById("signupForm")
@@ -283,31 +276,35 @@ export function displayWelcomePage() {
   */
 
   //class and CSS definition for the div and navbar (menu) container
+ const bodyElem = document.body; // Sélectionne directement l'élément <body>
+  bodyElem.style.backgroundImage = "url('/static/pong.jpg')";
+  bodyElem.style.backgroundImage = "url('/static/pong.jpg')";
+  bodyElem.style.backgroundRepeat = "no-repeat";
+  bodyElem.style.backgroundAttachment = "fixed";
+  bodyElem.style.backgroundSize = "100% 100%";
+ 
  const appDiv = document.getElementById('app');
-  // appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
+  appDiv.className = 'col-md-10 h-100 d-flex flex-column rounded';
   Object.assign(appDiv, {
     style: {
       // width: '200px'
-        backgroundColor: '#343a40'
+        // backgroundColor: '#343a40'
     },
     // role: 'tablist',
     // 'aria-orientation': 'vertical',
     // id: 'v-pills-tab'
   });
   // Set the background image for 'app'
-  appDiv.style.backgroundImage = "url('/static/pong.jpg')";
-  appDiv.style.backgroundRepeat = "no-repeat";
-  appDiv.style.backgroundAttachment = "fixed";
-  appDiv.style.backgroundSize = "100% 100%";
+ 
 
-  //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
+  
 
+  //define bootstrap style for the "app"" elements
   const appTop = document.getElementById('app_top');
-  // appTop.className = "p-1 d-flex rounded";
+  appTop.className = "semi-transparent-bg p-3 text-dark mb-3 rounded";
   appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
+  appTop.style.marginTop= '20px'; // Jaune semi-transparent (anciennement bg-warning)
+  appTop.style.marginBottom= '20px'; // Jaune semi-transparent (anciennement bg-warning)
   appTop.innerHTML = `
     <div class="d-flex justify-content-between align-items-center w-100">
       <div>
@@ -322,43 +319,53 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  // appMain.className = "p-3 flex-grow-1";
+  appMain.className = "semi-transparent-bg flex-grow-1 p-3 text-dark mb-3 rounded";
   appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
+  appTop.style.marginBottom= '20px'; // Jaune semi-transparent (anciennement bg-warning)
   appMain.innerHTML = `
     Contenu de la Welcome page
   `;
 
   const appBottom = document.getElementById("app_bottom");
-  appBottom.className = "p-3";
+  appBottom.className = "semi-transparent-bg p-3 text-dark rounded";
   appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
+  appBottom.style.marginBottom= '20px'; // Jaune semi-transparent (anciennement bg-warning)
   appBottom.innerHTML = `
     Footer de la page
   `;
 
-const menuNavBar = document.getElementById("menu");
 
-menuNavBar.innerHTML = `
-    <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4 my-sm-0 mx-sm-2" alt="Mvillarr" width="90" height="100" />
+  const menuNav = document.getElementById("menu");
+  menuNav.style.marginTop= '20px';
+  menuNav.style.marginRight= '10px';
+  menuNav.style.marginLeft= '20px';
+  menuNav.className = "d-flex flex-sm-row align-items-center justify-content-center h-100 rounded";
+  menuNav.style.backgroundColor = '#c2d4de';
+  menuNav.innerHTML = `
+    <div class="d-flex flex-column h-100">
+      <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" width="90" height="100" />
 
-    <!-- vieux boutons de tsanglar, à supprimer  -->
-    <!-- <button id="playButton" class="btn btn-link nav-link text-white mb-2" role="button" aria-selected="true">Play a Game</button> -->
-    <!-- <button id="tournamentButton" class="btn btn-link nav-link text-white mb-2">Tournament</button> -->
-    <!-- <button id="statsButton" class="btn btn-link nav-link text-white mb-2">Statistics</button> -->
-    <!-- <button id="friendsButton" class="btn btn-link nav-link text-white mb-2">Friends</button> -->
-    <!-- <button id="settingsButton" class="btn btn-link nav-link text-white mb-2">Settings</button> -->
-    <!-- <div class="flex-grow-1"></div> -->
-    <!-- <button id="logoutButton" class="btn btn-link nav-link text-danger">Logout</button> -->
-    
-    
-    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
-    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="tournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
-    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
-    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
-    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
 
-    <a class="nav-link active mb-2 mb-sm-0 mx-sm-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
-    <a class="nav-link text-danger mb-2 mb-sm-0 mx-sm-2" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
-`;
+      <!-- <button id="playButton" class="btn btn-link nav-link text-white mb-2" role="button" aria-selected="true">Play a Game</button> -->
+      <!-- <button id="tournamentButton" class="btn btn-link nav-link text-white mb-2">Tournament</button> -->
+      <!-- <button id="statsButton" class="btn btn-link nav-link text-white mb-2">Statistics</button> -->
+      <!-- <button id="friendsButton" class="btn btn-link nav-link text-white mb-2">Friends</button> -->
+      <!-- <button id="settingsButton" class="btn btn-link nav-link text-white mb-2">Settings</button> -->
+      <!-- <div class="flex-grow-1"></div> -->
+      <!-- <button id="logoutButton" class="btn btn-link nav-link text-danger">Logout</button> -->
+     
+      
+      <a class="nav-link active mb-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
+      <a class="nav-link active mb-2" id="tournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
+      <a class="nav-link active mb-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
+      <a class="nav-link active mb-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
+      <a class="nav-link active mb-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
+
+      <a class="nav-link active mb-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
+      <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
+       
+    </div>
+  `;
 
   
   //section non intégré dans le code pour le moment
@@ -393,11 +400,7 @@ menuNavBar.innerHTML = `
 export function displayTournament() {
 
   history.pushState({ page: 'tournament' }, 'Tournament', '#tournament');
-  //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
-
+  
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <h3>Tournament</h3>
@@ -797,53 +800,53 @@ function fetchRanking() {
 
 function displayGameFormHTML(username) {
   return `
-    <form id="gameForm">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-          <div style="flex: 1;">
+    <form id="gameForm" class="w-100">
+      <div class="d-flex justify-content-between align-items-start">
+          <div class="col">
               <h3>Game Settings</h3>
               <label>Game Mode:</label>
-              <button id="onePlayer" class="mode-button active" type="button">1 Player</button>
-              <button id="twoPlayers" class="mode-button" type="button">2 Players</button>
+              <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
+              <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
               <br><br>
               <label>Difficulty:</label>
-              <button class="difficulty-button active" id="easy" type="button">Easy</button>
-              <button class="difficulty-button" id="medium" type="button">Medium</button>
-              <button class="difficulty-button" id="hard" type="button">Hard</button>
+              <button class="difficulty-button active btn btn-outline-primary mb-2" id="easy" type="button">Easy</button>
+              <button class="difficulty-button btn btn-outline-primary mb-2" id="medium" type="button">Medium</button>
+              <button class="difficulty-button btn btn-outline-primary mb-2" id="hard" type="button">Hard</button>
               <br><br>
               <label>Design:</label>
-              <button class="design-button active" id="oldschool" type="button">Oldschool</button>
-              <button class="design-button" id="modern" type="button">Modern</button>
+              <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
+              <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
           </div>
-          <div style="flex: 1;">
+          <div class="col">
               <h3>Match Settings</h3>
               <label>Number of Games:</label>
-              <input type="number" id="numberOfGames" value="1" min="1" max="5" style="width: 60px;"><br><br>
+              <input type="number" id="numberOfGames" value="1" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
               <label>Sets per Game:</label>
-              <input type="number" id="setsPerGame" value="3" min="1" max="5" style="width: 60px;"><br><br>
+              <input type="number" id="setsPerGame" value="3" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
           </div>
       </div>
       
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-top: 20px;">
-          <div style="flex: 1;">
+      <div class="d-flex justify-content-between align-items-start mt-3">
+          <div class="col">
               <h3>Player 1</h3>
               <label>Name:</label>
-              <input type="text" id="player1" value="${username}" disabled>
+              <input type="text" id="player1" value="${username}" class="form-control mb-2" disabled>
               <br>
               <label>Control:</label>
-              <select id="control1">
+              <select id="control1" class="form-select mb-2">
                   <option value="arrows" selected>Arrow Keys</option>
                   <option value="wasd">WASD</option>
                   <option value="mouse">Mouse</option>
               </select>
           </div>
-          <div style="flex: 1;" id="player2Container">
+          <div class="col" id="player2Container">
               <h3>Player 2</h3>
               <label>Name:</label>
-              <input type="text" id="player2" value="Bot-AI" disabled>
+              <input type="text" id="player2" value="Bot-AI" class="form-control mb-2" disabled>
               <br>
               <div id="control2Container" style="display:none;">
                   <label>Control:</label>
-                  <select id="control2">
+                  <select id="control2" class="form-select mb-2">
                       <option value="wasd" selected>WASD</option>
                       <option value="arrows" disabled>Arrow Keys</option>
                       <option value="mouse">Mouse</option>
@@ -851,13 +854,12 @@ function displayGameFormHTML(username) {
               </div>
           </div>
       </div>
-      <div style="text-align: center; margin-top: 20px;">
-        <button id="startGameButton" type="button">Start Game</button>
+      <div class="text-center mt-3">
+        <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
       </div>
     </form>
   `;
 }
-
 
 export function displayGameForm() { 
   history.pushState({ page: 'game' }, 'Game', '#game');
