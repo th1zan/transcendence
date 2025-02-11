@@ -546,20 +546,51 @@ export function displayGameForm() {
   
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <h3>Pong Game</h3>
-    <form id="gameForm">
-      <label for="player1">Player 1 Name:</label>
-      <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
-      <label for="player2">Player 2 Name:</label>
-      <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
-      <label for="numberOfGames">Number of Games:</label>
-      <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-      <label for="pointsToWin">Points to Win:</label>
-      <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-      <button type="button" id="startGameButton">Start Game</button>
-    </form>
-   
+  
+  <h3>Pong Game</h3>
+  <form id="gameForm">
+    <label for="player1">Player 1 Name:</label>
+    <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
+    <label for="player2">Player 2 Name:</label>
+    <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
+    <label for="numberOfGames">Number of Games:</label>
+    <input type="number" id="numberOfGames" value="1" min="1"><br><br>
+    <label for="pointsToWin">Points to Win:</label>
+    <input type="number" id="pointsToWin" value="3" min="1"><br><br>
+    <button type="button" id="startGameButton">Start Game</button>
+  </form>
+  
+  
   `;
+  // <div class="container mt-4">
+  //   <h3 class="text-center mb-4">Pong Game</h3>
+  //   <form id="gameForm" class="needs-validation" novalidate>
+  //     <div class="mb-3">
+  //       <label for="player1" class="form-label">Player 1 Name:</label>
+  //       <input type="text" class="form-control" id="player1" value="${username} (by default)" readonly>
+  //     </div>
+  //     <div class="mb-3">
+  //       <label for="player2" class="form-label">Player 2 Name:</label>
+  //       <input type="text" class="form-control" id="player2" value="Bot_AI (by default)">
+  //     </div>
+  //     <div class="mb-3">
+  //       <label for="numberOfGames" class="form-label">Number of Games:</label>
+  //       <input type="number" class="form-control" id="numberOfGames" value="1" min="1" required>
+  //       <div class="invalid-feedback">
+  //         Please enter a valid number of games.
+  //       </div>
+  //     </div>
+  //     <div class="mb-3">
+  //       <label for="pointsToWin" class="form-label">Points to Win:</label>
+  //       <input type="number" class="form-control" id="pointsToWin" value="3" min="1" required>
+  //       <div class="invalid-feedback">
+  //         Please enter a valid number of points to win.
+  //       </div>
+  //     </div>
+  //     <button type="button" class="btn btn-primary" id="startGameButton">Start Game</button>
+  //   </form>
+  // </div>  
+
   console.log("Username value in displayGameForm:", username);
   
   document.getElementById("startGameButton").addEventListener("click", () => {

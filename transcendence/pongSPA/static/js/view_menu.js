@@ -76,29 +76,20 @@ export function displayWelcomePage() {
   const menuDiv = document.getElementById("menu");
 
   menuDiv.innerHTML = `
-    <div class="d-flex flex-column h-100" style="background-color: #c2d4de;">
+  <div class="d-flex flex-column h-100" style="background-color:rgb(172, 200, 195);">
       <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" width="90" height="100" />
-
-      <!-- <button id="playButton" class="btn btn-link nav-link text-white mb-2" role="button" aria-selected="true">Play a Game</button> -->
-      <!-- <button id="tournamentButton" class="btn btn-link nav-link text-white mb-2">Tournament</button> -->
-      <!-- <button id="statsButton" class="btn btn-link nav-link text-white mb-2">Statistics</button> -->
-      <!-- <button id="friendsButton" class="btn btn-link nav-link text-white mb-2">Friends</button> -->
-      <!-- <button id="settingsButton" class="btn btn-link nav-link text-white mb-2">Settings</button> -->
-      <!-- <div class="flex-grow-1"></div> -->
-      <!-- <button id="logoutButton" class="btn btn-link nav-link text-danger">Logout</button> -->
-           
-      <a class="nav-link active mb-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
-      <a class="nav-link active mb-2" id="tournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
-      <a class="nav-link active mb-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
-      <a class="nav-link active mb-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
-      <a class="nav-link active mb-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
-
-      <a class="nav-link active mb-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
-      <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
-       
-    </div>
-  `;
-
+      
+       <button id="playButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2" role="button" aria-selected="true">Play a Game</button> 
+       <button id="tournamentButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Tournament</button> 
+       <button id="statsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Statistics</button> 
+       <button id="friendsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Friends</button> 
+       <button id="welcomeButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Home page</button> 
+       <div class="flex-grow-1"></div> 
+       <button id="settingsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Settings</button> 
+       <button id="logoutButton" class="btn btn-danger nav-link mb-4 d-flex justify-content-start ps-2">Logout</button>
+          
+  </div>
+      `;
   
   //section non intégré dans le code pour le moment
   //
