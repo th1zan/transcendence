@@ -65,7 +65,7 @@ export function displayConnectionFormular() {
   }
 
 // account creation 
-function displayRegistrationForm() {
+export function displayRegistrationForm() {
   history.pushState({ page: 'register' }, 'Register', '#register');
     //empty all the containers
   document.getElementById('app_top').innerHTML = '';

@@ -1,4 +1,5 @@
 import { startGameSetup } from "./pong.js";
+import { displayRegistrationForm} from "./login_views.js";
 import { createTournamentForm, validateSearch, displayUserTournaments } from "./tournament.js";
 import {
   anonymizeAccount,
@@ -15,7 +16,7 @@ import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendReq
 import { displayConnectionFormular } from "./login_views.js";
 import { displayWelcomePage } from "./view_menu.js";
 
-let isUserLoggedIn = true; //false for connection formular
+let isUserLoggedIn = false; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
@@ -52,11 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // 3. Set initial state
   if (isUserLoggedIn && initialRoute === 'login') {
     console.log('User logged in but on login page, redirecting to welcome');
-    history.replaceState({ page: 'welcome' }, 'Welcome', '#welcome'); // Use pushState here
+    history.replaceState({ page: 'welcome' }, ' ', '#welcome');
     displayWelcomePage();
   } else if (!isUserLoggedIn && initialRoute !== 'login') {
     console.log('User not logged in but not on login page, redirecting to login');
-    history.replaceState({ page: 'login' }, 'Login', '#login'); // Use pushState here
+    history.replaceState({ page: 'login' }, 'Login', '#login');
     displayConnectionFormular();
   } else {
     console.log('Proceeding with initial route:', initialRoute);
@@ -104,7 +105,7 @@ function handleRouteChange(route) {
     case 'tournament':
       displayTournament();
       break;
-    case 'statistics':
+    case 'stats':
       displayStats();
       break;
     case 'userStats':
@@ -173,7 +174,6 @@ export function displayTournament() {
 
 export function displayFriends() {
 
-  history.pushState({ page: 'friends' }, 'Friends', '#friends');
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -269,7 +269,6 @@ function displayHTMLforSettings(user) {
 }
 
 export function displaySettings() {
-  history.pushState({ page: 'settings' }, 'Settings', '#settings');
 // 1. fetch the user's settings
   fetch("/api/auth/user/", {
     method: "GET",
@@ -348,7 +347,6 @@ export function displaySettings() {
 
 export function displayStats() {
 
-  history.pushState({ page: 'statistics' }, 'Statistics', '#statistics');
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -371,7 +369,6 @@ export function displayStats() {
 
 function displayUserResults(data) {
   
-  history.pushState({ page: 'userStats' }, 'Users Statistics', '#userStats');
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -465,7 +462,6 @@ function fetchResultats() {
 
 function displayRanking(data) {
   
-  history.pushState({ page: 'ranking' }, 'Ranking', '#ranking');
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -593,7 +589,6 @@ function displayGameFormHTML(username) {
 }
 
 export function displayGameForm() { 
-  history.pushState({ page: 'game' }, 'Game', '#game');
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';

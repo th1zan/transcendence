@@ -111,11 +111,39 @@ export function displayWelcomePage() {
   //   </div>
   //  `;
 
-  document.getElementById("playButton").addEventListener("click", displayGameForm);
-  document.getElementById("tournamentButton").addEventListener("click", displayTournament);
-  document.getElementById("statsButton").addEventListener("click", displayStats);
-  document.getElementById("friendsButton").addEventListener("click", displayFriends);
-  document.getElementById("settingsButton").addEventListener("click", displaySettings);
-  document.getElementById("welcomeButton").addEventListener("click", displayWelcomePage);
-  document.getElementById("logoutButton").addEventListener("click", logout);
+  document.getElementById("playButton").addEventListener("click", function() {
+    displayGameForm();
+    history.pushState({ page: 'game' }, 'Game', '#game');
+  });
+
+  document.getElementById("tournamentButton").addEventListener("click", function() {
+    displayTournament();
+    history.pushState({ page: 'tournament' }, 'Tournament', '#tournament');
+  });
+
+  document.getElementById("statsButton").addEventListener("click", function() {
+    displayStats();
+    history.pushState({ page: 'stats' }, 'Stats', '#stats');
+  });
+
+  document.getElementById("friendsButton").addEventListener("click", function() {
+    displayFriends();
+    history.pushState({ page: 'friends' }, 'Friends', '#friends');
+  });
+
+  document.getElementById("settingsButton").addEventListener("click", function() {
+    displaySettings();
+    history.pushState({ page: 'settings' }, 'Settings', '#settings');
+  });
+
+  document.getElementById("welcomeButton").addEventListener("click", function() {
+    displayWelcomePage();
+    history.pushState({ page: 'welcome' }, 'Welcome', '#welcome');
+  });
+
+  document.getElementById("logoutButton").addEventListener("click", function() {
+    logout();
+    history.pushState({ page: 'logout' }, 'Logout', '#logout');
+  });
+
 }
