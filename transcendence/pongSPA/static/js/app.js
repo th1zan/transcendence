@@ -1,5 +1,5 @@
 import { startGameSetup } from "./pong.js";
-import { createTournamentForm, validateSearch } from "./tournament.js";
+import { createTournamentForm, validateSearch, displayUserTournaments } from "./tournament.js";
 import {
   anonymizeAccount,
   createAccount,
@@ -9,424 +9,193 @@ import {
   refreshToken,
   updateProfile,
   uploadAvatar,
+  getCookie,
 } from "./auth.js";
-import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
+import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
+import { displayConnectionFormular } from "./login_views.js";
+import { displayWelcomePage } from "./view_menu.js";
+
+let isUserLoggedIn = true; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Clear all cookies
-  document.cookie.split(";").forEach((c) => {
-    document.cookie = c
-      .replace(/^ +/, "")
-      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  });
+  //when the DOM is loaded, this event is triggered and it will:
+  
 
-  // Clear local storage
-  localStorage.clear();
+  // 0. Clear all cookies
+  // document.cookie.split(";").forEach((c) => {
+  //   console.log('clear the cookies');
+  //   document.cookie = c
+  //     .replace(/^ +/, "")
+  //     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  // });
+  
 
-  let login = false; // test
-  if (login == false) {
-    displayConnectionFormular();
-  }
-  else {
-    displayInteractiveMenu();
+  // 1. Determine the initial route based on user's login status
+  const initialRoute = window.location.hash.replace('#', '') || 'login'; 
+  console.log('Initial route determined:', initialRoute);
+
+  // 2. Check if the user is logged in.
+  // if (localStorage.getItem('username')) {
+  //   isUserLoggedIn = true;
+  //   console.log('User is logged in based on localStorage username');
+  // }
+  // else {
+    const accessToken = getCookie('access_token');
+    if (accessToken) {
+      isUserLoggedIn = true;
+      console.log('User is logged in based on access token in cookies');
+    } else {
+      console.log('User is not logged in');
+    }
+  // }
+
+  // 3. Set initial state
+  if (isUserLoggedIn && initialRoute === 'login') {
+    console.log('User logged in but on login page, redirecting to welcome');
+    history.replaceState({ page: 'welcome' }, 'Welcome', '#welcome'); // Use pushState here
     displayWelcomePage();
+  } else if (!isUserLoggedIn && initialRoute !== 'login') {
+    console.log('User not logged in but not on login page, redirecting to login');
+    history.replaceState({ page: 'login' }, 'Login', '#login'); // Use pushState here
+    displayConnectionFormular();
+  } else {
+    console.log('Proceeding with initial route:', initialRoute);
+    handleRouteChange(initialRoute);
   }
+
+  // 4. Plan the refreshing interval for the authentication Token 
+  console.log('Setting up token refresh interval');
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
+
+  // 5. Listener for history changes
+  window.addEventListener("popstate", function(event) {
+    console.log('Popstate event triggered. Current state:', event.state);
+    const route = event.state ? event.state.page : 'welcome';
+    console.log('Navigating to route:', route);
+    handleRouteChange(route); // Let the normal history work unless we need to redirect
+  });
 });
 
-export function displayConnectionFormular() {
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-  	<div class="min-vh-100 flex-column justify-content-center align-items-center" style="background-color: #f4f3f5;">
-		<div class="container mt-5 custom-container">
-	  		<h1 class="text-center custom-title">Bienvenue sur la page d'accueil !</h1>
-		</div>
-		<div class="d-flex justify-content-center align-items-center w-100" style="min-height: 75vh;">
-      	<div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        	<h2 class="text-center mb-5" style="font-size: 2.5rem; color: #51227f;">Connexion</h2>
-        <form id="loginForm">
-          <div class="form-group mb-4">
-            <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
-            <input
-              type="text"
-              id="username"
-              class="form-control form-control-lg"
-              placeholder="Entrez votre nom"
-              required
-            />
-          </div>
-          <div class="form-group mb-5">
-            <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Mot de passe</label>
-            <input
-              type="password"
-              id="password"
-              class="form-control form-control-lg"
-              placeholder="Entrez votre mot de passe"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="btn btn-success w-100 py-3"
-            style="font-size: 1.3rem;">
-            Se connecter
-          </button>
-        </form>
-        <button
-          id="displaySignupButton"
-          class="btn btn-primary w-100 mt-4 py-3"
-          style="font-size: 1.3rem;">
-          Créer un compte
-        </button>
-      </div>
-    </div>
-    `;
-  // setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
-
-  document
-    .getElementById("loginForm")
-    .addEventListener("submit", function (event) {
-      event.preventDefault();
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      getToken(username, password);
-    });
-
-  document
-    .getElementById("displaySignupButton")
-    .addEventListener("click", displayRegistrationForm);
+function navigateTo(route) {
+  console.log('Navigating to:', route);
+  history.pushState({ page: route }, '', `#${route}`);
+  handleRouteChange(route);
 }
 
-// creation du compte
-function displayRegistrationForm() {
-  const appDiv = document.getElementById("app");
-    appDiv.innerHTML = `
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
-      <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5" style="color: #007bff; font-size: 2.5rem;">Créer un compte</h2>
-        <form id="signupForm">
-          <div class="form-group mb-4">
-            <label for="newUsername" style="font-size: 1.2rem;"><i class="bi bi-person"></i> Nom d'utilisateur</label>
-            <input
-              type="text"
-              id="newUsername"
-              class="form-control form-control-lg"
-              placeholder="Enter your username"
-              required
-            />
-          </div>
-          <div class="form-group mb-5">
-            <label for="newPassword" style="font-size: 1.2rem;"><i class="bi bi-lock"></i> Mot de passe</label>
-            <input
-              type="password"
-              id="newPassword"
-              class="form-control form-control-lg"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-          <div class="form-check mb-4">
-            <input type="checkbox" id="privacyPolicyAccepted" required />
-            <label for="privacyPolicyAccepted">
-              I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
-            </label>
-          </div>
-          <button
-            type="submit"
-            class="btn btn-success w-100 py-3"
-            style="font-size: 1.3rem;">
-            Create Account
-          </button>
-        </form>
-        <button
-          id="backToLoginButton"
-          class="btn btn-primary w-100 mt-4 py-3"
-          style="font-size: 1.3rem;">
-          Back to Login
-        </button>
-      </div>
-    </div>
-    `;
-
-  document
-    .getElementById("signupForm")
-    .addEventListener("submit", function (event) {
-      event.preventDefault();
-      const newUsername = document.getElementById("newUsername").value;
-      const newPassword = document.getElementById("newPassword").value;
-      const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
-
-      if (!privacyPolicyAccepted) {
-        alert("You must accept the Privacy Policy to register.");
-        return;
+function handleRouteChange(route) {
+  console.log('Handling route change for:', route);
+  switch(route) {
+    case 'login':
+      if (!isUserLoggedIn) {
+        displayConnectionFormular();
+      } else {
+        navigateTo('welcome'); // Redirect logged in users to welcome if they try to access login
       }
-      createAccount(newUsername, newPassword, privacyPolicyAccepted);
-    });
-
-  document
-    .getElementById("backToLoginButton")
-    .addEventListener("click", displayConnectionFormular);
-  document
-    .getElementById("privacyPolicyLink")
-    .addEventListener("click", function (event) {
-    event.preventDefault(); // Prevent full-page reload
-    displayPrivacyPolicy(); // Load Privacy Policy inside #app
-  });
-}
-
-export function displayPrivacyPolicy() {
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-    <div class="container">
-      <h1>Privacy Policy</h1>
-      <p><strong>Effective Date:</strong> 06.02.2025</p>
-
-      <h2>1. Introduction</h2>
-      <p>
-        We respect your privacy and are committed to protecting your personal data.
-        This Privacy Policy explains how we collect, use, and protect your information in compliance with GDPR.
-      </p>
-
-      <h2>2. Data We Collect</h2>
-      <p>When you register and use our services, we collect:</p>
-      <ul>
-        <li><strong>Account Information:</strong> Username, password, email address, phone number, and avatar (if provided).</li>
-        <li><strong>Game & Profile Data:</strong> Match history, friend lists, and tournament participation.</li>
-      </ul>
-
-      <h2>3. How We Use Your Data</h2>
-      <p>Your data is used only for the following purposes:</p>
-      <ul>
-        <li>To create and manage your account.</li>
-        <li>To enable participation in games and tournaments.</li>
-        <li>To allow you to connect with friends and manage your profile.</li>
-        <li>To comply with legal obligations.</li>
-      </ul>
-
-      <h2>4. Legal Basis for Processing</h2>
-      <p>We process your data based on the following legal grounds:</p>
-      <ul>
-        <li><strong>Consent:</strong> You provide explicit consent when registering.</li>
-        <li><strong>Contractual Obligation:</strong> Processing is necessary to provide our services.</li>
-        <li><strong>Legal Compliance:</strong> We process your data to comply with laws.</li>
-      </ul>
-
-      <h2>5. Data Sharing</h2>
-      <p>We do not sell or share your data with third parties except:</p>
-      <ul>
-        <li>When required by law.</li>
-        <li>To provide essential services (e.g., hosting, security).</li>
-      </ul>
-
-      <h2>6. Your Rights Under GDPR</h2>
-      <p>As a user, you have the right to:</p>
-      <ul>
-        <li><strong>Access:</strong> Request a copy of your personal data.</li>
-        <li><strong>Rectification:</strong> Correct inaccurate or incomplete data.</li>
-        <li><strong>Erasure:</strong> Request deletion of your account and associated data.</li>
-        <li><strong>Restriction:</strong> Limit processing of your data in certain cases.</li>
-        <li><strong>Portability:</strong> Request a copy of your data in a structured format.</li>
-        <li><strong>Withdraw Consent:</strong> Stop processing based on consent at any time.</li>
-      </ul>
-
-      <h2>7. Data Retention</h2>
-      <p>Your data is stored only as long as necessary to provide our services or comply with legal obligations.</p>
-
-      <h2>8. Security Measures</h2>
-      <p>We take appropriate security measures to protect your data. However, we advise keeping your credentials safe.</p>
-
-      <h2>9. Contact Information</h2>
-      <p>If you have questions or requests regarding your data, please contact us at: pong42@gmail.com</p>
-
-      <h2>10. Updates to This Policy</h2>
-      <p>We may update this Privacy Policy. Changes will be posted on this page.</p>
-
-      <button id="backToRegisterButton" class="btn btn-primary">Back to Registration</button>
-    </div>
-  `;
-
-  // Handle back navigation to registration form
-  document.getElementById("backToRegisterButton").addEventListener("click", displayRegistrationForm);
-}
-
-export function displayInteractiveMenu() {
-  const username = localStorage.getItem("username");
-
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-  <div style="background-color: black;" class="p-1 h-100  d-flex">
-  <div  style="background-color: #222B2B; width: 200px" class="nav flex-column nav-pills p-1 h-100 d-flex " id="v-pills-tab" role="tablist" aria-orientation="vertical">
-  <img src="/static/ilyanar.jpg" class="rounded-circle object-fit-cover d-flex align-self-center m-4" alt="Ilkay" width="90" height="100" />
-  <a class="nav-link active mb-2" id="playButton" data-toggle="pill" role="button" aria-selected="true">Play</a>
-  <a class="nav-link active mb-2" id="newTournamentButton" data-toggle="pill" role="tab" aria-selected="false">New Tournament</a>
-  <a class="nav-link active mb-2" id="statsButton" data-toggle="pill" role="tab" aria-selected="false">Statistics</a>
-  <a class="nav-link active mb-2" id="friendsButton" data-toggle="pill" role="tab" aria-selected="false">Friends</a>
-  <a class="nav-link active mb-2" id="welcomeButton" data-toggle="pill" role="tab" aria-selected="false">Return to welcome page</a>
-  <a class="nav-link active mb-2" id="settingsButton" data-toggle="pill" role="tab" aria-selected="false">Settings</a>
-  <div class="flex-grow-1"></div>
-          <a class="nav-link text-danger" id="logoutButton" data-toggle="pill" role="tab" aria-selected="false">Log out</a>
-          <a class="nav-link text-danger" id="deleteAccountButton" data-toggle="pill" role="tab"  aria-selected="false">Delete account</a>
-          </div>
-          <div id="interactivePart" style="background-color: #596f6f;" class="p-1 h-100 flex-grow-1" >
-          </div>
-          `;
-
-          //<h2 class="text-center">Bonjour ${username}</h2>
-  // Attacher les écouteurs d'événements aux boutons
-  document.getElementById("playButton").addEventListener("click", displayGameForm);
-  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-  document.getElementById("statsButton").addEventListener("click", displayStats);
-  document.getElementById("friendsButton").addEventListener("click", displayFriends);
-  document.getElementById("welcomeButton").addEventListener("click", displayWelcomePage);
-  document.getElementById("settingsButton").addEventListener("click", displaySettings);
-  document.getElementById("logoutButton").addEventListener("click", logout);
-  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-
-}
-
-// homepage
-export function displayWelcomePage() {
-  const interactiveDiv = document.getElementById("interactivePart");
-  interactiveDiv.innerHTML = `
-        <div style="background-image: url(/static/pong.jpg); background-repeat: no-repeat; background-attachment: fixeqd; background-size: 100% 100%;" class="p-1 h-50 d-flex rounded " >
-          <div style="background-color: rgba(255, 255, 255, 0.4);" class="p-1 h-50 w-100 d-flex rounded align-self-end justify-content-between" >
-            <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px ; height:60%; background-color: red;">
-              <img src="/static/ilyanar.jpg" class="object-fit-cover"  alt="Ilkay" width="100%" height="100%" />
-            </div>
-            <div class="container row" style="" >
-              <div class="col-4"> blabla 1 </div>
-              <div class="col-4"> blabla 2 </div>
-              <div class="col-4"> blabla 3 </div>
-
-            </div>
-          </div>
-        </div>
-      `;
-
-      //<a class="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
-      //<div class="tab-content" id="v-pills-tabContent">
-      //  <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel" aria-labelledby="v-pills-home-tab">abc</div>
-      //  <div class="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">...</div>
-      //  <div class="tab-pane fade" id="v-pills-messages" role="tabpanel" aria-labelledby="v-pills-messages-tab">...</div>
-      //  <div class="tab-pane fade" id="v-pills-settings" role="tabpanel" aria-labelledby="v-pills-settings-tab">...</div>
-      //</div>
-}
-
-
-
-export function displayWelcomePage2() {
-  const username = localStorage.getItem("username");
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-    <h2 class="text-center">Bonjour ${username}</h2>
-
-    <br>
-    <h3>Jouer une partie</h2>
-    <button id="playButton">Jouer</button>
-    <br>
-    <br>
-    <h3>Tournoi</h3>
-    <b>Créer un nouveau tournoi</b>
-    <br>
-    <button id="newTournamentButton">Créer un nouveau tournoi</button>
-    <br>
-    <br>
-    <b>Rechercher un tournoi</b>
-    <div id="searchTournament">
-      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
-      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher</button>
-    </div>
-    <br>
-    <h2>Bonjour ${username}</h2>
-    <br>
-    <div id="tournamentList"></div>
-  `;
-
-  const menuDiv = document.getElementById("menu");
-  menuDiv.innerHTML = `
-    <button id="playButton">🎮 Jouer une partie</button>
-    <br>
-    <br>
-    <button id="tournamentButton">🏆 Tournament</button>
-    <br>
-    <br>
-    <button id="statsButton">📊 Statistiques</button>
-    <br>
-    <br>
-    <button id="friendsButton">👥 Amis</button>
-    <br>
-    <br>
-    <button id="settingsButton">⚙️ Paramètres</button>
-    <br>
-    <br>
-    <br>
-    <br>
-    <button id="logoutButton">🚪 Déconnexion</button>
-      `;
-
-  // Attacher les écouteurs d'événements aux boutons
-  document.getElementById("playButton").addEventListener("click", displayGameForm);
-  document.getElementById("tournamentButton").addEventListener("click", displayTournament);
-  document.getElementById("statsButton").addEventListener("click", displayStats);
-  document.getElementById("friendsButton").addEventListener("click", displayFriends);
-  document.getElementById("settingsButton").addEventListener("click", displaySettings);
-  document.getElementById("logoutButton").addEventListener("click", logout);
-  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-
-
+      break;
+    case 'register':
+      displayRegistrationForm();
+      break;
+    case 'welcome':
+      displayWelcomePage();
+      break;
+    case 'game':
+      displayGameForm();
+      break;
+    case 'tournament':
+      displayTournament();
+      break;
+    case 'statistics':
+      displayStats();
+      break;
+    case 'userStats':
+      displayUserResults();
+      break;
+    case 'ranking':
+      displayRanking();
+      break;
+    case 'friends':
+      displayFriends();
+      break;
+    case 'settings':
+      displaySettings();
+      break;
+    default:
+      if (!isUserLoggedIn && route !== 'login') {
+        navigateTo('welcome'); // Redirect not logged in users trying to access protected routes
+      } else {
+        displayConnectionFormular(); 
+      }
+  }
 }
 
 export function displayTournament() {
 
-  const appDiv = document.getElementById("app");
-  appDiv.innerHTML = `
-   <h3>Tournament</h3>
+  history.pushState({ page: 'tournament' }, 'Tournament', '#tournament');
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const appTop = document.getElementById("app_top");
+  appTop.innerHTML = `
+    <h3>Tournament</h3>
     <br>
-    <button id="newTournamentButton">Nouveau tournoi</button>
-    <br>
-    <br>
-    <div id="searchTournament">
-      <input type="text" id="tournamentNameInput" placeholder="Nom du tournoi" />
-      <br>
-      <button id="tournamentSearchButton" class="btn btn-primary">Rechercher un tournoi</button>
+    <div class="d-flex align-items-center">
+      <button id="newTournamentButton" class="me-2">New Tournament sfbehb</button>
+      <div id="searchTournament" class="d-flex align-items-center">
+        <button id="tournamentSearchButton" class="btn btn-primary mx-2">Search for Tournament</button>
+        <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
+      </div>
     </div>
-  `;
+  `;  
 
-  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  displayUserTournaments();
+  // let resultDiv = document.getElementById("app_main");
+  //   resultDiv.style.display = "block";
 
-  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
-    const tournamentNameInput = document.getElementById("tournamentNameInput");
-    if (!tournamentNameInput) {
-      console.error("L'élément 'tournamentNameInput' n'est pas disponible.");
-      return;
-    }
+    document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+    
+    document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+      const tournamentNameInput = document.getElementById("tournamentNameInput");
+      if (!tournamentNameInput) {
+        console.error("The element 'tournamentNameInput'  is not available.");
+        return;
+      }
 
-    const tournamentName = tournamentNameInput.value;
-    if (!tournamentName) {
-      alert("Veuillez entrer un nom de tournoi.");
-      return;
-    }
+      const tournamentName = tournamentNameInput.value;
+      if (!tournamentName) {
+        alert("Please enter a tournament name.");
+        return;
+      }
 
-    localStorage.setItem("tournamentName", tournamentName);
-    validateSearch();
-  });
-
+      localStorage.setItem("tournamentName", tournamentName);
+      validateSearch();
+    });
 
 }
 
 
 export function displayFriends() {
-  const interactiveDiv = document.getElementById("interactivePart");
 
-  interactiveDiv.innerHTML = `
-    <h3>👥 Friends Management</h3>
+  history.pushState({ page: 'friends' }, 'Friends', '#friends');
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const appTop = document.getElementById("app_main");
+  appTop.innerHTML = `
+    <h3>Friends</h3>
     <br>
     <div>
-      <input type="text" id="friendUsername" placeholder="Nom d'utilisateur" class="form-control" />
+      <input type="text" id="friendUsername" placeholder="Username" class="form-control" />
       <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
     </div>
-    <h4>Demandes d'amis en attente</h4>
+    <br>
+    <br>
+    <h4>Pending Friend Requests</h4>
     <ul id="friendRequests" class="list-group"></ul>
+    <br>
     <br>
     <h4>My Friends</h4>
     <ul id="friendList" class="list-group"></ul>
@@ -442,8 +211,70 @@ export function displayFriends() {
   fetchFriends();
 }
 
+function displayHTMLforSettings(user) {
+
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+  
+  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+  const appTop = document.getElementById("app_main");
+  
+  appTop.innerHTML = `
+  <div class="container mt-4">
+    <h3 class="text-center">Gestion du compte</h3>
+
+    <div class="card shadow-sm p-4 mt-3">
+      <h4 class="text-center">Update Profile Picture</h4>
+      <div class="d-flex flex-column align-items-center">
+        <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+        
+        <div class="mt-3 w-75">
+          <label class="form-label">Choose a new profile picture:</label>
+          <div class="input-group">
+            <input type="file" id="avatarInput" accept="image/*" class="form-control">
+            <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Profile Information Update -->
+    <div class="card shadow-sm p-4 mt-3">
+      <h4 class="text-center">Edit Profile Information</h4>
+      <div class="form-group mt-2">
+        <label>Username:</label>
+        <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+      </div>
+      <div class="form-group mt-2">
+        <label>Email:</label>
+        <input type="email" id="emailInput" class="form-control" value="${user.email}">
+      </div>
+      <div class="form-group mt-2">
+        <label>Phone Number:</label>
+        <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+      </div>
+      <div class="d-flex justify-content-center mt-3">
+        <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Account Actions -->
+    <div class="d-flex justify-content-center mt-4">
+      <button id="deleteAccountButton" class="btn btn-link nav-link text-danger">Delete account</button>
+      <button id="anonymizeAccountButton" class="btn btn-link nav-link text-warning">Anonimize account</button>
+    </div>
+  `;
+
+  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+  document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+  document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+  document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+}
 
 export function displaySettings() {
+  history.pushState({ page: 'settings' }, 'Settings', '#settings');
+// 1. fetch the user's settings
   fetch("/api/auth/user/", {
     method: "GET",
     credentials: "include", // Ensures authentication cookies are sent
@@ -455,12 +286,16 @@ export function displaySettings() {
       return response.json();
     })
     .then(user => {
-      const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+      //2. display the settings
+      displayHTMLforSettings(user);
+    })
+    .catch(error => {
+    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
 
-    const interactiveDiv = document.getElementById("interactivePart");
-    interactiveDiv.innerHTML = `
+    const appDiv = document.getElementById("app_main");
+    appDiv.innerHTML = `
     <div class="container mt-4">
-      <h3 class="text-center">Gestion du compte</h3>
+      <h3 class="text-center">Account Management</h3>
 
       <div class="card shadow-sm p-4 mt-3">
         <h4 class="text-center">Update Profile Picture</h4>
@@ -498,8 +333,8 @@ export function displaySettings() {
 
       <!-- Account Actions -->
       <div class="d-flex justify-content-center mt-4">
-      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Supprimer le compte</button>
-      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymiser le compte</button>
+      <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Delete Account</button>
+      <button id="anonymizeAccountButton" class="btn btn-warning">Anonymize Account</button>
        </div>
     `;
 
@@ -510,31 +345,80 @@ export function displaySettings() {
   })
   .catch(error => {
     console.error("Error loading user data:", error);
-  });
+    });
+
 }
 
 
 export function displayStats() {
 
-  const interactiveDiv = document.getElementById("interactivePart");
+  history.pushState({ page: 'statistics' }, 'Statistics', '#statistics');
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
-  interactiveDiv.innerHTML = `
-  <h3>Statistiques</h3>
-    <div id="resultats"></div>
-    <button id="viewResultsButton">Vos résultats</button>
+  const appTop = document.getElementById("app_top");
+  appTop.innerHTML = `
+  <h3>Statistics</h3>
+    <button id="viewResultsButton">Your Results</button>
     <br>
     <br>
-    <button id="viewRankingButton">Classement général</button> <!-- Nouveau bouton -->
-    <div id="ranking"></div> <!-- Div pour afficher le classement -->
+    <button id="viewRankingButton">Overall Ranking</button> <!-- Nouveau bouton -->
   `;
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 
+
 }
+
+function displayUserResults(data) {
+  
+  history.pushState({ page: 'userStats' }, 'Users Statistics', '#userStats');
+  //empty all the containers
+  // document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = `
+    <h3>Your Results: </h3>
+    <div id="resultats"></div>
+  `;
+
+  const resultatsDiv = document.getElementById("resultats");
+
+  if (Array.isArray(data) && data.length > 0) {
+    data.forEach((match) => {
+      const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+      const player1 = match.player1_name || "Unknown Player 1";
+      const player2 = match.player2_name || "Unknown Player 2";
+      const winner = match.winner || "In Progress";
+      const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+      const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
+
+      resultatsDiv.innerHTML += `
+        <p>
+          ${date} - ${player1} vs ${player2}
+          <br>
+          Score: ${score}
+          <br>
+          Winner: ${winner}${tournamentInfo}
+          <br>
+        </p>`;
+    });
+  } else {
+    resultatsDiv.innerHTML += "<p>No results found.</p>";
+  }
+
+
+}
+
 
 function fetchResultats() {
   const username = localStorage.getItem("username");
+
   fetch(`/api/results/?user1=${username}`, {
     method: "GET",
     credentials: "include",
@@ -544,27 +428,30 @@ function fetchResultats() {
   })
     .then((response) => response.json())
     .then((data) => {
+      console.log(data); // Pour le débogage
+      displayUserResults(data); // Appelle la fonction pour afficher les résultats
       console.log(data); // Vérifiez ce que vous recevez
-      const appDiv = document.getElementById("app");
+      const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <button id="backButton" class="btn btn-secondary">Retour</button>
-        <h3>Vos résultats :</h3>
-        <div id="resultats"></div>
+        <h3>Your Results:</h3>
+        <div id="results"></div>
       `;
 
-      const resultatsDiv = document.getElementById("resultats");
+      const resultatsDiv = document.getElementById("results");
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((match) => {
-          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Date inconnue";
-          const player1 = match.player1_name || "Joueur 1 inconnu";
-          const player2 = match.player2_name || "Joueur 2 inconnu";
-          const winner = match.winner || "En cours";
+          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+          const player1 = match.player1_name || "Unknown Player 1";
+          const player2 = match.player2_name || "Unknown Player 2";
+          const winner = match.winner || "In Progress";
           const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-          const tournamentInfo = match.tournament ? ` (Tournoi: ${match.tournament_name || 'Inconnu'})` : "";
+          const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
 
           resultatsDiv.innerHTML += `
               <p>
-                  ${date} - ${player1} vs ${player2}
+                  ${date}
+                  <br>
+                  ${player1} vs ${player2}
                   <br>
                   Score: ${score}
                   <br>
@@ -573,12 +460,43 @@ function fetchResultats() {
               </p>`;
         });
       } else {
-        resultatsDiv.innerHTML += "<p>Aucun résultat trouvé.</p>";
+        resultatsDiv.innerHTML += "<p>No results found.</p>";
       }
 
-      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
+
+
+function displayRanking(data) {
+  
+  history.pushState({ page: 'ranking' }, 'Ranking', '#ranking');
+  //empty all the containers
+  // document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = `
+    <h3>Player Ranking:</h3>
+    <div id="ranking"></div>
+  `;
+
+  const rankingDiv = document.getElementById("ranking");
+  if (Array.isArray(data) && data.length > 0) {
+    data.forEach((player) => {
+      const playerName = player.name || "Unknown Name";
+      const totalWins = player.total_wins || 0;
+      rankingDiv.innerHTML += `
+          <p>
+              ${playerName} - Total Wins: ${totalWins}
+          </p>`;
+    });
+  } else {
+    rankingDiv.innerHTML += "<p>No ranking found for this user.</p>";
+  }
+
+}
+
 
 function fetchRanking() {
   fetch("/api/ranking/", {
@@ -590,18 +508,18 @@ function fetchRanking() {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data); // Vérifiez ce que vous recevez
-      const appDiv = document.getElementById("app");
+      console.log(data);
+      displayRanking(data);
+      const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <button id="backButton" class="btn btn-secondary">Retour</button>
-        <h3>Classement des joueurs :</h3>
+        <h3>Player Ranking:</h3>
         <div id="ranking"></div>
       `;
 
       const rankingDiv = document.getElementById("ranking");
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((player) => {
-          const playerName = player.name || "Nom inconnu";
+          const playerName = player.name || "Unknown Name";
           const totalWins = player.total_wins || 0;
           rankingDiv.innerHTML += `
               <p>
@@ -609,45 +527,156 @@ function fetchRanking() {
               </p>`;
         });
       } else {
-        rankingDiv.innerHTML += "<p>Aucun classement trouvé.</p>";
+        rankingDiv.innerHTML += "<p>No ranking found.</p>";
       }
 
-      // Ajoutez un écouteur d'événement pour le bouton de retour
-      document.getElementById("backButton").addEventListener("click", displayStats);
     });
 }
 
-function displayGameForm() {
-
-  const username = localStorage.getItem("username");
-  const interactiveDiv = document.getElementById("interactivePart");
-
-  interactiveDiv.innerHTML = `
-    <h3>Pong Game</h3>
-    <form id="gameForm">
-      <label for="player1">Player 1 Name:</label>
-      <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
-      <label for="player2">Player 2 Name:</label>
-      <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
-      <label for="numberOfGames">Number of Games:</label>
-      <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-      <label for="pointsToWin">Points to Win:</label>
-      <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-      <button type="button" id="startGameButton">Start Game</button>
+function displayGameFormHTML(username) {
+  return `
+    <form id="gameForm" class="w-100">
+      <div class="d-flex justify-content-between align-items-start">
+          <div class="col">
+              <h3>Game Settings</h3>
+              <label>Game Mode:</label>
+              <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
+              <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
+              <br><br>
+              <label>Difficulty:</label>
+              <button class="difficulty-button active btn btn-outline-primary mb-2" id="easy" type="button">Easy</button>
+              <button class="difficulty-button btn btn-outline-primary mb-2" id="medium" type="button">Medium</button>
+              <button class="difficulty-button btn btn-outline-primary mb-2" id="hard" type="button">Hard</button>
+              <br><br>
+              <label>Design:</label>
+              <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
+              <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
+          </div>
+          <div class="col">
+              <h3>Match Settings</h3>
+              <label>Number of Games:</label>
+              <input type="number" id="numberOfGames" value="1" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
+              <label>Sets per Game:</label>
+              <input type="number" id="setsPerGame" value="3" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
+          </div>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-start mt-3">
+          <div class="col">
+              <h3>Player 1</h3>
+              <label>Name:</label>
+              <input type="text" id="player1" value="${username}" class="form-control mb-2" disabled>
+              <br>
+              <label>Control:</label>
+              <select id="control1" class="form-select mb-2">
+                  <option value="arrows" selected>Arrow Keys</option>
+                  <option value="wasd">WASD</option>
+                  <option value="mouse">Mouse</option>
+              </select>
+          </div>
+          <div class="col" id="player2Container">
+              <h3>Player 2</h3>
+              <label>Name:</label>
+              <input type="text" id="player2" value="Bot-AI" class="form-control mb-2" disabled>
+              <br>
+              <div id="control2Container" style="display:none;">
+                  <label>Control:</label>
+                  <select id="control2" class="form-select mb-2">
+                      <option value="wasd" selected>WASD</option>
+                      <option value="arrows" disabled>Arrow Keys</option>
+                      <option value="mouse">Mouse</option>
+                  </select>
+              </div>
+          </div>
+      </div>
+      <div class="text-center mt-3">
+        <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
+      </div>
     </form>
-    <canvas id="pong" width="800" height="400" style="display: none;"></canvas>
-    <div id="game_panel" style="display: none;">
-      <h2>Game Results</h2>
-      <p id="summary"></p>
-    </div>
   `;
-  console.log("Valeur de username dans displayGameForm :", username);
+}
+
+export function displayGameForm() { 
+  history.pushState({ page: 'game' }, 'Game', '#game');
+  //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const username = localStorage.getItem("username") || "Player 1"; // From 'myanez-p' branch
+  localStorage.setItem("context", "solo"); // From HEAD
+  
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = displayGameFormHTML(username);
+
+  console.log("Username value in displayGameForm:", username);
+
+  // Here we add the functionality from 'myanez-p' branch
+  function toggleActiveButton(group, selectedId) {
+      document.querySelectorAll(group).forEach(button => {
+          button.classList.remove("active");
+      });
+      document.getElementById(selectedId).classList.add("active");
+  }
+
+  document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
+      button.addEventListener("click", function() {
+          toggleActiveButton(`.${this.classList[0]}`, this.id);
+      });
+  });
+
+  document.getElementById("onePlayer").addEventListener("click", function() {
+    document.getElementById("player2Container").style.display = "block";
+    document.getElementById("player2").value = "Bot-AI";
+    document.getElementById("player2").disabled = true;
+    document.getElementById("control2Container").style.display = "none";
+
+    document.getElementById("control1").value = "arrows";
+    document.getElementById("control2").value = "wasd";
+
+    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+  });
+
+  document.getElementById("twoPlayers").addEventListener("click", function() {
+    document.getElementById("player2Container").style.display = "block";
+    document.getElementById("player2").value = "player2";
+    document.getElementById("player2").disabled = false;
+    document.getElementById("control2Container").style.display = "block";
+
+    document.getElementById("control1").value = "arrows";
+    document.getElementById("control2").value = "wasd";
+
+    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+
+    document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
+    document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+  });
+
+  document.getElementById("control1").addEventListener("change", function () {
+    const selected = this.value;
+    const control2 = document.getElementById("control2");
+
+    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control2.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
+
+  document.getElementById("control2").addEventListener("change", function () {
+    const selected = this.value;
+    const control1 = document.getElementById("control1");
+
+    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control1.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
 
   document.getElementById("startGameButton").addEventListener("click", () => {
-    const player1 = username;
-    const player2 = document.getElementById("player2").value.trim();
-    const numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
-    const pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 3;
-    startGameSetup(player1, player2, numberOfGames, pointsToWin, "solo");
+      const player1 = username;
+      const player2 = document.getElementById("player2").value.trim();
+      const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
+      const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
+
+      console.log("Start button clicked");
+      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
   });
 }

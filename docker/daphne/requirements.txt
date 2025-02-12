@@ -1,0 +1,11 @@
+Django==5.0.6
+psycopg==3.1.19
+environs==11.0.0
+daphne==4.1.2
+channels==4.1.0
+channels-redis==4.2.0
+djangorestframework==3.15.2
+Pillow==10.4.0
+djangorestframework-simplejwt==5.3.1
+django-filter==24.3
+whitenoise==6.8.2

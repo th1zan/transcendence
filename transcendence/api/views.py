@@ -3,12 +3,11 @@ import os
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
-from asgiref.sync import async_to_sync #for notifications over WebSockets
+from asgiref.sync import async_to_sync  # for notifications over WebSockets
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -25,21 +24,17 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
+from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
+                                                             OutstandingToken)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-from .models import CustomUser, FriendRequest, Notification, Player, PongMatch, PongSet, Tournament, TournamentPlayer
-from .serializers import (
-    PongMatchSerializer,
-    PongSetSerializer,
-    TournamentPlayerSerializer,
-    TournamentSerializer,
-    UserRegisterSerializer,
-)
+from .models import (CustomUser, FriendRequest, Notification, Player,
+                     PongMatch, PongSet, Tournament, TournamentPlayer)
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer,
+                          UserRegisterSerializer)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
 
@@ -79,6 +74,49 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
+    # Optimized get method (but less understandable):
+    # def get(self, request, pk):
+    #     try:
+    #         # Utiliser prefetch_related pour charger les sets associés
+    #         match = (
+    #             PongMatch.objects.select_related("winner", "player1", "player2")
+    #             .prefetch_related(Prefetch("sets", queryset=PongSet.objects.all()))
+    #             .get(pk=pk)
+    #         )
+    #
+    #         serializer = PongMatchSerializer(match)
+    #         return Response(serializer.data)
+    #     except PongMatch.DoesNotExist:
+    #         return Response(
+    #             {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+    #         )
+
+    def get(self, request, pk):
+        try:
+            # Charger le match
+            match = PongMatch.objects.get(pk=pk)
+
+            # Charger les relations une par une
+            winner = match.winner  # Nouvelle requête pour le gagnant
+            player1 = match.player1  # Nouvelle requête pour player1
+            player2 = match.player2  # Nouvelle requête pour player2
+            sets = match.sets.all()  # Nouvelle requête pour les sets
+
+            # Sérialiser le match
+            match_serializer = PongMatchSerializer(match)
+
+            # Sérialiser les sets séparément
+            sets_serializer = PongSetSerializer(sets, many=True)
+
+            # Combiner les données du match et des sets dans une seule réponse
+            response_data = match_serializer.data
+            response_data["sets"] = [set_data for set_data in sets_serializer.data]
+
+            return Response(response_data)
+        except PongMatch.DoesNotExist:
+            return Response(
+                {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def post(self, request):
         match_data = request.data
@@ -294,68 +332,50 @@ class UserRegisterView(APIView):
         logger.info("Received data: %s", request.data)
         serializer = self.serializer_class(data=request.data)
         logger.info("Serializer validation result: %s", serializer.is_valid())
-
-        if serializer.is_valid():
-            username = serializer.validated_data.get("username")
-            privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted", False)
-            #email = serializer.validated_data.get("email", None)  # Email might not be provided
-
-            # Ensure the user has accepted the Privacy Policy
-            if not privacy_policy_accepted:
-                logger.error("Privacy Policy not accepted for user: %s", username)
-                return Response(
-                    {"error": "You must accept the Privacy Policy to register."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Check if the username already exists
-            if CustomUser.objects.filter(username=username).exists():
-                logger.error("Username already exists: %s", username)
-                return Response(
-                    {"error": "Username already exists."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            logger.info("Creating user with data: %s", serializer.validated_data)
-            try:
-                user = CustomUser.objects.create_user(
-                    username=username,
-                    #email=email,  # Pass None if email is not provided
-                    password=serializer.validated_data.get("password"),
-                    privacy_policy_accepted=privacy_policy_accepted,
-
-                )
-                logger.info("User created: %s", user.username)
-
-                # Création du joueur
-                player = Player.objects.create(
-                    user=user,
-                    player=username,
-                )
-                logger.info("Player created for user: %s", user.username)
-
-                return Response(
-                    {"success": "User and player created successfully."},
-                    status=status.HTTP_201_CREATED,
-                )
-            except IntegrityError as e:
-                # This would catch unique constraint errors
-                logger.error("Integrity error creating user or player: %s", str(e))
-                return Response(
-                    {
-                        "error": "Could not create user or player. Email might be already in use."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            except Exception as e:
-                logger.error("Error creating user or player: %s", str(e))
-                return Response(
-                    {"error": "Could not create user or player."},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-        else:
+        
+        # Check if the serializer is valid
+        if not serializer.is_valid():
             logger.error("Validation errors: %s", serializer.errors)
+            # Return detailed error messages from the serializer
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # At this point the serializer is valid so we can create the user
+        try:
+            # Create the user using validated data from the serializer
+            user = CustomUser.objects.create_user(
+                username = serializer.validated_data.get("username"),
+                password=serializer.validated_data.get("password"),
+                privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted")
+                #email = serializer.validated_data.get("email", None)  # Email might not be provided
+            )
+            logger.info("User created: %s", user.username)
+
+            # Création du joueur
+            player = Player.objects.create(
+                user=user,
+                player=serializer.validated_data.get("username"),
+            )
+            logger.info("Player created for user: %s", user.username)
+
+            return Response(
+                {"success": "User and player created successfully."},
+                status=status.HTTP_201_CREATED,
+            )
+        except IntegrityError as e:
+            # This would catch unique constraint errors
+            logger.error("Integrity error creating user or player: %s", str(e))
+            return Response(
+                {
+                    "error": "Could not create user or player. Email might be already in use."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            logger.error("Error creating user or player: %s", str(e))
+            return Response(
+                {"error": "Could not create user or player."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 
 class LogoutView(APIView):
@@ -656,38 +676,49 @@ class FriendsOnlineStatusView(APIView):
             for friend in friends
         ]
 
-        return Response({"friends_status": friends_status}, status=status.HTTP_200_OK)   
+        return Response({"friends_status": friends_status}, status=status.HTTP_200_OK)
+
 
 class SendFriendRequestView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
-        receiver_username = request.data.get('username')
+        receiver_username = request.data.get("username")
         try:
             receiver = CustomUser.objects.get(username=receiver_username)
         except CustomUser.DoesNotExist:
-            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        if FriendRequest.objects.filter(sender=request.user, receiver=receiver, status='pending').exists():
-            return Response({"error": "Friend request already sent."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if FriendRequest.objects.filter(
+            sender=request.user, receiver=receiver, status="pending"
+        ).exists():
+            return Response(
+                {"error": "Friend request already sent."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Create the friend request
-        friend_request = FriendRequest.objects.create(sender=request.user, receiver=receiver)
-        
+        friend_request = FriendRequest.objects.create(
+            sender=request.user, receiver=receiver
+        )
+
         # Create a notification for the receiver
         Notification.objects.create(
-            user=receiver,
-            message=f"{request.user.username} sent you a friend request."
+            user=receiver, message=f"{request.user.username} sent you a friend request."
         )
-        
+
         # (Optional) Push the notification over WebSockets here
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"notifications_{receiver.id}",
             {
                 "type": "send_notification",
-                "content": {"message": f"{request.user.username} sent you a friend request."}
-            }
+                "content": {
+                    "message": f"{request.user.username} sent you a friend request."
+                },
+            },
         )
         return Response({"message": "Friend request sent."}, status=status.HTTP_200_OK)
 
@@ -696,7 +727,9 @@ class ViewFriendRequestsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        friend_requests = FriendRequest.objects.filter(receiver=request.user, status="pending")
+        friend_requests = FriendRequest.objects.filter(
+            receiver=request.user, status="pending"
+        )
         requests_data = [{"sender": fr.sender.username} for fr in friend_requests]
 
         return Response({"requests": requests_data}, status=200)
@@ -710,10 +743,16 @@ class RespondToFriendRequestView(APIView):
         action = request.data.get("action")  # 'accept' or 'decline'
 
         if action not in ["accept", "decline"]:
-            return Response({"error": "Invalid action. Use 'accept' or 'decline'."}, status=400)
+            return Response(
+                {"error": "Invalid action. Use 'accept' or 'decline'."}, status=400
+            )
 
         try:
-            friend_request = FriendRequest.objects.get(sender__username=sender_username, receiver=request.user, status="pending")
+            friend_request = FriendRequest.objects.get(
+                sender__username=sender_username,
+                receiver=request.user,
+                status="pending",
+            )
         except FriendRequest.DoesNotExist:
             return Response({"error": "Friend request not found."}, status=404)
 
@@ -731,39 +770,6 @@ class RespondToFriendRequestView(APIView):
 
         return Response({"message": message}, status=200)
 
-# class ConfirmFriendRequestView(APIView):
-#     permission_classes = [IsAuthenticated]
-    
-#     def post(self, request):
-#         sender_username = request.data.get('username')
-#         try:
-#             sender = CustomUser.objects.get(username=sender_username)
-#         except CustomUser.DoesNotExist:
-#             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-#         try:
-#             friend_request = FriendRequest.objects.get(
-#                 sender=sender,
-#                 receiver=request.user,
-#                 status='pending'
-#             )
-#         except FriendRequest.DoesNotExist:
-#             return Response({"error": "No pending friend request from this user."}, status=status.HTTP_400_BAD_REQUEST)
-        
-#         friend_request.status = 'accepted'
-#         friend_request.save()
-        
-#         # Optionally, update both users’ friend lists (depending on your overall user management)
-        
-#         # Create a notification for the sender
-#         Notification.objects.create(
-#             user=sender,
-#             message=f"{request.user.username} accepted your friend request."
-#         )
-        
-#         # (Optional) Push the notification over WebSockets here
-        
-#         return Response({"message": "Friend request accepted."}, status=status.HTTP_200_OK)
 
 import logging
 
@@ -904,10 +910,37 @@ class TournamentSearchView(APIView):
         name = request.GET.get("name", "")
         tournaments = Tournament.objects.filter(tournament_name__icontains=name)
         data = [
-            {"id": t.id, "tournament_name": t.tournament_name, "date": t.date}
+            {
+                "id": t.id,
+                "tournament_name": t.tournament_name,
+                "date": t.date,
+                "is_finished": t.is_finished,
+            }
             for t in tournaments
         ]
         return JsonResponse(data, safe=False)
+
+
+class UserTournamentsView(APIView):
+    permission_classes = [
+        IsAuthenticated
+    ]  # Assurez-vous que seuls les utilisateurs authentifiés peuvent accéder
+
+    def get(self, request):
+        # Utiliser l'utilisateur connecté pour filtrer les tournois
+        username = request.user.username
+        try:
+            # Supposons que vous avez une relation entre Tournament et Player via TournamentPlayer
+            user_tournaments = Tournament.objects.filter(
+                tournamentplayer__player__user__username=username  # Cette relation dépend de comment vos modèles sont liés
+            ).distinct()  # Utiliser distinct pour éviter les doublons si un utilisateur est dans plusieurs matchs du même tournoi
+
+            serializer = TournamentSerializer(user_tournaments, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class RankingView(APIView):
