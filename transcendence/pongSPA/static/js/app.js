@@ -533,45 +533,150 @@ function fetchRanking() {
     });
 }
 
-export function displayGameForm() { 
+function displayGameFormHTML(username) {
+  return `
+    <form id="gameForm" class="w-100">
+      <div class="d-flex justify-content-between align-items-start">
+          <div class="col">
+              <h3>Game Settings</h3>
+              <label>Game Mode:</label>
+              <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
+              <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
+              <br><br>
+              <label>Difficulty:</label>
+              <button class="difficulty-button active btn btn-outline-primary mb-2" id="easy" type="button">Easy</button>
+              <button class="difficulty-button btn btn-outline-primary mb-2" id="medium" type="button">Medium</button>
+              <button class="difficulty-button btn btn-outline-primary mb-2" id="hard" type="button">Hard</button>
+              <br><br>
+              <label>Design:</label>
+              <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
+              <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
+          </div>
+          <div class="col">
+              <h3>Match Settings</h3>
+              <label>Number of Games:</label>
+              <input type="number" id="numberOfGames" value="1" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
+              <label>Sets per Game:</label>
+              <input type="number" id="setsPerGame" value="3" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
+          </div>
+      </div>
+      
+      <div class="d-flex justify-content-between align-items-start mt-3">
+          <div class="col">
+              <h3>Player 1</h3>
+              <label>Name:</label>
+              <input type="text" id="player1" value="${username}" class="form-control mb-2" disabled>
+              <br>
+              <label>Control:</label>
+              <select id="control1" class="form-select mb-2">
+                  <option value="arrows" selected>Arrow Keys</option>
+                  <option value="wasd">WASD</option>
+                  <option value="mouse">Mouse</option>
+              </select>
+          </div>
+          <div class="col" id="player2Container">
+              <h3>Player 2</h3>
+              <label>Name:</label>
+              <input type="text" id="player2" value="Bot-AI" class="form-control mb-2" disabled>
+              <br>
+              <div id="control2Container" style="display:none;">
+                  <label>Control:</label>
+                  <select id="control2" class="form-select mb-2">
+                      <option value="wasd" selected>WASD</option>
+                      <option value="arrows" disabled>Arrow Keys</option>
+                      <option value="mouse">Mouse</option>
+                  </select>
+              </div>
+          </div>
+      </div>
+      <div class="text-center mt-3">
+        <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
+      </div>
+    </form>
+  `;
+}
 
+export function displayGameForm() { 
   history.pushState({ page: 'game' }, 'Game', '#game');
- //empty all the containers
+  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const username = localStorage.getItem("username");
-  localStorage.setItem("context", "solo");
+  const username = localStorage.getItem("username") || "Player 1"; // From 'myanez-p' branch
+  localStorage.setItem("context", "solo"); // From HEAD
   
   const appMain = document.getElementById("app_main");
-  appMain.innerHTML = `
-  
-  <h3>Pong Game</h3>
-  <form id="gameForm">
-    <label for="player1">Player 1 Name:</label>
-    <input type="text" id="player1" value="${username} (by default)" readonly><br><br>
-    <label for="player2">Player 2 Name:</label>
-    <input type="text" id="player2" value="Bot_AI (by default)"><br><br>
-    <label for="numberOfGames">Number of Games: 2huh</label>
-    <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-    <label for="pointsToWin">Points to Win:</label>
-    <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-    <button type="button" id="startGameButton">Start Game</button>
-  </form>
-  
-  
-  `;
+  appMain.innerHTML = displayGameFormHTML(username);
 
   console.log("Username value in displayGameForm:", username);
-  
-  document.getElementById("startGameButton").addEventListener("click", () => {
-    const player1 = username;
-    const player2 = document.getElementById("player2").value.trim();
-    const numberOfGames = parseInt(document.getElementById("numberOfGames").value) || 1;
-    const pointsToWin = parseInt(document.getElementById("pointsToWin").value) || 3;
-    
-    startGameSetup(player1, player2, numberOfGames, pointsToWin);
+
+  // Here we add the functionality from 'myanez-p' branch
+  function toggleActiveButton(group, selectedId) {
+      document.querySelectorAll(group).forEach(button => {
+          button.classList.remove("active");
+      });
+      document.getElementById(selectedId).classList.add("active");
+  }
+
+  document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
+      button.addEventListener("click", function() {
+          toggleActiveButton(`.${this.classList[0]}`, this.id);
+      });
   });
 
+  document.getElementById("onePlayer").addEventListener("click", function() {
+    document.getElementById("player2Container").style.display = "block";
+    document.getElementById("player2").value = "Bot-AI";
+    document.getElementById("player2").disabled = true;
+    document.getElementById("control2Container").style.display = "none";
+
+    document.getElementById("control1").value = "arrows";
+    document.getElementById("control2").value = "wasd";
+
+    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+  });
+
+  document.getElementById("twoPlayers").addEventListener("click", function() {
+    document.getElementById("player2Container").style.display = "block";
+    document.getElementById("player2").value = "player2";
+    document.getElementById("player2").disabled = false;
+    document.getElementById("control2Container").style.display = "block";
+
+    document.getElementById("control1").value = "arrows";
+    document.getElementById("control2").value = "wasd";
+
+    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+
+    document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
+    document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+  });
+
+  document.getElementById("control1").addEventListener("change", function () {
+    const selected = this.value;
+    const control2 = document.getElementById("control2");
+
+    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control2.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
+
+  document.getElementById("control2").addEventListener("change", function () {
+    const selected = this.value;
+    const control1 = document.getElementById("control1");
+
+    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control1.querySelector(`option[value="${selected}"]`).disabled = true;
+  });
+
+  document.getElementById("startGameButton").addEventListener("click", () => {
+      const player1 = username;
+      const player2 = document.getElementById("player2").value.trim();
+      const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
+      const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
+
+      console.log("Start button clicked");
+      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+  });
 }
