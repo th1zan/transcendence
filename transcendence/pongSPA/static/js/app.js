@@ -12,22 +12,21 @@ import {
   getCookie,
 } from "./auth.js";
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
-import { displayConnectionFormular } from "./login_views.js";
-import { displayWelcomePage } from "./view_menu.js";
+import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
+import { displayWelcomePage } from "./menu.js";
 
-let isUserLoggedIn = true; //false for connection formular
+let isUserLoggedIn = false; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
-  
 
-  // 0. Clear all cookies
-  // document.cookie.split(";").forEach((c) => {
-  //   console.log('clear the cookies');
-  //   document.cookie = c
-  //     .replace(/^ +/, "")
-  //     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  // });
+//  0. Clear all cookies
+  document.cookie.split(";").forEach((c) => {
+    console.log('clear the cookies');
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
   
 
   // 1. Determine the initial route based on user's login status

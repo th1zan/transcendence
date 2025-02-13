@@ -49,7 +49,7 @@ export function displayWelcomePage() {
   appTop.innerHTML = `
     <div class="d-flex justify-content-between align-items-center w-100">
       <div>
-        <h2>Bonjour ${username}</h2>
+        <h2>Welcome back, ${username}</h2>
       </div>
       <div class="align-self-end">
         <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px; height:60%; background-color: red;">
