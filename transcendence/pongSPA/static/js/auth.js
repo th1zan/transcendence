@@ -1,6 +1,6 @@
 import { displayWelcomePage } from "./app.js";
-import { displayConnectionFormular } from "./login_views.js";
-import { displayMenu } from "./view_menu.js";
+import { displayMenu } from "./menu.js";
+import { displayConnectionFormular } from "./login.js";
 
 export function getToken(username, password) {
   const csrftoken = getCookie("csrftoken");

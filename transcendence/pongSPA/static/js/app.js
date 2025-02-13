@@ -1,6 +1,5 @@
 import { startGameSetup } from "./pong.js";
 import { validateToken } from "./auth.js";
-import { displayRegistrationForm} from "./login_views.js";
 import { createTournamentForm, validateSearch, displayUserTournaments } from "./tournament.js";
 import {
   anonymizeAccount,
@@ -14,22 +13,21 @@ import {
   getCookie,
 } from "./auth.js";
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
-import { displayConnectionFormular } from "./login_views.js";
-import { displayMenu } from "./view_menu.js";
+import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
+import { displayMenu } from "./menu.js";
 
 let isUserLoggedIn = false; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
-  
 
-  // 0. Clear all cookies
-  // document.cookie.split(";").forEach((c) => {
-  //   console.log('clear the cookies');
-  //   document.cookie = c
-  //     .replace(/^ +/, "")
-  //     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  // });
+//  0. Clear all cookies
+  document.cookie.split(";").forEach((c) => {
+    console.log('clear the cookies');
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
   
 // 1. Determine the initial route based on the URL hash
   let initialRoute = window.location.hash.replace('#', '') || 'login'; 
@@ -244,7 +242,7 @@ export function displayTournament() {
     <h3>Tournament</h3>
     <br>
     <div class="d-flex align-items-center">
-      <button id="newTournamentButton" class="me-2">New Tournament sfbehb</button>
+      <button id="newTournamentButton" class="me-2">New Tournament</button>
       <div id="searchTournament" class="d-flex align-items-center">
         <button id="tournamentSearchButton" class="btn btn-primary mx-2">Search for Tournament</button>
         <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">

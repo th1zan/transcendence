@@ -1,13 +1,12 @@
-import { getToken } from './auth.js';
+import { getToken, createAccount } from './auth.js';
 
 export function displayConnectionFormular() {
     document.getElementById('app_top').innerHTML = '';
     document.getElementById('app_main').innerHTML = '';
     document.getElementById('app_bottom').innerHTML = '';
   
-  
     const appDiv = document.getElementById("app_main");  appDiv.innerHTML = `
-          <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+      <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
         <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
           <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Welcome Back</h2>
           <form id="loginForm">
@@ -65,6 +64,7 @@ export function displayConnectionFormular() {
 
 // account creation 
 export function displayRegistrationForm() {
+  history.pushState({ page: 'register' }, 'Register', '#register');
     //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -136,6 +136,5 @@ appDiv.innerHTML = `
   document
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
-
 
 }

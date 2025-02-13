@@ -1,6 +1,6 @@
 import { displayGameForm, displayWelcomePage } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
-import { displayMenu } from "./view_menu.js";
+import { displayMenu } from "./menu.js";
 
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 // Variables globales pour suivre les scores et le jeu
