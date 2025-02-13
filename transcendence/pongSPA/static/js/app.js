@@ -536,23 +536,25 @@ function displayGameFormHTML(username) {
   return `
     <form id="gameForm" class="w-100">
       <div class="d-flex justify-content-between align-items-start">
-          <div class="col">
-              <h3>Game Settings</h3>
-              <label>Game Mode:</label>
-              <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
-              <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
-              <br><br>
-              <label>Difficulty:</label>
-              <button class="difficulty-button active btn btn-outline-primary mb-2" id="easy" type="button">Easy</button>
-              <button class="difficulty-button btn btn-outline-primary mb-2" id="medium" type="button">Medium</button>
-              <button class="difficulty-button btn btn-outline-primary mb-2" id="hard" type="button">Hard</button>
-              <br><br>
-              <label>Design:</label>
-              <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
-              <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
-          </div>
-          <div class="col">
-              <h3>Match Settings</h3>
+          <div class="col container p-3">
+              <h3 class="text-center p-2"> Game Settings</h3>
+              <span class="border border-primary rounded p-5">
+                <label>Game Mode:</label>
+                <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
+                <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
+                <br><br>
+                <label>Difficulty:</label>
+                <button class="difficulty-button active btn btn-outline-primary mb-2" id="easy" type="button">Easy</button>
+                <button class="difficulty-button btn btn-outline-primary mb-2" id="medium" type="button">Medium</button>
+                <button class="difficulty-button btn btn-outline-primary mb-2" id="hard" type="button">Hard</button>
+                <br><br>
+                <label>Design:</label>
+                <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
+                <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
+              </span>  
+          </div>          
+        <div class="col container p-3">
+              <h3 class="text-center p-2">Match Settings</h3>
               <label>Number of Games:</label>
               <input type="number" id="numberOfGames" value="1" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
               <label>Sets per Game:</label>
