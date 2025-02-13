@@ -140,7 +140,7 @@ export function displayTournament() {
     <h3>Tournament</h3>
     <br>
     <div class="d-flex align-items-center">
-      <button id="newTournamentButton" class="me-2">New Tournament sfbehb</button>
+      <button id="newTournamentButton" class="me-2">New Tournament</button>
       <div id="searchTournament" class="d-flex align-items-center">
         <button id="tournamentSearchButton" class="btn btn-primary mx-2">Search for Tournament</button>
         <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
