@@ -1,7 +1,7 @@
 
 import { startGameSetup } from "./pong.js";
 import { displayTournament } from "./app.js";
-import { displayWelcomePage } from "./view_menu.js";
+import { displayWelcomePage } from "./menu.js";
 
 
 function displayTournamentGameList(data){
