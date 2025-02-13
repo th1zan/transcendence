@@ -37,7 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let isUserLoggedIn = false;
 
   // 2. Check if the user is logged in.
-  validateToken().then((isTokenValid) => {
+    validateToken().then((isTokenValid) => {
+    console.log('validateToken resolved with:', isTokenValid);
     isUserLoggedIn = isTokenValid;
     if (isUserLoggedIn) {
       console.log('User is logged in based on access token in cookies');
@@ -48,20 +49,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Set initial state based on login status and initial route
     if (isUserLoggedIn && initialRoute === 'login') {
       console.log('User logged in but on login page, redirecting to welcome');
-      initialRoute = 'welcome'; // Update the route before calling handleRouteChange
+      initialRoute = 'welcome'; 
       history.replaceState({ page: 'welcome' }, ' ', '#welcome');
     } else if (!isUserLoggedIn && initialRoute !== 'login') {
       console.log('User not logged in but not on login page, redirecting to login');
-      initialRoute = 'login'; // Update the route before calling handleRouteChange
+      initialRoute = 'login'; 
       history.replaceState({ page: 'login' }, 'Login', '#login');
     }
 
     // Handle the initial route
+    console.log('Calling handleRouteChange with route:', initialRoute);
     handleRouteChange(initialRoute);
   }).catch((error) => {
     console.error('Error checking user login status:', error);
     console.log('User is not logged in due to an error');
-    handleRouteChange('login'); // Assure that we go to login in case of an error
+    handleRouteChange('login');
   });
 
   // 4. Plan the refreshing interval for the authentication Token 
@@ -71,37 +73,37 @@ document.addEventListener("DOMContentLoaded", () => {
   // 5. Listener for history changes
     window.addEventListener("popstate", function(event) {
     console.log('Popstate event triggered. Current state:', event.state);
-    const route = event.state ? event.state.page : (customHistory.length > 0 ? customHistory[customHistory.length - 1] : 'welcome');
+    let route;
+    if (event.state) {
+      route = event.state.page;
+    } else {
+      // Si event.state est null, on utilise l'URL hash
+      route = window.location.hash.replace('#', '') || 'welcome';
+    }
     console.log('Navigating to route:', route);
     console.log('Custom History:', customHistory);
     handleRouteChange(route);
-  });
+    });
 });
 
-
-
-// Fonction pour afficher l'historique complet
-function displayFullHistory() {
-  console.log('Full History:', history);
-  // Notez que l'accès direct à history.state n'est pas possible ici car il ne contient que l'état actuel,
-  // mais vous pouvez afficher les informations disponibles sur l'objet history
-}
 
 // Variable pour stocker l'historique des routes
 let customHistory = [];
 
 // Fonction pour ajouter à l'historique personnalisé
 function addToCustomHistory(route) {
-  customHistory.push(route);
+  if (customHistory[customHistory.length - 1] !== route) {
+    customHistory.push(route);
+  }
   console.log('Custom History updated:', customHistory);
 }
 
 // Fonction pour naviguer et mettre à jour l'UI
-function navigateTo(route) {
+export function navigateTo(route) {
   console.log('Navigating to:', route);
   history.pushState({ page: route }, '', `#${route}`);
   console.log('pushstate: ', history.state);
-  addToCustomHistory(route); // Ajoute la route à votre historique personnalisé
+  addToCustomHistory(route);
   handleRouteChange(route);
 }
 
@@ -114,17 +116,18 @@ function updateUI(routeFunction) {
   routeFunction();
 }
 
-// Modification de handleRouteChange pour utiliser updateUI
 function handleRouteChange(route) {
-  console.log('Handling route change for:', route);
+  console.log('handleRouteChange called with route:', route);
   addToCustomHistory(route);
   
   validateToken().then((isTokenValid) => {
+    console.log('Token validation in handleRouteChange:', isTokenValid);
     isUserLoggedIn = isTokenValid;
     
     const publicRoutes = ['login', 'register'];
     
     if (publicRoutes.includes(route) || (isUserLoggedIn)) {
+      console.log('Route is public or user is logged in');
       switch(route) {
         case 'login':
           if (!isUserLoggedIn) {
@@ -168,12 +171,12 @@ function handleRouteChange(route) {
             updateUI(displayWelcomePage);
           }
       }
-    } else {
+   } else {
       console.log('User not logged in, redirecting to login');
       navigateTo('login');
     }
   }).catch((error) => {
-    console.error('Error validating token during route change:', error);
+    console.error('error validating token during route change:', error);
     navigateTo('login');
   });
 }
@@ -237,6 +240,7 @@ export function displayWelcomePage() {
 
 export function displayTournament() {
 
+      console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <h3>Tournament</h3>

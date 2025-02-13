@@ -30,6 +30,7 @@ export function getToken(username, password) {
         localStorage.setItem("username", username); // Stocker le nom d'utilisateur
         displayMenu();
         displayWelcomePage()
+        navigateTo('welcome');
       } else {
         alert("Connection error. Please retry.");
       }

@@ -1,10 +1,5 @@
-import { displayGameForm } from './app.js';
-import { displayTournament } from './app.js';
-import { displayStats } from './app.js';
-import { displayFriends } from './app.js';
-import { displaySettings } from './app.js';
 import { logout } from './auth.js';
-import { displayWelcomePage } from "./app.js";
+import { navigateTo } from "./app.js";
 
 
 export function displayMenu() {
@@ -66,29 +61,29 @@ export function displayMenu() {
   //   </div>
   //  `;
 
-   document.getElementById("welcomeButton").addEventListener("click", function() {
-    displayWelcomePage();
-  });
+document.getElementById("welcomeButton").addEventListener("click", function() {
+  navigateTo('welcome');
+});
 
-  document.getElementById("playButton").addEventListener("click", function() {
-    displayGameForm();
-  });
+document.getElementById("playButton").addEventListener("click", function() {
+  navigateTo('game');
+});
 
-  document.getElementById("tournamentButton").addEventListener("click", function() {
-    displayTournament();
-  });
+document.getElementById("tournamentButton").addEventListener("click", function() {
+  navigateTo('tournament');
+});
 
-  document.getElementById("statsButton").addEventListener("click", function() {
-    displayStats();
-  });
+document.getElementById("statsButton").addEventListener("click", function() {
+  navigateTo('stats');
+});
 
-  document.getElementById("friendsButton").addEventListener("click", function() {
-    displayFriends();
-  });
+document.getElementById("friendsButton").addEventListener("click", function() {
+  navigateTo('friends');
+});
 
-  document.getElementById("settingsButton").addEventListener("click", function() {
-    displaySettings();
-  });
+document.getElementById("settingsButton").addEventListener("click", function() {
+  navigateTo('settings');
+});
 
  
 
