@@ -28,7 +28,7 @@ export function getToken(username, password) {
         //   console.log(localStorage.getItem("access_token"));
         //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
         localStorage.setItem("username", username); // Stocker le nom d'utilisateur
-        displayInteractiveMenu();
+        // displayInteractiveMenu();
         displayWelcomePage();
       } else {
         alert("Connection error. Please retry.");

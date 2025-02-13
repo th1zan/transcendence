@@ -1,4 +1,5 @@
 import { getToken } from './auth.js';
+import { createAccount } from "./auth.js";
 
 export function displayConnectionFormular() {
     history.pushState({ page: 'login' }, '', '#login');
