@@ -1,6 +1,6 @@
-// import { displayWelcomePage } from "./app.js";
+import { displayWelcomePage } from "./app.js";
 import { displayConnectionFormular } from "./login_views.js";
-import { displayWelcomePage } from "./view_menu.js";
+import { displayMenu } from "./view_menu.js";
 
 export function getToken(username, password) {
   const csrftoken = getCookie("csrftoken");
@@ -28,7 +28,8 @@ export function getToken(username, password) {
         //   console.log(localStorage.getItem("access_token"));
         //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
         localStorage.setItem("username", username); // Stocker le nom d'utilisateur
-        displayWelcomePage();
+        displayMenu();
+        displayWelcomePage()
       } else {
         alert("Connection error. Please retry.");
       }
@@ -80,6 +81,7 @@ export function refreshToken() {
 }
 
 export function logout() {
+
   const confirmLogout = confirm("Are you sure you want to log out?");
   if (!confirmLogout) return;
 
@@ -289,4 +291,43 @@ export function updateProfile() {
       console.error("Error updating profile:", error);
       alert("An error occurred: " + error.message);
     });
+}
+
+
+
+export function validateToken() {
+  // Vérifie si le username est dans le localStorage
+  const username = localStorage.getItem('username');
+  if (!username) {
+    console.log('No username found in localStorage, token validation skipped.');
+    return Promise.resolve(false); // Retourne une promesse résolue avec false si le username n'est pas trouvé
+  }
+
+  // Si le username est présent, on demande au serveur de vérifier le token
+  return fetch("/api/auth/validate/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.valid) {
+      console.log('Token is valid');
+      return true;
+    } else {
+      console.log('Token validation failed');
+      return false;
+    }
+  })
+  .catch(error => {
+    console.error('Error validating token:', error);
+    return false;
+  });
 }

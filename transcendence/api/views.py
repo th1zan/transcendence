@@ -1,13 +1,17 @@
 import logging
 import os
+import time
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
+import jwt
+from api.authentication import CookieJWTAuthentication
 from asgiref.sync import async_to_sync  # for notifications over WebSockets
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
+
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -24,21 +28,33 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
-                                                             OutstandingToken)
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import (CustomUser, FriendRequest, Notification, Player,
-                     PongMatch, PongSet, Tournament, TournamentPlayer)
-from .serializers import (PongMatchSerializer, PongSetSerializer,
-                          TournamentPlayerSerializer, TournamentSerializer,
-                          UserRegisterSerializer)
+from .models import (
+    CustomUser,
+    FriendRequest,
+    Notification,
+    Player,
+    PongMatch,
+    PongSet,
+    Tournament,
+    TournamentPlayer,
+)
+from .serializers import (
+    PongMatchSerializer,
+    PongSetSerializer,
+    TournamentPlayerSerializer,
+    TournamentSerializer,
+    UserRegisterSerializer,
+)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
-
-# Le reste de votre code...logger = logging.getLogger(__name__)
 
 
 class PongMatchList(generics.ListCreateAPIView):
@@ -332,7 +348,7 @@ class UserRegisterView(APIView):
         logger.info("Received data: %s", request.data)
         serializer = self.serializer_class(data=request.data)
         logger.info("Serializer validation result: %s", serializer.is_valid())
-        
+
         # Check if the serializer is valid
         if not serializer.is_valid():
             logger.error("Validation errors: %s", serializer.errors)
@@ -342,10 +358,12 @@ class UserRegisterView(APIView):
         try:
             # Create the user using validated data from the serializer
             user = CustomUser.objects.create_user(
-                username = serializer.validated_data.get("username"),
+                username=serializer.validated_data.get("username"),
                 password=serializer.validated_data.get("password"),
-                privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted")
-                #email = serializer.validated_data.get("email", None)  # Email might not be provided
+                privacy_policy_accepted=serializer.validated_data.get(
+                    "privacy_policy_accepted"
+                ),
+                # email = serializer.validated_data.get("email", None)  # Email might not be provided
             )
             logger.info("User created: %s", user.username)
 
@@ -375,7 +393,6 @@ class UserRegisterView(APIView):
                 {"error": "Could not create user or player."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 
 class LogoutView(APIView):
@@ -771,8 +788,6 @@ class RespondToFriendRequestView(APIView):
         return Response({"message": message}, status=200)
 
 
-import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -945,7 +960,7 @@ class UserTournamentsView(APIView):
 
 class RankingView(APIView):
     def get(self, request):
-        # Calculer le nombre de victoires pour chaque joueur
+        # Calculer le nombre de victoires poCookieJWTAuthenticationur chaque joueur
         players = Player.objects.all()
         ranking_data = []
 
@@ -976,3 +991,55 @@ def check_user_exists(request):
         )
     except CustomUser.DoesNotExist:
         return JsonResponse({"exists": False})
+
+
+class CustomTokenValidateView(APIView):
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        # Extraire le token du cookie
+        token = request.COOKIES.get("access_token")
+        if not token:
+            logger.warning("No access token found in cookies.")
+            return Response(
+                {"detail": "Access token not provided."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Ajouter le token à l'en-tête d'autorisation manuellement si nécessaire
+        # Cela pourrait être fait dans un middleware ou avant d'appeler cette vue
+        request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+
+        try:
+            # La validation est déjà effectuée par JWTAuthentication, donc si on est ici,
+            # cela signifie que le token est valide. Cependant, on peut ajouter plus de vérifications si nécessaire.
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+            # Vérifier si le token n'a pas expiré
+            if payload.get("exp") <= int(time.time()):
+                logger.warning("Token has expired.")
+                return Response(
+                    {"detail": "Token has expired."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+            # Si nous sommes ici, le token est valide
+            logger.info("Token validation successful.")
+            return Response(
+                {"detail": "Token is valid.", "valid": True}, status=status.HTTP_200_OK
+            )
+
+        except jwt.ExpiredSignatureError:
+            logger.warning("Expired signature error.")
+            return Response(
+                {"detail": "Signature has expired."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except jwt.InvalidTokenError:
+            logger.warning("Invalid token error.")
+            return Response(
+                {"detail": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED
+            )

@@ -3,15 +3,32 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
-from .views import (AnonymizeAccountView, CustomTokenObtainPairView,
-                    CustomTokenRefreshView, CustomUser, DeleteAccountView,
-                    FriendsOnlineStatusView, ListFriendsView, LogoutView,
-                    PongMatchDetail, PongMatchList, PongScoreView, RankingView,
-                    RemoveFriendView, RespondToFriendRequestView,
-                    SendFriendRequestView, TournamentCreationView,
-                    TournamentMatchesView, TournamentSearchView,
-                    UploadAvatarView, UserDetailView, UserRegisterView,
-                    UserTournamentsView, ViewFriendRequestsView)
+from .views import (
+    AnonymizeAccountView,
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
+    CustomTokenValidateView,
+    CustomUser,
+    DeleteAccountView,
+    FriendsOnlineStatusView,
+    ListFriendsView,
+    LogoutView,
+    PongMatchDetail,
+    PongMatchList,
+    PongScoreView,
+    RankingView,
+    RemoveFriendView,
+    RespondToFriendRequestView,
+    SendFriendRequestView,
+    TournamentCreationView,
+    TournamentMatchesView,
+    TournamentSearchView,
+    UploadAvatarView,
+    UserDetailView,
+    UserRegisterView,
+    UserTournamentsView,
+    ViewFriendRequestsView,
+)
 
 urlpatterns = [
     path("user/tournaments/", UserTournamentsView.as_view(), name="user-tournaments"),
@@ -22,6 +39,7 @@ urlpatterns = [
     path("auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
+    path("auth/validate/", CustomTokenValidateView.as_view(), name="token_validate"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
     path(
         "auth/anonymize-account/",

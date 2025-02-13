@@ -1,7 +1,6 @@
 import { getToken } from './auth.js';
 
 export function displayConnectionFormular() {
-    history.pushState({ page: 'login' }, '', '#login');
     document.getElementById('app_top').innerHTML = '';
     document.getElementById('app_main').innerHTML = '';
     document.getElementById('app_bottom').innerHTML = '';
@@ -66,7 +65,6 @@ export function displayConnectionFormular() {
 
 // account creation 
 export function displayRegistrationForm() {
-  history.pushState({ page: 'register' }, 'Register', '#register');
     //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
