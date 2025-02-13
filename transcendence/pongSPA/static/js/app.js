@@ -15,7 +15,7 @@ import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendReq
 import { displayConnectionFormular } from "./login_views.js";
 import { displayWelcomePage } from "./view_menu.js";
 
-let isUserLoggedIn = false; //false for connection formular
+let isUserLoggedIn = true; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:

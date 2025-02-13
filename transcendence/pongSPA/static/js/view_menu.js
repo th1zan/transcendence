@@ -45,7 +45,7 @@ export function displayWelcomePage() {
 
   const appTop = document.getElementById('app_top');
   // appTop.className = "p-1 d-flex rounded";
-  appTop.style.backgroundColor = 'rgba(114,125, 123)'; // Bleu semi-transparent (anciennement bg-primary)
+  appTop.style.backgroundColor = 'rgba(114,125, 0)'; // Bleu semi-transparent (anciennement bg-primary)
   appTop.innerHTML = `
     <div class="d-flex justify-content-between align-items-center w-100">
       <div>
