@@ -5,6 +5,7 @@ from django.urls import path
 from . import views
 from .views import (
     AnonymizeAccountView,
+    AuthenticatePlayerView,
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
     CustomTokenValidateView,
@@ -21,13 +22,16 @@ from .views import (
     RespondToFriendRequestView,
     SendFriendRequestView,
     TournamentCreationView,
+    TournamentFinalizationView,
     TournamentMatchesView,
+    TournamentPlayersView,
     TournamentSearchView,
     UploadAvatarView,
     UserDetailView,
     UserRegisterView,
     UserTournamentsView,
     ViewFriendRequestsView,
+    check_player_exists,
 )
 
 urlpatterns = [
@@ -69,13 +73,30 @@ urlpatterns = [
     ),  # Accept/Decline reques
     path("tournament/new/", TournamentCreationView.as_view(), name="new_tournament"),
     path(
+        "tournament/finalize/<int:tournament_id>/",
+        TournamentFinalizationView.as_view(),
+        name="finalize_tournament",
+    ),
+    path(
+        "tournament/players/<int:tournament_id>/",
+        TournamentPlayersView.as_view(),
+        name="tournament_players",
+    ),
+    path(
         "tournament/matches/",
         TournamentMatchesView.as_view(),
         name="tournament_matches",
     ),
+    path(
+        "tournament/authenticate-player/<int:tournament_id>/",
+        AuthenticatePlayerView.as_view(),
+        name="authenticate_player",
+    ),
     path("user/exists/", views.check_user_exists, name="check_user_exists"),
+    path("player/exists/", check_player_exists, name="check_player_exists"),
     path("ranking/", RankingView.as_view(), name="ranking"),
     path("tournaments/", TournamentSearchView.as_view(), name="search_tournaments"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 # This ensures that media folder (which can also be mounted as a volume in production setups) is properly linked to Django project.

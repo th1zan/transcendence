@@ -12,9 +12,15 @@ class CustomUser(AbstractUser):
     email = models.EmailField(max_length=255, blank=True, null=True)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=15, unique=True, blank=True, null=True)  # We might use phone number for 2FA
-    avatar = models.ImageField(upload_to="avatars/", default='avatars/default.png', blank=True, null=True) # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
-    friends = models.ManyToManyField("self", symmetrical=True, blank=True)  # Friend list (Many-to-Many)
+    phone_number = models.CharField(
+        max_length=15, unique=True, blank=True, null=True
+    )  # We might use phone number for 2FA
+    avatar = models.ImageField(
+        upload_to="avatars/", default="avatars/default.png", blank=True, null=True
+    )  # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
+    friends = models.ManyToManyField(
+        "self", symmetrical=True, blank=True
+    )  # Friend list (Many-to-Many)
     privacy_policy_accepted = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
@@ -32,11 +38,28 @@ class CustomUser(AbstractUser):
         return self.username  # Display username as user identifier
 
 
+# class Player(models.Model):
+#     user = models.OneToOneField(
+#         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+#     )
+#     player = models.CharField(max_length=20, unique=True)
+#
+#     def __str__(self):
+#         return self.user.username if self.user else self.player
+#
+#     @property
+#     def is_guest(self):
+#         return self.user is None
+
+
 class Player(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
     player = models.CharField(max_length=20, unique=True)
+    authenticated = models.BooleanField(
+        default=False
+    )  # New field for authentication status
 
     def __str__(self):
         return self.user.username if self.user else self.player
@@ -61,9 +84,19 @@ class Tournament(models.Model):
         return self.tournament_name
 
 
+# class TournamentPlayer(models.Model):
+#     player = models.ForeignKey(Player, on_delete=models.CASCADE)
+#     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return f"{self.player} in {self.tournament}"
+
+
 class TournamentPlayer(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    authenticated = models.BooleanField(default=False)
+    guest = models.BooleanField(default=False)  # New field for guest status
 
     def __str__(self):
         return f"{self.player} in {self.tournament}"
