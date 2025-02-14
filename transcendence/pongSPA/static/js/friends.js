@@ -37,6 +37,7 @@ export function sendFriendRequest(friendUsername) {
 			alert("Error: " + data.error);
 			} else {
 			alert(`Friend request sent to ${friendUsername}.`);
+			// alert(data.message);
 			}
 		})
 		.catch((error) => {
@@ -48,6 +49,32 @@ export function sendFriendRequest(friendUsername) {
 		console.error("Error fetching friend list:", error);
 		alert("An error occurred while checking friend status.");
 	});
+}
+
+
+export function respondToFriendRequest(friendUsername, action) {
+	fetch("/api/friends/respond/", {  
+	  method: "POST",
+	  headers: {
+		"Content-Type": "application/json",
+	  },
+	  credentials: "include",
+	  body: JSON.stringify({ username: friendUsername, action: action }), // 'accept' or 'decline'
+	})
+	  .then((response) => response.json())
+	  .then((data) => {
+		if (data.error) {
+		  alert("Error: " + data.error);
+		} else {
+		  alert(data.message);
+		  fetchFriendRequests(); // Refresh the friend request list
+          fetchFriends(); // refresh the friend list
+		}
+	  })
+	  .catch((error) => {
+		console.error("Error responding to friend request:", error);
+		alert("An error occurred.");
+	  });
 }
 
 export function removeFriend(friendUsername) {
@@ -76,36 +103,9 @@ export function removeFriend(friendUsername) {
 		console.error("Error removing friend:", error);
 		alert("An error occurred.");
 	  });
-  }
+}
 
-
-export function respondToFriendRequest(friendUsername, action) {
-	fetch("/api/friends/respond/", {  
-	  method: "POST",
-	  headers: {
-		"Content-Type": "application/json",
-	  },
-	  credentials: "include",
-	  body: JSON.stringify({ username: friendUsername, action: action }), // 'accept' or 'decline'
-	})
-	  .then((response) => response.json())
-	  .then((data) => {
-		if (data.error) {
-		  alert("Error: " + data.error);
-		} else {
-		  alert(data.message);
-		  fetchFriendRequests(); // Refresh the friend request list
-          fetchFriends(); // refresh the friend list
-		}
-	  })
-	  .catch((error) => {
-		console.error("Error responding to friend request:", error);
-		alert("An error occurred.");
-	  });
-  }
-
-
-  export function fetchFriendRequests() {
+export function fetchFriendRequests() {
 	fetch("/api/friends/requests/", {
 	  method: "GET",
 	  credentials: "include",
@@ -144,7 +144,7 @@ export function respondToFriendRequest(friendUsername, action) {
 		});
 	  })
 	  .catch(error => console.error("Error fetching friend requests:", error));
-  }
+}
 
 export function fetchFriends() {
 	fetch("/api/friends/list/", {
@@ -195,4 +195,4 @@ export function fetchFriends() {
 	  .catch((error) => console.error("Error fetching friend statuses:", error));
     })
 	.catch((error) => console.error("Error fetching friends:", error));
-  }
+}

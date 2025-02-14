@@ -589,39 +589,39 @@ class UploadAvatarView(APIView):
         )
 
 
-class AddFriendView(APIView):
-    permission_classes = [IsAuthenticated]
+# class AddFriendView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        friend_username = request.data.get("username")
-        if not friend_username:
-            return Response(
-                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+#     def post(self, request):
+#         friend_username = request.data.get("username")
+#         if not friend_username:
+#             return Response(
+#                 {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
+#             )
 
-        # Ensure consistency: Use `CustomUser` instead of `User`
-        friend_user = get_object_or_404(CustomUser, username=friend_username)
-        current_user = request.user  # Current authenticated user
+#         # Ensure consistency: Use `CustomUser` instead of `User`
+#         friend_user = get_object_or_404(CustomUser, username=friend_username)
+#         current_user = request.user  # Current authenticated user
 
-        # Prevent adding oneself
-        if current_user == friend_user:
-            return Response(
-                {"error": "You cannot add yourself as a friend."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#         # Prevent adding oneself
+#         if current_user == friend_user:
+#             return Response(
+#                 {"error": "You cannot add yourself as a friend."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
 
-        # Check if they are already friends
-        if friend_user in current_user.friends.all():
-            return Response({"message": "Already friends."}, status=status.HTTP_200_OK)
+#         # Check if they are already friends
+#         if friend_user in current_user.friends.all():
+#             return Response({"message": "Already friends."}, status=status.HTTP_200_OK)
 
-        # Add each other as friends (symmetrical relationship)
-        current_user.friends.add(friend_user)
-        friend_user.friends.add(current_user)
+#         # Add each other as friends (symmetrical relationship)
+#         current_user.friends.add(friend_user)
+#         friend_user.friends.add(current_user)
 
-        return Response(
-            {"message": f"{friend_username} added as a friend."},
-            status=status.HTTP_200_OK,
-        )
+#         return Response(
+#             {"message": f"{friend_username} added as a friend."},
+#             status=status.HTTP_200_OK,
+#         )
 
 
 class ListFriendsView(APIView):
@@ -639,9 +639,7 @@ class RemoveFriendView(APIView):
     def delete(self, request):
         friend_username = request.data.get("username")
         if not friend_username:
-            return Response(
-                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get the current authenticated user
         current_user = request.user
@@ -703,7 +701,7 @@ class SendFriendRequestView(APIView):
             return Response(
                 {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
+        # Check if friend request is already sent
         if FriendRequest.objects.filter(
             sender=request.user, receiver=receiver, status="pending"
         ).exists():
@@ -711,7 +709,14 @@ class SendFriendRequestView(APIView):
                 {"error": "Friend request already sent."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        
+        # Check if they are already friends
+        if receiver in request.user.friends.all():
+            return Response(
+                {"error": "You are already friends with this user."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         # Create the friend request
         friend_request = FriendRequest.objects.create(
             sender=request.user, receiver=receiver
