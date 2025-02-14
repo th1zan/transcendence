@@ -15,6 +15,8 @@ import {
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayMenu } from "./menu.js";
+import { loadPrivacyPolicyModal } from "./privacy_policy.js";
+
 
 let isUserLoggedIn = false; //false for connection formular
 
@@ -28,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/^ +/, "")
       .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
   });
+
+  loadPrivacyPolicyModal();
   
 // 1. Determine the initial route based on the URL hash
   let initialRoute = window.location.hash.replace('#', '') || 'login'; 

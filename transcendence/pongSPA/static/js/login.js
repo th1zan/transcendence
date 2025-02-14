@@ -100,7 +100,7 @@ appDiv.innerHTML = `
       <div class="form-check mb-4">
         <input type="checkbox" id="privacyPolicyAccepted" required />
         <label for="privacyPolicyAccepted">
-          I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+          I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
         </label>
       </div>
       <button 
