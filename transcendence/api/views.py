@@ -649,13 +649,6 @@ class RemoveFriendView(APIView):
         # Get the friend user safely
         friend_user = get_object_or_404(CustomUser, username=friend_username)
 
-        # Prevent removing oneself
-        if current_user == friend_user:
-            return Response(
-                {"error": "You cannot remove yourself."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         # Check if they are actually friends
         if friend_user not in current_user.friends.all():
             return Response(
@@ -666,7 +659,10 @@ class RemoveFriendView(APIView):
         # Remove each other as friends (symmetrical relationship)
         current_user.friends.remove(friend_user)
         friend_user.friends.remove(current_user)
-
+        # Delete any pending requests between these users
+        FriendRequest.objects.filter(sender=current_user, receiver=friend_user).delete()
+        FriendRequest.objects.filter(sender=friend_user, receiver=current_user).delete()
+        
         return Response(
             {"message": f"{friend_username} has been removed from your friend list."},
             status=status.HTTP_200_OK,
@@ -759,7 +755,7 @@ class RespondToFriendRequestView(APIView):
         sender_username = request.data.get("username")
         action = request.data.get("action")  # 'accept' or 'decline'
 
-        if action not in ["accept", "decline"]:
+        if not sender_username or action not in ["accept", "decline"]:
             return Response(
                 {"error": "Invalid action. Use 'accept' or 'decline'."}, status=400
             )
