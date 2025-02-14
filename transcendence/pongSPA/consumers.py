@@ -58,4 +58,7 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
 
     # This method is called when a notification needs to be sent
     async def send_notification(self, event):
-        await self.send_json(event["content"])
+        await self.send_json({
+            "message": event["content"]["message"],
+            "notification_type": event["content"]["notification_type"],  # Ensure WebSocket forwards this
+        })
