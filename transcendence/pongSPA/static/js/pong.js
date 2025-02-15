@@ -1,6 +1,6 @@
-import { displayGameForm } from "./app.js";
+import { displayGameForm, displayWelcomePage } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
-import { displayWelcomePage } from "./menu.js";
+import { displayMenu } from "./menu.js";
 
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 // Variables globales pour suivre les scores et le jeu
@@ -100,7 +100,8 @@ function updateGamePanel() {
           DisplayTournamentGame();
         } else if (context === "solo") {
           const username = localStorage.getItem("username");
-          displayWelcomePage(username);
+          displayMenu(username);
+          displayWelcomePage()
         }
       };
       gamePanel.appendChild(quitButton);

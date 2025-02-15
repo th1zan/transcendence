@@ -1,53 +1,54 @@
 import { getToken, createAccount } from './auth.js';
 
+
+// login
 export function displayConnectionFormular() {
-    history.pushState({ page: 'login' }, '', '#login');
     document.getElementById('app_top').innerHTML = '';
     document.getElementById('app_main').innerHTML = '';
     document.getElementById('app_bottom').innerHTML = '';
-  
+
     const appDiv = document.getElementById("app_main");  appDiv.innerHTML = `
-      <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+      <div class="d-flex justify-content-center align-items-center mx-auto" style="min-height: 75vh;">
         <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
           <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Welcome Back</h2>
           <form id="loginForm">
             <div class="form-group mb-4">
               <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Username</label>
-              <input 
-                type="text" 
-                id="username" 
-                class="form-control form-control-lg" 
-                placeholder="Enter your username" 
-                required 
+              <input
+                type="text"
+                id="username"
+                class="form-control form-control-lg"
+                placeholder="Enter your username"
+                required
               />
             </div>
             <div class="form-group mb-5">
               <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Password</label>
-              <input 
-                type="password" 
-                id="password" 
-                class="form-control form-control-lg" 
-                placeholder="Enter your password" 
-                required 
+              <input
+                type="password"
+                id="password"
+                class="form-control form-control-lg"
+                placeholder="Enter your password"
+                required
               />
             </div>
-            <button 
-              type="submit" 
-              class="btn btn-success w-100 py-3" 
+            <button
+              type="submit"
+              class="btn btn-success w-100 py-3"
               style="font-size: 1.3rem;">
               Sign In
             </button>
           </form>
-          <button 
-            id="signupButton" 
-            class="btn btn-primary w-100 mt-4 py-3" 
+          <button
+            id="signupButton"
+            class="btn btn-primary w-100 mt-4 py-3"
             style="font-size: 1.3rem;">
             Create Account
           </button>
         </div>
       </div>
       `;
-  
+
     document
       .getElementById("loginForm")
       .addEventListener("submit", function (event) {
@@ -56,14 +57,14 @@ export function displayConnectionFormular() {
         const password = document.getElementById("password").value;
         getToken(username, password);
       });
-  
+
     document
       .getElementById("signupButton")
       .addEventListener("click", displayRegistrationForm);
-  
+
   }
 
-// account creation 
+// account creation
 export function displayRegistrationForm() {
   history.pushState({ page: 'register' }, 'Register', '#register');
     //empty all the containers
@@ -75,43 +76,43 @@ export function displayRegistrationForm() {
 const appDiv = document.getElementById("app_main");
 appDiv.innerHTML = `
 <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
-  <div class="card p-5 shadow-lg" style="width: 30rem;">
+  <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
     <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
     <form id="signupForm">
       <div class="form-group mb-4">
         <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
-        <input 
-          type="text" 
-          id="newUsername" 
-          class="form-control form-control-lg" 
-          placeholder="Enter your username" 
-          required 
+        <input
+          type="text"
+          id="newUsername"
+          class="form-control form-control-lg"
+          placeholder="Enter your username"
+          required
         />
       </div>
       <div class="form-group mb-5">
         <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
-        <input 
-          type="password" 
-          id="newPassword" 
-          class="form-control form-control-lg" 
-          placeholder="Enter your password" 
-          required 
+        <input
+          type="password"
+          id="newPassword"
+          class="form-control form-control-lg"
+          placeholder="Enter your password"
+          required
         />
       </div>
       <div class="form-check mb-4">
         <input type="checkbox" id="privacyPolicyAccepted" required />
         <label for="privacyPolicyAccepted">
-          I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+          I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
         </label>
       </div>
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         class="btn btn-success w-100 py-3 h5">
         Create Account
       </button>
     </form>
-    <button 
-      id="backToLoginButton" 
+    <button
+      id="backToLoginButton"
       class="btn btn-primary w-100 mt-4 py-3 h5">
       Back to Login
     </button>

@@ -1,13 +1,17 @@
 import logging
 import os
+import time
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
+import jwt
+from api.authentication import CookieJWTAuthentication
 from asgiref.sync import async_to_sync  # for notifications over WebSockets
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
+
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -24,21 +28,33 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
-                                                             OutstandingToken)
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import (CustomUser, FriendRequest, Notification, Player,
-                     PongMatch, PongSet, Tournament, TournamentPlayer)
-from .serializers import (PongMatchSerializer, PongSetSerializer,
-                          TournamentPlayerSerializer, TournamentSerializer,
-                          UserRegisterSerializer)
+from .models import (
+    CustomUser,
+    FriendRequest,
+    Notification,
+    Player,
+    PongMatch,
+    PongSet,
+    Tournament,
+    TournamentPlayer,
+)
+from .serializers import (
+    PongMatchSerializer,
+    PongSetSerializer,
+    TournamentPlayerSerializer,
+    TournamentSerializer,
+    UserRegisterSerializer,
+)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
-
-# Le reste de votre code...logger = logging.getLogger(__name__)
 
 
 class PongMatchList(generics.ListCreateAPIView):
@@ -332,7 +348,7 @@ class UserRegisterView(APIView):
         logger.info("Received data: %s", request.data)
         serializer = self.serializer_class(data=request.data)
         logger.info("Serializer validation result: %s", serializer.is_valid())
-        
+
         # Check if the serializer is valid
         if not serializer.is_valid():
             logger.error("Validation errors: %s", serializer.errors)
@@ -342,10 +358,12 @@ class UserRegisterView(APIView):
         try:
             # Create the user using validated data from the serializer
             user = CustomUser.objects.create_user(
-                username = serializer.validated_data.get("username"),
+                username=serializer.validated_data.get("username"),
                 password=serializer.validated_data.get("password"),
-                privacy_policy_accepted = serializer.validated_data.get("privacy_policy_accepted")
-                #email = serializer.validated_data.get("email", None)  # Email might not be provided
+                privacy_policy_accepted=serializer.validated_data.get(
+                    "privacy_policy_accepted"
+                ),
+                # email = serializer.validated_data.get("email", None)  # Email might not be provided
             )
             logger.info("User created: %s", user.username)
 
@@ -375,7 +393,6 @@ class UserRegisterView(APIView):
                 {"error": "Could not create user or player."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 
 class LogoutView(APIView):
@@ -572,39 +589,39 @@ class UploadAvatarView(APIView):
         )
 
 
-class AddFriendView(APIView):
-    permission_classes = [IsAuthenticated]
+# class AddFriendView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        friend_username = request.data.get("username")
-        if not friend_username:
-            return Response(
-                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+#     def post(self, request):
+#         friend_username = request.data.get("username")
+#         if not friend_username:
+#             return Response(
+#                 {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
+#             )
 
-        # Ensure consistency: Use `CustomUser` instead of `User`
-        friend_user = get_object_or_404(CustomUser, username=friend_username)
-        current_user = request.user  # Current authenticated user
+#         # Ensure consistency: Use `CustomUser` instead of `User`
+#         friend_user = get_object_or_404(CustomUser, username=friend_username)
+#         current_user = request.user  # Current authenticated user
 
-        # Prevent adding oneself
-        if current_user == friend_user:
-            return Response(
-                {"error": "You cannot add yourself as a friend."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#         # Prevent adding oneself
+#         if current_user == friend_user:
+#             return Response(
+#                 {"error": "You cannot add yourself as a friend."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
 
-        # Check if they are already friends
-        if friend_user in current_user.friends.all():
-            return Response({"message": "Already friends."}, status=status.HTTP_200_OK)
+#         # Check if they are already friends
+#         if friend_user in current_user.friends.all():
+#             return Response({"message": "Already friends."}, status=status.HTTP_200_OK)
 
-        # Add each other as friends (symmetrical relationship)
-        current_user.friends.add(friend_user)
-        friend_user.friends.add(current_user)
+#         # Add each other as friends (symmetrical relationship)
+#         current_user.friends.add(friend_user)
+#         friend_user.friends.add(current_user)
 
-        return Response(
-            {"message": f"{friend_username} added as a friend."},
-            status=status.HTTP_200_OK,
-        )
+#         return Response(
+#             {"message": f"{friend_username} added as a friend."},
+#             status=status.HTTP_200_OK,
+#         )
 
 
 class ListFriendsView(APIView):
@@ -622,22 +639,13 @@ class RemoveFriendView(APIView):
     def delete(self, request):
         friend_username = request.data.get("username")
         if not friend_username:
-            return Response(
-                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get the current authenticated user
         current_user = request.user
 
         # Get the friend user safely
         friend_user = get_object_or_404(CustomUser, username=friend_username)
-
-        # Prevent removing oneself
-        if current_user == friend_user:
-            return Response(
-                {"error": "You cannot remove yourself."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         # Check if they are actually friends
         if friend_user not in current_user.friends.all():
@@ -649,7 +657,10 @@ class RemoveFriendView(APIView):
         # Remove each other as friends (symmetrical relationship)
         current_user.friends.remove(friend_user)
         friend_user.friends.remove(current_user)
-
+        # Delete any pending requests between these users
+        FriendRequest.objects.filter(sender=current_user, receiver=friend_user).delete()
+        FriendRequest.objects.filter(sender=friend_user, receiver=current_user).delete()
+        
         return Response(
             {"message": f"{friend_username} has been removed from your friend list."},
             status=status.HTTP_200_OK,
@@ -690,7 +701,7 @@ class SendFriendRequestView(APIView):
             return Response(
                 {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
             )
-
+        # Check if friend request is already sent
         if FriendRequest.objects.filter(
             sender=request.user, receiver=receiver, status="pending"
         ).exists():
@@ -698,7 +709,14 @@ class SendFriendRequestView(APIView):
                 {"error": "Friend request already sent."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        
+        # Check if they are already friends
+        if receiver in request.user.friends.all():
+            return Response(
+                {"error": "You are already friends with this user."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
         # Create the friend request
         friend_request = FriendRequest.objects.create(
             sender=request.user, receiver=receiver
@@ -706,17 +724,20 @@ class SendFriendRequestView(APIView):
 
         # Create a notification for the receiver
         Notification.objects.create(
-            user=receiver, message=f"{request.user.username} sent you a friend request."
+            user=receiver,
+            message=f"{request.user.username} sent you a friend request.",
+            notification_type="friend_request", # this should match websocket event type
         )
 
-        # (Optional) Push the notification over WebSockets here
+        # Push the notification over WebSockets
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"notifications_{receiver.id}",
             {
                 "type": "send_notification",
                 "content": {
-                    "message": f"{request.user.username} sent you a friend request."
+                    "message": f"{request.user.username} sent you a friend request.",
+                    "notification_type": "friend_request",
                 },
             },
         )
@@ -742,7 +763,7 @@ class RespondToFriendRequestView(APIView):
         sender_username = request.data.get("username")
         action = request.data.get("action")  # 'accept' or 'decline'
 
-        if action not in ["accept", "decline"]:
+        if not sender_username or action not in ["accept", "decline"]:
             return Response(
                 {"error": "Invalid action. Use 'accept' or 'decline'."}, status=400
             )
@@ -765,13 +786,18 @@ class RespondToFriendRequestView(APIView):
         else:
             friend_request.status = "declined"
             message = f"You have declined {sender_username}'s friend request."
+            
+            # Create a notification for the sender to inform them that their request was declined
+            Notification.objects.create(
+                user=friend_request.sender,
+                message=f"{request.user.username} declined your friend request.",
+                notification_type="friend_request_declined",
+            )
 
         friend_request.save()
 
         return Response({"message": message}, status=200)
 
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -945,7 +971,7 @@ class UserTournamentsView(APIView):
 
 class RankingView(APIView):
     def get(self, request):
-        # Calculer le nombre de victoires pour chaque joueur
+        # Calculer le nombre de victoires poCookieJWTAuthenticationur chaque joueur
         players = Player.objects.all()
         ranking_data = []
 
@@ -976,3 +1002,55 @@ def check_user_exists(request):
         )
     except CustomUser.DoesNotExist:
         return JsonResponse({"exists": False})
+
+
+class CustomTokenValidateView(APIView):
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        # Extraire le token du cookie
+        token = request.COOKIES.get("access_token")
+        if not token:
+            logger.warning("No access token found in cookies.")
+            return Response(
+                {"detail": "Access token not provided."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Ajouter le token à l'en-tête d'autorisation manuellement si nécessaire
+        # Cela pourrait être fait dans un middleware ou avant d'appeler cette vue
+        request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+
+        try:
+            # La validation est déjà effectuée par JWTAuthentication, donc si on est ici,
+            # cela signifie que le token est valide. Cependant, on peut ajouter plus de vérifications si nécessaire.
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+            # Vérifier si le token n'a pas expiré
+            if payload.get("exp") <= int(time.time()):
+                logger.warning("Token has expired.")
+                return Response(
+                    {"detail": "Token has expired."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+            # Si nous sommes ici, le token est valide
+            logger.info("Token validation successful.")
+            return Response(
+                {"detail": "Token is valid.", "valid": True}, status=status.HTTP_200_OK
+            )
+
+        except jwt.ExpiredSignatureError:
+            logger.warning("Expired signature error.")
+            return Response(
+                {"detail": "Signature has expired."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except jwt.InvalidTokenError:
+            logger.warning("Invalid token error.")
+            return Response(
+                {"detail": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED
+            )

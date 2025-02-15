@@ -1,4 +1,5 @@
 import { startGameSetup } from "./pong.js";
+import { validateToken } from "./auth.js";
 import { createTournamentForm, validateSearch, displayUserTournaments } from "./tournament.js";
 import {
   anonymizeAccount,
@@ -13,7 +14,9 @@ import {
 } from "./auth.js";
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
-import { displayWelcomePage } from "./menu.js";
+import { displayMenu } from "./menu.js";
+import { loadPrivacyPolicyModal } from "./privacy_policy.js";
+
 
 let isUserLoggedIn = false; //false for connection formular
 
@@ -28,113 +31,220 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
   });
 
+  loadPrivacyPolicyModal();
 
-  // 1. Determine the initial route based on user's login status
-  const initialRoute = window.location.hash.replace('#', '') || 'login';
+// 1. Determine the initial route based on the URL hash
+  let initialRoute = window.location.hash.replace('#', '') || 'login';
   console.log('Initial route determined:', initialRoute);
 
+  // Variable globale pour l'état de connexion
+  let isUserLoggedIn = false;
+
   // 2. Check if the user is logged in.
-  // if (localStorage.getItem('username')) {
-  //   isUserLoggedIn = true;
-  //   console.log('User is logged in based on localStorage username');
-  // }
-  // else {
-    const accessToken = getCookie('access_token');
-    if (accessToken) {
-      isUserLoggedIn = true;
+    validateToken().then((isTokenValid) => {
+    console.log('validateToken resolved with:', isTokenValid);
+    isUserLoggedIn = isTokenValid;
+    if (isUserLoggedIn) {
       console.log('User is logged in based on access token in cookies');
     } else {
       console.log('User is not logged in');
     }
-  // }
 
-  // 3. Set initial state
-  if (isUserLoggedIn && initialRoute === 'login') {
-    console.log('User logged in but on login page, redirecting to welcome');
-    history.replaceState({ page: 'welcome' }, 'Welcome', '#welcome'); // Use pushState here
-    displayWelcomePage();
-  } else if (!isUserLoggedIn && initialRoute !== 'login') {
-    console.log('User not logged in but not on login page, redirecting to login');
-    history.replaceState({ page: 'login' }, 'Login', '#login'); // Use pushState here
-    displayConnectionFormular();
-  } else {
-    console.log('Proceeding with initial route:', initialRoute);
+    // 3. Set initial state based on login status and initial route
+    if (isUserLoggedIn && initialRoute === 'login') {
+      console.log('User logged in but on login page, redirecting to welcome');
+      initialRoute = 'welcome';
+      history.replaceState({ page: 'welcome' }, ' ', '#welcome');
+    } else if (!isUserLoggedIn && initialRoute !== 'login') {
+      console.log('User not logged in but not on login page, redirecting to login');
+      initialRoute = 'login';
+      history.replaceState({ page: 'login' }, 'Login', '#login');
+    }
+
+    // Handle the initial route
+    console.log('Calling handleRouteChange with route:', initialRoute);
     handleRouteChange(initialRoute);
-  }
+  }).catch((error) => {
+    console.error('Error checking user login status:', error);
+    console.log('User is not logged in due to an error');
+    handleRouteChange('login');
+  });
 
   // 4. Plan the refreshing interval for the authentication Token
   console.log('Setting up token refresh interval');
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
   // 5. Listener for history changes
-  window.addEventListener("popstate", function(event) {
+    window.addEventListener("popstate", function(event) {
     console.log('Popstate event triggered. Current state:', event.state);
-    const route = event.state ? event.state.page : 'welcome';
+    let route;
+    if (event.state) {
+      route = event.state.page;
+    } else {
+      // Si event.state est null, on utilise l'URL hash
+      route = window.location.hash.replace('#', '') || 'welcome';
+    }
     console.log('Navigating to route:', route);
-    handleRouteChange(route); // Let the normal history work unless we need to redirect
-  });
+    console.log('Custom History:', customHistory);
+    handleRouteChange(route);
+    });
 });
 
-function navigateTo(route) {
+
+// Variable pour stocker l'historique des routes
+let customHistory = [];
+
+// Fonction pour ajouter à l'historique personnalisé
+function addToCustomHistory(route) {
+  if (customHistory[customHistory.length - 1] !== route) {
+    customHistory.push(route);
+  }
+  console.log('Custom History updated:', customHistory);
+}
+
+// Fonction pour naviguer et mettre à jour l'UI
+export function navigateTo(route) {
   console.log('Navigating to:', route);
   history.pushState({ page: route }, '', `#${route}`);
+  console.log('pushstate: ', history.state);
+  addToCustomHistory(route);
   handleRouteChange(route);
 }
 
-function handleRouteChange(route) {
-  console.log('Handling route change for:', route);
-  switch(route) {
-    case 'login':
-      if (!isUserLoggedIn) {
-        displayConnectionFormular();
-      } else {
-        navigateTo('welcome'); // Redirect logged in users to welcome if they try to access login
-      }
-      break;
-    case 'register':
-      displayRegistrationForm();
-      break;
-    case 'welcome':
-      displayWelcomePage();
-      break;
-    case 'game':
-      displayGameForm();
-      break;
-    case 'tournament':
-      displayTournament();
-      break;
-    case 'statistics':
-      displayStats();
-      break;
-    case 'userStats':
-      displayUserResults();
-      break;
-    case 'ranking':
-      displayRanking();
-      break;
-    case 'friends':
-      displayFriends();
-      break;
-    case 'settings':
-      displaySettings();
-      break;
-    default:
-      if (!isUserLoggedIn && route !== 'login') {
-        navigateTo('welcome'); // Redirect not logged in users trying to access protected routes
-      } else {
-        displayConnectionFormular();
-      }
-  }
+// Fonction pour mettre à jour l'interface complète
+function updateUI(routeFunction) {
+  // Chargement du menu
+  displayMenu();
+
+  // Puis, mettez à jour la partie principale en fonction de la route
+  routeFunction();
 }
 
-export function displayTournament() {
+function handleRouteChange(route) {
+  console.log('handleRouteChange called with route:', route);
+  addToCustomHistory(route);
 
-  history.pushState({ page: 'tournament' }, 'Tournament', '#tournament');
+  validateToken().then((isTokenValid) => {
+    console.log('Token validation in handleRouteChange:', isTokenValid);
+    isUserLoggedIn = isTokenValid;
+
+    const publicRoutes = ['login', 'register'];
+
+    if (publicRoutes.includes(route) || (isUserLoggedIn)) {
+      console.log('Route is public or user is logged in');
+      switch(route) {
+        case 'login':
+          if (!isUserLoggedIn) {
+            displayConnectionFormular();
+          } else {
+            navigateTo('welcome');
+          }
+          break;
+        case 'register':
+          displayRegistrationForm();
+          break;
+        case 'welcome':
+          updateUI(displayWelcomePage);
+          break;
+        case 'game':
+          updateUI(displayGameForm);
+          break;
+        case 'tournament':
+          updateUI(displayTournament);
+          break;
+        case 'stats':
+          updateUI(displayStats);
+          break;
+        case 'userStats':
+          updateUI(displayUserResults);
+          break;
+        case 'ranking':
+          updateUI(displayRanking);
+          break;
+        case 'friends':
+          updateUI(displayFriends);
+          break;
+        case 'settings':
+          updateUI(displaySettings);
+          break;
+        default:
+          console.log('Unknown route:', route);
+          if (!isUserLoggedIn) {
+            navigateTo('login');
+          } else {
+            updateUI(displayWelcomePage);
+          }
+      }
+   } else {
+      console.log('User not logged in, redirecting to login');
+      navigateTo('login');
+    }
+  }).catch((error) => {
+    console.error('error validating token during route change:', error);
+    navigateTo('login');
+  });
+}
+
+export function displayWelcomePage() {
+
+  const username = localStorage.getItem("username");
+
+  const appDiv = document.getElementById('app');
+  appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
+  // Object.assign(appDiv, {
+    // style: {
+      // width: '200px'
+        // backgroundColor: '#343a40'
+    // },
+    // role: 'tablist',
+    // 'aria-orientation': 'vertical',
+    // id: 'v-pills-tab'
+  // });
+  // Set the background image for 'app'
+  // appDiv.style.backgroundImage = "url('/static/pong.jpg')";
+  // appDiv.style.backgroundRepeat = "no-repeat";
+  // appDiv.style.backgroundAttachment = "fixed";
+  // appDiv.style.backgroundSize = "100% 100%";
+
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
+  const appTop = document.getElementById('app_top');
+  // appTop.className = "p-1 d-flex rounded";
+  appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
+  appTop.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center w-100">
+      <div>
+        <h2>Bonjour ${username}</h2>
+      </div>
+      <div class="align-self-end">
+        <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px; height:60%; background-color: red;">
+          <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
+        </div>
+      </div>
+    </div>
+  `;
+
+  const appMain = document.getElementById("app_main");
+  // appMain.className = "p-3 flex-grow-1";
+  appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
+  appMain.innerHTML = `
+    Contenu de la Welcome page
+  `;
+
+  const appBottom = document.getElementById("app_bottom");
+  // appBottom.className = "p-3";
+  appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
+  appBottom.innerHTML = `
+    Footer de la page
+  `;
+}
+
+export function displayTournament() {
+
+      console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <h3>Tournament</h3>
@@ -176,7 +286,6 @@ export function displayTournament() {
 
 export function displayFriends() {
 
-  history.pushState({ page: 'friends' }, 'Friends', '#friends');
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -272,8 +381,8 @@ function displayHTMLforSettings(user) {
 }
 
 export function displaySettings() {
-  history.pushState({ page: 'settings' }, 'Settings', '#settings');
-// 1. fetch the user's settings
+
+  // 1. fetch the user's settings
   fetch("/api/auth/user/", {
     method: "GET",
     credentials: "include", // Ensures authentication cookies are sent
@@ -351,7 +460,6 @@ export function displaySettings() {
 
 export function displayStats() {
 
-  history.pushState({ page: 'statistics' }, 'Statistics', '#statistics');
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -373,8 +481,6 @@ export function displayStats() {
 }
 
 function displayUserResults(data) {
-
-  history.pushState({ page: 'userStats' }, 'Users Statistics', '#userStats');
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -467,8 +573,6 @@ function fetchResultats() {
 
 
 function displayRanking(data) {
-
-  history.pushState({ page: 'ranking' }, 'Ranking', '#ranking');
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -598,7 +702,7 @@ function displayGameFormHTML(username) {
 }
 
 export function displayGameForm() {
-  history.pushState({ page: 'game' }, 'Game', '#game');
+
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';

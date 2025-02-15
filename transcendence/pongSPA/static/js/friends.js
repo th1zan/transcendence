@@ -1,27 +1,81 @@
-
 // TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
+// prevent sending friend request to the user himself
 export function sendFriendRequest(friendUsername) {
-	fetch("/api/friends/send-request/", {
+	const loggedInUsername = localStorage.getItem("username");
+
+	if (friendUsername === loggedInUsername) {
+		alert("You cannot send a friend request to yourself.");
+		return;
+	}
+	
+	// Fetch the current friends list before sending the request
+	fetch("/api/friends/list/", {
+		method: "GET",
+		credentials: "include",
+	})
+	.then((response) => response.json())
+	.then((friendsData) => {
+		// Check if the user is already in the friend list
+		const isAlreadyFriend = friendsData.friends.some(friend => friend.username === friendUsername);
+		if (isAlreadyFriend) {
+			alert(`You are already friends with ${friendUsername}.`);
+			return;
+		}
+
+		// If checks pass, send the friend request
+		fetch("/api/friends/send-request/", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		credentials: "include",
+		body: JSON.stringify({ username: friendUsername }),
+		})
+		.then((response) => response.json())
+		.then((data) => {
+			if (data.error) {
+			alert("Error: " + data.error);
+			} else {
+			alert(`Friend request sent to ${friendUsername}.`);
+			// alert(data.message);
+			}
+		})
+		.catch((error) => {
+			console.error("Error sending friend request:", error);
+			alert("An error occurred.");
+		});
+	})
+	.catch((error) => {
+		console.error("Error fetching friend list:", error);
+		alert("An error occurred while checking friend status.");
+	});
+}
+
+
+export function respondToFriendRequest(friendUsername, action) {
+	fetch("/api/friends/respond/", {  
 	  method: "POST",
 	  headers: {
 		"Content-Type": "application/json",
 	  },
 	  credentials: "include",
-	  body: JSON.stringify({ username: friendUsername }),
+	  body: JSON.stringify({ username: friendUsername, action: action }), // 'accept' or 'decline'
 	})
 	  .then((response) => response.json())
 	  .then((data) => {
 		if (data.error) {
 		  alert("Error: " + data.error);
 		} else {
-		  alert(`Friend request sent to ${friendUsername}.`);
+		  alert(data.message);
+		  fetchFriendRequests(); // Refresh the friend request list
+          fetchFriends(); // refresh the friend list
 		}
 	  })
 	  .catch((error) => {
-		console.error("Error sending friend request:", error);
+		console.error("Error responding to friend request:", error);
 		alert("An error occurred.");
 	  });
-  }
+}
 
 export function removeFriend(friendUsername) {
 	if (!confirm(`Do you really want to remove ${friendUsername} from your friends list?`)) {
@@ -49,36 +103,9 @@ export function removeFriend(friendUsername) {
 		console.error("Error removing friend:", error);
 		alert("An error occurred.");
 	  });
-  }
+}
 
-
-export function respondToFriendRequest(friendUsername, action) {
-	fetch("/api/friends/respond/", {  
-	  method: "POST",
-	  headers: {
-		"Content-Type": "application/json",
-	  },
-	  credentials: "include",
-	  body: JSON.stringify({ username: friendUsername, action: action }), // 'accept' or 'decline'
-	})
-	  .then((response) => response.json())
-	  .then((data) => {
-		if (data.error) {
-		  alert("Error: " + data.error);
-		} else {
-		  alert(data.message);
-		  fetchFriendRequests(); // Refresh the friend request list
-          fetchFriends(); // refresh the friend list
-		}
-	  })
-	  .catch((error) => {
-		console.error("Error responding to friend request:", error);
-		alert("An error occurred.");
-	  });
-  }
-
-
-  export function fetchFriendRequests() {
+export function fetchFriendRequests() {
 	fetch("/api/friends/requests/", {
 	  method: "GET",
 	  credentials: "include",
@@ -117,7 +144,7 @@ export function respondToFriendRequest(friendUsername, action) {
 		});
 	  })
 	  .catch(error => console.error("Error fetching friend requests:", error));
-  }
+}
 
 export function fetchFriends() {
 	fetch("/api/friends/list/", {
@@ -168,4 +195,21 @@ export function fetchFriends() {
 	  .catch((error) => console.error("Error fetching friend statuses:", error));
     })
 	.catch((error) => console.error("Error fetching friends:", error));
+}
+
+const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  if (data.notification_type === "friend_request") {
+    alert("🔔 Friend Request: " + data.message);
+    fetchFriendRequests(); // Refresh friend requests dynamically
+  } else {
+    alert("🔔 Notification: " + data.message);
   }
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};

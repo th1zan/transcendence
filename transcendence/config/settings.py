@@ -178,12 +178,14 @@ load_dotenv()
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "api.authentication.CookieJWTAuthentication",  # Replace with the actual path instead of  "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 SIMPLE_JWT = {
+    "ALGORITHM": "HS256",  # HS256 is the by-default algorithm
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
@@ -210,10 +212,15 @@ LOGGING = {
             "class": "logging.StreamHandler",
         },
     },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
     "loggers": {
-        "django.db.backends": {
+        "django": {
             "handlers": ["console"],
             "level": "DEBUG",
+            "propagate": True,
         },
     },
 }
