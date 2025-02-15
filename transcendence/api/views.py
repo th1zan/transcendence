@@ -525,6 +525,12 @@ class UserDetailView(APIView):
         """Updates the current user's details."""
         user = request.user
         data = request.data
+    
+        # Check if email already exists (excluding the current user's email)
+        if "email" in data:
+            existing_user = CustomUser.objects.filter(email=data["email"]).exclude(id=user.id).first()
+            if existing_user:
+                return Response({"error": "This email is already in use."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Update fields
         if "username" in data:

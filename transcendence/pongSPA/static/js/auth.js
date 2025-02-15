@@ -264,8 +264,30 @@ export function uploadAvatar() {
 
 export function updateProfile() {
   const username = document.getElementById("usernameInput").value;
-  const email = document.getElementById("emailInput").value;
+  const emailInput = document.getElementById("emailInput");
+  const emailValue = emailInput.value.trim();
   const phoneNumber = document.getElementById("phoneInput").value;
+
+  // Regular Expression to validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  let hasError = false; // Flag to track errors
+
+  if (!emailRegex.test(emailValue)) {
+    emailInput.classList.add("is-invalid"); // Bootstrap will show a validation error
+    emailInput.classList.remove("is-valid");
+    alert("Invalid email format. Please enter a valid email (e.g., user@example.com).");
+    return; // Stop execution if email is invalid
+  } else {
+    emailInput.classList.remove("is-invalid");
+    emailInput.classList.add("is-valid");
+  }
+
+  // Stop execution if there is an error
+  if (hasError) {
+    alert("Please enter a valid email before saving changes.");
+    return;
+  }
 
   fetch("/api/auth/user/", {
     method: "PUT",
@@ -275,7 +297,7 @@ export function updateProfile() {
     },
     body: JSON.stringify({
       username: username,
-      email: email,
+      email: emailValue,
       phone_number: phoneNumber
     }),
   })
