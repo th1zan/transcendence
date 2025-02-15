@@ -1,0 +1,283 @@
+createAccount()
+
+Error creating account. Erreur lors de la création du compte.
+
+Account created successfully. You can now log in. Compte créé avec succès. Vous pouvez maintenant vous connecter.
+
+Error creating account. Please try again. Erreur lors de la création du compte. Veuillez réessayer.
+
+Error creating account:  Erreur lors de la création du compte :
+
+
+deleteAccount()
+
+Are you sure you want to delete your account? This action is irreversible. Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.
+
+Account deletion failed. Échec de la suppression du compte.
+
+Account successfully deleted! Compte supprimé avec succès !
+
+Error deleting account:  Erreur lors de la suppression du compte :
+
+An error occurred: Une erreur est survenue :
+
+
+*anonymizeAccount*()
+
+Êtes-vous sûr de vouloir anonymiser votre compte ? Cette action est irréversible. Are you sure you want to anonymize your account? This action is irreversible.
+
+Account anonymization failed. Échec de l'anonymisation du compte.
+
+Your account has been anonymized successfully. Votre compte a été anonymisé avec succès.
+
+Error anonymizing account: Erreur lors de l'anonymisation du compte :
+
+Une erreur est survenue :
+
+
+*sendFriendRequest*(*friendUsername*)
+
+Error: Erreur : 
+
+Friend request sent to Demande d'ami envoyée à
+
+Error sending friend request: Erreur lors de l'envoi de la demande d'ami :
+
+An error occurred. Une erreur est survenue.
+
+
+*removeFriend*(*friendUsername*)
+
+Voulez-vous vraiment supprimer ${*friendUsername*} de votre liste d'amis ?  Do you really want to remove ${*friendUsername*} from your friends list?
+
+Error: Erreur :
+
+Error removing friend: Erreur lors de la suppression d'ami :
+
+An error occurred.  Une erreur est survenue.
+
+
+*respondToFriendRequest*(*friendUsername*, *action*)
+
+Error:  Erreur : 
+
+Erreur lors de la réponse à la demande d'ami :
+
+An error occurred.  Une erreur est survenue.
+
+
+fetchFriendRequests()
+
+Accept Accepter
+
+Decline Refuser
+
+Error fetching friend requests: Erreur lors de la récupération des demandes d'amis :
+
+
+fetchFriends()
+
+Never
+
+Online En ligne
+
+Offline (last seen:  Hors ligne (vu:
+
+Remove Supprimer
+
+Error fetching friend statuses: Erreur lors de la récupération des statuts d'amis :
+
+Error fetching friends:  Erreur lors de la récupération des amis :
+
+
+*displayConnectionFormular*()
+
+Welcome to the Home Page Bienvenue sur la page d'accueil
+
+Username Nom d'utilisateur
+
+Enter your name Entrez votre nom
+
+Enter your password Mot de passe
+
+Sign In Se connecter 
+
+Créer un compte Create Account
+
+
+*displayRegistrationForm*()
+
+Create AccountCréer un compte
+
+Username Nom d'utilisateur
+
+Password Mot de passe
+
+Enter your username Entrez votre nom
+
+Enter your password Mot de passe
+
+I accept the <a href="#" id="privacyPolicyLink">Privacy Policy
+
+Create Account
+
+Back to Login
+
+You must accept the Privacy Policy to register.
+
+
+
+*displayPrivacyPolicy*()
+
+Play a Game 🎮 Jouer une partie
+
+Tournament 🏆 Tournament
+
+Statistics 📊 Statistiques
+
+Friends 👥 Amis 
+
+Settings ⚙️ Paramètres
+
+Logout 🚪 Déconnexion
+
+
+*displayTournament*()
+
+New Tournament Nouveau tournoi
+
+Tournament name Nom du tournoi
+
+Search for Tournament Rechercher un tournoi
+
+The element. 'tournamentNameInput’.   is not available.  L'élément 'tournamentNameInput' n'est pas disponible.
+
+Please enter a tournament name.  Veuillez entrer un nom de tournoi.
+
+
+*displayFriends*()
+
+Friends
+
+Username. Nom d'utilisateur
+
+Send Friend Request
+
+Pending Friend Requests Demandes d'amis en attente
+
+My Friends
+
+
+*displaySettings*()
+
+Failed to fetch user data.
+
+Account Management Gestion du compte
+
+Update Profile Picture
+
+Profile Picture
+
+Choose a new profile picture:
+
+Upload
+
+Edit Profile Information
+
+Username:
+
+Email:
+
+Phone Number:
+
+Save Changes
+
+Delete Account. Supprimer le compte
+
+Anonymize Account. Anonymiser le compte
+
+Error loading user data:
+
+
+displayStats()
+
+Your Results. Vos résultats
+
+Overall Ranking Classement général
+
+
+fetchResultats()
+
+Retour Back
+
+Vos résultats :  Your Results:
+
+Unknown Date Date inconnue
+
+Unknown Player 1 Joueur 1 inconnu
+
+Guest Player 2 Unknown Player 2 Joueur 2 inconnu
+
+In Progress En cours
+
+Tournament: Tournoi:      Unknown inconnue
+
+No results found. Aucun résultat trouvé.
+
+
+*fetchRanking*()
+
+Retour 
+
+Player Ranking: Classement des joueurs :
+
+Unknown Name Nom inconnu
+
+Total Wins:
+
+Aucun classement trouvé. No ranking found.
+
+
+*displayGameForm*()
+
+Pong Game
+
+Player 1 Name:
+
+Player 2 Name:
+
+Bot_AI (by default)
+
+Number of Games:
+
+Points to Win:
+
+Start Game
+
+Game Results
+
+Username value in displayGameForm: Valeur de username dans displayGameForm :
+
+
+
+pong.js
+
+
+*connectWebSocket*()
+
+
+WebSocket connected WebSocket connecté
+
+WebSocket error: WebSocket erreur :
+
+WebSocket disconnected. Reconnecting… WebSocket déconnecté. Reconnexion…
+
+Canvas not found. Please try again in 100 ms. Canvas introuvable. Réessayez dans 100 ms.
+
+*startGameSetup*(*p1*, *p2*, *numGames*, *ptsToWin*, *ctxt* = "solo")
+
+Valeur de player1 dans startGameSetup:
+
+Valeur de player2 dans startGameSetup:
+
+

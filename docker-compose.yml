@@ -1,0 +1,119 @@
+name:     transcendence
+
+services:
+  #********************************************************************************
+  nginx:
+    container_name: nginx
+    image: nginx:1.27.0
+    restart:        always
+    healthcheck:
+      test:         ["CMD", "curl", "-f", "http://localhost"]
+      interval:     1m30s
+      timeout:      10s
+      retries:      3
+    command: ["/nginx.sh", "nginx", "-g", "daemon off;"]
+    depends_on:
+      gunicorn:
+        condition: service_started
+      daphne:
+        condition: service_started
+    ports:
+      - 8443:443
+    volumes:
+      - nginx_ssl_vol:/ssl
+      - ./transcendence/static_files:/static
+      - ./transcendence/media:/media
+      - ${PWD}/docker/nginx/nginx.sh:/nginx.sh
+      - ${PWD}/docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+        - backend
+        - frontend
+  #********************************************************************************
+  redis:
+    container_name: redis
+    image:          redis:7.2.5
+    restart:        always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+        - backend
+    command: ["redis-server", "--loglevel", "debug"]
+  #********************************************************************************
+  db:
+    container_name: postgres
+    image:          postgres:16.3-bookworm
+    restart:        always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U${DB_USER} -d${DB_NAME}"]
+      start_period: 5s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+        - db_vol:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER} 
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks:
+        - backend
+  #********************************************************************************
+  daphne:
+    container_name: daphne
+    build:
+      dockerfile:     ./daphne/Dockerfile
+      context:        ./docker 
+    restart:        always
+    depends_on:
+      db:
+        condition: service_healthy
+      # redis:
+      #   condition:  service_started
+    volumes:
+      - ./transcendence/:/transcendence
+    networks:
+        - backend
+        - frontend
+    environment:
+      DB_NAME:      ${DB_NAME}
+      DB_USER:      ${DB_USER}
+      DB_PASSWORD:  ${DB_PASSWORD}
+      DB_HOST:      db
+      DB_PORT:      ${DB_PORT}
+      SUPER_USER:   ${SUPER_USER}
+      SUPER_PASSWORD:   ${SUPER_PASSWORD}
+      SUPER_MAIL:   ${SUPER_MAIL}
+      SECRET_KEY: ${SECRET_KEY}
+  #********************************************************************************
+  gunicorn:
+    container_name: gunicorn
+    build:          ./docker/gunicorn
+    restart:        always
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+        - ./transcendence:/transcendence
+    networks:
+        - backend
+        - frontend
+    environment:
+      DB_NAME:      ${DB_NAME}
+      DB_USER:      ${DB_USER}
+      DB_PASSWORD:  ${DB_PASSWORD}
+      DB_HOST:      db
+      DB_PORT:      ${DB_PORT}
+      SECRET_KEY: ${SECRET_KEY}
+  #********************************************************************************
+
+volumes:
+  db_vol:
+  nginx_ssl_vol:
+
+
+networks:
+  backend:
+  frontend:
