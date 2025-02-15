@@ -501,7 +501,7 @@ async function initializePlayerManagement() {
   const playerContainer = document.getElementById('playerContainer');
   const addButton = document.getElementById('addPlayerButton');
   let playerCount = 1;
-  const players = new Map(); // Changed to Map for validation tracking
+  const players = new Map();
   const warnedPlayers = new Set();
 
   if (!playerContainer || !addButton) return; // Early exit if elements not found
@@ -513,12 +513,15 @@ async function initializePlayerManagement() {
   players.set(hostPlayerName.toLowerCase(), { validated: true, div: hostPlayerDiv });
 
   // Add an empty field for Player 2 immediately after the host
-  const player2Div = addPlayer(playerContainer, playerCount++, '', false, true); // Add checkPlayer button for this player
+  const player2Div = addPlayer(playerContainer, playerCount++, '', false, true);  
   players.set('', { validated: false, div: player2Div }); // Placeholder for Player 2
 
   // Event listener for checking player
   playerContainer.addEventListener('click', async (event) => {
     if (event.target.classList.contains('check-player')) {
+      // Cleanup function before checking or adding new player
+      cleanupPlayersMap(players);
+
       const playerDiv = event.target.closest('div');
       const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
 
@@ -575,6 +578,19 @@ async function initializePlayerManagement() {
     }
     container.appendChild(playerDiv);
     return playerDiv;
+  }
+
+  // function for cleaning up the players Map
+  function cleanupPlayersMap(playersMap) {
+    const existingPlayerDivs = Array.from(playerContainer.querySelectorAll('.additional-player'));
+    const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
+
+    // Check if there are any players in the Map that are not in the DOM
+    playersMap.forEach((value, key) => {
+      if (key !== '' && !existingPlayerNames.includes(key)) { // Skip placeholder
+        playersMap.delete(key);  // Remove from Map if the player is not found in the DOM
+      }
+    });
   }
 }
 
@@ -656,8 +672,17 @@ function addPlayer(container, count, initialValue = '', isHost = false) {
 }
 
 function updatePlayerStatus(playerDiv, userData) {
-  const statusSpan = document.createElement('span');
-  statusSpan.style.marginLeft = '10px';
+  // Check if there's already a status span
+  let statusSpan = playerDiv.querySelector('span');
+  if (!statusSpan) {
+    // If there isn't one, create it
+    statusSpan = document.createElement('span');
+    statusSpan.style.marginLeft = '10px';
+    playerDiv.appendChild(statusSpan);
+  } else {
+    // If there is one, clear its content
+    statusSpan.textContent = '';
+  }
 
   if (playerDiv.classList.contains('additional-player')) {
     if (userData.exists) {
@@ -686,8 +711,9 @@ function updatePlayerStatus(playerDiv, userData) {
     playerDiv.setAttribute('data-authenticated', 'true');
   }
 
-  playerDiv.appendChild(statusSpan);
 }
+
+
 // function updatePlayerStatus(playerDiv, userData) {
 //   const statusSpan = document.createElement('span');
 //   statusSpan.style.marginLeft = '10px';

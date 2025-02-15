@@ -1,6 +1,7 @@
 # from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.management import call_command
 from django.db import models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
@@ -31,11 +32,12 @@ class CustomUser(AbstractUser):
         self.last_seen = now()
         self.save()
 
-    USERNAME_FIELD = "username"  # or later put email for authentication
-    REQUIRED_FIELDS = []  # or "email" to Require email during registration
+    # USERNAME_FIELD = "username" @ receiver(post_save, sender=Tournament)
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.username  # Display username as user identifier
+        return self.username
 
 
 # class Player(models.Model):
@@ -75,6 +77,9 @@ class Tournament(models.Model):
     number_of_games = models.IntegerField(default=1)
     points_to_win = models.IntegerField(default=3)
     is_finished = models.BooleanField(default=False)
+    is_finalized = models.BooleanField(
+        default=False
+    )  # New field to track if the tournament has been finalized
 
     def is_tournament_finished(self):
         # Tous les matchs du tournoi doivent avoir été joués pour que le tournoi soit considéré comme terminé

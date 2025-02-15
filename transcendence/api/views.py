@@ -893,6 +893,7 @@ class TournamentCreationView(APIView):
             data={
                 "tournament_name": tournament_data,
                 "date": timezone.now().date(),
+                "is_finalized": False,  # Set this to False by default
             }
         )
 
@@ -924,11 +925,23 @@ class TournamentFinalizationView(APIView):
         number_of_games = request.data.get("number_of_games", 1)
         points_to_win = request.data.get("points_to_win", 3)
 
-        tournament = Tournament.objects.get(id=tournament_id)
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if tournament.is_finalized:
+            return Response(
+                {"error": "This tournament has already been finalized"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Update tournament with match rules
         tournament.number_of_games = number_of_games
         tournament.points_to_win = points_to_win
+        tournament.is_finalized = True  # Mark as finalized
         tournament.save()
 
         # Player management
@@ -952,11 +965,16 @@ class TournamentFinalizationView(APIView):
                 player=player,
                 tournament=tournament,
                 authenticated=authenticated,
-                guest=guest,  # Set the guest field
+                guest=guest,
             )
 
         # Generate matches after all players are added and tournament details are set
         generate_matches(tournament_id, number_of_games, points_to_win)
+
+        # Clean up unfinalized tournaments when a new tournament is finalized
+        from django.core.management import call_command
+
+        call_command("cleanup_tournaments")
 
         return Response(
             {
@@ -966,6 +984,27 @@ class TournamentFinalizationView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+    @staticmethod
+    def cleanup_unfinalized_tournaments():
+        # Define how old an unfinalized tournament should be to be considered for deletion
+        # max_age = timezone.now() - timezone.timedelta(
+        #     days=7
+        # )  # Example: delete tournaments older than 7 days if not finalized
+        unfinalized_tournaments = Tournament.objects.filter(
+            is_finalized=False
+            # is_finalized=False, date__lt=max_age
+        )
+
+        for tournament in unfinalized_tournaments:
+            # Delete associated TournamentPlayer entries
+            TournamentPlayer.objects.filter(tournament=tournament).delete()
+            # Then delete the tournament
+            tournament.delete()
+
+        return {
+            "message": f"Cleaned up {unfinalized_tournaments.count()} unfinalized tournaments"
+        }
 
 
 def generate_matches(tournament_id, number_of_games, points_to_win):
