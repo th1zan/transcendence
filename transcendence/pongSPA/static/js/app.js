@@ -11,11 +11,11 @@ import {
   uploadAvatar,
   getCookie,
 } from "./auth.js";
-import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
+import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayWelcomePage } from "./menu.js";
 
-let isUserLoggedIn = true; //false for connection formular
+let isUserLoggedIn = false; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
@@ -27,10 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/^ +/, "")
       .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
   });
-  
+
 
   // 1. Determine the initial route based on user's login status
-  const initialRoute = window.location.hash.replace('#', '') || 'login'; 
+  const initialRoute = window.location.hash.replace('#', '') || 'login';
   console.log('Initial route determined:', initialRoute);
 
   // 2. Check if the user is logged in.
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     handleRouteChange(initialRoute);
   }
 
-  // 4. Plan the refreshing interval for the authentication Token 
+  // 4. Plan the refreshing interval for the authentication Token
   console.log('Setting up token refresh interval');
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
@@ -122,7 +122,7 @@ function handleRouteChange(route) {
       if (!isUserLoggedIn && route !== 'login') {
         navigateTo('welcome'); // Redirect not logged in users trying to access protected routes
       } else {
-        displayConnectionFormular(); 
+        displayConnectionFormular();
       }
   }
 }
@@ -146,14 +146,14 @@ export function displayTournament() {
         <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
       </div>
     </div>
-  `;  
+  `;
 
   displayUserTournaments();
   // let resultDiv = document.getElementById("app_main");
   //   resultDiv.style.display = "block";
 
     document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-    
+
     document.getElementById("tournamentSearchButton").addEventListener("click", () => {
       const tournamentNameInput = document.getElementById("tournamentNameInput");
       if (!tournamentNameInput) {
@@ -216,10 +216,10 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
-  
+
   const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
   const appTop = document.getElementById("app_main");
-  
+
   appTop.innerHTML = `
   <div class="container mt-4">
     <h3 class="text-center">Gestion du compte</h3>
@@ -228,7 +228,7 @@ function displayHTMLforSettings(user) {
       <h4 class="text-center">Update Profile Picture</h4>
       <div class="d-flex flex-column align-items-center">
         <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
-        
+
         <div class="mt-3 w-75">
           <label class="form-label">Choose a new profile picture:</label>
           <div class="input-group">
@@ -373,7 +373,7 @@ export function displayStats() {
 }
 
 function displayUserResults(data) {
-  
+
   history.pushState({ page: 'userStats' }, 'Users Statistics', '#userStats');
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
@@ -467,7 +467,7 @@ function fetchResultats() {
 
 
 function displayRanking(data) {
-  
+
   history.pushState({ page: 'ranking' }, 'Ranking', '#ranking');
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
@@ -551,8 +551,8 @@ function displayGameFormHTML(username) {
                 <label>Design:</label>
                 <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
                 <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
-              </span>  
-          </div>          
+              </span>
+          </div>
         <div class="col container p-3">
               <h3 class="text-center p-2">Match Settings</h3>
               <label>Number of Games:</label>
@@ -561,7 +561,7 @@ function displayGameFormHTML(username) {
               <input type="number" id="setsPerGame" value="3" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
           </div>
       </div>
-      
+
       <div class="d-flex justify-content-between align-items-start mt-3">
           <div class="col">
               <h3>Player 1</h3>
@@ -597,7 +597,7 @@ function displayGameFormHTML(username) {
   `;
 }
 
-export function displayGameForm() { 
+export function displayGameForm() {
   history.pushState({ page: 'game' }, 'Game', '#game');
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
@@ -606,7 +606,7 @@ export function displayGameForm() {
 
   const username = localStorage.getItem("username") || "Player 1"; // From 'myanez-p' branch
   localStorage.setItem("context", "solo"); // From HEAD
-  
+
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = displayGameFormHTML(username);
 
