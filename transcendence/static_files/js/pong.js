@@ -1,5 +1,6 @@
-import { displayWelcomePage } from "./app.js";
+import { displayGameForm, displayWelcomePage } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
+import { displayMenu } from "./menu.js";
 
 let gameInterval; // Variable globale pour stocker l'intervalle de jeu
 // Variables globales pour suivre les scores et le jeu
@@ -8,7 +9,6 @@ let user1 = "default_user1";
 let user2 = "default_user2";
 let player1 = "default_player1";
 let player2 = "default_player2";
-let context = "solo"
 let numberOfGames = 1;
 let pointsToWin = 1;
 let currentGame = 0;
@@ -16,9 +16,7 @@ let player1Wins = 0;
 let player2Wins = 0;
 let control1 = "arrows";
 let control2 = "wasd";
-let design = "retro";
-let difficulty = "easy";
-let collisionActive = false;
+let design = "oldschool";
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -26,29 +24,43 @@ let setHistory = [];
 // Ouvrir une connexion websocket avec le serveur
 function connectWebSocket()
 {
-  ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
+    //OLD line for history
+   // ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
 
-  ws.onopen = () => console.log("WebSocket connecté");
+  let ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  let ws_path = ws_scheme + "://" + window.location.host + "/ws/pong_ai/";
+  ws = new WebSocket(ws_path); 
+
+  //open socket
+  ws.onopen = () => console.log("WebSocket connected");
+  //message on a socket
   ws.onmessage = (event) => {
+    console.log("Message received:", event.data);
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
       opponent.y = data.y;
     }
   };
-  ws.onerror = (error) => console.error("WebSocket erreur :", error);
-  ws.onclose = () => 
-  {
-    console.log("WebSocket déconnecté. Reconnexion...");
-    setTimeout(connectWebSocket, 1000);
+
+  ws.onerror = (error) => console.error("WebSocket error:", error);
+
+  ws.onclose = (event) => {
+    console.log("WebSocket disconnected, code:", event.code, "reason :", event.reason);
+    if (shouldReconnect) {
+      console.log("Reconnecting in 1 second...");
+      setTimeout(connectWebSocket, 1000);
+    }
   };
 }
 
 // Démarrer le jeu Pong
 function startPongGame() {
+
+
   const canvas = document.getElementById("pong");
 
   if (!canvas) {
-    console.error("Canvas introuvable. Réessayez dans 100 ms.");
+    console.error("Canvas not found. Please try again in 100 ms.");
     setTimeout(startPongGame, 100);
     return;
   }
@@ -59,8 +71,6 @@ function startPongGame() {
   resetScores();
   if (context != "multiplayer" )
     connectWebSocket(); 
-
-  clearInterval(gameInterval);
 
   const fps = 50;
   gameInterval = setInterval(() => {
@@ -81,21 +91,14 @@ export function startGameSetup(gameSettings) {
   control1 = gameSettings.control1;
   control2 = gameSettings.control2;
   design = gameSettings.design;
-  difficulty = gameSettings.difficulty;
 
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
 
-  // Vérifier et créer pong si nécessaire
-  let pongCanvas = document.getElementById("pong");
-  // if (!pongCanvas) {
-  //   pongCanvas = document.createElement('canvas');
-  //   pongCanvas.id = "pong";
-  //   pongCanvas.width = 800; // Définir la largeur du canvas
-  //   pongCanvas.height = 400; // Définir la hauteur du canvas
-  //   document.body.appendChild(pongCanvas);
-  // }
-  pongCanvas.style.display = "block";
+ //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
   // Gérer l'affichage en fonction du contexte
   if (context === "tournament") {
@@ -115,6 +118,7 @@ export function startGameSetup(gameSettings) {
   player2Wins = 0;
   setHistory = [];
 
+  updateGamePanel();
   // Démarrer le jeu Pong
   startPongGame();
 }
@@ -124,43 +128,19 @@ function resetScores() {
   opponent.score = 0;
 }
 
-let obstacleVelocityY = 5;
-let obstacleDirection = 1;
-
 function update() {
   ball.x += ball.velocityX;
   ball.y += ball.velocityY;
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
-    ball.speed *= 1.02;
-  }
-
-  if (difficulty === "hard" && obstacle) {
-    obstacle.y += obstacleVelocityY * obstacleDirection;
-
-    if (obstacle.y <= 0 || obstacle.y + obstacle.height >= canvas.height) {
-        obstacleDirection *= -1;
-    }
-  }
-
-  if (difficulty === "hard" && obstacle && collisionActive) {
-    if (
-      ball.x + ball.radius > obstacle.x &&
-      ball.x - ball.radius < obstacle.x + obstacle.width &&
-      ball.y + ball.radius > obstacle.y &&
-      ball.y - ball.radius < obstacle.y + obstacle.height
-    ) {
-      ball.velocityX = -ball.velocityX;
-      ball.speed *= 1.05;
-    }
   }
 
   let playerPaddle = ball.x < canvas.width / 2 ? player : opponent;
 
   if (collision(ball, playerPaddle)) {
     ball.velocityX = -ball.velocityX;
-    ball.speed *= 1.05;
+    ball.speed += 0.1;
   }
 
   if (ball.x - ball.radius < 0) {
@@ -183,11 +163,11 @@ function update() {
     }
   }
 
+  //Envoyer la position de la balle au serveur
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
-
 
 function saveSetResult() {
   // Enregistrer le résultat actuel du set
@@ -202,103 +182,101 @@ function handleGameEnd(winner) {
   clearInterval(gameInterval); // Arrêter la boucle de jeu
   currentGame++;
 
+  updateResults();
+
   if (currentGame < numberOfGames) {
     alert(`${winner} wins this game! Starting the next game...`);
     resetScores();
+    updateResults(); // Mettre à jour les résultats avant de démarrer le prochain jeu
     startPongGame(); // Démarrer la prochaine partie
   } else {
-    sendScore(); // Envoyer les scores au serveur
-    displayResults(winner);
-  }
-}
-
-function displayResults(finalWinner) {
-  const username = localStorage.getItem("username");
-
-  // Vérifiez et créez l'élément result si nécessaire
-  let resultDiv = document.getElementById("result");
-  if (!resultDiv) {
-    resultDiv = document.createElement('div');
-    resultDiv.id = "result";
-    document.body.appendChild(resultDiv);
-  }
-
-  // Masquer le canvas pong
-  const pongCanvas = document.getElementById("pong");
-  if (pongCanvas) {
-    pongCanvas.style.display = "none";
-  }
-
-  // Afficher le résultat
-  resultDiv.style.display = "block";
-
-  let summary = `
-    ${player1}: ${player1Wins} wins<br>
-    ${player2}: ${player2Wins} wins<br>
-    Winner: ${finalWinner}<br>
-    Number of Games: ${numberOfGames}<br>
-    Points to Win: ${pointsToWin}<br>
-    <button id="backButton">Retour</button>
-    <h3>Set History:</h3>
-  `;
-
-  console.log("setHistory lors de l'affichage des résultats :", setHistory);
-
-  setHistory.forEach((set, index) => {
-    summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
-  });
-
-  // Assurez-vous que l'élément summary existe
-  let summaryDiv = document.getElementById("summary");
-  if (!summaryDiv) {
-    summaryDiv = document.createElement('div');
-    summaryDiv.id = "summary";
-    resultDiv.appendChild(summaryDiv);
-  }
-  summaryDiv.innerHTML = summary;
-
-  // Attacher un écouteur d'événement au bouton après l'insertion dans le DOM
-   const backButton = document.getElementById("backButton");
-  if (backButton) {
-    backButton.addEventListener("click", () => {
-      summaryDiv.innerHTML = ""; // Effacer le summary
-
-      if (typeof context !== 'undefined' && context !== "solo") {
-        const tournamentName = localStorage.getItem("tournamentName")
-        DisplayTournamentGame();
-      } else {
-        // Retourner à la page d'accueil si context est "solo"
-        displayWelcomePage(username);
-      }
+    sendScore().then((matchID) => {
+      stopGameProcess();
+      displayResults(matchID); // Passer matchID comme argument
+    }).catch((error) => {
+      console.error("Error in game end processing:", error);
     });
   }
+
 }
 
+function displayResults(matchID) {
+  let gameType = localStorage.getItem("context"); // Si non défini, on suppose que c'est une partie solo
+
+  // Empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const username = localStorage.getItem("username");
+
+  fetch(`/api/scores/${matchID}/`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    let buttonText = gameType === 'tournament' ? 'Back to Tournament' : 'New Game';
+
+    let summary = `
+      <button id="backButton">${buttonText}</button>
+      <br><br>
+      <strong>${data.player1_name} vs ${data.player2_name}</strong><br>
+      <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Number of sets)<br>
+      <strong>Winner: ${data.winner_name}</strong><br>
+      <h3>Set Details:</h3>
+    `;
+
+    if (data.sets && Array.isArray(data.sets)) {
+      data.sets.forEach((set, index) => {
+        summary += `
+          <strong>Set n°${index + 1}:</strong><br>
+          ${set.player1_score} - ${set.player2_score}<br>
+        `;
+      });
+    } else {
+      summary += "No sets recorded.";
+    }
+
+    let summaryDiv = document.getElementById("app_main");
+    summaryDiv.innerHTML = summary;
+
+    const backButton = document.getElementById("backButton");
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        summaryDiv.innerHTML = ""; 
+
+        if (gameType === 'tournament') {
+          DisplayTournamentGame();
+        } else {
+          displayGameForm();
+        }
+      });
+    }
+  })
+  .catch(error => {
+    console.error("Error retrieving match results:", error);
+    // Vous pourriez aussi vouloir afficher un message d'erreur à l'utilisateur ici
+  });
+}
+
+
 // Dimensions et objets du jeu
-let canvas, player, opponent, ball, obstacle;
+const paddleWidth = 10,
+  paddleHeight = 100;
+let canvas, player, opponent, ball;
 
 // Initialisation des objets de jeu
 function initGameObjects(gameCanvas) {
   canvas = gameCanvas;
-
-  const paddleWidth = 10;
-  let paddleHeight = 100;
-  let ballSpeed = 5;
-
-  if (difficulty === "medium" || difficulty === "hard") {
-    paddleHeight = 80;
-    ballSpeed = 7;
-
-    obstacle = {
-      x: canvas.width / 2 - 5,
-      y: canvas.height / 3,
-      width: 20,
-      height: paddleHeight,
-      color: "GRAY"
-    };
-  }
-  else
-  {obstacle = null;}
 
   player = {
     x: 0,
@@ -323,8 +301,8 @@ function initGameObjects(gameCanvas) {
     y: canvas.height / 2,
     radius: 10,
     speed: 5,
-    velocityX: ballSpeed,
-    velocityY: ballSpeed,
+    velocityX: 5,
+    velocityY: 5,
     color: "WHITE",
   };
 
@@ -336,12 +314,13 @@ function initGameObjects(gameCanvas) {
     });
   } else if (control1 === "arrows" || control1 === "wasd") {
     document.addEventListener("keydown", (event) => {
-      event.preventDefault();
       if (control1 === "arrows") {
         if (event.key === "ArrowUp" && player.y > 0) {
           player.y -= 20;
+          event.preventDefault();
         } else if (event.key === "ArrowDown" && player.y < canvas.height - paddleHeight) {
           player.y += 20;
+          event.preventDefault();
         }
       } else if (control1 === "wasd") {
         if (event.key === "w" && player.y > 0) {
@@ -362,12 +341,13 @@ function initGameObjects(gameCanvas) {
       });
     } else if (control2 === "arrows" || control2 === "wasd") {
       document.addEventListener("keydown", (event) => {
-        event.preventDefault();
         if (control2 === "arrows") {
           if (event.key === "ArrowUp" && opponent.y > 0) {
             opponent.y -= 20;
+            event.preventDefault();
           } else if (event.key === "ArrowDown" && opponent.y < canvas.height - paddleHeight) {
             opponent.y += 20;
+            event.preventDefault();
           }
         } else if (control2 === "wasd") {
           if (event.key === "w" && opponent.y > 0) {
@@ -424,7 +404,7 @@ function drawGlowingCircle(x, y, r, color, ctx) {
 
 // Rendu du jeu
 function render(ctx) {
-  if (design === "retro"){
+  if (design === "oldschool"){
     drawRect(0, 0, canvas.width, canvas.height, "#000", ctx); // Fond noir
     drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE", ctx); // Score joueur
     drawText(
@@ -444,12 +424,8 @@ function render(ctx) {
       ctx,
     ); // Paddle ordinateur
     drawCircle(ball.x, ball.y, ball.radius, ball.color, ctx); // Balle
-
-    if (difficulty === "hard" && obstacle) {
-      drawRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, "#FFFFFF", ctx);
-    }
   }
-  if (design === "neon"){
+  if (design === "modern"){
     let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, "#0f0c29");
     gradient.addColorStop(0.5, "#302b63");
@@ -462,10 +438,6 @@ function render(ctx) {
 
     drawText(player.score, canvas.width / 4, canvas.height / 5, "#0ff", ctx);
     drawText(opponent.score, (3 * canvas.width) / 4, canvas.height / 5, "#f0f", ctx);
-
-    if (difficulty === "hard" && obstacle) {
-      drawGlowingRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, "#FF5733", ctx);
-    }
   }
 }
 
@@ -485,12 +457,6 @@ function resetBall() {
   ball.y = canvas.height / 2;
   ball.speed = 5;
   ball.velocityX = -ball.velocityX;
-
-  collisionActive = false;
-
-  setTimeout(() => {
-    collisionActive = true;
-  }, 2000);
 }
 
 // Envoyer le score au serveur
@@ -499,9 +465,9 @@ function sendScore() {
   let tournament = null;
   let isTournamentMatch = false;
   const matchID = localStorage.getItem("matchID");
-
+  const context = localStorage.getItem("context");
   // Vérifier le contexte
-  if (typeof context !== 'undefined' && context !== "solo") {
+  if (context !== "solo") {
     const tournamentID = localStorage.getItem("tournamentId");
     if (tournamentID) {
       tournament = tournamentID;
@@ -509,8 +475,9 @@ function sendScore() {
     }
   }
 
-  console.log("Valeur de player1 avant l'envoi :", player1); 
-  console.log("setHistory avant l'envoi:", setHistory);
+  console.log("Value of player1 before sending:", player1); 
+  console.log("setHistory before sending:", setHistory);
+  console.log("matchID before sending:", matchID);
 
   // Déterminer le gagnant
   let winner = null;
@@ -524,12 +491,11 @@ function sendScore() {
   const method = matchID ? "PUT" : "POST";
   const url = matchID ? `/api/scores/${matchID}/` : "/api/scores/";
 
-  
   console.log("methode :", method, " et match ID: ", matchID);
 
-  fetch(url, {
+  return fetch(url, {
     method: method,
-    credentials: "include", // Inclure les cookies dans la requête
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -545,7 +511,7 @@ function sendScore() {
       points_per_set: pointsToWin,
       tournament: tournament,
       is_tournament_match: isTournamentMatch,
-      winner: winner, // Ajouter le gagnant
+      winner: winner,
     }),
   })
     .then((response) => {
@@ -555,9 +521,48 @@ function sendScore() {
       return response.json();
     })
     .then((data) => {
-      console.log("Score soumis :", data);
+      console.log("Score submitted:", data);
+      // Si c'est un POST (nouvelle création), mettre à jour matchID dans localStorage
+      if (method === "POST") {
+        localStorage.setItem("matchID", data.id);  // Supposant que 'id' est le champ de l'ID du match dans la réponse
+        console.log("matchID after creation:", data.id);
+        return data.id; // Retourner le nouvel ID du match
+      } else {
+        console.log("matchID after update:", matchID);
+        return matchID; // Retourner l'ID du match existant
+      }
     })
     .catch((error) => {
-      console.error("Erreur lors de l'envoi du score :", error);
+      console.error("Error sending score:", error);
+      throw error; // Propager l'erreur pour que l'appelant puisse la gérer si nécessaire
     });
+}
+
+function stopGameProcess() {
+  // Arrêter l'intervalle de jeu
+  if (gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
+
+  // Fermer la connexion WebSocket
+  shouldReconnect = false;  // Désactiver la reconnexion automatique
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.close();
+    console.log("WebSocket disconnected.");
+  }
+
+ //empty all the containers
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  // Désactiver d'autres écouteurs si nécessaire
+  // canvas.removeEventListener('mousemove', handleMouseMove);
+
+  // Réinitialiser les variables de jeu
+  player1Wins = 0;
+  player2Wins = 0;
+  currentGame = 0;
+  setHistory = [];
 }

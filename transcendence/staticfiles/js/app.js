@@ -440,7 +440,7 @@ function displayGameForm() {
   let gameSettings = {
     mode: "solo",
     difficulty: "easy",
-    design: "oldschool",
+    design: "retro",
     numberOfGames: 1, //entre 1 et 5
     setsPerGame: 3, //entre 1 et 5
     player1: localStorage.getItem("username"),
@@ -464,8 +464,8 @@ function displayGameForm() {
             <button class="difficulty-button ${gameSettings.difficulty === "hard" ? "active" : ""}" id="hard" type="button">Hard</button>
             <br><br>
             <label>Design:</label>
-            <button class="design-button ${gameSettings.design === "oldschool" ? "active" : ""}" id="oldschool" type="button">Oldschool</button>
-            <button class="design-button ${gameSettings.design === "modern" ? "active" : ""}" id="modern" type="button">Modern</button>
+            <button class="design-button ${gameSettings.design === "retro" ? "active" : ""}" id="retro" type="button">Retro</button>
+            <button class="design-button ${gameSettings.design === "neon" ? "active" : ""}" id="neon" type="button">Neon</button>
         </div>
         <div style="flex: 1;">
             <h3>Match Settings</h3>
@@ -532,6 +532,7 @@ function displayGameForm() {
   document.getElementById("onePlayer").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "Bot-AI";
+    gameSettings.player2 = "Bot-AI";
     document.getElementById("player2").disabled = true;
     document.getElementById("control2Container").style.display = "none";
 
@@ -547,6 +548,7 @@ function displayGameForm() {
   document.getElementById("twoPlayers").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "player2";
+    gameSettings.player2 = "player2";
     document.getElementById("player2").disabled = false;
     document.getElementById("control2Container").style.display = "block";
 

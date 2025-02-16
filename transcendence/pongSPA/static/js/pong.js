@@ -16,7 +16,9 @@ let player1Wins = 0;
 let player2Wins = 0;
 let control1 = "arrows";
 let control2 = "wasd";
-let design = "oldschool";
+let design = "retro";
+let difficulty = "easy";
+let collisionActive = false;
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -58,6 +60,8 @@ function startPongGame() {
   if (context != "multiplayer" )
     connectWebSocket(); 
 
+  clearInterval(gameInterval);
+
   const fps = 50;
   gameInterval = setInterval(() => {
     update();
@@ -77,6 +81,7 @@ export function startGameSetup(gameSettings) {
   control1 = gameSettings.control1;
   control2 = gameSettings.control2;
   design = gameSettings.design;
+  difficulty = gameSettings.difficulty;
 
   console.log("Valeur de player1 dans startGameSetup:", player1);
   console.log("Valeur de player2 dans startGameSetup:", player2);
@@ -119,19 +124,43 @@ function resetScores() {
   opponent.score = 0;
 }
 
+let obstacleVelocityY = 5;
+let obstacleDirection = 1;
+
 function update() {
   ball.x += ball.velocityX;
   ball.y += ball.velocityY;
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
+    ball.speed *= 1.02;
+  }
+
+  if (difficulty === "hard" && obstacle) {
+    obstacle.y += obstacleVelocityY * obstacleDirection;
+
+    if (obstacle.y <= 0 || obstacle.y + obstacle.height >= canvas.height) {
+        obstacleDirection *= -1;
+    }
+  }
+
+  if (difficulty === "hard" && obstacle && collisionActive) {
+    if (
+      ball.x + ball.radius > obstacle.x &&
+      ball.x - ball.radius < obstacle.x + obstacle.width &&
+      ball.y + ball.radius > obstacle.y &&
+      ball.y - ball.radius < obstacle.y + obstacle.height
+    ) {
+      ball.velocityX = -ball.velocityX;
+      ball.speed *= 1.05;
+    }
   }
 
   let playerPaddle = ball.x < canvas.width / 2 ? player : opponent;
 
   if (collision(ball, playerPaddle)) {
     ball.velocityX = -ball.velocityX;
-    ball.speed += 0.1;
+    ball.speed *= 1.05;
   }
 
   if (ball.x - ball.radius < 0) {
@@ -154,11 +183,11 @@ function update() {
     }
   }
 
-  //Envoyer la position de la balle au serveur
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
+
 
 function saveSetResult() {
   // Enregistrer le résultat actuel du set
@@ -246,13 +275,30 @@ function displayResults(finalWinner) {
 }
 
 // Dimensions et objets du jeu
-const paddleWidth = 10,
-  paddleHeight = 100;
-let canvas, player, opponent, ball;
+let canvas, player, opponent, ball, obstacle;
 
 // Initialisation des objets de jeu
 function initGameObjects(gameCanvas) {
   canvas = gameCanvas;
+
+  const paddleWidth = 10;
+  let paddleHeight = 100;
+  let ballSpeed = 5;
+
+  if (difficulty === "medium" || difficulty === "hard") {
+    paddleHeight = 80;
+    ballSpeed = 7;
+
+    obstacle = {
+      x: canvas.width / 2 - 5,
+      y: canvas.height / 3,
+      width: 20,
+      height: paddleHeight,
+      color: "GRAY"
+    };
+  }
+  else
+  {obstacle = null;}
 
   player = {
     x: 0,
@@ -277,8 +323,8 @@ function initGameObjects(gameCanvas) {
     y: canvas.height / 2,
     radius: 10,
     speed: 5,
-    velocityX: 5,
-    velocityY: 5,
+    velocityX: ballSpeed,
+    velocityY: ballSpeed,
     color: "WHITE",
   };
 
@@ -290,13 +336,12 @@ function initGameObjects(gameCanvas) {
     });
   } else if (control1 === "arrows" || control1 === "wasd") {
     document.addEventListener("keydown", (event) => {
+      event.preventDefault();
       if (control1 === "arrows") {
         if (event.key === "ArrowUp" && player.y > 0) {
           player.y -= 20;
-          event.preventDefault();
         } else if (event.key === "ArrowDown" && player.y < canvas.height - paddleHeight) {
           player.y += 20;
-          event.preventDefault();
         }
       } else if (control1 === "wasd") {
         if (event.key === "w" && player.y > 0) {
@@ -317,13 +362,12 @@ function initGameObjects(gameCanvas) {
       });
     } else if (control2 === "arrows" || control2 === "wasd") {
       document.addEventListener("keydown", (event) => {
+        event.preventDefault();
         if (control2 === "arrows") {
           if (event.key === "ArrowUp" && opponent.y > 0) {
             opponent.y -= 20;
-            event.preventDefault();
           } else if (event.key === "ArrowDown" && opponent.y < canvas.height - paddleHeight) {
             opponent.y += 20;
-            event.preventDefault();
           }
         } else if (control2 === "wasd") {
           if (event.key === "w" && opponent.y > 0) {
@@ -380,7 +424,7 @@ function drawGlowingCircle(x, y, r, color, ctx) {
 
 // Rendu du jeu
 function render(ctx) {
-  if (design === "oldschool"){
+  if (design === "retro"){
     drawRect(0, 0, canvas.width, canvas.height, "#000", ctx); // Fond noir
     drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE", ctx); // Score joueur
     drawText(
@@ -400,8 +444,12 @@ function render(ctx) {
       ctx,
     ); // Paddle ordinateur
     drawCircle(ball.x, ball.y, ball.radius, ball.color, ctx); // Balle
+
+    if (difficulty === "hard" && obstacle) {
+      drawRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, "#FFFFFF", ctx);
+    }
   }
-  if (design === "modern"){
+  if (design === "neon"){
     let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, "#0f0c29");
     gradient.addColorStop(0.5, "#302b63");
@@ -414,6 +462,10 @@ function render(ctx) {
 
     drawText(player.score, canvas.width / 4, canvas.height / 5, "#0ff", ctx);
     drawText(opponent.score, (3 * canvas.width) / 4, canvas.height / 5, "#f0f", ctx);
+
+    if (difficulty === "hard" && obstacle) {
+      drawGlowingRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, "#FF5733", ctx);
+    }
   }
 }
 
@@ -433,6 +485,12 @@ function resetBall() {
   ball.y = canvas.height / 2;
   ball.speed = 5;
   ball.velocityX = -ball.velocityX;
+
+  collisionActive = false;
+
+  setTimeout(() => {
+    collisionActive = true;
+  }, 2000);
 }
 
 // Envoyer le score au serveur
