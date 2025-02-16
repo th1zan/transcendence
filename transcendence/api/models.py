@@ -16,9 +16,6 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(
         max_length=15, unique=True, blank=True, null=True
     )  # We might use phone number for 2FA
-    avatar = models.ImageField(
-        upload_to="avatars/", default="avatars/default.png", blank=True, null=True
-    )  # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
     friends = models.ManyToManyField(
         "self", symmetrical=True, blank=True
     )  # Friend list (Many-to-Many)
@@ -26,7 +23,9 @@ class CustomUser(AbstractUser):
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
-
+    avatar = models.ImageField(
+        upload_to="", default="default.png", blank=True, null=True
+    )  # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
     def update_last_seen(self):
         """Update last_seen timestamp when the user is active"""
         self.last_seen = now()
