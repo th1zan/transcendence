@@ -177,17 +177,64 @@ function displayTournamentGameList(data){
       });
 
       document.querySelectorAll('.startGameButton').forEach(button => {
-        button.addEventListener('click', event => {
-          const player1 = event.target.getAttribute('data-player1');
-          const player2 = event.target.getAttribute('data-player2');
-          const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-          const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-          const matchID = parseInt(event.target.getAttribute('data-match-id'));
-          localStorage.setItem("matchID", matchID);
+          button.addEventListener('click', async event => {
+            const player1 = event.target.getAttribute('data-player1');
+            const player2 = event.target.getAttribute('data-player2');
+            const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+            const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+            const matchID = parseInt(event.target.getAttribute('data-match-id'));
+            
+            console.log("get player with tournament ID: ", tournamentId);
+            try {
+              // 1. Récupérer la liste des joueurs correspondant à l'id du tournoi avec fetch et stocker la réponse.
+              const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+              
+              const playersData = await response.json();
 
-          startGameSetup(player1, player2, setsToWin, pointsPerSet);
+              // 2. Chercher la variable player1 et vérifier si le joueur est authentifié ou invité.
+              let player1Authenticated = false;
+              for (let player of playersData) {
+                if (player.name === player1) {
+                  player1Authenticated = player.authenticated || player.guest;
+                  break;
+                }
+              }
+              if (!player1Authenticated) {
+                // 3. Si player1 n'est pas authentifié ni invité, message d'erreur.
+                alert("Authentification requise pour " + player1);
+                return;
+              }
+
+              // 4. Chercher la variable pour player2 et vérifier.
+              let player2Authenticated = false;
+              for (let player of playersData) {
+                if (player.name === player2) {
+                  player2Authenticated = player.authenticated || player.guest;
+                  break;
+                }
+              }
+              if (!player2Authenticated) {
+                // 5. Message d'erreur si nécessaire.
+                alert("Authentification requise pour " + player2);
+                return;
+              }
+
+              // 6. Si pas de message d'erreur, startGameSetup est actionnée.
+              localStorage.setItem("matchID", matchID);
+              startGameSetup(player1, player2, setsToWin, pointsPerSet);
+
+            } catch (error) {
+              console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+              alert("Une erreur est survenue lors de la vérification de l'authentification. Veuillez réessayer.");
+            }
+          });
         });
-      });
+
 
       document.querySelectorAll('.auth-button').forEach(button => {
         button.addEventListener('click', function() {
