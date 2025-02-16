@@ -525,6 +525,12 @@ class UserDetailView(APIView):
         """Updates the current user's details."""
         user = request.user
         data = request.data
+    
+        # Check if email already exists (excluding the current user's email)
+        if "email" in data:
+            existing_user = CustomUser.objects.filter(email=data["email"]).exclude(id=user.id).first()
+            if existing_user:
+                return Response({"error": "This email is already in use."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Update fields
         if "username" in data:
@@ -726,17 +732,20 @@ class SendFriendRequestView(APIView):
 
         # Create a notification for the receiver
         Notification.objects.create(
-            user=receiver, message=f"{request.user.username} sent you a friend request."
+            user=receiver,
+            message=f"{request.user.username} sent you a friend request.",
+            notification_type="friend_request", # this should match websocket event type
         )
 
-        # (Optional) Push the notification over WebSockets here
+        # Push the notification over WebSockets
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"notifications_{receiver.id}",
             {
                 "type": "send_notification",
                 "content": {
-                    "message": f"{request.user.username} sent you a friend request."
+                    "message": f"{request.user.username} sent you a friend request.",
+                    "notification_type": "friend_request",
                 },
             },
         )
@@ -785,6 +794,13 @@ class RespondToFriendRequestView(APIView):
         else:
             friend_request.status = "declined"
             message = f"You have declined {sender_username}'s friend request."
+            
+            # Create a notification for the sender to inform them that their request was declined
+            Notification.objects.create(
+                user=friend_request.sender,
+                message=f"{request.user.username} declined your friend request.",
+                notification_type="friend_request_declined",
+            )
 
         friend_request.save()
 

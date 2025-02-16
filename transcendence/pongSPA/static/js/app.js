@@ -15,6 +15,8 @@ import {
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayMenu } from "./menu.js";
+import { loadPrivacyPolicyModal } from "./privacy_policy.js";
+
 
 let isUserLoggedIn = false; //false for connection formular
 
@@ -28,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/^ +/, "")
       .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
   });
+
+  loadPrivacyPolicyModal();
   
 // 1. Determine the initial route based on the URL hash
   let initialRoute = window.location.hash.replace('#', '') || 'login'; 
@@ -327,7 +331,7 @@ function displayHTMLforSettings(user) {
   
   appTop.innerHTML = `
   <div class="container mt-4">
-    <h3 class="text-center">Gestion du compte</h3>
+    <h3 class="text-center">Account Management</h3>
 
     <div class="card shadow-sm p-4 mt-3">
       <h4 class="text-center">Update Profile Picture</h4>
@@ -424,7 +428,10 @@ export function displaySettings() {
         </div>
         <div class="form-group mt-2">
           <label>Email:</label>
-          <input type="email" id="emailInput" class="form-control" value="${user.email}">
+          <input type="email" id="emailInput" class="form-control" required>
+          <div class="invalid-feedback">
+            Please enter a valid email address with "@" and a domain (e.g., user@example.com).
+          </div>
         </div>
         <div class="form-group mt-2">
           <label>Phone Number:</label>

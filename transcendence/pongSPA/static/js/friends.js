@@ -173,8 +173,8 @@ export function fetchFriends() {
 			  const lastSeen = friendStatus ? friendStatus.last_seen : "Never";
   
 			  const statusBadge = isOnline
-				? `<span class="badge ">🟢 Online</span>`
-				: `<span class="badge ">⚫ Offline (last seen: ${lastSeen})</span>`;
+				? `<span >🟢 Online</span>`
+				: `<span >🔘 Offline (last seen: ${lastSeen})</span>`;
 
 		  const listItem = document.createElement("li");
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
@@ -196,3 +196,20 @@ export function fetchFriends() {
     })
 	.catch((error) => console.error("Error fetching friends:", error));
 }
+
+const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  if (data.notification_type === "friend_request") {
+    alert("🔔 Friend Request: " + data.message);
+    fetchFriendRequests(); // Refresh friend requests dynamically
+  } else {
+    alert("🔔 Notification: " + data.message);
+  }
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};

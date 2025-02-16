@@ -71,52 +71,52 @@ export function displayRegistrationForm() {
   document.getElementById('app_bottom').innerHTML = '';
 
 
-const appDiv = document.getElementById("app_main");
-appDiv.innerHTML = `
-<div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
-  <div class="card p-5 shadow-lg" style="width: 30rem;">
-    <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
-    <form id="signupForm">
-      <div class="form-group mb-4">
-        <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
-        <input 
-          type="text" 
-          id="newUsername" 
-          class="form-control form-control-lg" 
-          placeholder="Enter your username" 
-          required 
-        />
-      </div>
-      <div class="form-group mb-5">
-        <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
-        <input 
-          type="password" 
-          id="newPassword" 
-          class="form-control form-control-lg" 
-          placeholder="Enter your password" 
-          required 
-        />
-      </div>
-      <div class="form-check mb-4">
-        <input type="checkbox" id="privacyPolicyAccepted" required />
-        <label for="privacyPolicyAccepted">
-          I accept the <a href="#" id="privacyPolicyLink">Privacy Policy</a>
-        </label>
-      </div>
+  const appDiv = document.getElementById("app_main");
+  appDiv.innerHTML = `
+  <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+    <div class="card p-5 shadow-lg" style="width: 30rem;">
+      <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
+      <form id="signupForm">
+        <div class="form-group mb-4">
+          <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
+          <input 
+            type="text" 
+            id="newUsername" 
+            class="form-control form-control-lg" 
+            placeholder="Enter your username" 
+            required 
+          />
+        </div>
+        <div class="form-group mb-5">
+          <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
+          <input 
+            type="password" 
+            id="newPassword" 
+            class="form-control form-control-lg" 
+            placeholder="Enter your password" 
+            required 
+          />
+        </div>
+        <div class="form-check mb-4">
+          <input type="checkbox" id="privacyPolicyAccepted" required />
+          <label for="privacyPolicyAccepted">
+            I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
+          </label>
+        </div>
+        <button 
+          type="submit" 
+          class="btn btn-success w-100 py-3 h5">
+          Create Account
+        </button>
+      </form>
       <button 
-        type="submit" 
-        class="btn btn-success w-100 py-3 h5">
-        Create Account
+        id="backToLoginButton" 
+        class="btn btn-primary w-100 mt-4 py-3 h5">
+        Back to Login
       </button>
-    </form>
-    <button 
-      id="backToLoginButton" 
-      class="btn btn-primary w-100 mt-4 py-3 h5">
-      Back to Login
-    </button>
+    </div>
   </div>
-</div>
-`;
+  `;
 
   document
     .getElementById("signupForm")
