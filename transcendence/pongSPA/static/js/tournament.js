@@ -692,7 +692,7 @@ async function initializePlayerManagement() {
 // }
 
 
-async function checkUserExists(username) {
+export async function checkUserExists(username) {
   const response = await fetch(`/api/user/exists/?username=${encodeURIComponent(username)}`, {
     method: 'GET',
     credentials: 'include'

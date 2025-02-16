@@ -51,6 +51,11 @@ urlpatterns = [
         name="anonymize-account",
     ),
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
+    path(
+        "auth/authenticate-player/",
+        views.AuthenticatePlayerView.as_view(),
+        name="authenticate-player",
+    ),
     path("auth/user/", UserDetailView.as_view(), name="user-detail"),
     path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),

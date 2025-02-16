@@ -1,6 +1,6 @@
 import { startGameSetup } from "./pong.js";
 import { validateToken } from "./auth.js";
-import { createTournamentForm, validateSearch, displayUserTournaments } from "./tournament.js";
+import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists} from "./tournament.js";
 import {
   anonymizeAccount,
   createAccount,
@@ -704,22 +704,21 @@ function displayGameFormHTML(username) {
   `;
 }
 
-export function displayGameForm() { 
+export async function displayGameForm() { 
 
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const username = localStorage.getItem("username") || "Player 1"; // From 'myanez-p' branch
-  localStorage.setItem("context", "solo"); // From HEAD
+  const username = localStorage.getItem("username") || "Player 1"; 
+  localStorage.setItem("context", "solo"); 
   
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = displayGameFormHTML(username);
 
   console.log("Username value in displayGameForm:", username);
 
-  // Here we add the functionality from 'myanez-p' branch
   function toggleActiveButton(group, selectedId) {
       document.querySelectorAll(group).forEach(button => {
           button.classList.remove("active");
@@ -748,7 +747,7 @@ export function displayGameForm() {
 
   document.getElementById("twoPlayers").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
-    document.getElementById("player2").value = "player2";
+    document.getElementById("player2").value = "";
     document.getElementById("player2").disabled = false;
     document.getElementById("control2Container").style.display = "block";
 
@@ -778,13 +777,118 @@ export function displayGameForm() {
     control1.querySelector(`option[value="${selected}"]`).disabled = true;
   });
 
-  document.getElementById("startGameButton").addEventListener("click", () => {
+  let alertShown = false; 
+  let lastCheckedPlayer2 = ""; 
+
+  document.getElementById("startGameButton").addEventListener("click", async () => {
       const player1 = username;
-      const player2 = document.getElementById("player2").value.trim();
+      let player2 = document.getElementById("player2").value.trim();
       const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
       const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
 
       console.log("Start button clicked");
-      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+      
+      if (alertShown && player2 === lastCheckedPlayer2) {
+          return;
+      } else {
+          alertShown = false;
+          
+          try {
+              if (player2 !== "Bot-AI") {
+                  const userData = await checkUserExists(player2);
+                  if (userData.exists) {
+                      if (userData.is_guest) {
+                          alert(`Player 2 exists as a guest. Play with this username or change it.`);
+                          alertShown = true;
+                          lastCheckedPlayer2 = player2;
+                          return;
+                      } else {
+                          authenticateNow(player2, player1, numberOfGames, setsPerGame);
+                          alertShown = true;
+                          lastCheckedPlayer2 = player2;
+                          return;
+                      }
+                  } else {
+                      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+                  }
+              } else {
+                  startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+              }
+          } catch (error) {
+              console.error("Error checking player existence:", error);
+              alert("There was an error checking player existence. Please try again.");
+          }
+      }
   });
+}
+
+
+async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
+  const modalHTML = `
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  const loginModal = document.getElementById('loginModal');
+  const modalBootstrap = new bootstrap.Modal(loginModal);
+  modalBootstrap.show();
+
+  document.getElementById('submitLogin').addEventListener('click', async function() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const authResult = await authenticatePlayer(username, password, playerName);
+    if (authResult.success) {
+      modalBootstrap.hide();
+      loginModal.remove();
+      startGameSetup(player1, playerName, numberOfGames, setsPerGame, "solo");
+    } else {
+      alert("Authentication failed. Please try again.");
+      modalBootstrap.hide();
+      loginModal.remove();
+    }
+  });
+}
+
+
+async function authenticatePlayer(username, password, playerName) {
+  const response = await fetch('/api/auth/authenticate-player/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      player_name: playerName
+    }),
+  });
+
+  return await response.json();
 }
