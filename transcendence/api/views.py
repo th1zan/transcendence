@@ -259,7 +259,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 class AuthenticatePlayerView(APIView):
-    def post(self, request):
+    def post(self, request, tournament_id):
         username = request.data.get("username")
         password = request.data.get("password")
         player_name = request.data.get("player_name")
@@ -272,6 +272,19 @@ class AuthenticatePlayerView(APIView):
                     return Response(
                         {"error": "Player name does not match authenticated user."},
                         status=status.HTTP_401_UNAUTHORIZED,
+                    )
+
+                # Si vous avez besoin de vérifier si le joueur est dans le tournoi
+                try:
+                    tournament_player = TournamentPlayer.objects.get(
+                        player=player, tournament_id=tournament_id
+                    )
+                    tournament_player.authenticated = True
+                    tournament_player.save()
+                except TournamentPlayer.DoesNotExist:
+                    return Response(
+                        {"error": "Player not in this tournament"},
+                        status=status.HTTP_404_NOT_FOUND,
                     )
 
                 player.authenticated = True

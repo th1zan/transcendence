@@ -94,8 +94,10 @@ function updatePlayerStatusUI(playerName) {
   });
 }
 
+
+
 function displayTournamentGameList(data){
-  
+
   // Empty all containers
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -176,6 +178,14 @@ function displayTournamentGameList(data){
         tournamentMatchesDiv.innerHTML += matchHTML;
       });
 
+      document.querySelectorAll('.auth-button').forEach(button => {
+        button.addEventListener('click', function() {
+           const playerName = this.getAttribute('data-player');
+          authenticateNow(playerName, tournamentId);
+        });
+      });
+
+
       document.querySelectorAll('.startGameButton').forEach(button => {
           button.addEventListener('click', async event => {
             const player1 = event.target.getAttribute('data-player1');
@@ -225,8 +235,19 @@ function displayTournamentGameList(data){
               }
 
               // 6. Si pas de message d'erreur, startGameSetup est actionnée.
+              let gameSettings = {
+                mode: "multiplayer", // Assuming tournament games are always multiplayer
+                difficulty: "medium", // Default value, adjust as needed
+                design: "retro", // Default value, adjust as needed
+                numberOfGames: setsToWin,
+                setsPerGame: pointsPerSet,
+                player1: player1,
+                player2: player2,
+                control1: "wasd",// Default values, might need adjustment
+                control2:  "arrows",
+              };
               localStorage.setItem("matchID", matchID);
-              startGameSetup(player1, player2, setsToWin, pointsPerSet);
+              startGameSetup(gameSettings);
 
             } catch (error) {
               console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
@@ -234,8 +255,7 @@ function displayTournamentGameList(data){
             }
           });
         });
-
-
+       
       document.querySelectorAll('.auth-button').forEach(button => {
         button.addEventListener('click', function() {
           const playerName = this.getAttribute('data-player');
@@ -246,89 +266,16 @@ function displayTournamentGameList(data){
 
       // Add standings to app_bottom
       displayTournamentStandings(data);
-    } else {
+          } else {
       tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
-    }
-  })
-  .catch((error) => {
-    console.error("Error retrieving players:", error);
-    tournamentMatchesDiv.innerHTML = `<h2>Selected Tournament: ${tournamentName}</h2><h3>Match List:</h3><p>Error loading player information.</p>`;
-  });
-}
+          }
+        })
+        .catch((error) => {
+          console.error("Error retrieving players:", error);
+          tournamentMatchesDiv.innerHTML = `<h2>Selected Tournament: ${tournamentName}</h2><h3>Match List:</h3><p>Error loading player information.</p>`;
+        });
+  }
 
-
-// function displayTournamentGameList(data){
-//
-//   //empty all the containers
-//   // document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const tournamentName = localStorage.getItem("tournamentName");
-//   localStorage.setItem("context", "tournament");
-//
-//   const tournamentMatchesDiv = document.getElementById("app_main");
-//   tournamentMatchesDiv.innerHTML = `
-//     <h2>Selected Tournament: ${tournamentName}</h2>
-//     <h3>Match List:</h3>
-//   `;
-//
-//   let playButtonDisplayed = false; // Variable pour contrôler l'affichage du bouton
-//
-//   if (Array.isArray(data) && data.length > 0) {
-//     data.forEach((match) => {
-//       const date = new Date(match.date_played).toLocaleString();
-//       const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
-//
-//       // Détermine le texte du gagnant ou "match à jouer"
-//       const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match to be played" : match.winner || "In progress";
-//
-//       let matchHTML = `
-//         <p>
-//           ${match.player1_name} vs ${match.player2_name}
-//           <br>
-//           Score: ${score}
-//           <br>
-//           Winner: ${winner}
-//       `;
-//
-//       // Afficher le bouton "Commencer le jeu" uniquement pour le premier match à jouer
-//       if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
-//         matchHTML += `
-//           <button class="startGameButton" 
-//                   data-player1="${match.player1_name}" 
-//                   data-player2="${match.player2_name}" 
-//                   data-sets-to-win="${match.sets_to_win}" 
-//                   data-points-per-set="${match.points_per_set}"
-//                   data-match-id="${match.id}">Start Game</button>
-//         `;
-//         playButtonDisplayed = true; // Mettre à jour la variable pour indiquer que le bouton a été affiché
-//       }
-//
-//       matchHTML += `</p>`;
-//       tournamentMatchesDiv.innerHTML += matchHTML;
-//     });
-//
-//     document.querySelectorAll('.startGameButton').forEach(button => {
-//       button.addEventListener('click', event => {
-//         const player1 = event.target.getAttribute('data-player1');
-//         const player2 = event.target.getAttribute('data-player2');
-//         const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-//         const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-//         const matchID = parseInt(event.target.getAttribute('data-match-id'));
-//         localStorage.setItem("matchID", matchID);
-//
-//         startGameSetup(player1, player2, setsToWin, pointsPerSet);
-//       });
-//     });
-//
-//     // Ajouter le classement dans app_bottom
-//     displayTournamentStandings(data);
-//   }
-//   else {
-//     tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
-//   }
-// }
 
 function displayTournamentStandings(data) {
   const appBottom = document.getElementById("app_bottom");
@@ -447,21 +394,7 @@ export function DisplayTournamentGame() {
     })
 }
 
-// export function createTournamentForm() {
-//
-//  //empty all the containers
-//   document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const appMain = document.getElementById("app_main");
-//   if (!appMain) return;
-//
-//   appMain.innerHTML = getTournamentFormHTML();
-//
-//   initializePlayerManagement();
-//   setupSubmitHandler();
-// }
+
 
 export function createTournamentForm() {
   //empty all the containers
@@ -478,22 +411,6 @@ export function createTournamentForm() {
   setupSubmitHandlers();
 }
 
-
-// function getTournamentFormHTML() {
-//   return `
-//     <form id="tournamentForm">
-//       <input type="text" id="tournamentName" placeholder="Tournament Name" required>
-//       <div id="playerContainer"></div>
-//       <button type="button" id="addPlayerButton">Add a Player</button>
-//       <br><br>
-//       <label for="numberOfGames">Number of Games:</label>
-//       <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-//       <label for="pointsToWin">Points to Win:</label>
-//       <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-//       <button type="button" id="submitButton">Submit</button>
-//     </form>
-//   `;
-// }
 
 
 function getTournamentFormHTML() {

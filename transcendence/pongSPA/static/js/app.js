@@ -849,9 +849,9 @@ export async function displayGameForm() {
 
   document.getElementById("twoPlayers").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
-    document.getElementById("player2").value = "player2";
-    gameSettings.player2 = "player2";
-    document.getElementById("player2").disabled = false;
+    document.getElementById("player2").value = ""; // Laissez vide pour permettre à l'utilisateur de saisir
+    gameSettings.player2 = ""; // Réinitialisez également dans gameSettings
+    document.getElementById("player2").disabled = false; // Assurez-vous qu'il est activable
     document.getElementById("control2Container").style.display = "block";
 
     document.getElementById("control1").value = "arrows";
@@ -933,12 +933,12 @@ export async function displayGameForm() {
                       alertShown = true;
                       lastCheckedPlayer2 = player2;
                       needAuth = true;
-                      return;
+                      // Ici, on ne retourne pas directement, on attend l'authentification
                   } else if (playerData.exists) {
                       alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
                       alertShown = true;
                       lastCheckedPlayer2 = player2;
-                      return;
+                      // Ici aussi, on ne retourne pas
                   } else {
                       startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
                   }
@@ -950,70 +950,75 @@ export async function displayGameForm() {
               // Si player2 est "Bot-AI", on peut commencer immédiatement
               startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
           }
-      } else if (alertShown && player2 === lastCheckedPlayer2) {
-          if (needAuth) {
-              authenticateNow(player2, player1, numberOfGames, setsPerGame);
-          } else {
+      }
+
+      // Vérification de l'authentification après les alertes
+      if (needAuth) {
+          const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
+          if (authResult) {
               startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
           }
+      } else if (player2 !== lastCheckedPlayer2) {
+          startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
       }
 
       console.log("Starting game with settings:", gameSettings);
-
-      startGameSetup(gameSettings);
-  });
+ });
 }
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
-  const modalHTML = `
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="loginForm">
-              <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
-              </div>
-              <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+  return new Promise((resolve, reject) => {
+    const modalHTML = `
+      <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="loginForm">
+                <div class="form-group">
+                  <label for="username">Username</label>
+                  <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-  const loginModal = document.getElementById('loginModal');
-  const modalBootstrap = new bootstrap.Modal(loginModal);
-  modalBootstrap.show();
+    const loginModal = document.getElementById('loginModal');
+    const modalBootstrap = new bootstrap.Modal(loginModal);
+    modalBootstrap.show();
 
-  document.getElementById('submitLogin').addEventListener('click', async function() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    document.getElementById('submitLogin').addEventListener('click', async function() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-    const authResult = await authenticatePlayer(username, password, playerName);
-    if (authResult.success) {
-      modalBootstrap.hide();
-      loginModal.remove();
-      startGameSetup(player1, playerName, numberOfGames, setsPerGame, "solo");
-    } else {
-      alert("Authentication failed. Please try again.");
-      modalBootstrap.hide();
-      loginModal.remove();
-    }
+      const authResult = await authenticatePlayer(username, password, playerName);
+      if (authResult.success) {
+        modalBootstrap.hide();
+        loginModal.remove();
+        resolve(true); // Résout la promesse en cas de succès
+      } else {
+        alert("Authentication failed. Please try again.");
+        modalBootstrap.hide();
+        loginModal.remove();
+        resolve(false); // Résout la promesse en cas d'échec
+      }
+    });
   });
 }
 
