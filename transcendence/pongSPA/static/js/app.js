@@ -1,6 +1,6 @@
 import { startGameSetup } from "./pong.js";
 import { validateToken } from "./auth.js";
-import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists} from "./tournament.js";
+import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists} from "./tournament.js";
 import {
   anonymizeAccount,
   createAccount,
@@ -732,6 +732,8 @@ export async function displayGameForm() {
       });
   });
 
+
+  let isTwoPlayerMode = false;
   document.getElementById("onePlayer").addEventListener("click", function() {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "Bot-AI";
@@ -743,6 +745,7 @@ export async function displayGameForm() {
 
     document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    isTwoPlayerMode = false;
   });
 
   document.getElementById("twoPlayers").addEventListener("click", function() {
@@ -759,6 +762,8 @@ export async function displayGameForm() {
 
     document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
     document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+    
+    isTwoPlayerMode = true;
   });
 
   document.getElementById("control1").addEventListener("change", function () {
@@ -779,6 +784,7 @@ export async function displayGameForm() {
 
   let alertShown = false; 
   let lastCheckedPlayer2 = ""; 
+  let needAuth = false; 
 
   document.getElementById("startGameButton").addEventListener("click", async () => {
       const player1 = username;
@@ -788,40 +794,44 @@ export async function displayGameForm() {
 
       console.log("Start button clicked");
       
-      if (alertShown && player2 === lastCheckedPlayer2) {
-          return;
-      } else {
+      if (alertShown == false || player2 !== lastCheckedPlayer2) {
           alertShown = false;
-          
-          try {
-              if (player2 !== "Bot-AI") {
-                  const userData = await checkUserExists(player2);
-                  if (userData.exists) {
-                      if (userData.is_guest) {
-                          alert(`Player 2 exists as a guest. Play with this username or change it.`);
-                          alertShown = true;
-                          lastCheckedPlayer2 = player2;
-                          return;
-                      } else {
-                          authenticateNow(player2, player1, numberOfGames, setsPerGame);
-                          alertShown = true;
-                          lastCheckedPlayer2 = player2;
-                          return;
-                      }
+          needAuth = false;  
+      if (isTwoPlayerMode == true) {
+              try {
+                  const playerData = await checkPlayerExists(player2);
+
+                  if (playerData.exists && !playerData.is_guest) {
+                      alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
+                      alertShown = true;
+                      lastCheckedPlayer2 = player2;
+                      needAuth = true;
+                      return;
+                  } else if (playerData.exists) {
+                      alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
+                      alertShown = true;
+                      lastCheckedPlayer2 = player2;
+                      return;
                   } else {
                       startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
                   }
-              } else {
-                  startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+              } catch (error) {
+                  console.error("Error checking player existence:", error);
+                  alert("There was an error checking player existence. Please try again.");
               }
-          } catch (error) {
-              console.error("Error checking player existence:", error);
-              alert("There was an error checking player existence. Please try again.");
+          } else {
+              // Si player2 est "Bot-AI", on peut commencer immédiatement
+              startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+          }
+      } else if (alertShown && player2 === lastCheckedPlayer2) {
+          if (needAuth) {
+              authenticateNow(player2, player1, numberOfGames, setsPerGame);
+          } else {
+              startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
           }
       }
   });
 }
-
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
   const modalHTML = `

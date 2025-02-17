@@ -700,7 +700,7 @@ export async function checkUserExists(username) {
   return await response.json();
 }
 
-async function checkPlayerExists(playerName) {
+export async function checkPlayerExists(playerName) {
   const response = await fetch(`/api/player/exists/?player_name=${encodeURIComponent(playerName)}`, {
     method: 'GET',
     credentials: 'include'

@@ -423,11 +423,11 @@ function resetBall() {
 }
 
 // Envoyer le score au serveur
-function sendScore() {
+async function sendScore() {
   // Initialiser les variables
   let tournament = null;
   let isTournamentMatch = false;
-  const matchID = localStorage.getItem("matchID");
+  let matchID = localStorage.getItem("matchID");
   const context = localStorage.getItem("context");
   // Vérifier le contexte
   if (context !== "solo") {
@@ -440,6 +440,7 @@ function sendScore() {
 
   console.log("Value of player1 before sending:", player1); 
   console.log("setHistory before sending:", setHistory);
+  console.log("context:", context);
   console.log("matchID before sending:", matchID);
 
   // Déterminer le gagnant

@@ -11,7 +11,6 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -29,30 +28,17 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
+from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
+                                                             OutstandingToken)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-from .models import (
-    CustomUser,
-    FriendRequest,
-    Notification,
-    Player,
-    PongMatch,
-    PongSet,
-    Tournament,
-    TournamentPlayer,
-)
-from .serializers import (
-    PongMatchSerializer,
-    PongSetSerializer,
-    TournamentPlayerSerializer,
-    TournamentSerializer,
-    UserRegisterSerializer,
-)
+from .models import (CustomUser, FriendRequest, Notification, Player,
+                     PongMatch, PongSet, Tournament, TournamentPlayer)
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer,
+                          UserRegisterSerializer)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
 
@@ -142,31 +128,31 @@ class PongScoreView(APIView):
         if match_serializer.is_valid():
             match = match_serializer.save()
 
-            if player2.user and player2.authenticated:
-                for set_data in sets_data:
-                    set_data["match"] = match.id
-                    set_serializer = PongSetSerializer(data=set_data)
-                    if set_serializer.is_valid():
-                        set_serializer.save()
-                    else:
-                        return Response(
-                            set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                        )
+            # if player2.user and player2.authenticated:
+            for set_data in sets_data:
+                set_data["match"] = match.id
+                set_serializer = PongSetSerializer(data=set_data)
+                if set_serializer.is_valid():
+                    set_serializer.save()
+                else:
+                    return Response(
+                        set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    )
 
-                if match_data.get("winner"):
-                    try:
-                        winner_player = Player.objects.get(player=match_data["winner"])
-                        match.winner = winner_player
-                        match.save()
-                    except Player.DoesNotExist:
-                        return Response(
-                            {"error": "Player not found."},
-                            status=status.HTTP_404_NOT_FOUND,
-                        )
+            if match_data.get("winner"):
+                try:
+                    winner_player = Player.objects.get(player=match_data["winner"])
+                    match.winner = winner_player
+                    match.save()
+                except Player.DoesNotExist:
+                    return Response(
+                        {"error": "Player not found."},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
 
-            return Response(match_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # return Response(match_serializer.data, status=status.HTTP_201_CREATED)
+        # else:
+        #     return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
         try:
