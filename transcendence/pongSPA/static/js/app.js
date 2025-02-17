@@ -326,7 +326,7 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
   
-  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
   const appTop = document.getElementById("app_main");
   
   appTop.innerHTML = `
