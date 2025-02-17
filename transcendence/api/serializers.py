@@ -91,6 +91,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "user1": {"allow_null": True},
             "user2": {"allow_null": True},
+            "winner": {"allow_null": True},
         }
 
     winner = serializers.SlugRelatedField(

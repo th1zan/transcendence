@@ -229,7 +229,7 @@ export function displayWelcomePage() {
 
   const appMain = document.getElementById("app_main");
   // appMain.className = "p-3 flex-grow-1";
-  appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
+  // appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
   appMain.innerHTML = `
     Contenu de la Welcome page
   `;
@@ -811,7 +811,7 @@ export async function displayGameForm() {
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>
-    <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>  
+    <!-- <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>   -->
   `;
 
   function toggleActiveButton(group, selectedId) {
@@ -865,6 +865,7 @@ export async function displayGameForm() {
     
     isTwoPlayerMode = true;
     gameSettings.mode = "multiplayer";
+    document.getElementById("player2").disabled = false;
   });
 
   document.getElementById("numberOfGames").addEventListener("input", function() {
@@ -940,7 +941,8 @@ export async function displayGameForm() {
                       lastCheckedPlayer2 = player2;
                       // Ici aussi, on ne retourne pas
                   } else {
-                      startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+                      startGameSetup(gameSettings);
+
                   }
               } catch (error) {
                   console.error("Error checking player existence:", error);
@@ -948,7 +950,7 @@ export async function displayGameForm() {
               }
           } else {
               // Si player2 est "Bot-AI", on peut commencer immédiatement
-              startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+              startGameSetup(gameSettings);
           }
       }
 
@@ -956,10 +958,10 @@ export async function displayGameForm() {
       if (needAuth) {
           const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
           if (authResult) {
-              startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
-          }
+              startGameSetup(gameSettings);
+      }
       } else if (player2 !== lastCheckedPlayer2) {
-          startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
+          startGameSetup(gameSettings);
       }
 
       console.log("Starting game with settings:", gameSettings);
@@ -1024,7 +1026,7 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
 
 
 async function authenticatePlayer(username, password, playerName) {
-  const response = await fetch('/api/auth/authenticate-player/', {
+  const response = await fetch('/api/auth/match-player/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

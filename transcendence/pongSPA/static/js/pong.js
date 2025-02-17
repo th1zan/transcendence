@@ -42,7 +42,7 @@ function connectWebSocket()
     console.log("Message received:", event.data);
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
-      // console.log("Updating paddle position:", data.y);
+      console.log("Updating paddle position:", data.y);
       opponent.y = data.y;
     }
   };
@@ -60,7 +60,7 @@ function connectWebSocket()
 
 // Démarrer le jeu Pong
 function startPongGame() {
-
+  console.log("Starting Pong Game");
 
   const canvas = document.getElementById("pong");
 
@@ -71,11 +71,19 @@ function startPongGame() {
   }
 
   const cnv_context = canvas.getContext("2d");
+  console.log("Canvas context obtained:", cnv_context !== null);
 
   initGameObjects(canvas);
+  console.log("Game objects initialized");
   resetScores();
-  if (context != "multiplayer" )
+  console.log("Scores reset");
+
+  console.log("Context multilayer or solo:", context);
+  if (context != "multiplayer" ){
+    console.log("Context: ", context, " , let's connect to websocket.");
     connectWebSocket(); 
+  }
+  console.log("WebSocket connection attempted");
 
   clearInterval(gameInterval);
 

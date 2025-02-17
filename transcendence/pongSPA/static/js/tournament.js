@@ -60,7 +60,7 @@ function authenticateNow(playerName, tournamentId) {
 }
 
 function authenticatePlayer(username, password, playerName, tournamentId) {
-  return fetch(`/api/tournament/authenticate-player/${tournamentId}/`, {
+  return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
     method: "POST",
     credentials: "include",
     headers: {

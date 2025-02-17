@@ -26,6 +26,7 @@ class CustomUser(AbstractUser):
     avatar = models.ImageField(
         upload_to="", default="default.png", blank=True, null=True
     )  # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
+
     def update_last_seen(self):
         """Update last_seen timestamp when the user is active"""
         self.last_seen = now()
@@ -197,16 +198,17 @@ class FriendRequest(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="notifications",
-        on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, related_name="notifications", on_delete=models.CASCADE
     )
     message = models.TextField()
-    notification_type = models.CharField(max_length=50, choices=[
-        ('friend_request', 'Friend Request'),
-        ('friend_request_declined', 'Friend Request Declined'),
-        ('game_invite', 'Game Invite'),
-    ]) 
+    notification_type = models.CharField(
+        max_length=50,
+        choices=[
+            ("friend_request", "Friend Request"),
+            ("friend_request_declined", "Friend Request Declined"),
+            ("game_invite", "Game Invite"),
+        ],
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
