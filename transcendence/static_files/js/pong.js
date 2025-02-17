@@ -14,13 +14,9 @@ let pointsToWin = 1;
 let currentGame = 0;
 let player1Wins = 0;
 let player2Wins = 0;
-let shouldReconnect = true;
 let control1 = "arrows";
 let control2 = "wasd";
-let design = "retro";
-let difficulty = "easy";
-let collisionActive = false;
-let context = "solo"
+let design = "oldschool";
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -42,7 +38,6 @@ function connectWebSocket()
     console.log("Message received:", event.data);
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
-      // console.log("Updating paddle position:", data.y);
       opponent.y = data.y;
     }
   };
@@ -70,61 +65,21 @@ function startPongGame() {
     return;
   }
 
-  const cnv_context = canvas.getContext("2d");
+  const context = canvas.getContext("2d");
 
   initGameObjects(canvas);
   resetScores();
   if (context != "multiplayer" )
     connectWebSocket(); 
 
-  clearInterval(gameInterval);
-
   const fps = 50;
   gameInterval = setInterval(() => {
     update();
-    render(cnv_context);
+    render(context);
   }, 1000 / fps);
 }
 
-function updateGamePanel() {
-  const gamePanel = document.getElementById("app_bottom");
-  if (gamePanel) {
-    gamePanel.style.display = "block";
- 
-    gamePanel.innerHTML = `
-      <div id="summary"></div>
-   `;
-   
-    // Ajouter le bouton "Quit Game"
-    if (!document.getElementById("quitGameButton")) { // Éviter de créer plusieurs boutons
-      const quitButton = document.createElement("button");
-      quitButton.id = "quitGameButton";
-      quitButton.textContent = "Quit Game";
-      quitButton.onclick = function() {
-        stopGameProcess();
-        
-        // Déterminer la fonction à appeler ensuite en fonction du contexte
-        const context = localStorage.getItem("context");
-        if (context === "tournament") {
-          DisplayTournamentGame();
-        } else if (context === "solo") {
-          const username = localStorage.getItem("username");
-          displayMenu(username);
-          displayWelcomePage()
-        }
-      };
-      gamePanel.appendChild(quitButton);
-    }
-  }
-
-  console.log("Call to updateGamePanel");
-}
-
-
 export function startGameSetup(gameSettings) {
-
-  shouldReconnect = true;
-
   // Mettre à jour les variables globales
   user1 = gameSettings.player1;
   user2 = gameSettings.player2;
@@ -136,18 +91,14 @@ export function startGameSetup(gameSettings) {
   control1 = gameSettings.control1;
   control2 = gameSettings.control2;
   design = gameSettings.design;
-  difficulty = gameSettings.difficulty;
+
+  console.log("Valeur de player1 dans startGameSetup:", player1);
+  console.log("Valeur de player2 dans startGameSetup:", player2);
 
  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
-
-  //create a canva for the game in the div "app_main"
-  const appMain = document.getElementById("app_main");
-  appMain.innerHTML = `
-    <canvas id="pong" width="800" height="400"></canvas>
-  `;
 
   // Gérer l'affichage en fonction du contexte
   if (context === "tournament") {
@@ -177,43 +128,19 @@ function resetScores() {
   opponent.score = 0;
 }
 
-let obstacleVelocityY = 5;
-let obstacleDirection = 1;
-
 function update() {
   ball.x += ball.velocityX;
   ball.y += ball.velocityY;
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
-    ball.speed *= 1.02;
-  }
-
-  if (difficulty === "hard" && obstacle) {
-    obstacle.y += obstacleVelocityY * obstacleDirection;
-
-    if (obstacle.y <= 0 || obstacle.y + obstacle.height >= canvas.height) {
-        obstacleDirection *= -1;
-    }
-  }
-
-  if (difficulty === "hard" && obstacle && collisionActive) {
-    if (
-      ball.x + ball.radius > obstacle.x &&
-      ball.x - ball.radius < obstacle.x + obstacle.width &&
-      ball.y + ball.radius > obstacle.y &&
-      ball.y - ball.radius < obstacle.y + obstacle.height
-    ) {
-      ball.velocityX = -ball.velocityX;
-      ball.speed *= 1.05;
-    }
   }
 
   let playerPaddle = ball.x < canvas.width / 2 ? player : opponent;
 
   if (collision(ball, playerPaddle)) {
     ball.velocityX = -ball.velocityX;
-    ball.speed *= 1.05;
+    ball.speed += 0.1;
   }
 
   if (ball.x - ball.radius < 0) {
@@ -236,19 +163,11 @@ function update() {
     }
   }
 
-// <<<<<<< HEAD
-//   //Envoyer la position de la balle au serveur
-//   if (ws && ws.readyState === WebSocket.OPEN) {
-//     const message = JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y });
-//     ws.send(message);
-//     console.log("Ball position sent: ", message);
-// =======
-
+  //Envoyer la position de la balle au serveur
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
-
 
 function saveSetResult() {
   // Enregistrer le résultat actuel du set
@@ -257,22 +176,6 @@ function saveSetResult() {
     player1_score: player.score,
     player2_score: opponent.score,
   });
-}
-
-function updateResults() {
-  const resultDiv = document.getElementById("app_bottom");
-  if (resultDiv) {
-    resultDiv.style.display = "block";
-    let summary = `
-      <h3>Set History:</h3>
-    `;
-
-    setHistory.forEach((set, index) => {
-      summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
-    });
-
-    document.getElementById("summary").innerHTML = summary;
-  }
 }
 
 function handleGameEnd(winner) {
@@ -367,30 +270,13 @@ function displayResults(matchID) {
 
 
 // Dimensions et objets du jeu
-let canvas, player, opponent, ball, obstacle;
+const paddleWidth = 10,
+  paddleHeight = 100;
+let canvas, player, opponent, ball;
 
 // Initialisation des objets de jeu
 function initGameObjects(gameCanvas) {
   canvas = gameCanvas;
-
-  const paddleWidth = 10;
-  let paddleHeight = 100;
-  let ballSpeed = 5;
-
-  if (difficulty === "medium" || difficulty === "hard") {
-    paddleHeight = 80;
-    ballSpeed = 7;
-
-    obstacle = {
-      x: canvas.width / 2 - 5,
-      y: canvas.height / 3,
-      width: 20,
-      height: paddleHeight,
-      color: "GRAY"
-    };
-  }
-  else
-  {obstacle = null;}
 
   player = {
     x: 0,
@@ -415,8 +301,8 @@ function initGameObjects(gameCanvas) {
     y: canvas.height / 2,
     radius: 10,
     speed: 5,
-    velocityX: ballSpeed,
-    velocityY: ballSpeed,
+    velocityX: 5,
+    velocityY: 5,
     color: "WHITE",
   };
 
@@ -428,12 +314,13 @@ function initGameObjects(gameCanvas) {
     });
   } else if (control1 === "arrows" || control1 === "wasd") {
     document.addEventListener("keydown", (event) => {
-      event.preventDefault();
       if (control1 === "arrows") {
         if (event.key === "ArrowUp" && player.y > 0) {
           player.y -= 20;
+          event.preventDefault();
         } else if (event.key === "ArrowDown" && player.y < canvas.height - paddleHeight) {
           player.y += 20;
+          event.preventDefault();
         }
       } else if (control1 === "wasd") {
         if (event.key === "w" && player.y > 0) {
@@ -454,12 +341,13 @@ function initGameObjects(gameCanvas) {
       });
     } else if (control2 === "arrows" || control2 === "wasd") {
       document.addEventListener("keydown", (event) => {
-        event.preventDefault();
         if (control2 === "arrows") {
           if (event.key === "ArrowUp" && opponent.y > 0) {
             opponent.y -= 20;
+            event.preventDefault();
           } else if (event.key === "ArrowDown" && opponent.y < canvas.height - paddleHeight) {
             opponent.y += 20;
+            event.preventDefault();
           }
         } else if (control2 === "wasd") {
           if (event.key === "w" && opponent.y > 0) {
@@ -516,7 +404,7 @@ function drawGlowingCircle(x, y, r, color, ctx) {
 
 // Rendu du jeu
 function render(ctx) {
-  if (design === "retro"){
+  if (design === "oldschool"){
     drawRect(0, 0, canvas.width, canvas.height, "#000", ctx); // Fond noir
     drawText(player.score, canvas.width / 4, canvas.height / 5, "WHITE", ctx); // Score joueur
     drawText(
@@ -536,12 +424,8 @@ function render(ctx) {
       ctx,
     ); // Paddle ordinateur
     drawCircle(ball.x, ball.y, ball.radius, ball.color, ctx); // Balle
-
-    if (difficulty === "hard" && obstacle) {
-      drawRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, "#FFFFFF", ctx);
-    }
   }
-  if (design === "neon"){
+  if (design === "modern"){
     let gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, "#0f0c29");
     gradient.addColorStop(0.5, "#302b63");
@@ -554,10 +438,6 @@ function render(ctx) {
 
     drawText(player.score, canvas.width / 4, canvas.height / 5, "#0ff", ctx);
     drawText(opponent.score, (3 * canvas.width) / 4, canvas.height / 5, "#f0f", ctx);
-
-    if (difficulty === "hard" && obstacle) {
-      drawGlowingRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height, "#FF5733", ctx);
-    }
   }
 }
 
@@ -577,20 +457,14 @@ function resetBall() {
   ball.y = canvas.height / 2;
   ball.speed = 5;
   ball.velocityX = -ball.velocityX;
-
-  collisionActive = false;
-
-  setTimeout(() => {
-    collisionActive = true;
-  }, 2000);
 }
 
 // Envoyer le score au serveur
-async function sendScore() {
+function sendScore() {
   // Initialiser les variables
   let tournament = null;
   let isTournamentMatch = false;
-  let matchID = localStorage.getItem("matchID");
+  const matchID = localStorage.getItem("matchID");
   const context = localStorage.getItem("context");
   // Vérifier le contexte
   if (context !== "solo") {
@@ -603,7 +477,6 @@ async function sendScore() {
 
   console.log("Value of player1 before sending:", player1); 
   console.log("setHistory before sending:", setHistory);
-  console.log("context:", context);
   console.log("matchID before sending:", matchID);
 
   // Déterminer le gagnant
