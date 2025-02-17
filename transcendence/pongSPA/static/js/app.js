@@ -714,10 +714,6 @@ export async function displayGameForm() {
 
   localStorage.setItem("context", "solo"); 
   
-  // const appMain = document.getElementById("app_main");
-  // appMain.innerHTML = displayGameFormHTML(username);
-
-
   const formContainer = document.getElementById("app_main");
   const username = localStorage.getItem("username")
 
@@ -734,77 +730,97 @@ export async function displayGameForm() {
   };
   
   formContainer.innerHTML = `
-  <form id="gameForm">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-        <div style="flex: 1;">
-            <h3>Game Settings</h3>
-            <label>Game Mode:</label>
-            <button id="onePlayer" class="mode-button ${gameSettings.mode === "solo" ? "active" : ""}" type="button">1 Player</button>
-            <button id="twoPlayers" class="mode-button ${gameSettings.mode === "multiplayer" ? "active" : ""}" type="button">2 Players</button>
-            <br><br>
-            <label>Difficulty:</label>
-            <button class="difficulty-button ${gameSettings.difficulty === "easy" ? "active" : ""}" id="easy" type="button">Easy</button>
-            <button class="difficulty-button ${gameSettings.difficulty === "medium" ? "active" : ""}" id="medium" type="button">Medium</button>
-            <button class="difficulty-button ${gameSettings.difficulty === "hard" ? "active" : ""}" id="hard" type="button">Hard</button>
-            <br><br>
-            <label>Design:</label>
-            <button class="design-button ${gameSettings.design === "retro" ? "active" : ""}" id="retro" type="button">Retro</button>
-            <button class="design-button ${gameSettings.design === "neon" ? "active" : ""}" id="neon" type="button">Neon</button>
-        </div>
-        <div style="flex: 1;">
-            <h3>Match Settings</h3>
-            <label>Number of Games:</label>
-            <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" style="width: 60px;"><br><br>
-            <label>Sets per Game:</label>
-            <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" style="width: 60px;"><br><br>
-        </div>
-    </div>
-    
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-top: 20px;">
-        <div style="flex: 1;">
-            <h3>Player 1</h3>
-            <label>Name:</label>
-            <input type="text" id="player1" value="${gameSettings.player1}" disabled>
-            <br>
-            <label>Control:</label>
-            <select id="control1">
-                <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-                <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
-            </select>
-        </div>
-        <div style="flex: 1;" id="player2Container">
-            <h3>Player 2</h3>
-            <label>Name:</label>
-            <input type="text" id="player2" value="${gameSettings.player2}" ${gameSettings.mode === "solo" ? "disabled" : ""}>
-            <br>
-            <div id="control2Container" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-                <label>Control:</label>
-                <select id="control2">
-                    <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
-                </select>
-            </div>
-        </div>
-    </div>
-    <div style="text-align: center; margin-top: 20px;">
-      <button id="startGameButton" type="button">Start Game</button>
-    </div>
-  </form>
+    <form id="gameForm" class="container">
+      <div class="row">
+          <div class="col-12 col-md-6">
+              <h3>Game Settings</h3>
+              <div class="mb-3">
+                  <label class="form-label">Game Mode:</label>
+                  <div class="btn-group" role="group" aria-label="Game Mode">
+                      <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+                      <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Difficulty:</label>
+                  <div class="btn-group" role="group" aria-label="Difficulty">
+                      <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+                      <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+                      <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Design:</label>
+                  <div class="btn-group" role="group" aria-label="Design">
+                      <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+                      <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+                  </div>
+              </div>
+          </div>
+          <div class="col-12 col-md-6">
+              <h3>Match Settings</h3>
+              <div class="mb-3">
+                  <label for="numberOfGames" class="form-label">Number of Games:</label>
+                  <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control" style="width: 60px;">
+              </div>
+              <div class="mb-3">
+                  <label for="setsPerGame" class="form-label">Sets per Game:</label>
+                  <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+              </div>
+          </div>
+      </div>
+      
+      <div class="row mt-4">
+          <div class="col-12 col-md-6">
+              <h3>Player 1</h3>
+              <div class="mb-3">
+                  <label for="player1" class="form-label">Name:</label>
+                  <input type="text" id="player1" value="${gameSettings.player1}" class="form-control" disabled>
+              </div>
+              <div class="mb-3">
+                  <label for="control1" class="form-label">Control:</label>
+                  <select id="control1" class="form-select">
+                      <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                      <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+                      <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+                  </select>
+              </div>
+          </div>
+          <div class="col-12 col-md-6" id="player2Container">
+              <h3>Player 2</h3>
+              <div class="mb-3">
+                  <label for="player2" class="form-label">Name:</label>
+                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}>
+              </div>
+              <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+                  <label for="control2" class="form-label">Control:</label>
+                  <select id="control2" class="form-select">
+                      <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+                      <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                      <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+                  </select>
+              </div>
+          </div>
+      </div>
+      <div class="text-center mt-4">
+        <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
+      </div>
+    </form>
 
-  <div id="result" style="display: none;">
-    <h2>Game Results</h2>
-    <p id="summary"></p>
-  </div>
-  <canvas id="pong" width="800" height="400" style="display: block; margin-top: 20px;"></canvas>  
-`;
+    <div id="result" style="display: none;">
+      <h2>Game Results</h2>
+      <p id="summary"></p>
+    </div>
+    <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>  
+  `;
 
   function toggleActiveButton(group, selectedId) {
       document.querySelectorAll(group).forEach(button => {
-          button.classList.remove("active");
+          button.classList.remove('btn-primary');
+          button.classList.add('btn-outline-primary');
       });
-      document.getElementById(selectedId).classList.add("active");
+      document.getElementById(selectedId).classList.remove('btn-outline-primary');
+      document.getElementById(selectedId).classList.add('btn-primary');
   }
 
   document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
@@ -812,7 +828,6 @@ export async function displayGameForm() {
           toggleActiveButton(`.${this.classList[0]}`, this.id);
       });
   });
-
 
   let isTwoPlayerMode = false;
   document.getElementById("onePlayer").addEventListener("click", function() {
@@ -882,23 +897,23 @@ export async function displayGameForm() {
     control1.querySelector(`option[value="${selected}"]`).disabled = true;
   });
 
+  document.querySelectorAll(".difficulty-button").forEach(button => {
+    button.addEventListener("click", function() {
+      gameSettings.difficulty = this.id;
+    });
+  });
+
+  document.querySelectorAll(".design-button").forEach(button => {
+    button.addEventListener("click", function() {
+      gameSettings.design = this.id;
+    });
+  });
+
   let alertShown = false; 
   let lastCheckedPlayer2 = ""; 
   let needAuth = false; 
 
   document.getElementById("startGameButton").addEventListener("click", async () => {
-    document.querySelectorAll(".difficulty-button").forEach(button => {
-      button.addEventListener("click", function() {
-        gameSettings.difficulty = this.id;
-      });
-    });
-
-    document.querySelectorAll(".design-button").forEach(button => {
-      button.addEventListener("click", function() {
-        gameSettings.design = this.id;
-      });
-    });
-
       const player1 = username;
       let player2 = document.getElementById("player2").value.trim();
       const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
@@ -906,10 +921,10 @@ export async function displayGameForm() {
 
       console.log("Start button clicked");
       
-      if (alertShown == false || player2 !== lastCheckedPlayer2) {
+      if (!alertShown || player2 !== lastCheckedPlayer2) {
           alertShown = false;
           needAuth = false;  
-      if (isTwoPlayerMode == true) {
+          if (isTwoPlayerMode) {
               try {
                   const playerData = await checkPlayerExists(player2);
 
@@ -945,7 +960,6 @@ export async function displayGameForm() {
 
       console.log("Starting game with settings:", gameSettings);
 
-      //startGameSetup(player1, player2, numberOfGames, setsPerGame, "solo");
       startGameSetup(gameSettings);
   });
 }

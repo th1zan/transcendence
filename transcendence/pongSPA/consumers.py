@@ -2,10 +2,8 @@ import asyncio
 import json
 import logging
 
-from channels.generic.websocket import (
-    AsyncJsonWebsocketConsumer,
-    AsyncWebsocketConsumer,
-)
+from channels.generic.websocket import (AsyncJsonWebsocketConsumer,
+                                        AsyncWebsocketConsumer)
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +33,12 @@ class PongAIConsumer(AsyncWebsocketConsumer):
             )
 
             # Renvoyer la position mise à jour du paddle
-            await self.send(
-                text_data=json.dumps({"type": "update_paddle", "y": self.paddle_y})
-            )
-            logger.info(
-                f"Message envoyé: {'update_paddle'} avec position y: {self.paddle_y}"
-            )
+            # await self.send(
+            #     text_data=json.dumps({"type": "update_paddle", "y": self.paddle_y})
+            # )
+            # logger.info(
+            #     f"Message envoyé: {'update_paddle'} avec position y: {self.paddle_y}"
+            # )
 
 
 class NotificationConsumer(AsyncJsonWebsocketConsumer):
@@ -58,7 +56,11 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
 
     # This method is called when a notification needs to be sent
     async def send_notification(self, event):
-        await self.send_json({
-            "message": event["content"]["message"],
-            "notification_type": event["content"]["notification_type"],  # Ensure WebSocket forwards this
-        })
+        await self.send_json(
+            {
+                "message": event["content"]["message"],
+                "notification_type": event["content"][
+                    "notification_type"
+                ],  # Ensure WebSocket forwards this
+            }
+        )

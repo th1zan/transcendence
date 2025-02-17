@@ -1,4 +1,4 @@
-import { displayWelcomePage } from "./app.js";
+import { displayWelcomePage, navigateTo } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
 
