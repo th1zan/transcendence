@@ -33,12 +33,12 @@ class PongAIConsumer(AsyncWebsocketConsumer):
             )
 
             # Renvoyer la position mise à jour du paddle
-            # await self.send(
-            #     text_data=json.dumps({"type": "update_paddle", "y": self.paddle_y})
-            # )
-            # logger.info(
-            #     f"Message envoyé: {'update_paddle'} avec position y: {self.paddle_y}"
-            # )
+            await self.send(
+                text_data=json.dumps({"type": "update_paddle", "y": self.paddle_y})
+            )
+            logger.info(
+                f"Message envoyé: {'update_paddle'} avec position y: {self.paddle_y}"
+            )
 
 
 class NotificationConsumer(AsyncJsonWebsocketConsumer):
