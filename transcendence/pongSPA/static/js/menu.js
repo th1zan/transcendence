@@ -19,14 +19,12 @@ export function displayMenu() {
   document.getElementById('app_bottom').innerHTML = '';
 
 
-  const appDiv = document.getElementById('app');
-  appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
 
   //class and CSS definition for the div and navbar (menu) container
   const menuDiv = document.getElementById("menu");
 
   menuDiv.innerHTML = `
-  <div class="d-flex flex-column h-100" style="background-color:rgb(172, 200, 195);">
+  <div class="d-flex flex-column h-100" style="width: 150px; background-color:rgb(172, 200, 195);">
       <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" width="90" height="100" />
 
        <button id="welcomeButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Welcome page</button>

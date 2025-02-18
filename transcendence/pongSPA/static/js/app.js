@@ -190,7 +190,6 @@ export function displayWelcomePage() {
   const username = localStorage.getItem("username");
 
   const appDiv = document.getElementById('app');
-  appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
   // Object.assign(appDiv, {
     // style: {
       // width: '200px'
@@ -212,7 +211,6 @@ export function displayWelcomePage() {
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById('app_top');
-  // appTop.className = "p-1 d-flex rounded";
   appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
   appTop.innerHTML = `
     <div class="d-flex justify-content-between align-items-center w-100">
@@ -228,14 +226,12 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  // appMain.className = "p-3 flex-grow-1";
   appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
   appMain.innerHTML = `
     Contenu de la Welcome page
   `;
 
   const appBottom = document.getElementById("app_bottom");
-  // appBottom.className = "p-3";
   appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
   appBottom.innerHTML = `
     Footer de la page
