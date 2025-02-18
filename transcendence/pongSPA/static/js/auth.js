@@ -242,8 +242,8 @@ export function uploadAvatar() {
   })
     .then(response => {
       if (!response.ok) {
-        return response.json().then(error => { 
-          throw new Error(error.error || "Upload failed."); 
+        return response.json().then(error => {
+          throw new Error(error.error || "Upload failed.");
         });
       }
       return response.json();

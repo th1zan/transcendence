@@ -1,6 +1,10 @@
 # from django.contrib.auth.models import User
+import os
+import random
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.files import File
 from django.core.management import call_command
 from django.db import models
 from django.db.models.signals import post_save, pre_save
@@ -23,14 +27,79 @@ class CustomUser(AbstractUser):
     is_online = models.BooleanField(default=False)  # Track online status
     last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
-    avatar = models.ImageField(
-        upload_to="", default="default.png", blank=True, null=True
-    )  # The avatar will be saved under media/avatars/ with a default image if none is uploaded.
+    # The avatar will be saved under media/avatars/ with a random default image if none is uploaded.
+    avatar = models.ImageField(upload_to="", blank=True, null=True)
+
+    def set_random_avatar(self):
+        # List of default avatar images in the 'avatars/' folder
+        default_avatars = [
+            "avatars/avatar1.png",
+            "avatars/avatar2.png",
+            "avatars/avatar3.png",
+            "avatars/avatar4.png",
+            "avatars/avatar5.png",
+            "avatars/avatar6.png",
+            "avatars/avatar7.png",
+        ]
+
+        # Choose a random avatar from the list
+        chosen_avatar = random.choice(default_avatars)
+
+        # Make the filename unique by adding the username
+        new_filename = f"user_{self.id}.png"
+
+        # Get the full path to the avatar file
+        avatar_path = os.path.join(settings.MEDIA_ROOT, chosen_avatar)
+
+        # Open the chosen avatar image file and assign its content to the user's avatar field
+        with open(avatar_path, "rb") as f:
+            self.avatar.save(f"avatars/{new_filename}", File(f), save=False)
+
+        # Optionally save the user instance to commit the changes
+        self.save()
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if is_new:  # If it's a new user, save first to get the ID
+            super().save(*args, **kwargs)
+            if not self.avatar:  # If no avatar is set, assign a random one
+                self.set_random_avatar()  # Now set the avatar with the unique filename
+        else:
+            super().save(*args, **kwargs)  # Save as usual if not a new user
 
     def update_last_seen(self):
         """Update last_seen timestamp when the user is active"""
         self.last_seen = now()
         self.save()
+
+    # def save(self, *args, **kwargs):
+    #     is_new = self.pk is None
+    #     # If new and no avatar provided, first save to obtain pk.
+    #     if is_new:
+    #         super().save(*args, **kwargs)
+    #         if not self.avatar:
+    #             # List of default avatars
+    #             default_avatars = [
+    #                 'avatars/avatar1.png',
+    #                 'avatars/avatar2.png',
+    #                 'avatars/avatar3.png',
+    #                 'avatars/avatar4.png',
+    #                 'avatars/avatar5.png',
+    #                 'avatars/avatar6.png',
+    #                 'avatars/avatar7.png',
+    #             ]
+    #             # Select a random avatar
+    #             chosen_avatar = random.choice(default_avatars)
+    #             new_filename = f"user_{self.id}.png"
+
+    #             # Open the chosen image file and assign it to the avatar field
+    #             with open(os.path.join('media', chosen_avatar), 'rb') as f:
+    #                 self.avatar.save(new_filename, File(f), save=False)
+
+    #         # Save the user object with the assigned avatar
+    #         super().save(*args, **kwargs)
+    #     else:
+    #         super().save(*args, **kwargs)
 
     # USERNAME_FIELD = "username" @ receiver(post_save, sender=Tournament)
     USERNAME_FIELD = "username"

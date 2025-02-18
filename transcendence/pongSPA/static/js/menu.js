@@ -19,28 +19,26 @@ export function displayMenu() {
   document.getElementById('app_bottom').innerHTML = '';
 
 
-  const appDiv = document.getElementById('app');
-  appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
 
   //class and CSS definition for the div and navbar (menu) container
   const menuDiv = document.getElementById("menu");
 
   menuDiv.innerHTML = `
-  <div class="d-flex flex-column h-100" style="background-color:rgb(172, 200, 195);">
+  <div class="d-flex flex-column h-100" style="width: 150px; background-color:rgb(172, 200, 195);">
       <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" width="90" height="100" />
-      
-       <button id="welcomeButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Welcome page</button> 
-       <button id="playButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2" role="button" aria-selected="true">Play a Game</button> 
-       <button id="tournamentButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Tournament</button> 
-       <button id="statsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Statistics</button> 
-       <button id="friendsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Friends</button> 
-       <div class="flex-grow-1"></div> 
-       <button id="settingsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Settings</button> 
+
+       <button id="welcomeButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Welcome page</button>
+       <button id="playButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2" role="button" aria-selected="true">Play a Game</button>
+       <button id="tournamentButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Tournament</button>
+       <button id="statsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Statistics</button>
+       <button id="friendsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Friends</button>
+       <div class="flex-grow-1"></div>
+       <button id="settingsButton" class="btn btn-primary nav-link mb-3 d-flex justify-content-start ps-2">Settings</button>
        <button id="logoutButton" class="btn btn-danger nav-link mb-4 d-flex justify-content-start ps-2">Logout</button>
-          
+
   </div>
       `;
-  
+
   //section non intégré dans le code pour le moment
   //
   // const interactivediv = document.getelementbyid("interactivepart");
@@ -85,7 +83,7 @@ document.getElementById("settingsButton").addEventListener("click", function() {
   navigateTo('settings');
 });
 
- 
+
 
   document.getElementById("logoutButton").addEventListener("click", function() {
     logout();

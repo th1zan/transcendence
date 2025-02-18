@@ -66,10 +66,10 @@ function authenticatePlayer(username, password, playerName, tournamentId) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ 
-      username: username, 
-      password: password, 
-      player_name: playerName 
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      player_name: playerName
     }),
   })
   .then(response => {
@@ -105,9 +105,9 @@ function displayTournamentGameList(data){
   const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
   localStorage.setItem("context", "tournament");
-  
+
   const tournamentMatchesDiv = document.getElementById("app_main");
-  
+
   // Fetch players with their status from the server
   fetch(`/api/tournament/players/${tournamentId}/`, {
     method: "GET",
@@ -118,7 +118,7 @@ function displayTournamentGameList(data){
   .then(response => response.json())
   .then(playersData => {
     let playersHTML = '<div class="players-list"><h3>Players:</h3><ul>';
-    
+
     playersData.forEach(player => {
       let statusText = '';
       if (player.guest) {
@@ -126,18 +126,18 @@ function displayTournamentGameList(data){
       } else {
         statusText = player.authenticated ? '✔️ Authenticated' : '🔒 Needs authentication';
       }
-      
+
       // Add authentication button if not authenticated and not a guest
       let authButton = '';
       if (!player.guest && !player.authenticated) {
         authButton = `<button class="auth-button" data-player="${player.name}" data-tournament="${tournamentId}">Authenticate Now</button>`;
       }
-      
+
       playersHTML += `<li>${player.name} - ${statusText} ${authButton}</li>`;
     });
-    
+
     playersHTML += '</ul></div>';
-    
+
     tournamentMatchesDiv.innerHTML = `
       <h2>Selected Tournament: ${tournamentName}</h2>
       ${playersHTML}
@@ -150,7 +150,7 @@ function displayTournamentGameList(data){
       data.forEach((match) => {
         const date = new Date(match.date_played).toLocaleString();
         const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
-        
+
         const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match to be played" : match.winner || "In progress";
 
         let matchHTML = `
@@ -164,10 +164,10 @@ function displayTournamentGameList(data){
 
         if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
           matchHTML += `
-            <button class="startGameButton" 
-                    data-player1="${match.player1_name}" 
-                    data-player2="${match.player2_name}" 
-                    data-sets-to-win="${match.sets_to_win}" 
+            <button class="startGameButton"
+                    data-player1="${match.player1_name}"
+                    data-player2="${match.player2_name}"
+                    data-sets-to-win="${match.sets_to_win}"
                     data-points-per-set="${match.points_per_set}"
                     data-match-id="${match.id}">Start Game</button>
           `;
@@ -193,7 +193,7 @@ function displayTournamentGameList(data){
             const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
             const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
             const matchID = parseInt(event.target.getAttribute('data-match-id'));
-            
+
             console.log("get player with tournament ID: ", tournamentId);
             try {
               // 1. Récupérer la liste des joueurs correspondant à l'id du tournoi avec fetch et stocker la réponse.
@@ -203,7 +203,7 @@ function displayTournamentGameList(data){
                   "Content-Type": "application/json",
                 },
               });
-              
+
               const playersData = await response.json();
 
               // 2. Chercher la variable player1 et vérifier si le joueur est authentifié ou invité.
@@ -276,6 +276,79 @@ function displayTournamentGameList(data){
         });
   }
 
+
+// function displayTournamentGameList(data){
+//
+//   //empty all the containers
+//   // document.getElementById('app_top').innerHTML = '';
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   const tournamentName = localStorage.getItem("tournamentName");
+//   localStorage.setItem("context", "tournament");
+//
+//   const tournamentMatchesDiv = document.getElementById("app_main");
+//   tournamentMatchesDiv.innerHTML = `
+//     <h2>Selected Tournament: ${tournamentName}</h2>
+//     <h3>Match List:</h3>
+//   `;
+//
+//   let playButtonDisplayed = false; // Variable pour contrôler l'affichage du bouton
+//
+//   if (Array.isArray(data) && data.length > 0) {
+//     data.forEach((match) => {
+//       const date = new Date(match.date_played).toLocaleString();
+//       const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
+//
+//       // Détermine le texte du gagnant ou "match à jouer"
+//       const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match to be played" : match.winner || "In progress";
+//
+//       let matchHTML = `
+//         <p>
+//           ${match.player1_name} vs ${match.player2_name}
+//           <br>
+//           Score: ${score}
+//           <br>
+//           Winner: ${winner}
+//       `;
+//
+//       // Afficher le bouton "Commencer le jeu" uniquement pour le premier match à jouer
+//       if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
+//         matchHTML += `
+//           <button class="startGameButton"
+//                   data-player1="${match.player1_name}"
+//                   data-player2="${match.player2_name}"
+//                   data-sets-to-win="${match.sets_to_win}"
+//                   data-points-per-set="${match.points_per_set}"
+//                   data-match-id="${match.id}">Start Game</button>
+//         `;
+//         playButtonDisplayed = true; // Mettre à jour la variable pour indiquer que le bouton a été affiché
+//       }
+//
+//       matchHTML += `</p>`;
+//       tournamentMatchesDiv.innerHTML += matchHTML;
+//     });
+//
+//     document.querySelectorAll('.startGameButton').forEach(button => {
+//       button.addEventListener('click', event => {
+//         const player1 = event.target.getAttribute('data-player1');
+//         const player2 = event.target.getAttribute('data-player2');
+//         const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+//         const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+//         const matchID = parseInt(event.target.getAttribute('data-match-id'));
+//         localStorage.setItem("matchID", matchID);
+//
+//         startGameSetup(player1, player2, setsToWin, pointsPerSet);
+//       });
+//     });
+//
+//     // Ajouter le classement dans app_bottom
+//     displayTournamentStandings(data);
+//   }
+//   else {
+//     tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
+//   }
+// }
 
 function displayTournamentStandings(data) {
   const appBottom = document.getElementById("app_bottom");
@@ -350,7 +423,7 @@ function calculateStandings(matches) {
 }
 
 export function DisplayTournamentGame() {
-  
+
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -370,15 +443,15 @@ export function DisplayTournamentGame() {
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <h2>Tournament: ${tournamentName}</h2>
-    <div id="tournamentMatches"></div>    
+    <div id="tournamentMatches"></div>
     <div id="game_panel" style="display: none;">
       <h2>Game Results</h2>
       <p id="summary"></p>
-    </div>    
+    </div>
     <!-- <button id="backToSearchButton" class="btn btn-secondary">Back to Search</button> -->
     <!-- <canvas id="pong" width="800" height="400"></canvas> -->
   `;
- 
+
   fetch(`/api/tournament/matches/?tournament_id=${tournamentId}`, {
     method: "GET",
     headers: {
@@ -440,7 +513,7 @@ function getTournamentFormHTML() {
 async function validatePlayer(playerDiv, userData) {
   const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
   const playerData = players.get(playerName);
-  
+
   if (!playerData) {
     console.warn(`Player ${playerName} not found in players Map`);
     return;
@@ -477,7 +550,7 @@ async function initializePlayerManagement() {
   players.set(hostPlayerName.toLowerCase(), { validated: true, div: hostPlayerDiv });
 
   // Add an empty field for Player 2 immediately after the host
-  const player2Div = addPlayer(playerContainer, playerCount++, '', false, true);  
+  const player2Div = addPlayer(playerContainer, playerCount++, '', false, true);
   players.set('', { validated: false, div: player2Div }); // Placeholder for Player 2
 
   // Event listener for checking player
@@ -584,7 +657,7 @@ async function initializePlayerManagement() {
 //
 //     try {
 //       const userData = await checkUserExists(playerName);
-//      console.log("player'es existence will be checked:", playerName); 
+//      console.log("player'es existence will be checked:", playerName);
 //       updatePlayerStatus(lastInput.parentElement, userData);
 //       addPlayer(playerContainer, playerCount++);
 //       players.add(playerName.toLowerCase()); // Ajouter le nom en minuscule pour vérifier l'unicité
@@ -756,7 +829,7 @@ function setupSubmitHandlers() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         tournament_name: tournamentName
       }),
     })
@@ -816,7 +889,7 @@ function setupSubmitHandlers() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         players: players,
         number_of_games: numberOfGames,
         points_to_win: pointsToWin
@@ -851,7 +924,7 @@ function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
       tournament_name: tournamentName,
       players: players,
       number_of_games: numberOfGames,
@@ -878,7 +951,7 @@ function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin
 //         headers: {
 //             'Content-Type': 'application/json',
 //         },
-//         body: JSON.stringify({ 
+//         body: JSON.stringify({
 //             tournament_name: tournamentName,
 //             players: players,  // Directly use players array without transforming to objects
 //             number_of_games: numberOfGames,
@@ -989,7 +1062,7 @@ export function displayUserTournaments() {
     .then((data) => {
       const userTournamentListDiv = document.getElementById("userTournamentList");
       userTournamentListDiv.innerHTML = "<h3>Your Tournaments:</h3>";
-      
+
       // Ensure data is an array before manipulating it
       const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
 

@@ -12,7 +12,7 @@ import {
   uploadAvatar,
   getCookie,
 } from "./auth.js";
-import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js"; 
+import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayMenu } from "./menu.js";
 import { loadPrivacyPolicyModal } from "./privacy_policy.js";
@@ -32,9 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   loadPrivacyPolicyModal();
-  
+
 // 1. Determine the initial route based on the URL hash
-  let initialRoute = window.location.hash.replace('#', '') || 'login'; 
+  let initialRoute = window.location.hash.replace('#', '') || 'login';
   console.log('Initial route determined:', initialRoute);
 
   // Variable globale pour l'état de connexion
@@ -53,11 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Set initial state based on login status and initial route
     if (isUserLoggedIn && initialRoute === 'login') {
       console.log('User logged in but on login page, redirecting to welcome');
-      initialRoute = 'welcome'; 
+      initialRoute = 'welcome';
       history.replaceState({ page: 'welcome' }, ' ', '#welcome');
     } else if (!isUserLoggedIn && initialRoute !== 'login') {
       console.log('User not logged in but not on login page, redirecting to login');
-      initialRoute = 'login'; 
+      initialRoute = 'login';
       history.replaceState({ page: 'login' }, 'Login', '#login');
     }
 
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
     handleRouteChange('login');
   });
 
-  // 4. Plan the refreshing interval for the authentication Token 
+  // 4. Plan the refreshing interval for the authentication Token
   console.log('Setting up token refresh interval');
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
@@ -114,7 +114,7 @@ export function navigateTo(route) {
 // Fonction pour mettre à jour l'interface complète
 function updateUI(routeFunction) {
   // Chargement du menu
-  displayMenu(); 
+  displayMenu();
 
   // Puis, mettez à jour la partie principale en fonction de la route
   routeFunction();
@@ -123,13 +123,13 @@ function updateUI(routeFunction) {
 function handleRouteChange(route) {
   console.log('handleRouteChange called with route:', route);
   addToCustomHistory(route);
-  
+
   validateToken().then((isTokenValid) => {
     console.log('Token validation in handleRouteChange:', isTokenValid);
     isUserLoggedIn = isTokenValid;
-    
+
     const publicRoutes = ['login', 'register'];
-    
+
     if (publicRoutes.includes(route) || (isUserLoggedIn)) {
       console.log('Route is public or user is logged in');
       switch(route) {
@@ -190,7 +190,6 @@ export function displayWelcomePage() {
   const username = localStorage.getItem("username");
 
   const appDiv = document.getElementById('app');
-  appDiv.className = 'p-1 h-100 d-flex nav flex-column nav-pills';
   // Object.assign(appDiv, {
     // style: {
       // width: '200px'
@@ -212,7 +211,6 @@ export function displayWelcomePage() {
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById('app_top');
-  // appTop.className = "p-1 d-flex rounded";
   appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
   appTop.innerHTML = `
     <div class="d-flex justify-content-between align-items-center w-100">
@@ -228,14 +226,12 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  // appMain.className = "p-3 flex-grow-1";
-  // appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
+  appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
   appMain.innerHTML = `
     Contenu de la Welcome page
   `;
 
   const appBottom = document.getElementById("app_bottom");
-  // appBottom.className = "p-3";
   appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
   appBottom.innerHTML = `
     Footer de la page
@@ -256,14 +252,14 @@ export function displayTournament() {
         <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
       </div>
     </div>
-  `;  
+  `;
 
   displayUserTournaments();
   // let resultDiv = document.getElementById("app_main");
   //   resultDiv.style.display = "block";
 
     document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
-    
+
     document.getElementById("tournamentSearchButton").addEventListener("click", () => {
       const tournamentNameInput = document.getElementById("tournamentNameInput");
       if (!tournamentNameInput) {
@@ -325,10 +321,10 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
-  
-  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+
+  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
   const appTop = document.getElementById("app_main");
-  
+
   appTop.innerHTML = `
   <div class="container mt-4">
     <h3 class="text-center">Account Management</h3>
@@ -337,7 +333,7 @@ function displayHTMLforSettings(user) {
       <h4 class="text-center">Update Profile Picture</h4>
       <div class="d-flex flex-column align-items-center">
         <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
-        
+
         <div class="mt-3 w-75">
           <label class="form-label">Choose a new profile picture:</label>
           <div class="input-group">
@@ -409,7 +405,7 @@ export function displaySettings() {
         <h4 class="text-center">Update Profile Picture</h4>
         <div class="d-flex flex-column align-items-center">
           <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
-          
+
           <div class="mt-3 w-75">
             <label class="form-label">Choose a new profile picture:</label>
             <div class="input-group">
@@ -462,7 +458,7 @@ export function displaySettings() {
 
 
 export function displayStats() {
-  
+
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -484,7 +480,6 @@ export function displayStats() {
 }
 
 function displayUserResults(data) {
-  
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -577,7 +572,6 @@ function fetchResultats() {
 
 
 function displayRanking(data) {
-  
   //empty all the containers
   // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -705,7 +699,8 @@ function fetchRanking() {
 //   `;
 // }
 
-export async function displayGameForm() { 
+
+export function displayGameForm() {
 
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
@@ -713,9 +708,9 @@ export async function displayGameForm() {
   document.getElementById('app_bottom').innerHTML = '';
 
   localStorage.setItem("context", "solo"); 
-  
   const formContainer = document.getElementById("app_main");
   const username = localStorage.getItem("username")
+
 
   let gameSettings = {
     mode: "solo",
@@ -1023,7 +1018,6 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
     });
   });
 }
-
 
 async function authenticatePlayer(username, password, playerName) {
   const response = await fetch('/api/auth/match-player/', {
