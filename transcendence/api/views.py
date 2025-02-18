@@ -525,6 +525,12 @@ class UserDetailView(APIView):
         """Updates the current user's details."""
         user = request.user
         data = request.data
+    
+        # Check if email already exists (excluding the current user's email)
+        if "email" in data:
+            existing_user = CustomUser.objects.filter(email=data["email"]).exclude(id=user.id).first()
+            if existing_user:
+                return Response({"error": "This email is already in use."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Update fields
         if "username" in data:
@@ -639,7 +645,9 @@ class RemoveFriendView(APIView):
     def delete(self, request):
         friend_username = request.data.get("username")
         if not friend_username:
-            return Response({"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Get the current authenticated user
         current_user = request.user
@@ -660,7 +668,7 @@ class RemoveFriendView(APIView):
         # Delete any pending requests between these users
         FriendRequest.objects.filter(sender=current_user, receiver=friend_user).delete()
         FriendRequest.objects.filter(sender=friend_user, receiver=current_user).delete()
-        
+
         return Response(
             {"message": f"{friend_username} has been removed from your friend list."},
             status=status.HTTP_200_OK,
@@ -709,14 +717,14 @@ class SendFriendRequestView(APIView):
                 {"error": "Friend request already sent."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Check if they are already friends
         if receiver in request.user.friends.all():
             return Response(
                 {"error": "You are already friends with this user."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Create the friend request
         friend_request = FriendRequest.objects.create(
             sender=request.user, receiver=receiver
@@ -802,22 +810,94 @@ class RespondToFriendRequestView(APIView):
 logger = logging.getLogger(__name__)
 
 
+# class TournamentCreationView(APIView):
+#     permission_classes = [AllowAny]
+#     parser_classes = [JSONParser]
+#
+#     def post(self, request):
+#         tournament_data = request.data.get("tournament_name")
+#         players_data = request.data.get("players", [])
+#         number_of_games = request.data.get(
+#             "number_of_games", 1
+#         )  # Valeur par défaut à 1
+#         points_to_win = request.data.get("points_to_win", 3)  # Valeur par défaut à 3
+#
+#         logger.debug(f"Tournament data: {tournament_data}")
+#         logger.debug(f"Players data: {players_data}")
+#         logger.debug(f"Number of games: {number_of_games}")
+#         logger.debug(f"Points to win: {points_to_win}")
+#
+#         if not tournament_data:
+#             return Response(
+#                 {"error": "Tournament name is required"},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#
+#         # 1. Création du tournoi
+#         tournament_serializer = TournamentSerializer(
+#             data={
+#                 "tournament_name": tournament_data,
+#                 "date": timezone.now().date(),
+#                 "number_of_games": number_of_games,
+#                 "points_to_win": points_to_win,
+#             }
+#         )
+#         if tournament_serializer.is_valid():
+#             tournament = tournament_serializer.save()
+#             tournament_id = tournament.id
+#
+#             # 2. Gestion des joueurs
+#             players = []
+#             for player_player in players_data:
+#                 logger.debug(f"Processing player: {player_player}")
+#
+#                 # Vérifier si un utilisateur avec ce pseudo existe
+#                 try:
+#                     user = CustomUser.objects.get(username=player_player)
+#                     player, created = Player.objects.get_or_create(
+#                         player=player_player, defaults={"user": user}
+#                     )
+#                     if (
+#                         not created
+#                     ):  # Si le joueur existait déjà, mettre à jour le champ user si nécessaire
+#                         if player.user is None:
+#                             player.user = user
+#                             player.save()
+#                 except CustomUser.DoesNotExist:
+#                     # Si l'utilisateur n'existe pas, le joueur est un "guest"
+#                     player, created = Player.objects.get_or_create(player=player_player)
+#
+#                 players.append(player)
+#
+#             # 3. Association des joueurs au tournoi
+#             for player in players:
+#                 TournamentPlayer.objects.create(player=player, tournament=tournament)
+#
+#             # 4. Génération des matchs
+#             generate_matches(tournament_id, number_of_games, points_to_win)
+#
+#             return Response(
+#                 {
+#                     "message": "Tournament, players, and matches added successfully",
+#                     "tournament_id": tournament_id,
+#                 },
+#                 status=status.HTTP_201_CREATED,
+#             )
+#         else:
+#             logger.error(
+#                 f"Tournament serializer errors: {tournament_serializer.errors}"
+#             )
+#             return Response(
+#                 tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+#             )
+
+
 class TournamentCreationView(APIView):
     permission_classes = [AllowAny]
     parser_classes = [JSONParser]
 
     def post(self, request):
         tournament_data = request.data.get("tournament_name")
-        players_data = request.data.get("players", [])
-        number_of_games = request.data.get(
-            "number_of_games", 1
-        )  # Valeur par défaut à 1
-        points_to_win = request.data.get("points_to_win", 3)  # Valeur par défaut à 3
-
-        logger.debug(f"Tournament data: {tournament_data}")
-        logger.debug(f"Players data: {players_data}")
-        logger.debug(f"Number of games: {number_of_games}")
-        logger.debug(f"Points to win: {points_to_win}")
 
         if not tournament_data:
             return Response(
@@ -825,53 +905,21 @@ class TournamentCreationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 1. Création du tournoi
         tournament_serializer = TournamentSerializer(
             data={
                 "tournament_name": tournament_data,
                 "date": timezone.now().date(),
-                "number_of_games": number_of_games,
-                "points_to_win": points_to_win,
+                "is_finalized": False,  # Set this to False by default
             }
         )
+
         if tournament_serializer.is_valid():
             tournament = tournament_serializer.save()
-            tournament_id = tournament.id
-
-            # 2. Gestion des joueurs
-            players = []
-            for player_player in players_data:
-                logger.debug(f"Processing player: {player_player}")
-
-                # Vérifier si un utilisateur avec ce pseudo existe
-                try:
-                    user = CustomUser.objects.get(username=player_player)
-                    player, created = Player.objects.get_or_create(
-                        player=player_player, defaults={"user": user}
-                    )
-                    if (
-                        not created
-                    ):  # Si le joueur existait déjà, mettre à jour le champ user si nécessaire
-                        if player.user is None:
-                            player.user = user
-                            player.save()
-                except CustomUser.DoesNotExist:
-                    # Si l'utilisateur n'existe pas, le joueur est un "guest"
-                    player, created = Player.objects.get_or_create(player=player_player)
-
-                players.append(player)
-
-            # 3. Association des joueurs au tournoi
-            for player in players:
-                TournamentPlayer.objects.create(player=player, tournament=tournament)
-
-            # 4. Génération des matchs
-            generate_matches(tournament_id, number_of_games, points_to_win)
-
             return Response(
                 {
-                    "message": "Tournament, players, and matches added successfully",
-                    "tournament_id": tournament_id,
+                    "message": "Tournament created successfully",
+                    "tournament_id": tournament.id,
+                    "tournament_name": tournament.tournament_name,
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -882,6 +930,97 @@ class TournamentCreationView(APIView):
             return Response(
                 tournament_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class TournamentFinalizationView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [JSONParser]
+
+    def post(self, request, tournament_id):
+        players_data = request.data.get("players", [])
+        number_of_games = request.data.get("number_of_games", 1)
+        points_to_win = request.data.get("points_to_win", 3)
+
+        try:
+            tournament = Tournament.objects.get(id=tournament_id)
+        except Tournament.DoesNotExist:
+            return Response(
+                {"error": "Tournament not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if tournament.is_finalized:
+            return Response(
+                {"error": "This tournament has already been finalized"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update tournament with match rules
+        tournament.number_of_games = number_of_games
+        tournament.points_to_win = points_to_win
+        tournament.is_finalized = True  # Mark as finalized
+        tournament.save()
+
+        # Player management
+        for player_data in players_data:
+            player_name = player_data.get("name")
+            authenticated = player_data.get("authenticated", False)
+            guest = player_data.get("guest", False)
+
+            try:
+                user = CustomUser.objects.get(username=player_name)
+                player, created = Player.objects.get_or_create(
+                    player=player_name, defaults={"user": user}
+                )
+                if not created and not player.user:
+                    player.user = user
+                    player.save()
+            except CustomUser.DoesNotExist:
+                player, created = Player.objects.get_or_create(player=player_name)
+
+            TournamentPlayer.objects.create(
+                player=player,
+                tournament=tournament,
+                authenticated=authenticated,
+                guest=guest,
+            )
+
+        # Generate matches after all players are added and tournament details are set
+        generate_matches(tournament_id, number_of_games, points_to_win)
+
+        # Clean up unfinalized tournaments when a new tournament is finalized
+        from django.core.management import call_command
+
+        call_command("cleanup_tournaments")
+
+        return Response(
+            {
+                "message": "Tournament finalized, players added, and matches generated successfully",
+                "tournament_id": tournament_id,
+                "tournament_name": tournament.tournament_name,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @staticmethod
+    def cleanup_unfinalized_tournaments():
+        # Define how old an unfinalized tournament should be to be considered for deletion
+        # max_age = timezone.now() - timezone.timedelta(
+        #     days=7
+        # )  # Example: delete tournaments older than 7 days if not finalized
+        unfinalized_tournaments = Tournament.objects.filter(
+            is_finalized=False
+            # is_finalized=False, date__lt=max_age
+        )
+
+        for tournament in unfinalized_tournaments:
+            # Delete associated TournamentPlayer entries
+            TournamentPlayer.objects.filter(tournament=tournament).delete()
+            # Then delete the tournament
+            tournament.delete()
+
+        return {
+            "message": f"Cleaned up {unfinalized_tournaments.count()} unfinalized tournaments"
+        }
 
 
 def generate_matches(tournament_id, number_of_games, points_to_win):
@@ -1004,6 +1143,24 @@ def check_user_exists(request):
         return JsonResponse({"exists": False})
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def check_player_exists(request):
+    player_name = request.GET.get("player_name", "")
+    try:
+        player = Player.objects.get(player=player_name)
+        return Response(
+            {
+                "exists": True,
+                "player_id": player.id,
+                "player_name": player.player,
+                "is_guest": player.is_guest,  # Assuming Player has this property or method
+            }
+        )
+    except Player.DoesNotExist:
+        return Response({"exists": False}, status=status.HTTP_200_OK)
+
+
 class CustomTokenValidateView(APIView):
     # authentication_classes = [JWTAuthentication]
     # permission_classes = [IsAuthenticated]
@@ -1053,4 +1210,74 @@ class CustomTokenValidateView(APIView):
             logger.warning("Invalid token error.")
             return Response(
                 {"detail": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
+
+class TournamentPlayersView(APIView):
+    def get(self, request, tournament_id):
+        try:
+            # Fetch all players for the specified tournament
+            tournament_players = TournamentPlayer.objects.filter(
+                tournament_id=tournament_id
+            )
+
+            # Serialize the data
+            serializer = TournamentPlayerSerializer(tournament_players, many=True)
+
+            # Prepare the response
+            response_data = []
+            for player_data in serializer.data:
+                # Get player details safely, considering 'user' might not exist for guests
+                player = Player.objects.get(id=player_data["player"]["id"])
+                player_info = {
+                    "name": player_data["player"]["player"],
+                    "authenticated": player_data["authenticated"],
+                    "guest": player.user
+                    is None,  # Check if user is None to determine if guest
+                }
+                response_data.append(player_info)
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        except TournamentPlayer.DoesNotExist:
+            return Response(
+                {"error": "Tournament or players not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class AuthenticatePlayerView(APIView):
+    def post(self, request, tournament_id):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        player_name = request.data.get("player_name")
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            try:
+                player = Player.objects.get(player=player_name)
+                tournament_player = TournamentPlayer.objects.get(
+                    player=player, tournament_id=tournament_id
+                )
+                tournament_player.authenticated = True
+                tournament_player.save()
+                return Response(
+                    {"message": "Player authenticated successfully"},
+                    status=status.HTTP_200_OK,
+                )
+            except Player.DoesNotExist:
+                return Response(
+                    {"error": "Player does not exist"}, status=status.HTTP_404_NOT_FOUND
+                )
+            except TournamentPlayer.DoesNotExist:
+                return Response(
+                    {"error": "Player not in this tournament"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            return Response(
+                {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
             )

@@ -117,8 +117,7 @@ appDiv.innerHTML = `
       Back to Login
     </button>
   </div>
-</div>
-`;
+  `;
 
   document
     .getElementById("signupForm")

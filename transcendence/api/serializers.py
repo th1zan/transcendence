@@ -1,13 +1,27 @@
 import re
+
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
-                     TournamentPlayer)
+from .models import CustomUser, Player, PongMatch, PongSet, Tournament, TournamentPlayer
 
 
+# class TournamentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Tournament
+#         fields = [
+#             "id",
+#             "tournament_name",
+#             "date",
+#             "number_of_games",
+#             "points_to_win",
+#             "is_finished",
+#         ]
+#
 class TournamentSerializer(serializers.ModelSerializer):
+    players = serializers.SerializerMethodField()
+
     class Meta:
         model = Tournament
         fields = [
@@ -17,13 +31,27 @@ class TournamentSerializer(serializers.ModelSerializer):
             "number_of_games",
             "points_to_win",
             "is_finished",
+            "players",
         ]
+
+    def get_players(self, obj):
+        # Fetch all TournamentPlayer instances for this tournament and serialize them
+        tournament_players = TournamentPlayer.objects.filter(tournament=obj)
+        return TournamentPlayerSerializer(tournament_players, many=True).data
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+        fields = ["id", "player", "authenticated"]
 
 
 class TournamentPlayerSerializer(serializers.ModelSerializer):
+    player = PlayerSerializer()  # Nested serialization for player details
+
     class Meta:
         model = TournamentPlayer
-        fields = ["player"]
+        fields = ["player", "authenticated"]
 
 
 class PongSetSerializer(serializers.ModelSerializer):
@@ -89,8 +117,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
         if len(value) < 3:
-            raise serializers.ValidationError("The password must contain at least 3 characters.")
-        #Check for minimum length
+            raise serializers.ValidationError(
+                "The password must contain at least 3 characters."
+            )
+        # Check for minimum length
         # if len(value) < 8:
         #     raise serializers.ValidationError("The password must contain at least 8 characters.")
         # # Check for at least one digit
@@ -106,22 +136,24 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         # if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
         #     raise serializers.ValidationError("The password must contain at least one special character.")
         return value
-    
+
     def validate_privacy_policy_accepted(self, value):
         if not value:
-            raise serializers.ValidationError("You must accept the privacy policy to register.")
+            raise serializers.ValidationError(
+                "You must accept the privacy policy to register."
+            )
         return value
-    
+
     # def validate_email(self, value):
     #     if CustomUser.objects.filter(email=value).exists():
     #         raise serializers.ValidationError("A user with that email already exists.")
     #     return value
-    
+
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
             username=validated_data["username"],
             password=validated_data["password"],
             privacy_policy_accepted=validated_data["privacy_policy_accepted"],
-            #email=validated_data["email"],
+            # email=validated_data["email"],
         )
         return user

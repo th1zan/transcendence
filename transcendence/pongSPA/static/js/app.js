@@ -322,12 +322,12 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
   const appTop = document.getElementById("app_main");
 
   appTop.innerHTML = `
   <div class="container mt-4">
-    <h3 class="text-center">Gestion du compte</h3>
+    <h3 class="text-center">Account Management</h3>
 
     <div class="card shadow-sm p-4 mt-3">
       <h4 class="text-center">Update Profile Picture</h4>
@@ -424,7 +424,10 @@ export function displaySettings() {
         </div>
         <div class="form-group mt-2">
           <label>Email:</label>
-          <input type="email" id="emailInput" class="form-control" value="${user.email}">
+          <input type="email" id="emailInput" class="form-control" required>
+          <div class="invalid-feedback">
+            Please enter a valid email address with "@" and a domain (e.g., user@example.com).
+          </div>
         </div>
         <div class="form-group mt-2">
           <label>Phone Number:</label>
