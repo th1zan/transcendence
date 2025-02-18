@@ -245,7 +245,7 @@ function displayTournamentGameList(data){
                 player2: player2,
                 control1: "wasd",// Default values, might need adjustment
                 control2:  "arrows",
-                isTournamentMatch: "true",
+                isTournamentMatch: true,
               };
               localStorage.setItem("matchID", matchID);
               startGameSetup(gameSettings);

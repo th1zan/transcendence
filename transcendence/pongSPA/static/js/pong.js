@@ -20,8 +20,8 @@ let control2 = "wasd";
 let design = "retro";
 let difficulty = "easy";
 let collisionActive = false;
-let context = "solo";
-let isTournamentMatch = "false";
+let mode = "solo";
+let isTournamentMatch = false;
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -79,9 +79,9 @@ function startPongGame() {
   resetScores();
   console.log("Scores reset");
 
-  console.log("Context multilayer or solo:", context);
-  if (context != "multiplayer" ){
-    console.log("Context: ", context, " , let's connect to websocket.");
+  console.log("Mode multilayer or solo:", mode);
+  if (mode != "multiplayer" ){
+    console.log("Mode: ", mode, " , let's connect to websocket.");
     connectWebSocket(); 
   }
   console.log("WebSocket connection attempted");
@@ -113,10 +113,10 @@ function updateGamePanel() {
         stopGameProcess();
         
         // Déterminer la fonction à appeler ensuite en fonction du contexte
-        const context = localStorage.getItem("context");
-        if (context === "tournament") {
+        const isTournamentMatch = localStorage.getItem("isTournamentMatch");
+        if (isTournamentMatch === true) {
           DisplayTournamentGame();
-        } else if (context === "solo") {
+        } else if (isTournamentMatch=== false) {
           const username = localStorage.getItem("username");
           displayMenu(username);
           displayWelcomePage()
@@ -141,13 +141,17 @@ export function startGameSetup(gameSettings) {
   player2 = gameSettings.player2;
   numberOfGames = gameSettings.numberOfGames;
   pointsToWin = gameSettings.setsPerGame;
-  context = gameSettings.mode;
+  mode = gameSettings.mode;
   control1 = gameSettings.control1;
   control2 = gameSettings.control2;
   design = gameSettings.design;
   difficulty = gameSettings.difficulty;
   isTournamentMatch = gameSettings.isTournamentMatch;
 
+
+
+  console.log("StartGameSetup: Game settings isTournamentMatch:", gameSettings.isTournamentMatch);
+  console.log("StartGameSetup: isTournamentMatch:", isTournamentMatch);
  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -160,11 +164,14 @@ export function startGameSetup(gameSettings) {
   `;
 
   // Gérer l'affichage en fonction du contexte
-  if (context === "tournament") {
+  if (isTournamentMatch === true) {
+
+    console.log("StartGameSetup: Tournament mode");
     // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
-    document.getElementById("tournamentMatches").style.display = "none";
-  } else if (context === "solo" || context === "multiplayer") {
-    // Si le contexte est solo, cacher tout le formulaire de jeu
+    // document.getElementById("tournamentMatches").style.display = "none";
+  } else if (isTournamentMatch === false) {
+    console.log("StartGameSetup: NOT tournament mode");
+    // Si le mode est solo, cacher tout le formulaire de jeu
     let gameForm = document.getElementById("gameForm");
     if (gameForm) {
       gameForm.style.display = "none";
@@ -254,7 +261,7 @@ function update() {
 //     console.log("Ball position sent: ", message);
 // =======
 
-  if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
+  if (mode != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
@@ -308,7 +315,7 @@ function handleGameEnd(winner) {
 }
 
 function displayResults(matchID) {
-  let gameType = localStorage.getItem("context"); // Si non défini, on suppose que c'est une partie solo
+  let isTournamentMatch = localStorage.getItem("isTournamentMatch"); // Si non défini, on suppose que c'est une partie solo
 
   // Empty all the containers
   document.getElementById('app_top').innerHTML = '';
@@ -331,7 +338,7 @@ function displayResults(matchID) {
     return response.json();
   })
   .then(data => {
-    let buttonText = gameType === 'tournament' ? 'Back to Tournament' : 'New Game';
+    let buttonText = isTournamentMatch === true ? 'Back to Tournament' : 'New Game';
 
     let summary = `
       <button id="backButton">${buttonText}</button>
@@ -455,7 +462,7 @@ function initGameObjects(gameCanvas) {
     });
   }
 
-  if (context === "multiplayer") {
+  if (mode === "multiplayer") {
     if (control2 === "mouse") {
       canvas.addEventListener("mousemove", (event) => {
         let rect = canvas.getBoundingClientRect();
@@ -600,8 +607,7 @@ async function sendScore() {
   let tournament = null;
   // let isTournamentMatch = false;
   let matchID = localStorage.getItem("matchID");
-  const context = localStorage.getItem("context");
-
+  console.log("sendScore: isTournamentMatch:", isTournamentMatch);
   // Vérifier le contexte
   if (isTournamentMatch == true) {
     const tournamentID = localStorage.getItem("tournamentId");
@@ -615,7 +621,7 @@ async function sendScore() {
 
   console.log("Value of player1 before sending:", player1); 
   console.log("setHistory before sending:", setHistory);
-  console.log("context:", context);
+  console.log("isTournamentMatch:", isTournamentMatch);
   console.log("matchID before sending:", matchID);
 
   // Déterminer le gagnant
@@ -651,7 +657,7 @@ async function sendScore() {
       tournament: tournament,
       is_tournament_match: isTournamentMatch,
       winner: winner,
-      context: context, // Ajout du contexte pour la vérification côté serveur
+      mode: mode, 
     }),
   })
     .then((response) => {

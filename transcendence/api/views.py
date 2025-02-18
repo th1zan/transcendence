@@ -119,8 +119,8 @@ class PongScoreView(APIView):
         logger.debug("Received match data: %s", match_data)
         sets_data = match_data.pop("sets", [])
         logger.debug("Extracted sets data: %s", sets_data)
-        context = match_data.get("context", "solo")
-        print(f"Context {context}")
+        mode = match_data.get("mode", "solo")
+        print(f"Mode: {mode}")
 
         user1 = request.user
         player1_name = match_data["player1"]
@@ -134,7 +134,7 @@ class PongScoreView(APIView):
 
         print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
         # Vérification de l'authentification de player2 si le contexte est multiplayer
-        if context != "solo" and player2.user:
+        if mode != "solo" and player2.user:
             print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
             if not player2.authenticated:
                 return Response(
@@ -144,7 +144,7 @@ class PongScoreView(APIView):
             match_data["user2"] = player2.user.id
         else:
             match_data["user2"] = None
-            if context != "solo":
+            if mode != "solo":
                 match_data["player2_sets_won"] = 0
                 match_data["player1_sets_won"] = 0
 
@@ -169,18 +169,15 @@ class PongScoreView(APIView):
                 try:
                     winner_player = Player.objects.get(player=match_data["winner"])
                     match.winner = winner_player
-                    match.save()
                 except Player.DoesNotExist:
-                    return Response(
-                        {"error": "Winner player not found."},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
+                    match.winner = None
             else:
                 match.winner = None
-                match.save()
+
+            match.save()
 
             # Reset authenticated status for player2 if it's a multiplayer match
-            if context != "solo" and player2.user:
+            if mode != "solo" and player2.user:
                 print(
                     f"Player2: {player2.user}, Status before: {player2.authenticated}"
                 )
@@ -250,19 +247,17 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
-            if match_data.get("winner"):
-                try:
-                    winner_player = Player.objects.get(player=match_data["winner"])
-                    match.winner = winner_player
-                    match.save()
-                except Player.DoesNotExist:
-                    return Response(
-                        {"error": "Winner player not found."},
-                        status=status.HTTP_404_NOT_FOUND,
+                if match_data.get("winner"):
+                    try:
+                        winner_player = Player.objects.get(player=match_data["winner"])
+                        match.winner = winner_player
+                    except Player.DoesNotExist:
+                        match.winner = None  # Si le joueur n'est pas trouvé, on met le gagnant à None
+                else:
+                    match.winner = (
+                        None  # Si aucun gagnant n'est spécifié, on met aussi à None
                     )
-            else:
-                # Si le gagnant n'est pas fourni, on met le gagnant à None
-                match.winner = None
+
                 match.save()
 
             return Response(match_serializer.data, status=status.HTTP_200_OK)

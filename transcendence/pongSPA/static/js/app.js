@@ -723,7 +723,7 @@ export function displayGameForm() {
     player2: "Bot-AI",
     control1: "arrows",
     control2: "wasd",
-    isTournamentMatch:"false"
+    isTournamentMatch: false
   };
   
   formContainer.innerHTML = `
