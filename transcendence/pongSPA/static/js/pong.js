@@ -20,7 +20,8 @@ let control2 = "wasd";
 let design = "retro";
 let difficulty = "easy";
 let collisionActive = false;
-let context = "solo"
+let context = "solo";
+let isTournamentMatch = "false";
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
@@ -145,6 +146,7 @@ export function startGameSetup(gameSettings) {
   control2 = gameSettings.control2;
   design = gameSettings.design;
   difficulty = gameSettings.difficulty;
+  isTournamentMatch = gameSettings.isTournamentMatch;
 
  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
@@ -596,17 +598,19 @@ function resetBall() {
 async function sendScore() {
   // Initialiser les variables
   let tournament = null;
-  let isTournamentMatch = false;
+  // let isTournamentMatch = false;
   let matchID = localStorage.getItem("matchID");
   const context = localStorage.getItem("context");
 
   // Vérifier le contexte
-  if (context !== "solo") {
+  if (isTournamentMatch == true) {
     const tournamentID = localStorage.getItem("tournamentId");
     if (tournamentID) {
       tournament = tournamentID;
-      isTournamentMatch = true;
+      // isTournamentMatch = true;
     }
+  }else{
+    matchID = '';
   }
 
   console.log("Value of player1 before sending:", player1); 

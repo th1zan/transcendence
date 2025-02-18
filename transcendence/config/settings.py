@@ -222,5 +222,11 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": True,
         },
+        # Comment the following block to disable database query logging
+        "django.db.backends": {
+            "level": "ERROR",  # ou "DEBUG
+            "handlers": ["console"],
+            "propagate": False,
+        },
     },
 }

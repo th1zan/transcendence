@@ -211,9 +211,10 @@ export function displayWelcomePage() {
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById('app_top');
-  appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
+  // appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
   appTop.innerHTML = `
-    <div class="d-flex justify-content-between align-items-center w-100">
+    <!-- <div class="d-flex justify-content-between align-items-center w-100"> -->
+    <div>
       <div>
         <h2>Bonjour ${username}</h2>
       </div>
@@ -226,13 +227,13 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
+  // appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
   appMain.innerHTML = `
     Contenu de la Welcome page
   `;
 
   const appBottom = document.getElementById("app_bottom");
-  appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
+  // appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
   appBottom.innerHTML = `
     Footer de la page
   `;
@@ -722,6 +723,7 @@ export function displayGameForm() {
     player2: "Bot-AI",
     control1: "arrows",
     control2: "wasd",
+    isTournamentMatch:"false"
   };
   
   formContainer.innerHTML = `
@@ -785,7 +787,8 @@ export function displayGameForm() {
               <h3>Player 2</h3>
               <div class="mb-3">
                   <label for="player2" class="form-label">Name:</label>
-                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}>
+                  <!-- <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}> -->
+                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control">
               </div>
               <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
                   <label for="control2" class="form-label">Control:</label>
@@ -839,7 +842,7 @@ export function displayGameForm() {
     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
 
     isTwoPlayerMode = false;
-    gameSettings.mode = "solo"; 
+    gameSettings.mode = "solo";
   });
 
   document.getElementById("twoPlayers").addEventListener("click", function() {
@@ -860,7 +863,6 @@ export function displayGameForm() {
     
     isTwoPlayerMode = true;
     gameSettings.mode = "multiplayer";
-    document.getElementById("player2").disabled = false;
   });
 
   document.getElementById("numberOfGames").addEventListener("input", function() {
