@@ -101,6 +101,7 @@ class PongScoreView(APIView):
     def post(self, request):
         match_data = request.data
         sets_data = match_data.pop("sets", [])
+        context = match_data.get("context", "solo")
 
         user1 = request.user
         player1_name = match_data["player1"]
@@ -112,12 +113,19 @@ class PongScoreView(APIView):
         player2_name = match_data["player2"]
         player2, created = Player.objects.get_or_create(player=player2_name)
 
-        if player2.user and player2.authenticated:
+        # Vérification de l'authentification de player2 si le contexte est multiplayer
+        if context != "solo" and player2.user:
+            if not player2.authenticated:
+                return Response(
+                    {"error": "Player2 must be authenticated for multiplayer matches."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             match_data["user2"] = player2.user.id
         else:
             match_data["user2"] = None
-            match_data["player2_sets_won"] = 0
-            match_data["player1_sets_won"] = 0
+            if context != "solo":
+                match_data["player2_sets_won"] = 0
+                match_data["player1_sets_won"] = 0
 
         match_data["player1"] = player1.id
         match_data["player2"] = player2.id
@@ -147,14 +155,75 @@ class PongScoreView(APIView):
                         status=status.HTTP_404_NOT_FOUND,
                     )
             else:
-                # Si le gagnant n'est pas fourni, on met le gagnant à None
                 match.winner = None
                 match.save()
+
+            # Reset authenticated status for player2 if it's a multiplayer match
+            if context != "solo" and player2.user:
+                player2.authenticated = False
+                player2.save()
 
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # def post(self, request):
+    #     match_data = request.data
+    #     sets_data = match_data.pop("sets", [])
+    #
+    #     user1 = request.user
+    #     player1_name = match_data["player1"]
+    #     player1, created = Player.objects.get_or_create(
+    #         player=player1_name,
+    #         defaults={"user": user1 if user1.username == player1_name else None},
+    #     )
+    #
+    #     player2_name = match_data["player2"]
+    #     player2, created = Player.objects.get_or_create(player=player2_name)
+    #
+    #     if player2.user and player2.authenticated:
+    #         match_data["user2"] = player2.user.id
+    #     else:
+    #         match_data["user2"] = None
+    #         match_data["player2_sets_won"] = 0
+    #         match_data["player1_sets_won"] = 0
+    #
+    #     match_data["player1"] = player1.id
+    #     match_data["player2"] = player2.id
+    #
+    #     match_serializer = PongMatchSerializer(data=match_data)
+    #     if match_serializer.is_valid():
+    #         match = match_serializer.save()
+    #
+    #         for set_data in sets_data:
+    #             set_data["match"] = match.id
+    #             set_serializer = PongSetSerializer(data=set_data)
+    #             if set_serializer.is_valid():
+    #                 set_serializer.save()
+    #             else:
+    #                 return Response(
+    #                     set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+    #                 )
+    #
+    #         if match_data.get("winner"):
+    #             try:
+    #                 winner_player = Player.objects.get(player=match_data["winner"])
+    #                 match.winner = winner_player
+    #                 match.save()
+    #             except Player.DoesNotExist:
+    #                 return Response(
+    #                     {"error": "Winner player not found."},
+    #                     status=status.HTTP_404_NOT_FOUND,
+    #                 )
+    #         else:
+    #             # Si le gagnant n'est pas fourni, on met le gagnant à None
+    #             match.winner = None
+    #             match.save()
+    #
+    #         return Response(match_serializer.data, status=status.HTTP_201_CREATED)
+    #     else:
+    #         return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #
     def put(self, request, pk):
         try:
             match = PongMatch.objects.get(pk=pk)

@@ -593,13 +593,13 @@ function resetBall() {
   }, 2000);
 }
 
-// Envoyer le score au serveur
 async function sendScore() {
   // Initialiser les variables
   let tournament = null;
   let isTournamentMatch = false;
   let matchID = localStorage.getItem("matchID");
   const context = localStorage.getItem("context");
+
   // Vérifier le contexte
   if (context !== "solo") {
     const tournamentID = localStorage.getItem("tournamentId");
@@ -647,6 +647,7 @@ async function sendScore() {
       tournament: tournament,
       is_tournament_match: isTournamentMatch,
       winner: winner,
+      context: context, // Ajout du contexte pour la vérification côté serveur
     }),
   })
     .then((response) => {
@@ -659,19 +660,100 @@ async function sendScore() {
       console.log("Score submitted:", data);
       // Si c'est un POST (nouvelle création), mettre à jour matchID dans localStorage
       if (method === "POST") {
-        localStorage.setItem("matchID", data.id);  // Supposant que 'id' est le champ de l'ID du match dans la réponse
+        localStorage.setItem("matchID", data.id);  
         console.log("matchID after creation:", data.id);
-        return data.id; // Retourner le nouvel ID du match
+        return data.id;
       } else {
         console.log("matchID after update:", matchID);
-        return matchID; // Retourner l'ID du match existant
+        return matchID;
       }
     })
     .catch((error) => {
       console.error("Error sending score:", error);
-      throw error; // Propager l'erreur pour que l'appelant puisse la gérer si nécessaire
+      throw error;
     });
 }
+
+
+// Envoyer le score au serveur
+// async function sendScore() {
+//   // Initialiser les variables
+//   let tournament = null;
+//   let isTournamentMatch = false;
+//   let matchID = localStorage.getItem("matchID");
+//   const context = localStorage.getItem("context");
+//   // Vérifier le contexte
+//   if (context !== "solo") {
+//     const tournamentID = localStorage.getItem("tournamentId");
+//     if (tournamentID) {
+//       tournament = tournamentID;
+//       isTournamentMatch = true;
+//     }
+//   }
+//
+//   console.log("Value of player1 before sending:", player1); 
+//   console.log("setHistory before sending:", setHistory);
+//   console.log("context:", context);
+//   console.log("matchID before sending:", matchID);
+//
+//   // Déterminer le gagnant
+//   let winner = null;
+//   if (player1Wins > player2Wins) {
+//     winner = player1; // ID du joueur 1
+//   } else if (player2Wins > player1Wins) {
+//     winner = player2; // ID du joueur 2
+//   }
+//
+//   // Déterminer la méthode HTTP à utiliser
+//   const method = matchID ? "PUT" : "POST";
+//   const url = matchID ? `/api/scores/${matchID}/` : "/api/scores/";
+//
+//   console.log("methode :", method, " et match ID: ", matchID);
+//
+//   return fetch(url, {
+//     method: method,
+//     credentials: "include",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({
+//       user1: user1,
+//       player1: player1,
+//       user2: user2,
+//       player2: player2,
+//       sets: setHistory,
+//       player1_sets_won: player1Wins,
+//       player2_sets_won: player2Wins,
+//       sets_to_win: numberOfGames,
+//       points_per_set: pointsToWin,
+//       tournament: tournament,
+//       is_tournament_match: isTournamentMatch,
+//       winner: winner,
+//     }),
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`);
+//       }
+//       return response.json();
+//     })
+//     .then((data) => {
+//       console.log("Score submitted:", data);
+//       // Si c'est un POST (nouvelle création), mettre à jour matchID dans localStorage
+//       if (method === "POST") {
+//         localStorage.setItem("matchID", data.id);  // Supposant que 'id' est le champ de l'ID du match dans la réponse
+//         console.log("matchID after creation:", data.id);
+//         return data.id; // Retourner le nouvel ID du match
+//       } else {
+//         console.log("matchID after update:", matchID);
+//         return matchID; // Retourner l'ID du match existant
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Error sending score:", error);
+//       throw error; // Propager l'erreur pour que l'appelant puisse la gérer si nécessaire
+//     });
+// }
 
 function stopGameProcess() {
   // Arrêter l'intervalle de jeu
