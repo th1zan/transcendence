@@ -640,8 +640,8 @@ function displayGameFormHTML(username) {
     <form id="gameForm" class="w-100">
       <div class="d-flex justify-content-between align-items-start">
           <div class="col container p-3">
-              <h3 class="text-center p-2"> Game Settings</h3>
-              <span class="border border-primary rounded p-5">
+            <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;"> Game Settings</h3>
+              <span class="border border-primary rounded p-5" style="float: inline-start;">
                 <label>Game Mode:</label>
                 <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
                 <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
@@ -657,12 +657,14 @@ function displayGameFormHTML(username) {
               </span>
           </div>
         <div class="col container p-3">
-              <h3 class="text-center p-2">Match Settings</h3>
+          <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
+            <span class="border border-primary rounded p-5" style="float: inline-start;">
               <label>Number of Games:</label>
               <input type="number" id="numberOfGames" value="1" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
               <label>Sets per Game:</label>
               <input type="number" id="setsPerGame" value="3" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
-          </div>
+            </span>
+        </div>
       </div>
 
       <div class="d-flex justify-content-between align-items-start mt-3">
