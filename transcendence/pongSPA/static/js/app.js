@@ -185,6 +185,60 @@ function handleRouteChange(route) {
   });
 }
 
+
+// Fonction générique pour afficher une modale
+function showModal(modalId, title, message, actionText, actionCallback) {
+    const modal = new bootstrap.Modal(document.getElementById(modalId), {
+        keyboard: false
+    });
+    
+    // Mise à jour du titre et du message
+    document.getElementById(`${modalId}Label`).textContent = title;
+    document.getElementById(`${modalId}Body`).textContent = message;
+    
+    // Mise à jour du texte du bouton d'action et ajout de l'écouteur d'événement
+    const actionButton = document.getElementById(`${modalId}Action`);
+    if (actionButton) {
+        actionButton.textContent = actionText;
+        actionButton.removeEventListener('click', actionButton.handler); // Supprime l'ancien écouteur s'il existe
+        actionButton.addEventListener('click', function() {
+            actionCallback();
+            modal.hide(); // Ferme la modale après l'action
+        });
+    }
+    
+    // Affiche la modale
+    modal.show();
+}
+
+// Fonction pour afficher une modale avec deux boutons personnalisés
+function showCustomModal(title, message, continueCallback) {
+    const modal = new bootstrap.Modal(document.getElementById('customModal'), {
+        keyboard: false
+    });
+    
+    // Mise à jour du titre et du message
+    document.getElementById('customModalLabel').textContent = title;
+    document.getElementById('customModalBody').textContent = message;
+    
+    // Gestion du bouton Cancel
+    const cancelButton = document.getElementById('cancelButton');
+    cancelButton.onclick = function() {
+        modal.hide(); // Ferme simplement la modale sans action
+    };
+    
+    // Gestion du bouton Continue
+    const continueButton = document.getElementById('continueButton');
+    continueButton.onclick = function() {
+        continueCallback(); // Exécute la fonction de rappel
+        modal.hide(); // Puis ferme la modale
+    };
+    
+    // Affiche la modale
+    modal.show();
+}
+
+
 export function displayWelcomePage() {
 
   const username = localStorage.getItem("username");
@@ -247,7 +301,7 @@ export function displayTournament() {
     <h3>Tournament</h3>
     <br>
     <div class="d-flex align-items-center">
-      <button id="newTournamentButton" class="me-2">New Tournament</button>
+      <button id="newTournamentButton" class="btn btn-success me-2">New Tournament</button>
       <div id="searchTournament" class="d-flex align-items-center">
         <button id="tournamentSearchButton" class="btn btn-primary mx-2">Search for Tournament</button>
         <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
@@ -1039,7 +1093,6 @@ export function displayGameForm() {
       <p id="summary"></p>
     </div>
 
-    <!-- Modale pour joueur enregistré -->
     <div class="modal fade" id="registeredUserModal" tabindex="-1" aria-labelledby="registeredUserModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">

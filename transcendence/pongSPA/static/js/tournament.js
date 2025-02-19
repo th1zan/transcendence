@@ -94,10 +94,7 @@ function updatePlayerStatusUI(playerName) {
   });
 }
 
-
-
-function displayTournamentGameList(data){
-
+function displayTournamentGameList(data) {
   // Empty all containers
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -117,54 +114,63 @@ function displayTournamentGameList(data){
   })
   .then(response => response.json())
   .then(playersData => {
-    let playersHTML = '<div class="players-list"><h3>Players:</h3><ul>';
+    // Players list with Bootstrap styling
+    let playersHTML = `
+      <div class="card bg-light mb-4">
+        <div class="card-header text-center">
+          <h3 class="display-6 mb-0">Players</h3>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="bg-primary text-white">
+              <tr>
+                <th scope="col" class="text-center">Name</th>
+                <th scope="col" class="text-center">Status</th>
+                <th scope="col" class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
 
     playersData.forEach(player => {
-      let statusText = '';
-      if (player.guest) {
-        statusText = '🕵️ Guest';
-      } else {
-        statusText = player.authenticated ? '✔️ Authenticated' : '🔒 Needs authentication';
-      }
+      let statusText = player.guest ? '<span class="badge bg-secondary">🕵️ Guest</span>' : (player.authenticated ? '<span class="badge bg-success">✔️ Authenticated</span>' : '<span class="badge bg-warning text-dark">🔒 Needs authentication</span>');
+      let authButton = !player.guest && !player.authenticated ? `<button class="btn btn-success btn-sm auth-button" data-player="${player.name}" data-tournament="${tournamentId}">Authenticate Now</button>` : '';
 
-      // Add authentication button if not authenticated and not a guest
-      let authButton = '';
-      if (!player.guest && !player.authenticated) {
-        authButton = `<button class="auth-button" data-player="${player.name}" data-tournament="${tournamentId}">Authenticate Now</button>`;
-      }
-
-      playersHTML += `<li>${player.name} - ${statusText} ${authButton}</li>`;
+      playersHTML += `<tr><td class="text-center">${player.name}</td><td class="text-center">${statusText}</td><td class="text-center">${authButton}</td></tr>`;
     });
 
-    playersHTML += '</ul></div>';
+    playersHTML += '</tbody></table></div></div>';
 
-    tournamentMatchesDiv.innerHTML = `
-      <h2>Selected Tournament: ${tournamentName}</h2>
-      ${playersHTML}
-      <h3>Match List:</h3>
+    // Matches list with Bootstrap styling
+    let matchesHTML = `
+      <div class="card bg-light mb-4">
+        <div class="card-header text-center">
+          <h3 class="display-6 mb-0">Match List</h3>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="bg-primary text-white">
+              <tr>
+                <th scope="col" class="text-center">Match</th>
+                <th scope="col" class="text-center">Score</th>
+                <th scope="col" class="text-center">Winner</th>
+                <th scope="col" class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
     `;
 
     // Now handle the match data
     let playButtonDisplayed = false;
     if (Array.isArray(data) && data.length > 0) {
       data.forEach((match) => {
-        const date = new Date(match.date_played).toLocaleString();
         const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
-
-        const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match to be played" : match.winner || "In progress";
-
-        let matchHTML = `
-          <p>
-            ${match.player1_name} vs ${match.player2_name}
-            <br>
-            Score: ${score}
-            <br>
-            Winner: ${winner}
-        `;
+        const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? '<span class="badge bg-info">Match to be played</span>' : (match.winner ? `<span class="badge bg-success">${match.winner}</span>` : '<span class="badge bg-warning text-dark">In progress</span>');
+        let actionButton = '';
 
         if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
-          matchHTML += `
-            <button class="startGameButton"
+          actionButton = `
+            <button class="startGameButton btn btn-primary btn-sm"
                     data-player1="${match.player1_name}"
                     data-player2="${match.player2_name}"
                     data-sets-to-win="${match.sets_to_win}"
@@ -174,108 +180,288 @@ function displayTournamentGameList(data){
           playButtonDisplayed = true;
         }
 
-        matchHTML += `</p>`;
-        tournamentMatchesDiv.innerHTML += matchHTML;
+        matchesHTML += `
+          <tr>
+            <td class="text-center">${match.player1_name} vs ${match.player2_name}</td>
+            <td class="text-center">${score}</td>
+            <td class="text-center">${winner}</td>
+            <td class="text-center">${actionButton}</td>
+          </tr>
+        `;
       });
 
-      document.querySelectorAll('.auth-button').forEach(button => {
-        button.addEventListener('click', function() {
-           const playerName = this.getAttribute('data-player');
-          authenticateNow(playerName, tournamentId);
-        });
-      });
+      matchesHTML += '</tbody></table></div></div>';
 
+      // Combine players and matches HTML
+      tournamentMatchesDiv.innerHTML = `
+        <h2 class="text-center mb-4">${tournamentName}</h2>
+        ${playersHTML}
+        ${matchesHTML}
+      `;
 
-      document.querySelectorAll('.startGameButton').forEach(button => {
-          button.addEventListener('click', async event => {
-            const player1 = event.target.getAttribute('data-player1');
-            const player2 = event.target.getAttribute('data-player2');
-            const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-            const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-            const matchID = parseInt(event.target.getAttribute('data-match-id'));
-
-            console.log("get player with tournament ID: ", tournamentId);
-            try {
-              // 1. Récupérer la liste des joueurs correspondant à l'id du tournoi avec fetch et stocker la réponse.
-              const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-
-              const playersData = await response.json();
-
-              // 2. Chercher la variable player1 et vérifier si le joueur est authentifié ou invité.
-              let player1Authenticated = false;
-              for (let player of playersData) {
-                if (player.name === player1) {
-                  player1Authenticated = player.authenticated || player.guest;
-                  break;
-                }
-              }
-              if (!player1Authenticated) {
-                // 3. Si player1 n'est pas authentifié ni invité, message d'erreur.
-                alert("Authentification requise pour " + player1);
-                return;
-              }
-
-              // 4. Chercher la variable pour player2 et vérifier.
-              let player2Authenticated = false;
-              for (let player of playersData) {
-                if (player.name === player2) {
-                  player2Authenticated = player.authenticated || player.guest;
-                  break;
-                }
-              }
-              if (!player2Authenticated) {
-                // 5. Message d'erreur si nécessaire.
-                alert("Authentification requise pour " + player2);
-                return;
-              }
-
-              // 6. Si pas de message d'erreur, startGameSetup est actionnée.
-              let gameSettings = {
-                mode: "multiplayer", // Assuming tournament games are always multiplayer
-                difficulty: "medium", // Default value, adjust as needed
-                design: "retro", // Default value, adjust as needed
-                numberOfGames: setsToWin,
-                setsPerGame: pointsPerSet,
-                player1: player1,
-                player2: player2,
-                control1: "wasd",// Default values, might need adjustment
-                control2:  "arrows",
-                isTournamentMatch: true,
-              };
-              localStorage.setItem("matchID", matchID);
-              startGameSetup(gameSettings);
-
-            } catch (error) {
-              console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
-              alert("Une erreur est survenue lors de la vérification de l'authentification. Veuillez réessayer.");
-            }
-          });
-        });
-       
+      // Adding event listeners for authentication buttons
       document.querySelectorAll('.auth-button').forEach(button => {
         button.addEventListener('click', function() {
           const playerName = this.getAttribute('data-player');
-          const tournamentId = this.getAttribute('data-tournament');
           authenticateNow(playerName, tournamentId);
+        });
+      });
+
+      // Adding event listeners for starting games
+      document.querySelectorAll('.startGameButton').forEach(button => {
+        button.addEventListener('click', async event => {
+          const player1 = event.target.getAttribute('data-player1');
+          const player2 = event.target.getAttribute('data-player2');
+          const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+          const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+          const matchID = parseInt(event.target.getAttribute('data-match-id'));
+
+          console.log("get player with tournament ID: ", tournamentId);
+          try {
+            const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+
+            const playersData = await response.json();
+
+            // Check player1 authentication status
+            let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
+            if (!player1Authenticated) {
+              alert("Authentification requise pour " + player1);
+              return;
+            }
+
+            // Check player2 authentication status
+            let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
+            if (!player2Authenticated) {
+              alert("Authentification requise pour " + player2);
+              return;
+            }
+
+            // Start the game if no errors
+            let gameSettings = {
+              mode: "multiplayer",
+              difficulty: "medium",
+              design: "retro",
+              numberOfGames: setsToWin,
+              setsPerGame: pointsPerSet,
+              player1: player1,
+              player2: player2,
+              control1: "wasd",
+              control2: "arrows",
+              isTournamentMatch: true,
+            };
+            localStorage.setItem("matchID", matchID);
+            startGameSetup(gameSettings);
+
+          } catch (error) {
+            console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+            alert("Une erreur est survenue lors de la vérification de l'authentification. Veuillez réessayer.");
+          }
         });
       });
 
       // Add standings to app_bottom
       displayTournamentStandings(data);
-          } else {
-      tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
-          }
-        })
-        .catch((error) => {
-          console.error("Error retrieving players:", error);
-          tournamentMatchesDiv.innerHTML = `<h2>Selected Tournament: ${tournamentName}</h2><h3>Match List:</h3><p>Error loading player information.</p>`;
-        });
-  }
+    } else {
+      tournamentMatchesDiv.innerHTML += `
+        <h2 class="text-center mb-4">${tournamentName}</h2>
+        ${playersHTML}
+        <div class="alert alert-info text-center" role="alert">
+          No match found for this tournament.
+        </div>
+      `;
+    }
+  })
+  .catch((error) => {
+    console.error("Error retrieving players:", error);
+    tournamentMatchesDiv.innerHTML = `<h2 class="text-center mb-4">${tournamentName}</h2><div class="alert alert-danger text-center" role="alert">Error loading player information.</div>`;
+  });
+}
+
+// function displayTournamentGameList(data){
+//
+//   // Empty all containers
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   const tournamentName = localStorage.getItem("tournamentName");
+//   const tournamentId = localStorage.getItem("tournamentId");
+//   localStorage.setItem("isTournamentMatch", true);
+//
+//   const tournamentMatchesDiv = document.getElementById("app_main");
+//
+//   // Fetch players with their status from the server
+//   fetch(`/api/tournament/players/${tournamentId}/`, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//   })
+//   .then(response => response.json())
+//   .then(playersData => {
+//     let playersHTML = '<div class="list-unstyled" players-list"><h3 class="display-6">Players:</h3><ul>';
+//
+//     playersData.forEach(player => {
+//       let statusText = '';
+//       if (player.guest) {
+//         statusText = '🕵️ Guest';
+//       } else {
+//         statusText = player.authenticated ? '✔️ Authenticated' : '🔒 Needs authentication';
+//       }
+//
+//       // Add authentication button if not authenticated and not a guest
+//       let authButton = '';
+//       if (!player.guest && !player.authenticated) {
+//         authButton = `<button class="btn btn-success auth-button" data-player="${player.name}" data-tournament="${tournamentId}">Authenticate Now</button>`;
+//       }
+//
+//       playersHTML += `<li>${player.name} - ${statusText} ${authButton}</li>`;
+//     });
+//
+//     playersHTML += '</ul></div>';
+//
+//     tournamentMatchesDiv.innerHTML = `
+//       <h2>Selected Tournament: ${tournamentName}</h2>
+//       ${playersHTML}
+//       <h3>Match List:</h3>
+//     `;
+//
+//     // Now handle the match data
+//     let playButtonDisplayed = false;
+//     if (Array.isArray(data) && data.length > 0) {
+//       data.forEach((match) => {
+//         const date = new Date(match.date_played).toLocaleString();
+//         const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
+//
+//         const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? "Match to be played" : match.winner || "In progress";
+//
+//         let matchHTML = `
+//           <p>
+//             ${match.player1_name} vs ${match.player2_name}
+//             <br>
+//             Score: ${score}
+//             <br>
+//             Winner: ${winner}
+//         `;
+//
+//         if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
+//           matchHTML += `
+//             <button class="startGameButton"
+//                     data-player1="${match.player1_name}"
+//                     data-player2="${match.player2_name}"
+//                     data-sets-to-win="${match.sets_to_win}"
+//                     data-points-per-set="${match.points_per_set}"
+//                     data-match-id="${match.id}">Start Game</button>
+//           `;
+//           playButtonDisplayed = true;
+//         }
+//
+//         matchHTML += `</p>`;
+//         tournamentMatchesDiv.innerHTML += matchHTML;
+//       });
+//
+//       document.querySelectorAll('.auth-button').forEach(button => {
+//         button.addEventListener('click', function() {
+//            const playerName = this.getAttribute('data-player');
+//           authenticateNow(playerName, tournamentId);
+//         });
+//       });
+//
+//
+//       document.querySelectorAll('.startGameButton').forEach(button => {
+//           button.addEventListener('click', async event => {
+//             const player1 = event.target.getAttribute('data-player1');
+//             const player2 = event.target.getAttribute('data-player2');
+//             const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+//             const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+//             const matchID = parseInt(event.target.getAttribute('data-match-id'));
+//
+//             console.log("get player with tournament ID: ", tournamentId);
+//             try {
+//               // 1. Récupérer la liste des joueurs correspondant à l'id du tournoi avec fetch et stocker la réponse.
+//               const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
+//                 method: "GET",
+//                 headers: {
+//                   "Content-Type": "application/json",
+//                 },
+//               });
+//
+//               const playersData = await response.json();
+//
+//               // 2. Chercher la variable player1 et vérifier si le joueur est authentifié ou invité.
+//               let player1Authenticated = false;
+//               for (let player of playersData) {
+//                 if (player.name === player1) {
+//                   player1Authenticated = player.authenticated || player.guest;
+//                   break;
+//                 }
+//               }
+//               if (!player1Authenticated) {
+//                 // 3. Si player1 n'est pas authentifié ni invité, message d'erreur.
+//                 alert("Authentification requise pour " + player1);
+//                 return;
+//               }
+//
+//               // 4. Chercher la variable pour player2 et vérifier.
+//               let player2Authenticated = false;
+//               for (let player of playersData) {
+//                 if (player.name === player2) {
+//                   player2Authenticated = player.authenticated || player.guest;
+//                   break;
+//                 }
+//               }
+//               if (!player2Authenticated) {
+//                 // 5. Message d'erreur si nécessaire.
+//                 alert("Authentification requise pour " + player2);
+//                 return;
+//               }
+//
+//               // 6. Si pas de message d'erreur, startGameSetup est actionnée.
+//               let gameSettings = {
+//                 mode: "multiplayer", // Assuming tournament games are always multiplayer
+//                 difficulty: "medium", // Default value, adjust as needed
+//                 design: "retro", // Default value, adjust as needed
+//                 numberOfGames: setsToWin,
+//                 setsPerGame: pointsPerSet,
+//                 player1: player1,
+//                 player2: player2,
+//                 control1: "wasd",// Default values, might need adjustment
+//                 control2:  "arrows",
+//                 isTournamentMatch: true,
+//               };
+//               localStorage.setItem("matchID", matchID);
+//               startGameSetup(gameSettings);
+//
+//             } catch (error) {
+//               console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+//               alert("Une erreur est survenue lors de la vérification de l'authentification. Veuillez réessayer.");
+//             }
+//           });
+//         });
+//
+//       document.querySelectorAll('.auth-button').forEach(button => {
+//         button.addEventListener('click', function() {
+//           const playerName = this.getAttribute('data-player');
+//           const tournamentId = this.getAttribute('data-tournament');
+//           authenticateNow(playerName, tournamentId);
+//         });
+//       });
+//
+//       // Add standings to app_bottom
+//       displayTournamentStandings(data);
+//           } else {
+//       tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
+//           }
+//         })
+//         .catch((error) => {
+//           console.error("Error retrieving players:", error);
+//           tournamentMatchesDiv.innerHTML = `<h2>Selected Tournament: ${tournamentName}</h2><h3>Match List:</h3><p>Error loading player information.</p>`;
+//         });
+//   }
 
 
 // function displayTournamentGameList(data){
@@ -358,34 +544,40 @@ function displayTournamentStandings(data) {
   // Ici, nous devons calculer les standings à partir des données des matchs
   const standings = calculateStandings(data);
 
-  let standingsHTML = "<h3>Standings:</h3>";
-  standingsHTML += `
-    <table>
-      <thead>
-        <tr>
-          <th>Player</th>
-          <th>Wins</th>
-          <th>Points Scored</th>
-          <th>Points Conceded</th>
-        </tr>
-      </thead>
-      <tbody>
+  let standingsHTML = `
+    <div class="card bg-light mb-4">
+      <div class="card-header text-center">
+        <h3 class="display-6 mb-0">Standings</h3>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="bg-primary text-white">
+            <tr>
+              <th scope="col" class="text-center">Player</th>
+              <th scope="col" class="text-center">Wins</th>
+              <th scope="col" class="text-center">Points Scored</th>
+              <th scope="col" class="text-center">Points Conceded</th>
+            </tr>
+          </thead>
+          <tbody>
   `;
 
   standings.forEach(player => {
     standingsHTML += `
       <tr>
-        <td>${player.name}</td>
-        <td>${player.wins}</td>
-        <td>${player.points_scored}</td>
-        <td>${player.points_conceded}</td>
+        <td class="text-center">${player.name}</td>
+        <td class="text-center">${player.wins}</td>
+        <td class="text-center">${player.points_scored}</td>
+        <td class="text-center">${player.points_conceded}</td>
       </tr>
     `;
   });
 
   standingsHTML += `
-      </tbody>
-    </table>
+          </tbody>
+        </table>
+      </div>
+    </div>
   `;
 
   appBottom.innerHTML = standingsHTML;
@@ -1047,7 +1239,7 @@ export function displayUserTournaments() {
   appMain.innerHTML = `
     <br>
     <br>
-    <button id="toggleAllTournaments">Show all tournaments</button>
+    <button id="toggleAllTournaments" class="btn btn-secondary" >Show all tournaments</button>
     <br>
     <br>
     <div id="userTournamentList"></div>
@@ -1077,7 +1269,7 @@ export function displayUserTournaments() {
           tournamentDiv.innerHTML = `
             <p class="${tournament.is_finished ? 'finished' : 'ongoing'}">
               Name: ${tournament.tournament_name} ${emoji}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
-              <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
+              <button class="btn btn-primary selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
             </p>`;
           userTournamentListDiv.appendChild(tournamentDiv);
         });

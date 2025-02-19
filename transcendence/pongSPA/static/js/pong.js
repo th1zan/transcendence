@@ -342,7 +342,7 @@ function displayResults(matchID) {
     console.log("displayResults::.then buttonText: ", buttonText);
 
     let summary = `
-      <button id="backButton">${buttonText}</button>
+      <button id="backButton" class="btn btn-primary">${buttonText}</button>
       <br><br>
       <strong>${data.player1_name} vs ${data.player2_name}</strong><br>
       <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Number of sets)<br>
