@@ -315,8 +315,7 @@ function handleGameEnd(winner) {
 }
 
 function displayResults(matchID) {
-  let isTournamentMatch = localStorage.getItem("isTournamentMatch"); // Si non défini, on suppose que c'est une partie solo
-
+  console.log("displayResults:: isTournamentMatch: ", isTournamentMatch);
   // Empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -338,7 +337,9 @@ function displayResults(matchID) {
     return response.json();
   })
   .then(data => {
+    console.log("displayResults .then:: isTournamentMatch: ", isTournamentMatch);
     let buttonText = isTournamentMatch === true ? 'Back to Tournament' : 'New Game';
+    console.log("displayResults::.then buttonText: ", buttonText);
 
     let summary = `
       <button id="backButton">${buttonText}</button>
@@ -368,7 +369,7 @@ function displayResults(matchID) {
       backButton.addEventListener("click", () => {
         summaryDiv.innerHTML = ""; 
 
-        if (gameType === 'tournament') {
+        if (isTournamentMatch === true) {
           DisplayTournamentGame();
         } else {
           displayGameForm();

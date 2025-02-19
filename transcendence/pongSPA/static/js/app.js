@@ -708,7 +708,7 @@ export function displayGameForm() {
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  localStorage.setItem("context", "solo"); 
+  localStorage.setItem("isTournamentMatch", false); 
   const formContainer = document.getElementById("app_main");
   const username = localStorage.getItem("username")
 

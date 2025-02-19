@@ -104,7 +104,7 @@ function displayTournamentGameList(data){
 
   const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
-  localStorage.setItem("context", "tournament");
+  localStorage.setItem("isTournamentMatch", true);
 
   const tournamentMatchesDiv = document.getElementById("app_main");
 
