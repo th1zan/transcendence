@@ -911,58 +911,70 @@ export function displayGameForm() {
   let lastCheckedPlayer2 = ""; 
   let needAuth = false; 
 
-  document.getElementById("startGameButton").addEventListener("click", async () => {
-      const player1 = username;
-      let player2 = document.getElementById("player2").value.trim();
-      const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
-      const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
+document.getElementById("startGameButton").addEventListener("click", async () => {
+    const player1 = username;
+    let player2 = document.getElementById("player2").value.trim();
+    const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
+    const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
 
-      console.log("Start button clicked");
-      
-      if (!alertShown || player2 !== lastCheckedPlayer2) {
-          alertShown = false;
-          needAuth = false;  
-          if (isTwoPlayerMode) {
-              try {
-                  const playerData = await checkPlayerExists(player2);
+    console.log("Start button clicked");
+    
+    if (!alertShown || player2 !== lastCheckedPlayer2) {
+        alertShown = false;
+        needAuth = false;  
+        if (isTwoPlayerMode) {
+            try {
+                const playerData = await checkPlayerExists(player2);
 
-                  if (playerData.exists && !playerData.is_guest) {
-                      alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
-                      alertShown = true;
-                      lastCheckedPlayer2 = player2;
-                      needAuth = true;
-                      // Ici, on ne retourne pas directement, on attend l'authentification
-                  } else if (playerData.exists) {
-                      alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
-                      alertShown = true;
-                      lastCheckedPlayer2 = player2;
-                      // Ici aussi, on ne retourne pas
-                  } else {
-                      startGameSetup(gameSettings);
+                if (playerData.exists && !playerData.is_guest) {
+                    // Si player2 est un utilisateur enregistré, on affiche l'alerte
+                    alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
+                    alertShown = true;
+                    lastCheckedPlayer2 = player2;
+                    needAuth = true;
+                    // On ne lance pas l'authentification ici, on attend le deuxième clic
+                    return; // Sortir de la fonction pour attendre le deuxième clic
+                } else if (playerData.exists) {
+                    // Pour un joueur invité existant, on affiche l'alerte
+                    alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
+                    alertShown = true;
+                    lastCheckedPlayer2 = player2;
+                    // On ne lance pas le jeu ici, on attend le deuxième clic
+                    return; // Sortir de la fonction pour attendre le deuxième clic
+                } else {
+                    startGameSetup(gameSettings);
+                    return; // Sortir de la fonction après avoir lancé le jeu
+                }
+            } catch (error) {
+                console.error("Error checking player existence:", error);
+                alert("There was an error checking player existence. Please try again.");
+                return; // Sortir de la fonction en cas d'erreur
+            }
+        } else {
+            // Si player2 est "Bot-AI", on peut commencer immédiatement
+            startGameSetup(gameSettings);
+            return; // Sortir de la fonction après avoir lancé le jeu
+        }
+    }
 
-                  }
-              } catch (error) {
-                  console.error("Error checking player existence:", error);
-                  alert("There was an error checking player existence. Please try again.");
-              }
-          } else {
-              // Si player2 est "Bot-AI", on peut commencer immédiatement
-              startGameSetup(gameSettings);
-          }
-      }
+    // Vérification de l'authentification après les alertes pour les utilisateurs enregistrés
+    // et lancement du jeu pour les joueurs invités existants après le deuxième clic
+    if (needAuth) {
+        // Ici, c'est le deuxième clic qui déclenche l'authentification
+        const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
+        if (authResult) {
+            startGameSetup(gameSettings);
+        }
+    } else if (player2 !== lastCheckedPlayer2) {
+        // Si player2 a changé, on lance le jeu directement
+        startGameSetup(gameSettings);
+    } else {
+        // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
+        startGameSetup(gameSettings);
+    }
 
-      // Vérification de l'authentification après les alertes
-      if (needAuth) {
-          const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
-          if (authResult) {
-              startGameSetup(gameSettings);
-      }
-      } else if (player2 !== lastCheckedPlayer2) {
-          startGameSetup(gameSettings);
-      }
-
-      console.log("Starting game with settings:", gameSettings);
- });
+    console.log("Starting game with settings:", gameSettings);
+  });
 }
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
