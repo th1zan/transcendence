@@ -636,69 +636,300 @@ function fetchRanking() {
     });
 }
 
-// <<<<<<< HEAD
-// function displayGameFormHTML(username) {
-//   return `
-//     <form id="gameForm" class="w-100">
-//       <div class="d-flex justify-content-between align-items-start">
-//           <div class="col">
+
+
+// === BEGIN refactored displayGameForm() function ===
+
+// export function displayGameForm() {
+//   // Vide tous les conteneurs
+//   clearContainers();
+//
+//   // Initialise les paramètres de jeu par défaut
+//   let gameSettings = initializeGameSettings();
+//
+//   // Crée et insère le formulaire dans le DOM
+//   createGameForm(gameSettings);
+//
+//   // Configure les événements du formulaire
+//   setupFormEventListeners(gameSettings);
+// }
+//
+// function clearContainers(){
+//   document.getElementById('app_top').innerHTML = '';
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+// }
+//
+// function initializeGameSettings() {
+//   localStorage.setItem("isTournamentMatch", false);
+//   return {
+//     mode: "solo",
+//     difficulty: "easy",
+//     design: "retro",
+//     numberOfGames: 1,
+//     setsPerGame: 3,
+//     player1: localStorage.getItem("username") || "",
+//     player2: "Bot-AI",
+//     control1: "arrows",
+//     control2: "wasd",
+//     isTournamentMatch: false
+//   };
+// }
+//
+//
+// function createGameForm(gameSettings) {
+//   const formContainer = document.getElementById("app_main");
+//   formContainer.innerHTML = `
+//     <form id="gameForm" class="container">
+//       <div class="row">
+//           <div class="col-12 col-md-6">
 //               <h3>Game Settings</h3>
-//               <label>Game Mode:</label>
-//               <button id="onePlayer" class="mode-button active btn btn-outline-primary mb-2" type="button">1 Player</button>
-//               <button id="twoPlayers" class="mode-button btn btn-outline-primary mb-2" type="button">2 Players</button>
-//               <br><br>
-//               <label>Difficulty:</label>
-//               <button class="difficulty-button active btn btn-outline-primary mb-2" id="easy" type="button">Easy</button>
-//               <button class="difficulty-button btn btn-outline-primary mb-2" id="medium" type="button">Medium</button>
-//               <button class="difficulty-button btn btn-outline-primary mb-2" id="hard" type="button">Hard</button>
-//               <br><br>
-//               <label>Design:</label>
-//               <button class="design-button active btn btn-outline-primary mb-2" id="oldschool" type="button">Oldschool</button>
-//               <button class="design-button btn btn-outline-primary mb-2" id="modern" type="button">Modern</button>
+//               <div class="mb-3">
+//                   <label class="form-label">Game Mode:</label>
+//                   <div class="btn-group" role="group" aria-label="Game Mode">
+//                       <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+//                       <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+//                   </div>
+//               </div>
+//               <div class="mb-3">
+//                   <label class="form-label">Difficulty:</label>
+//                   <div class="btn-group" role="group" aria-label="Difficulty">
+//                       <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+//                       <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+//                       <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+//                   </div>
+//               </div>
+//               <div class="mb-3">
+//                   <label class="form-label">Design:</label>
+//                   <div class="btn-group" role="group" aria-label="Design">
+//                       <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+//                       <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+//                   </div>
+//               </div>
 //           </div>
-//           <div class="col">
+//           <div class="col-12 col-md-6">
 //               <h3>Match Settings</h3>
-//               <label>Number of Games:</label>
-//               <input type="number" id="numberOfGames" value="1" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
-//               <label>Sets per Game:</label>
-//               <input type="number" id="setsPerGame" value="3" min="1" max="5" class="form-control mb-2" style="width: 60px;"><br><br>
+//               <div class="mb-3">
+//                   <label for="numberOfGames" class="form-label">Number of Games:</label>
+//                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control" style="width: 60px;">
+//               </div>
+//               <div class="mb-3">
+//                   <label for="setsPerGame" class="form-label">Sets per Game:</label>
+//                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+//               </div>
 //           </div>
 //       </div>
 //
-//       <div class="d-flex justify-content-between align-items-start mt-3">
-//           <div class="col">
+//       <div class="row mt-4">
+//           <div class="col-12 col-md-6">
 //               <h3>Player 1</h3>
-//               <label>Name:</label>
-//               <input type="text" id="player1" value="${username}" class="form-control mb-2" disabled>
-//               <br>
-//               <label>Control:</label>
-//               <select id="control1" class="form-select mb-2">
-//                   <option value="arrows" selected>Arrow Keys</option>
-//                   <option value="wasd">WASD</option>
-//                   <option value="mouse">Mouse</option>
-//               </select>
+//               <div class="mb-3">
+//                   <label for="player1" class="form-label">Name:</label>
+//                   <input type="text" id="player1" value="${gameSettings.player1}" class="form-control" disabled>
+//               </div>
+//               <div class="mb-3">
+//                   <label for="control1" class="form-label">Control:</label>
+//                   <select id="control1" class="form-select">
+//                       <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+//                       <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+//                       <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+//                   </select>
+//               </div>
 //           </div>
-//           <div class="col" id="player2Container">
+//           <div class="col-12 col-md-6" id="player2Container">
 //               <h3>Player 2</h3>
-//               <label>Name:</label>
-//               <input type="text" id="player2" value="Bot-AI" class="form-control mb-2" disabled>
-//               <br>
-//               <div id="control2Container" style="display:none;">
-//                   <label>Control:</label>
-//                   <select id="control2" class="form-select mb-2">
-//                       <option value="wasd" selected>WASD</option>
-//                       <option value="arrows" disabled>Arrow Keys</option>
-//                       <option value="mouse">Mouse</option>
+//               <div class="mb-3">
+//                   <label for="player2" class="form-label">Name:</label>
+//                   <!-- <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}> -->
+//                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control">
+//               </div>
+//               <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+//                   <label for="control2" class="form-label">Control:</label>
+//                   <select id="control2" class="form-select">
+//                       <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+//                       <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+//                       <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
 //                   </select>
 //               </div>
 //           </div>
 //       </div>
-//       <div class="text-center mt-3">
+//       <div class="text-center mt-4">
 //         <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
 //       </div>
 //     </form>
+//
+//     <div id="result" style="display: none;">
+//       <h2>Game Results</h2>
+//       <p id="summary"></p>
+//     </div>
+//     <!-- <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>   -->
 //   `;
 // }
+//
+// function setupFormEventListeners(gameSettings) {
+//   setupModeButtons(gameSettings);
+//   setupDifficultyAndDesignButtons(gameSettings);
+//   setupInputListeners(gameSettings);
+//   setupStartGameButton(gameSettings);
+// }
+//
+// function setupModeButtons(gameSettings) {
+//   document.getElementById("onePlayer").addEventListener("click", function() {
+//     setupSoloMode(gameSettings);
+//   });
+//
+//   document.getElementById("twoPlayers").addEventListener("click", function() {
+//     setupMultiplayerMode(gameSettings);
+//   });
+// }
+//
+// function setupSoloMode(gameSettings) {
+//   gameSettings.mode = "solo";
+//   document.getElementById("player2Container").style.display = "block";
+//   document.getElementById("player2").value = "Bot-AI";
+//   gameSettings.player2 = "Bot-AI";
+//   document.getElementById("player2").disabled = true;
+//   document.getElementById("control2Container").style.display = "none";
+//   updateControlOptions("arrows", "wasd");
+// }
+//
+// function setupMultiplayerMode(gameSettings) {
+//   gameSettings.mode = "multiplayer";
+//   document.getElementById("player2Container").style.display = "block";
+//   document.getElementById("player2").value = "";
+//   gameSettings.player2 = "";
+//   document.getElementById("player2").disabled = false;
+//   document.getElementById("control2Container").style.display = "block";
+//   updateControlOptions("arrows", "wasd", true);
+// }
+//
+// function updateControlOptions(control1, control2, isMultiplayer = false) {
+//   document.getElementById("control1").value = control1;
+//   document.getElementById("control2").value = control2;
+//
+//   if (isMultiplayer) {
+//     disableSameControlOption("control1", control2);
+//     disableSameControlOption("control2", control1);
+//   }
+//
+//   function disableSameControlOption(controlId, valueToDisable) {
+//     const control = document.getElementById(controlId);
+//     control.querySelectorAll("option").forEach(opt => opt.disabled = false);
+//     control.querySelector(`option[value="${valueToDisable}"]`).disabled = true;
+//   }
+// }
+//
+// function setupDifficultyAndDesignButtons(gameSettings) {
+//   document.querySelectorAll(".difficulty-button, .design-button").forEach(button => {
+//     button.addEventListener("click", function() {
+//       toggleActiveButton(`.${this.classList[0]}`, this.id);
+//       if (this.classList.contains("difficulty-button")) {
+//         gameSettings.difficulty = this.id;
+//       } else {
+//         gameSettings.design = this.id;
+//       }
+//     });
+//   });
+// }
+//
+// function setupInputListeners(gameSettings) {
+//   document.getElementById("numberOfGames").addEventListener("input", function() {
+//     gameSettings.numberOfGames = parseInt(this.value);
+//   });
+//
+//   document.getElementById("setsPerGame").addEventListener("input", function() {
+//     gameSettings.setsPerGame = parseInt(this.value);
+//   });
+//
+//   document.getElementById("player2").addEventListener("input", function() {
+//     gameSettings.player2 = this.value;
+//   });
+//
+//   document.getElementById("control1").addEventListener("change", function () {
+//     gameSettings.control1 = this.value;
+//     updateControlOptions(this.value, gameSettings.control2);
+//   });
+//
+//   document.getElementById("control2").addEventListener("change", function () {
+//     gameSettings.control2 = this.value;
+//     updateControlOptions(gameSettings.control1, this.value);
+//   });
+// }
+//
+// function setupStartGameButton(gameSettings) {
+//   let alertShown = false;
+//   let lastCheckedPlayer2 = "";
+//   let needAuth = false;
+//   let isTwoPlayerMode = gameSettings.mode === "multiplayer";
+//
+//   document.getElementById("startGameButton").addEventListener("click", async () => {
+//     const player1 = gameSettings.player1;
+//     let player2 = document.getElementById("player2").value.trim();
+//     const numberOfGames = gameSettings.numberOfGames;
+//     const setsPerGame = gameSettings.setsPerGame;
+//
+//     console.log("Start button clicked");
+//
+//     if (!alertShown || player2 !== lastCheckedPlayer2) {
+//       alertShown = false;
+//       needAuth = false;  
+//       if (isTwoPlayerMode) {
+//         try {
+//           const playerData = await checkPlayerExists(player2);
+//
+//           if (playerData.exists && !playerData.is_guest) {
+//             alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
+//             alertShown = true;
+//             lastCheckedPlayer2 = player2;
+//             needAuth = true;
+//             return;
+//           } else if (playerData.exists) {
+//             alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
+//             alertShown = true;
+//             lastCheckedPlayer2 = player2;
+//             return;
+//           } else {
+//             startGameSetup(gameSettings);
+//             return;
+//           }
+//         } catch (error) {
+//           console.error("Error checking player existence:", error);
+//           alert("There was an error checking player existence. Please try again.");
+//           return;
+//         }
+//       } else {
+//         startGameSetup(gameSettings);
+//         return;
+//       }
+//     }
+//
+//     if (needAuth) {
+//       const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
+//       if (authResult) {
+//         startGameSetup(gameSettings);
+//       }
+//     } else if (player2 !== lastCheckedPlayer2) {
+//       startGameSetup(gameSettings);
+//     } else {
+//       startGameSetup(gameSettings);
+//     }
+//
+//     console.log("Starting game with settings:", gameSettings);
+//   });
+// }
+//
+// function toggleActiveButton(group, selectedId) {
+//   document.querySelectorAll(group).forEach(button => {
+//     button.classList.remove('btn-primary');
+//     button.classList.add('btn-outline-primary');
+//   });
+//   document.getElementById(selectedId).classList.remove('btn-outline-primary');
+//   document.getElementById(selectedId).classList.add('btn-primary');
+// }
+
+// ===  END refactored displayGameForm() function ===
+
+
 
 
 export function displayGameForm() {
@@ -712,7 +943,6 @@ export function displayGameForm() {
   const formContainer = document.getElementById("app_main");
   const username = localStorage.getItem("username")
 
-
   let gameSettings = {
     mode: "solo",
     difficulty: "easy",
@@ -725,7 +955,7 @@ export function displayGameForm() {
     control2: "wasd",
     isTournamentMatch: false
   };
-  
+
   formContainer.innerHTML = `
     <form id="gameForm" class="container">
       <div class="row">
@@ -766,7 +996,7 @@ export function displayGameForm() {
               </div>
           </div>
       </div>
-      
+
       <div class="row mt-4">
           <div class="col-12 col-md-6">
               <h3>Player 1</h3>
@@ -777,8 +1007,8 @@ export function displayGameForm() {
               <div class="mb-3">
                   <label for="control1" class="form-label">Control:</label>
                   <select id="control1" class="form-select">
-                      <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
                       <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+                      <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
                       <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
                   </select>
               </div>
@@ -787,14 +1017,13 @@ export function displayGameForm() {
               <h3>Player 2</h3>
               <div class="mb-3">
                   <label for="player2" class="form-label">Name:</label>
-                  <!-- <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}> -->
-                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control">
+                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}>
               </div>
               <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
                   <label for="control2" class="form-label">Control:</label>
                   <select id="control2" class="form-select">
-                      <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
                       <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                      <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
                       <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
                   </select>
               </div>
@@ -809,7 +1038,44 @@ export function displayGameForm() {
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>
-    <!-- <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>   -->
+
+    <!-- Modale pour joueur enregistré -->
+    <div class="modal fade" id="registeredUserModal" tabindex="-1" aria-labelledby="registeredUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="registeredUserModalLabel">Attention</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="authNeeded">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modale pour joueur invité -->
+    <div class="modal fade" id="guestPlayerModal" tabindex="-1" aria-labelledby="guestPlayerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="guestPlayerModalLabel">Attention</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Player 2 exists as an existing guest player. Play with this username or change it.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="continueWithGuest">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
   function toggleActiveButton(group, selectedId) {
@@ -860,7 +1126,7 @@ export function displayGameForm() {
 
     document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
     document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
-    
+
     isTwoPlayerMode = true;
     gameSettings.mode = "multiplayer";
   });
@@ -911,50 +1177,61 @@ export function displayGameForm() {
   let lastCheckedPlayer2 = ""; 
   let needAuth = false; 
 
-document.getElementById("startGameButton").addEventListener("click", async () => {
+  document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
     let player2 = document.getElementById("player2").value.trim();
     const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
     const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
 
     console.log("Start button clicked");
-    
-    if (!alertShown || player2 !== lastCheckedPlayer2) {
-        alertShown = false;
-        needAuth = false;  
-        if (isTwoPlayerMode) {
-            try {
-                const playerData = await checkPlayerExists(player2);
 
-                if (playerData.exists && !playerData.is_guest) {
-                    // Si player2 est un utilisateur enregistré, on affiche l'alerte
-                    alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
-                    alertShown = true;
-                    lastCheckedPlayer2 = player2;
-                    needAuth = true;
-                    // On ne lance pas l'authentification ici, on attend le deuxième clic
-                    return; // Sortir de la fonction pour attendre le deuxième clic
-                } else if (playerData.exists) {
-                    // Pour un joueur invité existant, on affiche l'alerte
-                    alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
-                    alertShown = true;
-                    lastCheckedPlayer2 = player2;
-                    // On ne lance pas le jeu ici, on attend le deuxième clic
-                    return; // Sortir de la fonction pour attendre le deuxième clic
-                } else {
-                    startGameSetup(gameSettings);
-                    return; // Sortir de la fonction après avoir lancé le jeu
-                }
-            } catch (error) {
-                console.error("Error checking player existence:", error);
-                alert("There was an error checking player existence. Please try again.");
-                return; // Sortir de la fonction en cas d'erreur
-            }
-        } else {
-            // Si player2 est "Bot-AI", on peut commencer immédiatement
+    if (!alertShown || player2 !== lastCheckedPlayer2) {
+      alertShown = false;
+      needAuth = false;  
+      if (isTwoPlayerMode) {
+        try {
+          const playerData = await checkPlayerExists(player2);
+
+          const registeredUserModal = new bootstrap.Modal(document.getElementById('registeredUserModal'), {
+            keyboard: false
+          });
+          const guestPlayerModal = new bootstrap.Modal(document.getElementById('guestPlayerModal'), {
+            keyboard: false
+          });
+
+          if (playerData.exists && !playerData.is_guest) {
+            // Affiche la modale pour joueur enregistré
+            registeredUserModal.show();
+            document.getElementById('authNeeded').addEventListener('click', function() {
+              alertShown = true;
+              lastCheckedPlayer2 = player2;
+              needAuth = true;
+              registeredUserModal.hide(); // Ferme la modale après l'action
+            });
+            return;
+          } else if (playerData.exists) {
+            // Affiche la modale pour joueur invité
+            guestPlayerModal.show();
+            document.getElementById('continueWithGuest').addEventListener('click', function() {
+              alertShown = true;
+              lastCheckedPlayer2 = player2;
+              guestPlayerModal.hide(); // Ferme la modale après l'action
+            });
+            return;
+          } else {
             startGameSetup(gameSettings);
-            return; // Sortir de la fonction après avoir lancé le jeu
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking player existence:", error);
+          // Ici, vous pourriez aussi créer une modale pour les erreurs si vous le souhaitez
+          alert("There was an error checking player existence. Please try again.");
+          return;
         }
+      } else {
+        startGameSetup(gameSettings);
+        return;
+      }
     }
 
     // Vérification de l'authentification après les alertes pour les utilisateurs enregistrés
@@ -976,6 +1253,283 @@ document.getElementById("startGameButton").addEventListener("click", async () =>
     console.log("Starting game with settings:", gameSettings);
   });
 }
+
+// === THIS displayGameForm function is NOT refactored ===
+// export function displayGameForm() {
+//
+//   //empty all the containers
+//   document.getElementById('app_top').innerHTML = '';
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   localStorage.setItem("isTournamentMatch", false); 
+//   const formContainer = document.getElementById("app_main");
+//   const username = localStorage.getItem("username")
+//
+//
+//   let gameSettings = {
+//     mode: "solo",
+//     difficulty: "easy",
+//     design: "retro",
+//     numberOfGames: 1, //entre 1 et 5
+//     setsPerGame: 3, //entre 1 et 5
+//     player1: localStorage.getItem("username"),
+//     player2: "Bot-AI",
+//     control1: "arrows",
+//     control2: "wasd",
+//     isTournamentMatch: false
+//   };
+//
+//   formContainer.innerHTML = `
+//     <form id="gameForm" class="container">
+//       <div class="row">
+//           <div class="col-12 col-md-6">
+//               <h3>Game Settings</h3>
+//               <div class="mb-3">
+//                   <label class="form-label">Game Mode:</label>
+//                   <div class="btn-group" role="group" aria-label="Game Mode">
+//                       <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+//                       <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+//                   </div>
+//               </div>
+//               <div class="mb-3">
+//                   <label class="form-label">Difficulty:</label>
+//                   <div class="btn-group" role="group" aria-label="Difficulty">
+//                       <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+//                       <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+//                       <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+//                   </div>
+//               </div>
+//               <div class="mb-3">
+//                   <label class="form-label">Design:</label>
+//                   <div class="btn-group" role="group" aria-label="Design">
+//                       <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+//                       <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+//                   </div>
+//               </div>
+//           </div>
+//           <div class="col-12 col-md-6">
+//               <h3>Match Settings</h3>
+//               <div class="mb-3">
+//                   <label for="numberOfGames" class="form-label">Number of Games:</label>
+//                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control" style="width: 60px;">
+//               </div>
+//               <div class="mb-3">
+//                   <label for="setsPerGame" class="form-label">Sets per Game:</label>
+//                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+//               </div>
+//           </div>
+//       </div>
+//
+//       <div class="row mt-4">
+//           <div class="col-12 col-md-6">
+//               <h3>Player 1</h3>
+//               <div class="mb-3">
+//                   <label for="player1" class="form-label">Name:</label>
+//                   <input type="text" id="player1" value="${gameSettings.player1}" class="form-control" disabled>
+//               </div>
+//               <div class="mb-3">
+//                   <label for="control1" class="form-label">Control:</label>
+//                   <select id="control1" class="form-select">
+//                       <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+//                       <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+//                       <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+//                   </select>
+//               </div>
+//           </div>
+//           <div class="col-12 col-md-6" id="player2Container">
+//               <h3>Player 2</h3>
+//               <div class="mb-3">
+//                   <label for="player2" class="form-label">Name:</label>
+//                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}>
+//                   <!-- <input type="text" id="player2" value="${gameSettings.player2}" class="form-control"> -->
+//               </div>
+//               <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+//                   <label for="control2" class="form-label">Control:</label>
+//                   <select id="control2" class="form-select">
+//                       <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+//                       <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+//                       <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+//                   </select>
+//               </div>
+//           </div>
+//       </div>
+//       <div class="text-center mt-4">
+//         <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
+//       </div>
+//     </form>
+//
+//     <div id="result" style="display: none;">
+//       <h2>Game Results</h2>
+//       <p id="summary"></p>
+//     </div>
+//     <!-- <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>   -->
+//   `;
+//
+//   function toggleActiveButton(group, selectedId) {
+//       document.querySelectorAll(group).forEach(button => {
+//           button.classList.remove('btn-primary');
+//           button.classList.add('btn-outline-primary');
+//       });
+//       document.getElementById(selectedId).classList.remove('btn-outline-primary');
+//       document.getElementById(selectedId).classList.add('btn-primary');
+//   }
+//
+//   document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
+//       button.addEventListener("click", function() {
+//           toggleActiveButton(`.${this.classList[0]}`, this.id);
+//       });
+//   });
+//
+//   let isTwoPlayerMode = false;
+//   document.getElementById("onePlayer").addEventListener("click", function() {
+//     document.getElementById("player2Container").style.display = "block";
+//     document.getElementById("player2").value = "Bot-AI";
+//     gameSettings.player2 = "Bot-AI";
+//     document.getElementById("player2").disabled = true;
+//     document.getElementById("control2Container").style.display = "none";
+//
+//     document.getElementById("control1").value = "arrows";
+//     document.getElementById("control2").value = "wasd";
+//
+//     document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+//     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+//
+//     isTwoPlayerMode = false;
+//     gameSettings.mode = "solo";
+//   });
+//
+//   document.getElementById("twoPlayers").addEventListener("click", function() {
+//     document.getElementById("player2Container").style.display = "block";
+//     document.getElementById("player2").value = ""; // Laissez vide pour permettre à l'utilisateur de saisir
+//     gameSettings.player2 = ""; // Réinitialisez également dans gameSettings
+//     document.getElementById("player2").disabled = false; // Assurez-vous qu'il est activable
+//     document.getElementById("control2Container").style.display = "block";
+//
+//     document.getElementById("control1").value = "arrows";
+//     document.getElementById("control2").value = "wasd";
+//
+//     document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
+//     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+//
+//     document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
+//     document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+//
+//     isTwoPlayerMode = true;
+//     gameSettings.mode = "multiplayer";
+//   });
+//
+//   document.getElementById("numberOfGames").addEventListener("input", function() {
+//     gameSettings.numberOfGames = parseInt(this.value);
+//   });
+//
+//   document.getElementById("setsPerGame").addEventListener("input", function() {
+//     gameSettings.setsPerGame = parseInt(this.value);
+//   });
+//
+//   document.getElementById("player2").addEventListener("input", function() {
+//     gameSettings.player2 = this.value;
+//   });
+//
+//   document.getElementById("control1").addEventListener("change", function () {
+//     const selected = this.value;
+//     gameSettings.control1 = this.value;
+//     const control2 = document.getElementById("control2");
+//
+//     control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+//     control2.querySelector(`option[value="${selected}"]`).disabled = true;
+//   });
+//
+//   document.getElementById("control2").addEventListener("change", function () {
+//     const selected = this.value;
+//     gameSettings.control2 = this.value;
+//     const control1 = document.getElementById("control1");
+//
+//     control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+//     control1.querySelector(`option[value="${selected}"]`).disabled = true;
+//   });
+//
+//   document.querySelectorAll(".difficulty-button").forEach(button => {
+//     button.addEventListener("click", function() {
+//       gameSettings.difficulty = this.id;
+//     });
+//   });
+//
+//   document.querySelectorAll(".design-button").forEach(button => {
+//     button.addEventListener("click", function() {
+//       gameSettings.design = this.id;
+//     });
+//   });
+//
+//   let alertShown = false; 
+//   let lastCheckedPlayer2 = ""; 
+//   let needAuth = false; 
+//
+// document.getElementById("startGameButton").addEventListener("click", async () => {
+//     const player1 = username;
+//     let player2 = document.getElementById("player2").value.trim();
+//     const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
+//     const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
+//
+//     console.log("Start button clicked");
+//
+//     if (!alertShown || player2 !== lastCheckedPlayer2) {
+//         alertShown = false;
+//         needAuth = false;  
+//         if (isTwoPlayerMode) {
+//             try {
+//                 const playerData = await checkPlayerExists(player2);
+//
+//                 if (playerData.exists && !playerData.is_guest) {
+//                     // Si player2 est un utilisateur enregistré, on affiche l'alerte
+//                     alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
+//                     alertShown = true;
+//                     lastCheckedPlayer2 = player2;
+//                     needAuth = true;
+//                     // On ne lance pas l'authentification ici, on attend le deuxième clic
+//                     return; // Sortir de la fonction pour attendre le deuxième clic
+//                 } else if (playerData.exists) {
+//                     // Pour un joueur invité existant, on affiche l'alerte
+//                     alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
+//                     alertShown = true;
+//                     lastCheckedPlayer2 = player2;
+//                     // On ne lance pas le jeu ici, on attend le deuxième clic
+//                     return; // Sortir de la fonction pour attendre le deuxième clic
+//                 } else {
+//                     startGameSetup(gameSettings);
+//                     return; // Sortir de la fonction après avoir lancé le jeu
+//                 }
+//             } catch (error) {
+//                 console.error("Error checking player existence:", error);
+//                 alert("There was an error checking player existence. Please try again.");
+//                 return; // Sortir de la fonction en cas d'erreur
+//             }
+//         } else {
+//             // Si player2 est "Bot-AI", on peut commencer immédiatement
+//             startGameSetup(gameSettings);
+//             return; // Sortir de la fonction après avoir lancé le jeu
+//         }
+//     }
+//
+//     // Vérification de l'authentification après les alertes pour les utilisateurs enregistrés
+//     // et lancement du jeu pour les joueurs invités existants après le deuxième clic
+//     if (needAuth) {
+//         // Ici, c'est le deuxième clic qui déclenche l'authentification
+//         const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
+//         if (authResult) {
+//             startGameSetup(gameSettings);
+//         }
+//     } else if (player2 !== lastCheckedPlayer2) {
+//         // Si player2 a changé, on lance le jeu directement
+//         startGameSetup(gameSettings);
+//     } else {
+//         // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
+//         startGameSetup(gameSettings);
+//     }
+//
+//     console.log("Starting game with settings:", gameSettings);
+//   });
+// }
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
   return new Promise((resolve, reject) => {
