@@ -1,6 +1,7 @@
 # from django.contrib.auth.models import User
-import random
 import os
+import random
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.files import File
@@ -28,22 +29,22 @@ class CustomUser(AbstractUser):
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
     # The avatar will be saved under media/avatars/ with a random default image if none is uploaded.
     avatar = models.ImageField(upload_to="", blank=True, null=True)
+
     def set_random_avatar(self):
         # List of default avatar images in the 'avatars/' folder
         default_avatars = [
-            'avatars/avatar1.png',
-            'avatars/avatar2.png',
-            'avatars/avatar3.png',
-            'avatars/avatar4.png',
-            'avatars/avatar5.png',
-            'avatars/avatar6.png',
-            'avatars/avatar7.png',
+            "avatars/avatar1.png",
+            "avatars/avatar2.png",
+            "avatars/avatar3.png",
+            "avatars/avatar4.png",
+            "avatars/avatar5.png",
+            "avatars/avatar6.png",
+            "avatars/avatar7.png",
         ]
-        
+
         # Choose a random avatar from the list
         chosen_avatar = random.choice(default_avatars)
-        
-    
+
         # Make the filename unique by adding the username
         new_filename = f"user_{self.id}.png"
 
@@ -51,7 +52,7 @@ class CustomUser(AbstractUser):
         avatar_path = os.path.join(settings.MEDIA_ROOT, chosen_avatar)
 
         # Open the chosen avatar image file and assign its content to the user's avatar field
-        with open(avatar_path, 'rb') as f:
+        with open(avatar_path, "rb") as f:
             self.avatar.save(f"avatars/{new_filename}", File(f), save=False)
 
         # Optionally save the user instance to commit the changes
@@ -70,7 +71,7 @@ class CustomUser(AbstractUser):
         """Update last_seen timestamp when the user is active"""
         self.last_seen = now()
         self.save()
-        
+
     # def save(self, *args, **kwargs):
     #     is_new = self.pk is None
     #     # If new and no avatar provided, first save to obtain pk.
@@ -266,16 +267,17 @@ class FriendRequest(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name="notifications",
-        on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, related_name="notifications", on_delete=models.CASCADE
     )
     message = models.TextField()
-    notification_type = models.CharField(max_length=50, choices=[
-        ('friend_request', 'Friend Request'),
-        ('friend_request_declined', 'Friend Request Declined'),
-        ('game_invite', 'Game Invite'),
-    ]) 
+    notification_type = models.CharField(
+        max_length=50,
+        choices=[
+            ("friend_request", "Friend Request"),
+            ("friend_request_declined", "Friend Request Declined"),
+            ("game_invite", "Game Invite"),
+        ],
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 

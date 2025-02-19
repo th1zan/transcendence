@@ -60,7 +60,7 @@ function authenticateNow(playerName, tournamentId) {
 }
 
 function authenticatePlayer(username, password, playerName, tournamentId) {
-  return fetch(`/api/tournament/authenticate-player/${tournamentId}/`, {
+  return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -93,6 +93,8 @@ function updatePlayerStatusUI(playerName) {
     }
   });
 }
+
+
 
 function displayTournamentGameList(data){
 
@@ -176,6 +178,14 @@ function displayTournamentGameList(data){
         tournamentMatchesDiv.innerHTML += matchHTML;
       });
 
+      document.querySelectorAll('.auth-button').forEach(button => {
+        button.addEventListener('click', function() {
+           const playerName = this.getAttribute('data-player');
+          authenticateNow(playerName, tournamentId);
+        });
+      });
+
+
       document.querySelectorAll('.startGameButton').forEach(button => {
           button.addEventListener('click', async event => {
             const player1 = event.target.getAttribute('data-player1');
@@ -225,8 +235,20 @@ function displayTournamentGameList(data){
               }
 
               // 6. Si pas de message d'erreur, startGameSetup est actionnée.
+              let gameSettings = {
+                mode: "multiplayer", // Assuming tournament games are always multiplayer
+                difficulty: "medium", // Default value, adjust as needed
+                design: "retro", // Default value, adjust as needed
+                numberOfGames: setsToWin,
+                setsPerGame: pointsPerSet,
+                player1: player1,
+                player2: player2,
+                control1: "wasd",// Default values, might need adjustment
+                control2:  "arrows",
+                isTournamentMatch: true,
+              };
               localStorage.setItem("matchID", matchID);
-              startGameSetup(player1, player2, setsToWin, pointsPerSet);
+              startGameSetup(gameSettings);
 
             } catch (error) {
               console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
@@ -234,8 +256,7 @@ function displayTournamentGameList(data){
             }
           });
         });
-
-
+       
       document.querySelectorAll('.auth-button').forEach(button => {
         button.addEventListener('click', function() {
           const playerName = this.getAttribute('data-player');
@@ -246,15 +267,15 @@ function displayTournamentGameList(data){
 
       // Add standings to app_bottom
       displayTournamentStandings(data);
-    } else {
+          } else {
       tournamentMatchesDiv.innerHTML += "<p>No match found for this tournament.</p>";
-    }
-  })
-  .catch((error) => {
-    console.error("Error retrieving players:", error);
-    tournamentMatchesDiv.innerHTML = `<h2>Selected Tournament: ${tournamentName}</h2><h3>Match List:</h3><p>Error loading player information.</p>`;
-  });
-}
+          }
+        })
+        .catch((error) => {
+          console.error("Error retrieving players:", error);
+          tournamentMatchesDiv.innerHTML = `<h2>Selected Tournament: ${tournamentName}</h2><h3>Match List:</h3><p>Error loading player information.</p>`;
+        });
+  }
 
 
 // function displayTournamentGameList(data){
@@ -447,21 +468,7 @@ export function DisplayTournamentGame() {
     })
 }
 
-// export function createTournamentForm() {
-//
-//  //empty all the containers
-//   document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const appMain = document.getElementById("app_main");
-//   if (!appMain) return;
-//
-//   appMain.innerHTML = getTournamentFormHTML();
-//
-//   initializePlayerManagement();
-//   setupSubmitHandler();
-// }
+
 
 export function createTournamentForm() {
   //empty all the containers
@@ -478,22 +485,6 @@ export function createTournamentForm() {
   setupSubmitHandlers();
 }
 
-
-// function getTournamentFormHTML() {
-//   return `
-//     <form id="tournamentForm">
-//       <input type="text" id="tournamentName" placeholder="Tournament Name" required>
-//       <div id="playerContainer"></div>
-//       <button type="button" id="addPlayerButton">Add a Player</button>
-//       <br><br>
-//       <label for="numberOfGames">Number of Games:</label>
-//       <input type="number" id="numberOfGames" value="1" min="1"><br><br>
-//       <label for="pointsToWin">Points to Win:</label>
-//       <input type="number" id="pointsToWin" value="3" min="1"><br><br>
-//       <button type="button" id="submitButton">Submit</button>
-//     </form>
-//   `;
-// }
 
 
 function getTournamentFormHTML() {
@@ -692,7 +683,7 @@ async function initializePlayerManagement() {
 // }
 
 
-async function checkUserExists(username) {
+export async function checkUserExists(username) {
   const response = await fetch(`/api/user/exists/?username=${encodeURIComponent(username)}`, {
     method: 'GET',
     credentials: 'include'
@@ -700,7 +691,7 @@ async function checkUserExists(username) {
   return await response.json();
 }
 
-async function checkPlayerExists(playerName) {
+export async function checkPlayerExists(playerName) {
   const response = await fetch(`/api/player/exists/?player_name=${encodeURIComponent(playerName)}`, {
     method: 'GET',
     credentials: 'include'

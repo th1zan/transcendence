@@ -59,12 +59,18 @@ class PongSetSerializer(serializers.ModelSerializer):
         model = PongSet
         fields = "__all__"
 
+    def create(self, validated_data):
+        # Retirer l'index si présent
+        validated_data.pop("index", None)
+        return PongSet.objects.create(**validated_data)
+
 
 class PongMatchSerializer(serializers.ModelSerializer):
     player1_name = serializers.SerializerMethodField()
     player2_name = serializers.SerializerMethodField()
     winner_name = serializers.SerializerMethodField()
-    sets = PongSetSerializer(many=True, read_only=True)
+    # sets = PongSetSerializer(many=True, read_only=False)
+    sets = PongSetSerializer(many=True, read_only=False, required=False)
 
     class Meta:
         model = PongMatch
@@ -89,6 +95,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "user1": {"allow_null": True},
             "user2": {"allow_null": True},
+            "winner": {"allow_null": True},
         }
 
     winner = serializers.SlugRelatedField(

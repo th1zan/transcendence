@@ -14,9 +14,9 @@ export function displayMenu() {
   */
 
   //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
+  document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
+  document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
+  document.getElementById('app_bottom').className = 'semi-transparent-bg p-3 text-dark';
 
 
 

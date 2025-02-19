@@ -90,55 +90,38 @@ class PongMatchDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class PongScoreView(APIView):
     permission_classes = [IsAuthenticated]
-    # Optimized get method (but less understandable):
-    # def get(self, request, pk):
-    #     try:
-    #         # Utiliser prefetch_related pour charger les sets associés
-    #         match = (
-    #             PongMatch.objects.select_related("winner", "player1", "player2")
-    #             .prefetch_related(Prefetch("sets", queryset=PongSet.objects.all()))
-    #             .get(pk=pk)
-    #         )
-    #
-    #         serializer = PongMatchSerializer(match)
-    #         return Response(serializer.data)
-    #     except PongMatch.DoesNotExist:
-    #         return Response(
-    #             {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
-    #         )
 
     def get(self, request, pk):
         try:
-            # Charger le match
             match = PongMatch.objects.get(pk=pk)
 
-            # Charger les relations une par une
-            winner = match.winner  # Nouvelle requête pour le gagnant
-            player1 = match.player1  # Nouvelle requête pour player1
-            player2 = match.player2  # Nouvelle requête pour player2
-            sets = match.sets.all()  # Nouvelle requête pour les sets
+            winner = match.winner
+            player1 = match.player1
+            player2 = match.player2
+            sets = match.sets.all()
 
-            # Sérialiser le match
             match_serializer = PongMatchSerializer(match)
-
-            # Sérialiser les sets séparément
             sets_serializer = PongSetSerializer(sets, many=True)
 
-            # Combiner les données du match et des sets dans une seule réponse
             response_data = match_serializer.data
             response_data["sets"] = [set_data for set_data in sets_serializer.data]
 
             return Response(response_data)
+
         except PongMatch.DoesNotExist:
+
             return Response(
                 {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
     def post(self, request):
         match_data = request.data
+        logger.debug("Received match data: %s", match_data)
         sets_data = match_data.pop("sets", [])
+        logger.debug("Extracted sets data: %s", sets_data)
+        mode = match_data.get("mode", "solo")
+        print(f"Mode: {mode}")
 
-        # Récupérer l'utilisateur connecté pour user1
         user1 = request.user
         player1_name = match_data["player1"]
         player1, created = Player.objects.get_or_create(
@@ -146,28 +129,25 @@ class PongScoreView(APIView):
             defaults={"user": user1 if user1.username == player1_name else None},
         )
 
-        # Gérer player2 comme un joueur invité ou connecté
         player2_name = match_data["player2"]
-        player2, created = Player.objects.get_or_create(
-            player=player2_name,
-            defaults={
-                "user": (
-                    CustomUser.objects.filter(username=player2_name).first()
-                    if player2_name != player1_name
-                    and CustomUser.objects.filter(username=player2_name).exists()
-                    else None
-                )
-            },
-        )
+        player2, created = Player.objects.get_or_create(player=player2_name)
 
-        # Remplacer les noms par des identifiants dans match_data
-        match_data["user1"] = user1.id if user1.username == player1_name else None
-        match_data["user2"] = (
-            CustomUser.objects.filter(username=player2_name).first().id
-            if player2_name != player1_name
-            and CustomUser.objects.filter(username=player2_name).exists()
-            else None  # Si l'utilisateur n'existe pas, user2 sera None
-        )
+        print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
+        # Vérification de l'authentification de player2 si le contexte est multiplayer
+        if mode != "solo" and player2.user:
+            print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
+            if not player2.authenticated:
+                return Response(
+                    {"error": "Player2 must be authenticated for multiplayer matches."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            match_data["user2"] = player2.user.id
+        else:
+            match_data["user2"] = None
+            if mode != "solo":
+                match_data["player2_sets_won"] = 0
+                match_data["player1_sets_won"] = 0
+
         match_data["player1"] = player1.id
         match_data["player2"] = player2.id
 
@@ -185,16 +165,25 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
-            # Définir le gagnant
             if match_data.get("winner"):
                 try:
                     winner_player = Player.objects.get(player=match_data["winner"])
                     match.winner = winner_player
-                    match.save()
                 except Player.DoesNotExist:
-                    return Response(
-                        {"error": "Player not found."}, status=status.HTTP_404_NOT_FOUND
-                    )
+                    match.winner = None
+            else:
+                match.winner = None
+
+            match.save()
+
+            # Reset authenticated status for player2 if it's a multiplayer match
+            if mode != "solo" and player2.user:
+                print(
+                    f"Player2: {player2.user}, Status before: {player2.authenticated}"
+                )
+                player2.authenticated = False
+                player2.save()
+                print(f"Player2: {player2.user}, Status after: {player2.authenticated}")
 
             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -211,36 +200,29 @@ class PongScoreView(APIView):
         match_data = request.data
         sets_data = match_data.pop("sets", [])
 
-        # Récupérer l'utilisateur connecté pour user1
         user1 = request.user
 
-        # Vérifier si player1 existe, sinon le créer
         player1_name = match_data["player1"]
         player1, created = Player.objects.get_or_create(
             player=player1_name,
             defaults={"user": user1 if user1.username == player1_name else None},
         )
 
-        # Gérer player2 comme un joueur invité ou connecté
         player2_name = match_data["player2"]
         player2, created = Player.objects.get_or_create(player=player2_name)
 
-        # Remplacer les noms par des identifiants dans match_data
-        match_data["user1"] = user1.id if user1.username == player1_name else None
-        match_data["user2"] = (
-            CustomUser.objects.filter(username=player2_name).first().id
-            if player2_name != player1_name
-            and CustomUser.objects.filter(username=player2_name).exists()
-            else None
-        )
+        if player2.user and player2.authenticated:
+            match_data["user2"] = player2.user.id
+        else:
+            match_data["user2"] = None
+
         match_data["player1"] = player1.id
-        match_data["player2"] = player2.id  # Mettre à jour les champs du match
+        match_data["player2"] = player2.id
 
         match_serializer = PongMatchSerializer(match, data=match_data, partial=True)
         if match_serializer.is_valid():
             match = match_serializer.save()
 
-            # Mettre à jour les sets associés
             for set_data in sets_data:
                 set_id = set_data.get("id")
                 if set_id:
@@ -255,7 +237,6 @@ class PongScoreView(APIView):
                             status=status.HTTP_404_NOT_FOUND,
                         )
                 else:
-                    # Créer un nouveau set si l'ID n'est pas fourni
                     set_data["match"] = match.id
                     set_serializer = PongSetSerializer(data=set_data)
 
@@ -266,16 +247,18 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
-            # Définir le gagnant pour la mise à jour
-            if match_data.get("winner"):
-                try:
-                    winner_player = Player.objects.get(player=match_data["winner"])
-                    match.winner = winner_player
-                    match.save()
-                except Player.DoesNotExist:
-                    return Response(
-                        {"error": "Player not found."}, status=status.HTTP_404_NOT_FOUND
+                if match_data.get("winner"):
+                    try:
+                        winner_player = Player.objects.get(player=match_data["winner"])
+                        match.winner = winner_player
+                    except Player.DoesNotExist:
+                        match.winner = None  # Si le joueur n'est pas trouvé, on met le gagnant à None
+                else:
+                    match.winner = (
+                        None  # Si aucun gagnant n'est spécifié, on met aussi à None
                     )
+
+                match.save()
 
             return Response(match_serializer.data, status=status.HTTP_200_OK)
         else:
@@ -309,6 +292,91 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 samesite="Lax",
             )
         return response
+
+
+class AuthenticateMatchPlayerView(APIView):
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        player_name = request.data.get("player_name")
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            try:
+                player = Player.objects.get(player=player_name)
+                if player.user != user:
+                    return Response(
+                        {"error": "Player name does not match authenticated user."},
+                        status=status.HTTP_401_UNAUTHORIZED,
+                    )
+
+                # Mise à jour de l'état d'authentification du joueur
+                player.authenticated = True
+                player.save()
+
+                return Response(
+                    {
+                        "message": "Player authenticated successfully for match",
+                        "success": True,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except Player.DoesNotExist:
+                return Response(
+                    {"error": "Player does not exist"}, status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            return Response(
+                {"error": "Invalid credentials", "success": False},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+
+class AuthenticateTournamentPlayerView(APIView):
+    def post(self, request, tournament_id):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        player_name = request.data.get("player_name")
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            try:
+                player = Player.objects.get(player=player_name)
+                if player.user != user:
+                    return Response(
+                        {"error": "Player name does not match authenticated user."},
+                        status=status.HTTP_401_UNAUTHORIZED,
+                    )
+
+                # Si vous avez besoin de vérifier si le joueur est dans le tournoi
+                try:
+                    tournament_player = TournamentPlayer.objects.get(
+                        player=player, tournament_id=tournament_id
+                    )
+                    tournament_player.authenticated = True
+                    tournament_player.save()
+                except TournamentPlayer.DoesNotExist:
+                    return Response(
+                        {"error": "Player not in this tournament"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+
+                player.authenticated = True
+                player.save()
+
+                return Response(
+                    {"message": "Player authenticated successfully", "success": True},
+                    status=status.HTTP_200_OK,
+                )
+            except Player.DoesNotExist:
+                return Response(
+                    {"error": "Player does not exist"}, status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            return Response(
+                {"error": "Invalid credentials", "success": False},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class CustomTokenRefreshView(TokenRefreshView):
@@ -525,12 +593,19 @@ class UserDetailView(APIView):
         """Updates the current user's details."""
         user = request.user
         data = request.data
-    
+
         # Check if email already exists (excluding the current user's email)
         if "email" in data:
-            existing_user = CustomUser.objects.filter(email=data["email"]).exclude(id=user.id).first()
+            existing_user = (
+                CustomUser.objects.filter(email=data["email"])
+                .exclude(id=user.id)
+                .first()
+            )
             if existing_user:
-                return Response({"error": "This email is already in use."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "This email is already in use."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         # Update fields
         if "username" in data:
@@ -734,7 +809,7 @@ class SendFriendRequestView(APIView):
         Notification.objects.create(
             user=receiver,
             message=f"{request.user.username} sent you a friend request.",
-            notification_type="friend_request", # this should match websocket event type
+            notification_type="friend_request",  # this should match websocket event type
         )
 
         # Push the notification over WebSockets
@@ -794,7 +869,7 @@ class RespondToFriendRequestView(APIView):
         else:
             friend_request.status = "declined"
             message = f"You have declined {sender_username}'s friend request."
-            
+
             # Create a notification for the sender to inform them that their request was declined
             Notification.objects.create(
                 user=friend_request.sender,
@@ -1110,7 +1185,7 @@ class UserTournamentsView(APIView):
 
 class RankingView(APIView):
     def get(self, request):
-        # Calculer le nombre de victoires poCookieJWTAuthenticationur chaque joueur
+        # Calculer le nombre de victoires pour chaque joueur
         players = Player.objects.all()
         ranking_data = []
 
@@ -1246,38 +1321,4 @@ class TournamentPlayersView(APIView):
         except Exception as e:
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-class AuthenticatePlayerView(APIView):
-    def post(self, request, tournament_id):
-        username = request.data.get("username")
-        password = request.data.get("password")
-        player_name = request.data.get("player_name")
-
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            try:
-                player = Player.objects.get(player=player_name)
-                tournament_player = TournamentPlayer.objects.get(
-                    player=player, tournament_id=tournament_id
-                )
-                tournament_player.authenticated = True
-                tournament_player.save()
-                return Response(
-                    {"message": "Player authenticated successfully"},
-                    status=status.HTTP_200_OK,
-                )
-            except Player.DoesNotExist:
-                return Response(
-                    {"error": "Player does not exist"}, status=status.HTTP_404_NOT_FOUND
-                )
-            except TournamentPlayer.DoesNotExist:
-                return Response(
-                    {"error": "Player not in this tournament"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-        else:
-            return Response(
-                {"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
             )
