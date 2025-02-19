@@ -98,8 +98,15 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "winner": {"allow_null": True},
         }
 
+    # winner = serializers.SlugRelatedField(
+    #     read_only=False, slug_field="player", queryset=Player.objects.all()
+    # )
+
     winner = serializers.SlugRelatedField(
-        read_only=False, slug_field="player", queryset=Player.objects.all()
+        read_only=False,
+        slug_field="player",
+        queryset=Player.objects.all(),
+        allow_null=True,  # Ajoutez cette ligne
     )
 
     def get_player1_name(self, obj):

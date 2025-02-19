@@ -138,7 +138,9 @@ class PongScoreView(APIView):
             print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
             if not player2.authenticated:
                 return Response(
-                    {"error": "Player2 must be authenticated for multiplayer matches."},
+                    {
+                        "error": "Player2 must be authenticated i(or guest) for multiplayer matches."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
             match_data["user2"] = player2.user.id
@@ -247,18 +249,22 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
-                if match_data.get("winner"):
-                    try:
-                        winner_player = Player.objects.get(player=match_data["winner"])
-                        match.winner = winner_player
-                    except Player.DoesNotExist:
-                        match.winner = None  # Si le joueur n'est pas trouvé, on met le gagnant à None
-                else:
+            if match_data.get("winner"):
+                try:
+                    winner_player = Player.objects.get(player=match_data["winner"])
+                    print(f"1. winner is:  {winner_player}")
+                    match.winner = winner_player
+                except Player.DoesNotExist:
                     match.winner = (
-                        None  # Si aucun gagnant n'est spécifié, on met aussi à None
+                        None  # Si le joueur n'est pas trouvé, on met le gagnant à None
                     )
+            else:
+                print(f"2. no winner.")
+                match.winner = (
+                    None  # Si aucun gagnant n'est spécifié, on met aussi à None
+                )
 
-                match.save()
+            match.save()
 
             return Response(match_serializer.data, status=status.HTTP_200_OK)
         else:
