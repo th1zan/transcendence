@@ -5,7 +5,6 @@ import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
 import jwt
-from api.authentication import CookieJWTAuthentication
 from asgiref.sync import async_to_sync  # for notifications over WebSockets
 from channels.layers import get_channel_layer
 from django.conf import settings
@@ -35,6 +34,8 @@ from rest_framework_simplejwt.token_blacklist.models import (
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from api.authentication import CookieJWTAuthentication
 
 from .models import (
     CustomUser,
@@ -1387,6 +1388,64 @@ class TournamentPlayersView(APIView):
         except TournamentPlayer.DoesNotExist:
             return Response(
                 {"error": "Tournament or players not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PendingTournamentAuthenticationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        username = request.user.username  # Utilisateur connecté
+        # Récupérer les tournois où l'utilisateur est joueur mais non authentifié
+        pending_auths = TournamentPlayer.objects.filter(
+            player__user__username=username,
+            authenticated=False,
+            tournament__is_finished=False,  # Exclure les tournois terminés
+        ).select_related("tournament")
+
+        # Formater la réponse
+        data = [
+            {
+                "tournament_id": tp.tournament.id,
+                "tournament_name": tp.tournament.tournament_name,
+                "player_name": tp.player.player,
+            }
+            for tp in pending_auths
+        ]
+        return Response({"pending_authentications": data})
+
+
+class ConfirmTournamentParticipationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, tournament_id):
+        player_name = request.data.get("player_name")
+        if not player_name:
+            return Response(
+                {"error": "Player name is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            tournament_player = TournamentPlayer.objects.get(
+                tournament_id=tournament_id,
+                player__user__username=request.user.username,
+                player__player=player_name,
+                authenticated=False,
+            )
+            tournament_player.authenticated = True
+            tournament_player.save()
+            return Response(
+                {"message": "Player authenticated successfully", "success": True},
+                status=status.HTTP_200_OK,
+            )
+        except TournamentPlayer.DoesNotExist:
+            return Response(
+                {"error": "Player not found or already authenticated"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:

@@ -3,31 +3,27 @@
 
 /* On utilise les # pour sélectionner des ID plutot que des . pour sélectionner des class  */
 
+/* styles.css */
 
-/* html, body { */
-/*     display: flex; */
-/*     flex-direction: column; */
-/*     height: 100%; */
+
+
+/* .btn { */
+/*   font-family: 'Press Start 2P', cursive; */
+/*   font-size: 12px; /* Gardez votre taille si vous voulez */ */
+/*   -webkit-font-smoothing: none; /* Désactive le lissage sur Webkit (Chrome, Safari) */ */
+/*   -moz-osx-font-smoothing: none; /* Désactive le lissage sur Firefox macOS */ */
+/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois efficace */ */
 /* } */
+/**/
 
-/* #app { */
-/*     display: flex; */
-/*     flex-grow: 1; */
-/*     flex-direction: column; */
+/* html { */
+/*   font-family: 'Press Start 2P', cursive; */
+/*   font-size: 16px; /* Taille de base recommandée pour lisibilité */ 
 /* } */
-
-/* Styles pour les divs semi-transparentes et texte noir */
-/* #app_top, #app_main, #app_bottom { */
-/*     background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */ */
-/*     color: black; /* Black text color */ */
-/* } */
-
-/* .custom-container { */
-   /* background-color: rgb(255, 255, 255); */
-   /* padding: 20px; Internal spacing */
-   /* border-radius: 10px; Rounded corners */
-/* } */
-
-/* .custom-title { */
-/*     color: rgb(0, 0, 0); */
+/**/
+/* /* Désactiver le lissage pour un rendu net */ 
+/* body { */
+/*   -webkit-font-smoothing: none; /* Chrome, Safari */ 
+/*   -moz-osx-font-smoothing: none; /* Firefox macOS */ 
+/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois utile */ 
 /* } */

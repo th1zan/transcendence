@@ -156,10 +156,10 @@ function handleRouteChange(route) {
           updateUI(displayStats);
           break;
         case 'userStats':
-          updateUI(displayUserResults);
+          updateUI(fetchResultats);
           break;
         case 'ranking':
-          updateUI(displayRanking);
+          updateUI(fetchRanking);
           break;
         case 'friends':
           updateUI(displayFriends);
@@ -250,7 +250,7 @@ export function showCustomModal(title, message, continueCallback) {
 export function displayWelcomePage() {
   const username = localStorage.getItem("username");
 
-  const appDiv = document.getElementById('app');
+  // const appDiv = document.getElementById('app');
   // Les styles commentés sont préservés mais non appliqués ici pour clarté
   // appDiv.style.backgroundImage = "url('/static/pong.jpg')";
   // appDiv.style.backgroundRepeat = "no-repeat";
@@ -278,28 +278,104 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  // appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)';
   appMain.innerHTML = `
     <div class="container py-4">
       <h3 class="text-center mb-4">Welcome Page</h3>
       <div class="row justify-content-center">
         <div class="col-md-6">
           <h4 class="mb-3">Pending Friend Requests</h4>
-          <ul class="list-group" id="pendingFriendRequests"></ul>
+          <ul class="list-group mb-4" id="pendingFriendRequests"></ul>
+          <h4 class="mb-3">Pending Tournament Authentications</h4>
+          <ul class="list-group" id="pendingTournamentAuthentications"></ul>
         </div>
       </div>
     </div>
   `;
 
   const appBottom = document.getElementById("app_bottom");
-  // appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)';
   appBottom.innerHTML = `
     Footer de la page
   `;
 
-  // Charger les requêtes d’amis en attente
+  // Charger les requêtes d’amis et les tournois non authentifiés
   fetchPendingFriendRequests();
+  fetchPendingTournamentAuthentications();
 }
+
+function fetchPendingTournamentAuthentications() {
+  fetch("/api/user/pending-tournament-authentications/", {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    const authList = document.getElementById("pendingTournamentAuthentications");
+    authList.innerHTML = "";
+
+    if (data.pending_authentications && data.pending_authentications.length > 0) {
+      data.pending_authentications.forEach(tournament => {
+        const listItem = document.createElement("li");
+        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+        listItem.innerHTML = `
+          <span>${tournament.tournament_name} (as ${tournament.player_name})</span>
+          <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">Confirm Participation</button>
+        `;
+        authList.appendChild(listItem);
+      });
+
+      // Ajouter des événements pour les boutons "Confirm Participation"
+      document.querySelectorAll(".confirm-auth").forEach(button => {
+        button.addEventListener("click", event => {
+          const tournamentId = event.target.getAttribute("data-tournament-id");
+          const playerName = event.target.getAttribute("data-player-name");
+          confirmTournamentParticipation(tournamentId, playerName);
+        });
+      });
+    } else {
+      authList.innerHTML = `<li class="list-group-item text-center">No pending tournament authentications.</li>`;
+    }
+  })
+  .catch(error => {
+    console.error("Error fetching pending tournament authentications:", error);
+    const authList = document.getElementById("pendingTournamentAuthentications");
+    authList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading tournament authentications.</li>`;
+  });
+}
+
+function confirmTournamentParticipation(tournamentId, playerName) {
+  fetch(`/api/auth/confirm-participation/${tournamentId}/`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      player_name: playerName // Pas besoin de username, car request.user le gère
+    }),
+  })
+  .then(response => {
+    if (!response.ok) throw new Error("Authentication failed: " + response.status);
+    return response.json();
+  })
+  .then(data => {
+    if (data.message === "Player authenticated successfully") {
+      console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
+      showModal('genericModal', 'Success', 'Participation confirmed successfully!', 'OK', () => {
+        fetchPendingTournamentAuthentications(); // Rafraîchir la liste
+      });
+    } else {
+      throw new Error("Unexpected response");
+    }
+  })
+  .catch(error => {
+    console.error("Error confirming participation:", error);
+    showModal('genericModal', 'Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
+  });
+}
+
 
 // Nouvelle fonction pour les requêtes d’amis dans #app_main
 export function fetchPendingFriendRequests() {
