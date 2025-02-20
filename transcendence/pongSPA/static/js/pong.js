@@ -285,12 +285,32 @@ function updateResults() {
   if (resultDiv) {
     resultDiv.style.display = "block";
     let summary = `
-      <h3>Set History:</h3>
+      <h3 class="mb-3">Set History:</h3>
+      <table class="table table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col">Set n°</th>
+            <th scope="col">${player1}</th>
+            <th scope="col">${player2}</th>
+          </tr>
+        </thead>
+        <tbody>
     `;
 
     setHistory.forEach((set, index) => {
-      summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
+      summary += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${set.player1_score}</td>
+          <td>${set.player2_score}</td>
+        </tr>
+      `;
     });
+
+    summary += `
+        </tbody>
+      </table>
+    `;
 
     document.getElementById("summary").innerHTML = summary;
   }
@@ -345,25 +365,57 @@ function displayResults(matchID) {
     let buttonText = isTournamentMatch === true ? 'Back to Tournament' : 'New Game';
     console.log("displayResults::.then buttonText: ", buttonText);
 
-    let summary = `
-      <button id="backButton" class="btn btn-primary">${buttonText}</button>
-      <br><br>
-      <strong>${data.player1_name} vs ${data.player2_name}</strong><br>
-      <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Number of sets)<br>
-      <strong>Winner: ${data.winner_name}</strong><br>
-      <h3>Set Details:</h3>
-    `;
+  let summary = `
+        <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
+        <h3 class="mt-3">Game Summary:</h3>
+        <table class="table table-sm">
+          <tbody>
+            <tr>
+              <td><strong>Game</strong></td>
+              <td>${data.player1_name} vs ${data.player2_name}</td>
+            </tr>
+            <tr>
+              <td><strong>Score (sets)</strong></td>
+              <td>${data.player1_sets_won} : ${data.player2_sets_won}</td>
+            </tr>
+            <tr>
+              <td><strong>Winner</strong></td>
+              <td>${data.winner_name}</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3 class="mt-3">Set Details:</h3>
+        <table class="table table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col">Set n°</th>
+              <th scope="col">Set's score</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
 
-    if (data.sets && Array.isArray(data.sets)) {
-      data.sets.forEach((set, index) => {
+      if (data.sets && Array.isArray(data.sets)) {
+        data.sets.forEach((set, index) => {
+          summary += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${set.player1_score} - ${set.player2_score}</td>
+            </tr>
+          `;
+        });
+      } else {
         summary += `
-          <strong>Set n°${index + 1}:</strong><br>
-          ${set.player1_score} - ${set.player2_score}<br>
+          <tr>
+            <td colspan="2">No sets recorded.</td>
+          </tr>
         `;
-      });
-    } else {
-      summary += "No sets recorded.";
-    }
+      }
+
+      summary += `
+          </tbody>
+        </table>
+      `;
 
     let summaryDiv = document.getElementById("app_main");
     summaryDiv.innerHTML = summary;

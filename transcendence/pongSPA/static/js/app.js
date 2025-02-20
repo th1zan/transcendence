@@ -187,90 +187,87 @@ function handleRouteChange(route) {
 
 
 // Fonction générique pour afficher une modale
-function showModal(modalId, title, message, actionText, actionCallback) {
-    const modal = new bootstrap.Modal(document.getElementById(modalId), {
-        keyboard: false
+export function showModal(modalId, title, message, actionText, actionCallback) {
+  const modalElement = document.getElementById(modalId);
+  const modal = new bootstrap.Modal(modalElement, {
+    keyboard: false
+  });
+
+  // Mise à jour du titre et du message
+  document.getElementById(`${modalId}Label`).textContent = title;
+  document.getElementById(`${modalId}Body`).textContent = message;
+
+  // Mise à jour du texte du bouton d'action et ajout de l'écouteur d'événement
+  const actionButton = document.getElementById(`${modalId}Action`);
+  if (actionButton) {
+    actionButton.textContent = actionText;
+    actionButton.removeEventListener('click', actionButton.handler); // Supprime l'ancien écouteur
+    actionButton.addEventListener('click', function handler() {
+      actionCallback();
+      modal.hide();
     });
-    
-    // Mise à jour du titre et du message
-    document.getElementById(`${modalId}Label`).textContent = title;
-    document.getElementById(`${modalId}Body`).textContent = message;
-    
-    // Mise à jour du texte du bouton d'action et ajout de l'écouteur d'événement
-    const actionButton = document.getElementById(`${modalId}Action`);
-    if (actionButton) {
-        actionButton.textContent = actionText;
-        actionButton.removeEventListener('click', actionButton.handler); // Supprime l'ancien écouteur s'il existe
-        actionButton.addEventListener('click', function() {
-            actionCallback();
-            modal.hide(); // Ferme la modale après l'action
-        });
-    }
-    
-    // Affiche la modale
-    modal.show();
+    actionButton.handler = actionButton.onclick; // Stocke le nouvel écouteur
+  }
+
+  // Affiche la modale et déplace le focus
+  modal.show();
+  const focusableElement = modalElement.querySelector(`#${modalId}Action`); // Focus sur le bouton "Action"
+  if (focusableElement) {
+    focusableElement.focus(); // Déplace le focus dans la modale
+  }
 }
 
 // Fonction pour afficher une modale avec deux boutons personnalisés
-function showCustomModal(title, message, continueCallback) {
-    const modal = new bootstrap.Modal(document.getElementById('customModal'), {
-        keyboard: false
-    });
-    
-    // Mise à jour du titre et du message
-    document.getElementById('customModalLabel').textContent = title;
-    document.getElementById('customModalBody').textContent = message;
-    
-    // Gestion du bouton Cancel
-    const cancelButton = document.getElementById('cancelButton');
-    cancelButton.onclick = function() {
-        modal.hide(); // Ferme simplement la modale sans action
-    };
-    
-    // Gestion du bouton Continue
-    const continueButton = document.getElementById('continueButton');
-    continueButton.onclick = function() {
-        continueCallback(); // Exécute la fonction de rappel
-        modal.hide(); // Puis ferme la modale
-    };
-    
-    // Affiche la modale
-    modal.show();
+export function showCustomModal(title, message, continueCallback) {
+  const modalElement = document.getElementById('customModal');
+  const modal = new bootstrap.Modal(modalElement, {
+    keyboard: false
+  });
+
+  // Mise à jour du titre et du message
+  document.getElementById('customModalLabel').textContent = title;
+  document.getElementById('customModalBody').textContent = message;
+
+  // Gestion du bouton Cancel
+  const cancelButton = document.getElementById('cancelButton');
+  cancelButton.onclick = function() {
+    modal.hide();
+  };
+
+  // Gestion du bouton Continue
+  const continueButton = document.getElementById('continueButton');
+  continueButton.onclick = function() {
+    continueCallback();
+    modal.hide();
+  };
+
+  // Affiche la modale et déplace le focus
+  modal.show();
+  continueButton.focus(); // Focus sur le bouton "Continue"
 }
 
 
 export function displayWelcomePage() {
-
   const username = localStorage.getItem("username");
 
   const appDiv = document.getElementById('app');
-  // Object.assign(appDiv, {
-    // style: {
-      // width: '200px'
-        // backgroundColor: '#343a40'
-    // },
-    // role: 'tablist',
-    // 'aria-orientation': 'vertical',
-    // id: 'v-pills-tab'
-  // });
-  // Set the background image for 'app'
+  // Les styles commentés sont préservés mais non appliqués ici pour clarté
   // appDiv.style.backgroundImage = "url('/static/pong.jpg')";
   // appDiv.style.backgroundRepeat = "no-repeat";
   // appDiv.style.backgroundAttachment = "fixed";
   // appDiv.style.backgroundSize = "100% 100%";
 
-  //empty all the containers
+  // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById('app_top');
-  // appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)'; // Bleu semi-transparent (anciennement bg-primary)
+  // appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)';
   appTop.innerHTML = `
-    <!-- <div class="d-flex justify-content-between align-items-center w-100"> -->
     <div>
       <div>
-        <h2>Bonjour ${username}</h2>
+        <h2>Hello ${username}</h2>
       </div>
       <div class="align-self-end">
         <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px; height:60%; background-color: red;">
@@ -281,16 +278,77 @@ export function displayWelcomePage() {
   `;
 
   const appMain = document.getElementById("app_main");
-  // appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)'; // Vert semi-transparent (anciennement bg-success)
+  // appMain.style.backgroundColor = 'rgba(40, 167, 69, 0.5)';
   appMain.innerHTML = `
-    Contenu de la Welcome page
+    <div class="container py-4">
+      <h3 class="text-center mb-4">Welcome Page</h3>
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <h4 class="mb-3">Pending Friend Requests</h4>
+          <ul class="list-group" id="pendingFriendRequests"></ul>
+        </div>
+      </div>
+    </div>
   `;
 
   const appBottom = document.getElementById("app_bottom");
-  // appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)'; // Jaune semi-transparent (anciennement bg-warning)
+  // appBottom.style.backgroundColor = 'rgba(255, 193, 7, 0.5)';
   appBottom.innerHTML = `
     Footer de la page
   `;
+
+  // Charger les requêtes d’amis en attente
+  fetchPendingFriendRequests();
+}
+
+// Nouvelle fonction pour les requêtes d’amis dans #app_main
+export function fetchPendingFriendRequests() {
+  fetch("/api/friends/requests/", {
+    method: "GET",
+    credentials: "include",
+  })
+    .then(response => response.json())
+    .then(requestsData => {
+      const requestList = document.getElementById("pendingFriendRequests");
+      requestList.innerHTML = "";
+
+      if (requestsData.requests && requestsData.requests.length > 0) {
+        requestsData.requests.forEach(request => {
+          const listItem = document.createElement("li");
+          listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+          listItem.innerHTML = `
+            <span>${request.sender}</span>
+            <div>
+              <button class="btn btn-success btn-sm accept-request me-2" data-username="${request.sender}">Accept</button>
+              <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">Decline</button>
+            </div>
+          `;
+          requestList.appendChild(listItem);
+        });
+
+        // Ajouter les événements pour les boutons "Accept" et "Decline"
+        document.querySelectorAll(".accept-request").forEach(button => {
+          button.addEventListener("click", event => {
+            const friendUsername = event.target.getAttribute("data-username");
+            respondToFriendRequest(friendUsername, "accept");
+          });
+        });
+
+        document.querySelectorAll(".decline-request").forEach(button => {
+          button.addEventListener("click", event => {
+            const friendUsername = event.target.getAttribute("data-username");
+            respondToFriendRequest(friendUsername, "decline");
+          });
+        });
+      } else {
+        requestList.innerHTML = `<li class="list-group-item text-center">No pending friend requests.</li>`;
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching friend requests:", error);
+      const requestList = document.getElementById("pendingFriendRequests");
+      requestList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading friend requests.</li>`;
+    });
 }
 
 export function displayTournament() {
@@ -298,13 +356,23 @@ export function displayTournament() {
       console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
-    <h3>Tournament</h3>
-    <br>
-    <div class="d-flex align-items-center">
-      <button id="newTournamentButton" class="btn btn-success me-2">New Tournament</button>
-      <div id="searchTournament" class="d-flex align-items-center">
-        <button id="tournamentSearchButton" class="btn btn-primary mx-2">Search for Tournament</button>
-        <input type="text" id="tournamentNameInput" placeholder="Tournament Name" class="me-2">
+    <div class="container py-4">
+      <h3 class="display-5 text-center text-dark fw-bold mb-4">Tournament</h3>
+      <div class="d-flex justify-content-center align-items-center gap-4">
+        <button id="newTournamentButton" class="btn btn-primary btn-lg px-4 py-2 rounded-pill shadow">
+          New Tournament
+        </button>
+        <div class="d-flex align-items-center gap-2" id="searchTournament">
+          <input 
+            type="text" 
+            id="tournamentNameInput" 
+            class="form-control form-control-lg rounded-pill" 
+            placeholder="Tournament Name"
+          >
+          <button id="tournamentSearchButton" class="btn btn-secondary btn-sm px-4 py-2 rounded-pill shadow">
+            Search for Tournament
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -521,11 +589,17 @@ export function displayStats() {
 
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
-  <h3>Statistics</h3>
-    <button id="viewResultsButton">Your Results</button>
-    <br>
-    <br>
-    <button id="viewRankingButton">Overall Ranking</button> <!-- Nouveau bouton -->
+    <div class="container mt-4">
+      <h3 class="text-center text-primary mb-4">Statistics</h3>
+      <div class="d-flex justify-content-center gap-3">
+        <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
+          Your Results
+        </button>
+        <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
+          Overall Ranking
+        </button>
+      </div>
+    </div>
   `;
 
   document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
@@ -534,45 +608,66 @@ export function displayStats() {
 
 }
 
-function displayUserResults(data) {
-  //empty all the containers
-  // document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
-
-  const appMain = document.getElementById("app_main");
-  appMain.innerHTML = `
-    <h3>Your Results: </h3>
-    <div id="resultats"></div>
-  `;
-
-  const resultatsDiv = document.getElementById("resultats");
-
-  if (Array.isArray(data) && data.length > 0) {
-    data.forEach((match) => {
-      const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
-      const player1 = match.player1_name || "Unknown Player 1";
-      const player2 = match.player2_name || "Unknown Player 2";
-      const winner = match.winner || "In Progress";
-      const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-      const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
-
-      resultatsDiv.innerHTML += `
-        <p>
-          ${date} - ${player1} vs ${player2}
-          <br>
-          Score: ${score}
-          <br>
-          Winner: ${winner}${tournamentInfo}
-          <br>
-        </p>`;
-    });
-  } else {
-    resultatsDiv.innerHTML += "<p>No results found.</p>";
-  }
-
-
-}
+// function displayUserResults(data) {
+//   // Empty the containers
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   const appMain = document.getElementById("app_main");
+//   appMain.innerHTML = `
+//     <h3 class="mb-3">Your Results:</h3>
+//     <div class="table-responsive">
+//       <table class="table table-striped table-hover">
+//         <thead class="thead-dark">
+//           <tr>
+//             <th scope="col">Date</th>
+//             <th scope="col">Players</th>
+//             <th scope="col">Score (Sets)</th>
+//             <th scope="col">Winner</th>
+//             <th scope="col">Tournament</th>
+//           </tr>
+//         </thead>
+//         <tbody id="resultats"></tbody>
+//       </table>
+//     </div>
+//   `;
+//
+//   const resultatsDiv = document.getElementById("resultats");
+//
+//   if (Array.isArray(data) && data.length > 0) {
+//     // Trier les données par date (antéchronologique)
+//     const sortedData = data.sort((a, b) => {
+//       const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
+//       const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
+//       return dateB - dateA; // Plus récent en premier
+//     });
+//
+//     sortedData.forEach((match) => {
+//       const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+//       const player1 = match.player1_name || "Unknown Player 1";
+//       const player2 = match.player2_name || "Unknown Player 2";
+//       const winner = match.winner || "In Progress";
+//       const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+//       const tournament = match.tournament ? match.tournament_name || "Unknown" : "-";
+//
+//       resultatsDiv.innerHTML += `
+//         <tr>
+//           <td>${date}</td>
+//           <td>${player1} vs ${player2}</td>
+//           <td>${score}</td>
+//           <td>${winner}</td>
+//           <td>${tournament}</td>
+//         </tr>
+//       `;
+//     });
+//   } else {
+//     resultatsDiv.innerHTML = `
+//       <tr>
+//         <td colspan="5" class="text-center">No results found.</td>
+//       </tr>
+//     `;
+//   }
+// }
 
 
 function fetchResultats() {
@@ -587,72 +682,117 @@ function fetchResultats() {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data); // Pour le débogage
-      displayUserResults(data); // Appelle la fonction pour afficher les résultats
-      console.log(data); // Vérifiez ce que vous recevez
+      console.log(data);
+
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3>Your Results:</h3>
-        <div id="results"></div>
+        <h3 class="mb-3">Your Results:</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Players</th>
+                <th scope="col">Score (Sets)</th>
+                <th scope="col">Points</th>
+                <th scope="col">Winner</th>
+                <th scope="col">Tournament</th>
+              </tr>
+            </thead>
+            <tbody id="results"></tbody>
+          </table>
+        </div>
       `;
 
       const resultatsDiv = document.getElementById("results");
+
       if (Array.isArray(data) && data.length > 0) {
-        data.forEach((match) => {
-          const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
+        const sortedData = data.sort((a, b) => {
+          const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
+          const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
+          return dateB - dateA;
+        });
+
+        sortedData.forEach((match) => {
+          const dateObj = match.date_played ? new Date(match.date_played) : null;
+          const dateStr = dateObj ? dateObj.toLocaleDateString() : "Unknown Date";
+          const timeStr = dateObj ? dateObj.toLocaleTimeString() : "Unknown Time";
           const player1 = match.player1_name || "Unknown Player 1";
           const player2 = match.player2_name || "Unknown Player 2";
-          const winner = match.winner || "In Progress";
-          const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-          const tournamentInfo = match.tournament ? ` (Tournament: ${match.tournament_name || 'Unknown'})` : "";
+          const winner = match.winner_name || "In Progress";
+          const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+          const points = `${match.player1_total_points || 0} - ${match.player2_total_points || 0}`;
+          const tournament = match.tournament_name || "-";
+
+          // Détails des sets
+          let setsDetails = "";
+          if (match.sets && Array.isArray(match.sets)) {
+            setsDetails = match.sets
+              .map((set) => `Set ${set.set_number}: ${set.player1_score}-${set.player2_score}`)
+              .join("<br>");
+          }
 
           resultatsDiv.innerHTML += `
-              <p>
-                  ${date}
-                  <br>
-                  ${player1} vs ${player2}
-                  <br>
-                  Score: ${score}
-                  <br>
-                  Winner: ${winner}${tournamentInfo}
-                  <br>
-              </p>`;
+            <tr>
+              <td>
+                ${dateStr}
+                <br>
+                <small class="text-muted">${timeStr}</small>
+              </td>
+              <td>${player1} vs ${player2}</td>
+              <td>
+                ${setScore}
+                ${setsDetails ? `<br><small class="text-muted">${setsDetails}</small>` : ""}
+              </td>
+              <td>${points}</td>
+              <td>${winner}</td>
+              <td>${tournament}</td>
+            </tr>
+          `;
         });
       } else {
-        resultatsDiv.innerHTML += "<p>No results found.</p>";
+        resultatsDiv.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center">No results found.</td>
+          </tr>
+        `;
       }
-
+    })
+    .catch((error) => {
+      console.error("Error fetching results:", error);
+      const appDiv = document.getElementById("app_main");
+      appDiv.innerHTML = `<p class="text-danger">Error loading results.</p>`;
     });
 }
 
 
-function displayRanking(data) {
-  //empty all the containers
-  // document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
-
-  const appMain = document.getElementById("app_main");
-  appMain.innerHTML = `
-    <h3>Player Ranking:</h3>
-    <div id="ranking"></div>
-  `;
-
-  const rankingDiv = document.getElementById("ranking");
-  if (Array.isArray(data) && data.length > 0) {
-    data.forEach((player) => {
-      const playerName = player.name || "Unknown Name";
-      const totalWins = player.total_wins || 0;
-      rankingDiv.innerHTML += `
-          <p>
-              ${playerName} - Total Wins: ${totalWins}
-          </p>`;
-    });
-  } else {
-    rankingDiv.innerHTML += "<p>No ranking found for this user.</p>";
-  }
-
-}
+// function displayRanking(data) {
+//   //empty all the containers
+//   // document.getElementById('app_top').innerHTML = '';
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   const appMain = document.getElementById("app_main");
+//   appMain.innerHTML = `
+//     <h3>Player Ranking:</h3>
+//     <div id="ranking"></div>
+//   `;
+//
+//   const rankingDiv = document.getElementById("ranking");
+//   if (Array.isArray(data) && data.length > 0) {
+//     data.forEach((player) => {
+//       const playerName = player.name || "Unknown Name";
+//       const totalWins = player.total_wins || 0;
+//       rankingDiv.innerHTML += `
+//           <p>
+//               ${playerName} - Total Wins: ${totalWins}
+//           </p>`;
+//     });
+//   } else {
+//     rankingDiv.innerHTML += "<p>No ranking found for this user.</p>";
+//   }
+//
+// }
 
 
 function fetchRanking() {
@@ -666,30 +806,73 @@ function fetchRanking() {
     .then((response) => response.json())
     .then((data) => {
       console.log(data);
-      displayRanking(data);
+
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3>Player Ranking:</h3>
-        <div id="ranking"></div>
+        <h3 class="mb-3">Player Ranking:</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Rank</th>
+                <th scope="col">Player</th>
+                <th scope="col">Wins</th>
+                <th scope="col">Losses</th>
+                <th scope="col">Draws</th>
+                <th scope="col">Sets Won</th>
+                <th scope="col">Sets Lost</th>
+                <th scope="col">Points Scored</th>
+                <th scope="col">Points Conceded</th>
+              </tr>
+            </thead>
+            <tbody id="ranking"></tbody>
+          </table>
+        </div>
       `;
 
       const rankingDiv = document.getElementById("ranking");
+
       if (Array.isArray(data) && data.length > 0) {
-        data.forEach((player) => {
+        // Les données sont déjà triées par le backend
+        data.forEach((player, index) => {
+          const rank = index + 1; // Rang commence à 1
           const playerName = player.name || "Unknown Name";
           const totalWins = player.total_wins || 0;
+          const totalLosses = player.total_losses || 0;
+          const totalDraws = player.total_draws || 0;
+          const setsWon = player.sets_won || 0;
+          const setsLost = player.sets_lost || 0;
+          const pointsScored = player.points_scored || 0;
+          const pointsConceded = player.points_conceded || 0;
+
           rankingDiv.innerHTML += `
-              <p>
-                  ${playerName} - Total Wins: ${totalWins}
-              </p>`;
+            <tr>
+              <td>${rank}</td>
+              <td>${playerName}</td>
+              <td>${totalWins}</td>
+              <td>${totalLosses}</td>
+              <td>${totalDraws}</td>
+              <td>${setsWon}</td>
+              <td>${setsLost}</td>
+              <td>${pointsScored}</td>
+              <td>${pointsConceded}</td>
+            </tr>
+          `;
         });
       } else {
-        rankingDiv.innerHTML += "<p>No ranking found.</p>";
+        rankingDiv.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center">No ranking found.</td>
+          </tr>
+        `;
       }
-
+    })
+    .catch((error) => {
+      console.error("Error fetching ranking:", error);
+      const appDiv = document.getElementById("app_main");
+      appDiv.innerHTML = `<p class="text-danger">Error loading ranking.</p>`;
     });
 }
-
 
 
 // === BEGIN refactored displayGameForm() function ===
