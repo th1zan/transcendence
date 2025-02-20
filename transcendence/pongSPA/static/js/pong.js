@@ -128,50 +128,11 @@ function updateGamePanel() {
         }
       };
       gamePanel.appendChild(quitButton);
-function updateGamePanel() {
-  const gamePanel = document.getElementById("app_bottom");
-  if (gamePanel) {
-    gamePanel.style.display = "block";
- 
-    gamePanel.innerHTML = `
-      <div id="summary"></div>
-   `;
-   
-    // Ajouter le bouton "Quit Game"
-    if (!document.getElementById("quitGameButton")) { // Éviter de créer plusieurs boutons
-      const quitButton = document.createElement("button");
-      quitButton.id = "quitGameButton";
-      quitButton.textContent = "Quit Game";
-      quitButton.classList = "btn btn-danger";
-      quitButton.onclick = function() {
-        stopGameProcess();
-        
-        // Déterminer la fonction à appeler ensuite en fonction du contexte
-        const isTournamentMatch = localStorage.getItem("isTournamentMatch");
-        if (isTournamentMatch === true) {
-          console.log("Quit in Tournament mode");
-          navigateTo('tournament');
-          // DisplayTournamentGame();
-        } else if (isTournamentMatch=== false) {
-          // const username = localStorage.getItem("username");
-          console.log("Quit in Solo mode");
-          // displayMenu(username);
-          // displayWelcomePage();
-          navigateTo('welcome');
-        }
-      };
-      gamePanel.appendChild(quitButton);
     }
   }
 
   console.log("Call to updateGamePanel");
 }
-    }
-  }
-
-  console.log("Call to updateGamePanel");
-}
-
 
 export function startGameSetup(gameSettings) {
 
