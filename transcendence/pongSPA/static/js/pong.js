@@ -1,4 +1,4 @@
-import { displayGameForm, displayWelcomePage } from "./app.js";
+import { displayGameForm, displayWelcomePage, navigateTo } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 import { displayMenu } from "./menu.js";
 
@@ -109,20 +109,63 @@ function updateGamePanel() {
       const quitButton = document.createElement("button");
       quitButton.id = "quitGameButton";
       quitButton.textContent = "Quit Game";
+      quitButton.classList = "btn btn-danger";
+      quitButton.onclick = function() {
+        stopGameProcess();
+        
+      console.log("Back to updateGamePanel: AFTER stopGameProcess");
+        // Déterminer la fonction à appeler ensuite en fonction du contexte
+        if (isTournamentMatch === true) {
+          console.log("Quit in Tournament mode");
+          navigateTo('tournament');
+          // DisplayTournamentGame();
+        } else if (isTournamentMatch=== false) {
+          // const username = localStorage.getItem("username");
+          console.log("Quit in Solo mode");
+          // displayMenu(username);
+          // displayWelcomePage();
+          navigateTo('welcome');
+        }
+      };
+      gamePanel.appendChild(quitButton);
+function updateGamePanel() {
+  const gamePanel = document.getElementById("app_bottom");
+  if (gamePanel) {
+    gamePanel.style.display = "block";
+ 
+    gamePanel.innerHTML = `
+      <div id="summary"></div>
+   `;
+   
+    // Ajouter le bouton "Quit Game"
+    if (!document.getElementById("quitGameButton")) { // Éviter de créer plusieurs boutons
+      const quitButton = document.createElement("button");
+      quitButton.id = "quitGameButton";
+      quitButton.textContent = "Quit Game";
+      quitButton.classList = "btn btn-danger";
       quitButton.onclick = function() {
         stopGameProcess();
         
         // Déterminer la fonction à appeler ensuite en fonction du contexte
         const isTournamentMatch = localStorage.getItem("isTournamentMatch");
         if (isTournamentMatch === true) {
-          DisplayTournamentGame();
+          console.log("Quit in Tournament mode");
+          navigateTo('tournament');
+          // DisplayTournamentGame();
         } else if (isTournamentMatch=== false) {
-          const username = localStorage.getItem("username");
-          displayMenu(username);
-          displayWelcomePage()
+          // const username = localStorage.getItem("username");
+          console.log("Quit in Solo mode");
+          // displayMenu(username);
+          // displayWelcomePage();
+          navigateTo('welcome');
         }
       };
       gamePanel.appendChild(quitButton);
+    }
+  }
+
+  console.log("Call to updateGamePanel");
+}
     }
   }
 
@@ -780,11 +823,13 @@ function stopGameProcess() {
     console.log("WebSocket disconnected.");
   }
 
+    console.log("StopGameProcess: BEFORE cleaning app div");
  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
+    console.log("StopGameProcess: AFTER cleaning app div");
   // Désactiver d'autres écouteurs si nécessaire
   // canvas.removeEventListener('mousemove', handleMouseMove);
 

@@ -540,14 +540,16 @@ function displayTournamentGameList(data) {
 function displayTournamentStandings(data) {
   const appBottom = document.getElementById("app_bottom");
 
-  // Supposons que les données de match contiennent des informations sur les scores cumulés
-  // Ici, nous devons calculer les standings à partir des données des matchs
+  // Calculer les standings à partir des données des matchs
   const standings = calculateStandings(data);
+
+  // Trier les standings par points marqués (Points Scored) en ordre décroissant
+  const sortedStandings = standings.sort((a, b) => b.points_scored - a.points_scored);
 
   let standingsHTML = `
     <div class="card bg-light mb-4">
       <div class="card-header text-center">
-        <h3 class="display-6 mb-0">Standings</h3>
+        <h3 class="display-6 mb-0 text-primary">Standings</h3>
       </div>
       <div class="card-body p-0">
         <table class="table table-striped table-hover mb-0">
@@ -562,13 +564,17 @@ function displayTournamentStandings(data) {
           <tbody>
   `;
 
-  standings.forEach(player => {
+  sortedStandings.forEach((player, index) => {
+    // Appliquer une classe spéciale pour la première ligne (leader)
+    const isFirst = index === 0;
+    const rowClass = isFirst ? 'table-success' : ''; // Couleur verte pour le leader
+
     standingsHTML += `
-      <tr>
-        <td class="text-center">${player.name}</td>
-        <td class="text-center">${player.wins}</td>
-        <td class="text-center">${player.points_scored}</td>
-        <td class="text-center">${player.points_conceded}</td>
+      <tr class="${rowClass}">
+        <td class="text-center align-middle">${player.name}</td>
+        <td class="text-center align-middle">${player.wins}</td>
+        <td class="text-center align-middle">${player.points_scored}</td>
+        <td class="text-center align-middle">${player.points_conceded}</td>
       </tr>
     `;
   });
@@ -584,8 +590,8 @@ function displayTournamentStandings(data) {
 }
 
 function calculateStandings(matches) {
-  // Cette fonction doit être implémentée selon votre logique de calcul des standings
-  // Voici un exemple très simplifié où chaque joueur commence avec 0 victoires, points marqués et encaissés
+  // Calcule les standings à partir des données des matchs
+  // Chaque joueur commence avec 0 victoires, points marqués et points encaissés
   let standings = {};
 
   matches.forEach(match => {
@@ -611,8 +617,8 @@ function calculateStandings(matches) {
     }
   });
 
-  // Convertir l'objet standings en tableau et trier par nombre de victoires
-  return Object.values(standings).sort((a, b) => b.wins - a.wins);
+  // Convertir l'objet standings en tableau
+  return Object.values(standings);
 }
 
 export function DisplayTournamentGame() {
@@ -1231,17 +1237,16 @@ export function displayUserTournaments() {
   const username = localStorage.getItem("username");
 
   if (!username) {
-    alert("Please log in to view your tournaments.");
+    // Remplacer l'alert par une modale Bootstrap
+    showModal('genericModal', 'Login Required', 'Please log in to view your tournaments.', 'OK', function() {});
     return;
   }
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <br>
-    <br>
-    <button id="toggleAllTournaments" class="btn btn-secondary" >Show all tournaments</button>
-    <br>
-    <br>
+    <div class="text-center mb-4">
+      <button id="toggleAllTournaments" class="btn btn-secondary btn-sm shadow-sm rounded-pill">Show all tournaments</button>
+    </div>
     <div id="userTournamentList"></div>
   `;
 
@@ -1254,7 +1259,28 @@ export function displayUserTournaments() {
     .then((response) => response.json())
     .then((data) => {
       const userTournamentListDiv = document.getElementById("userTournamentList");
-      userTournamentListDiv.innerHTML = "<h3>Your Tournaments:</h3>";
+      userTournamentListDiv.innerHTML = `
+        <div class="card bg-light mb-4">
+          <div class="card-header text-center">
+            <h2 class="display-6 mb-0 text-primary">Your Tournaments</h2>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover table-responsive-sm">
+              <thead class="bg-primary text-white">
+                <tr>
+                  <th scope="col" class="text-center">Tournament Name</th>
+                  <th scope="col" class="text-center">Status</th>
+                  <th scope="col" class="text-center">ID</th>
+                  <th scope="col" class="text-center">Date</th>
+                  <th scope="col" class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tournamentsBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
 
       // Ensure data is an array before manipulating it
       const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
@@ -1263,15 +1289,26 @@ export function displayUserTournaments() {
         // Reverse tournaments if it's an array
         const reversedTournaments = Array.isArray(tournaments) ? [...tournaments].reverse() : tournaments;
 
+        const tournamentsBody = document.getElementById("tournamentsBody");
         reversedTournaments.forEach((tournament) => {
-          const tournamentDiv = document.createElement('div');
           const emoji = tournament.is_finished ? '✅' : '🏓';
-          tournamentDiv.innerHTML = `
-            <p class="${tournament.is_finished ? 'finished' : 'ongoing'}">
-              Name: ${tournament.tournament_name} ${emoji}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
-              <button class="btn btn-primary selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
-            </p>`;
-          userTournamentListDiv.appendChild(tournamentDiv);
+          const statusBadge = tournament.is_finished ? 
+            '<span class="badge bg-success">Finished</span>' : 
+            '<span class="badge bg-info text-dark">Ongoing</span>';
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="text-center align-middle">${tournament.tournament_name} ${emoji}</td>
+            <td class="text-center align-middle">${statusBadge}</td>
+            <td class="text-center align-middle">${tournament.id}</td>
+            <td class="text-center align-middle">${new Date(tournament.date).toLocaleDateString()}</td>
+            <td class="text-center align-middle">
+              <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}">
+                <i class="bi bi-play-fill"></i> Select
+              </button>
+            </td>
+          `;
+          tournamentsBody.appendChild(row);
         });
 
         // Filter for ongoing tournaments by default
@@ -1279,15 +1316,21 @@ export function displayUserTournaments() {
 
         document.getElementById("toggleAllTournaments").addEventListener('click', () => {
           const button = document.getElementById("toggleAllTournaments");
-          if (button.textContent === "Show all tournaments") {
+          const tournamentsBody = document.getElementById("tournamentsBody");
+          if (button.textContent.includes("Show all tournaments")) {
             filterTournaments('all');
             button.textContent = "Show only ongoing tournaments";
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-info');
           } else {
             filterTournaments('ongoing');
             button.textContent = "Show all tournaments";
+            button.classList.remove('btn-info');
+            button.classList.add('btn-secondary');
           }
         });
 
+        // Relier le bouton "Select" pour naviguer vers la page du tournoi
         document.querySelectorAll('.selectTournamentButton').forEach(button => {
           button.addEventListener('click', event => {
             const tournamentId = event.target.getAttribute('data-id');
@@ -1296,25 +1339,35 @@ export function displayUserTournaments() {
           });
         });
       } else {
-        userTournamentListDiv.innerHTML += "<p>You are not participating in any tournament.</p>";
+        userTournamentListDiv.innerHTML += `
+          <div class="alert alert-warning text-center" role="alert">
+            You are not participating in any tournament.
+          </div>
+        `;
       }
     })
     .catch((error) => {
       console.error("Error retrieving user's tournaments:", error);
+      userTournamentListDiv.innerHTML = `
+        <div class="alert alert-danger text-center" role="alert">
+          Error loading tournament information.
+        </div>
+      `;
     });
 
   function filterTournaments(filter) {
-    const allTournaments = document.querySelectorAll('#userTournamentList p');
-    allTournaments.forEach(tournament => {
-      if (filter === 'ongoing') {
-        tournament.style.display = tournament.classList.contains('ongoing') ? 'block' : 'none';
-      } else if (filter === 'all') {
-        tournament.style.display = 'block';
+    const rows = document.querySelectorAll('#tournamentsBody tr');
+    rows.forEach(row => {
+      const statusBadge = row.querySelector('.badge');
+      if (filter === 'all' || 
+          (filter === 'ongoing' && statusBadge.classList.contains('bg-info')) || 
+          (filter === 'finished' && statusBadge.classList.contains('bg-success'))) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
       }
     });
   }
+
+ 
 }
-
-
-
-
