@@ -247,46 +247,140 @@ export function showCustomModal(title, message, continueCallback) {
 }
 
 
+function displayQuickStats(data, playerName) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return '<p class="text-muted">No data available.</p>';
+  }
+
+  const playedMatches = data.filter(match => match.is_played === true);
+  if (playedMatches.length === 0) {
+    return '<p class="text-muted">No played matches available.</p>';
+  }
+
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  const normalizedPlayerName = (playerName || "You").toLowerCase();
+
+  // Trier les matchs par date (du plus récent au plus ancien)
+  const sortedMatches = playedMatches.sort((a, b) => new Date(b.date_played) - new Date(a.date_played));
+
+  // Calcul des stats
+  playedMatches.forEach((match) => {
+    const isPlayer1 = match.player1_name.toLowerCase() === normalizedPlayerName;
+    const isPlayer2 = match.player2_name.toLowerCase() === normalizedPlayerName;
+    const winnerName = (match.winner_name || "").toLowerCase();
+
+    if (!isPlayer1 && !isPlayer2) return;
+
+    if (winnerName === normalizedPlayerName) {
+      wins++;
+    } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress" && winnerName !== "") {
+      losses++;
+    } else {
+      draws++;
+    }
+  });
+
+  // Récupérer les 3 derniers matchs
+  const lastThreeMatches = sortedMatches.slice(0, 3);
+
+  // Générer le HTML pour les derniers matchs dans un tableau
+  let lastMatchesTable = '';
+  if (lastThreeMatches.length > 0) {
+    lastMatchesTable = `
+      <table class="table table-sm table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Match</th>
+            <th scope="col">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lastThreeMatches.map(match => {
+            const player1 = match.player1_name || "Unknown Player 1";
+            const player2 = match.player2_name || "Unknown Player 2";
+            const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+            return `
+              <tr>
+                <td>${player1} vs ${player2}</td>
+                <td>${setScore}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } else {
+    lastMatchesTable = '<p class="text-muted small">No recent matches.</p>';
+  }
+
+  // Retourner le HTML dans une card
+  return `
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title">Quick Stats for ${playerName || "You"}</h4>
+        <ul class="list-group list-group-flush mb-3">
+          <li class="list-group-item"><strong>Wins:</strong> ${wins}</li>
+          <li class="list-group-item"><strong>Losses:</strong> ${losses}</li>
+          <li class="list-group-item"><strong>Draws:</strong> ${draws}</li>
+        </ul>
+        <h5 class="mb-2">Last 3 Matches</h5>
+        ${lastMatchesTable}
+      </div>
+    </div>
+  `;
+}
+
 export function displayWelcomePage() {
   const username = localStorage.getItem("username");
-
-  // const appDiv = document.getElementById('app');
-  // Les styles commentés sont préservés mais non appliqués ici pour clarté
-  // appDiv.style.backgroundImage = "url('/static/pong.jpg')";
-  // appDiv.style.backgroundRepeat = "no-repeat";
-  // appDiv.style.backgroundAttachment = "fixed";
-  // appDiv.style.backgroundSize = "100% 100%";
 
   // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
+  // app_top reste vide
   const appTop = document.getElementById('app_top');
-  // appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)';
-  appTop.innerHTML = `
-    <div>
-      <div>
-        <h2>Hello ${username}</h2>
-      </div>
-      <div class="align-self-end">
-        <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px; height:60%; background-color: red;">
-          <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
-        </div>
-      </div>
-    </div>
-  `;
+  appTop.innerHTML = '';
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <div class="container py-4">
-      <h3 class="text-center mb-4">Welcome Page</h3>
       <div class="row justify-content-center">
-        <div class="col-md-6">
-          <h4 class="mb-3">Pending Friend Requests</h4>
-          <ul class="list-group mb-4" id="pendingFriendRequests"></ul>
-          <h4 class="mb-3">Pending Tournament Authentications</h4>
-          <ul class="list-group" id="pendingTournamentAuthentications"></ul>
+        <!-- Colonne gauche : Welcome Card et Notifications -->
+        <div class="col-md-6 d-flex flex-column gap-4">
+          <!-- Welcome Card -->
+          <div class="card shadow-sm">
+            <div class="card-body d-flex align-items-center">
+              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px; background-color: red;">
+                <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
+              </div>
+              <h3 class="card-title mb-0">Welcome ${username}</h3>
+            </div>
+          </div>
+          <!-- Pending Friend Requests Card -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h4 class="card-title mb-3">Pending Friend Requests</h4>
+              <div>
+                <ul class="list-group" id="pendingFriendRequests"></ul>
+              </div>
+            </div>
+          </div>
+          <!-- Pending Tournament Authentications Card -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h4 class="card-title mb-3">Pending Tournament Authentications</h4>
+              <div>
+                <ul class="list-group" id="pendingTournamentAuthentications"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Colonne droite : Quick Stats -->
+        <div class="col-md-6" id="quickStatsContainer">
+          <!-- Les stats rapides seront insérées ici -->
         </div>
       </div>
     </div>
@@ -300,6 +394,30 @@ export function displayWelcomePage() {
   // Charger les requêtes d’amis et les tournois non authentifiés
   fetchPendingFriendRequests();
   fetchPendingTournamentAuthentications();
+
+  // Charger les stats rapides et les derniers matchs
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const quickStatsContainer = document.getElementById("quickStatsContainer");
+      quickStatsContainer.innerHTML = displayQuickStats(data, username);
+    })
+    .catch(error => {
+      console.error("Error fetching quick stats:", error);
+      const quickStatsContainer = document.getElementById("quickStatsContainer");
+      quickStatsContainer.innerHTML = `<p class="text-danger">Error loading quick stats: ${error.message}</p>`;
+    });
 }
 
 function fetchPendingTournamentAuthentications() {
