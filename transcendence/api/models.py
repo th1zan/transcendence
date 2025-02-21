@@ -204,13 +204,13 @@ class PongMatch(models.Model):
     winner = models.ForeignKey(
         Player,
         on_delete=models.CASCADE,
-        null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou nuls
-        blank=True,  # Idem pour les formulaires et l'admin
+        null=True,
+        blank=True,
     )
     date_played = models.DateTimeField(auto_now_add=True)
     is_tournament_match = models.BooleanField(default=False)
     tournament = models.ForeignKey(
-        Tournament,
+        "Tournament",
         on_delete=models.CASCADE,
         related_name="matches",
         null=True,
@@ -219,6 +219,34 @@ class PongMatch(models.Model):
 
     def __str__(self):
         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
+
+
+# Signal post_save pour PongMatch
+@receiver(post_save, sender=PongMatch)
+def update_tournament_status_on_match_update(sender, instance, **kwargs):
+    # Calculer si le match est joué (logique similaire à get_is_played du serializer)
+    sets = instance.sets.all()
+    is_played = False
+    if sets.exists():
+        for set_instance in sets:
+            if (set_instance.player1_score or 0) > 0 or (
+                set_instance.player2_score or 0
+            ) > 0:
+                is_played = True
+                break
+    if instance.winner or (
+        instance.player1_sets_won > 0
+        and instance.player1_sets_won == instance.player2_sets_won
+    ):
+        is_played = True
+
+    # Vérifier si c’est un match de tournoi et si le match est joué
+    if instance.is_tournament_match and is_played:
+        tournament = instance.tournament
+        if tournament:
+            # Réévaluer si le tournoi est terminé
+            tournament.is_finished = tournament.is_tournament_finished()
+            tournament.save()
 
 
 # class PongMatch(models.Model):
@@ -332,9 +360,26 @@ class Notification(models.Model):
 
 @receiver(post_save, sender=PongMatch)
 def update_tournament_status_on_match_update(sender, instance, **kwargs):
-    if instance.is_tournament_match and instance.is_match_played():
+    # Calculer si le match est joué (logique similaire à get_is_played du serializer)
+    sets = instance.sets.all()
+    is_played = False
+    if sets.exists():
+        for set_instance in sets:
+            if (set_instance.player1_score or 0) > 0 or (
+                set_instance.player2_score or 0
+            ) > 0:
+                is_played = True
+                break
+    if instance.winner or (
+        instance.player1_sets_won > 0
+        and instance.player1_sets_won == instance.player2_sets_won
+    ):
+        is_played = True
+
+    # Vérifier si c’est un match de tournoi et s’il est joué
+    if instance.is_tournament_match and is_played:
         tournament = instance.tournament
         if tournament:
-            # Réévaluez si le tournoi est terminé après chaque match joué dans un tournoi
+            # Réévaluer si le tournoi est terminé
             tournament.is_finished = tournament.is_tournament_finished()
             tournament.save()
