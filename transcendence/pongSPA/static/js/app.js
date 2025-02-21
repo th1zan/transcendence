@@ -262,10 +262,8 @@ function displayQuickStats(data, playerName) {
   let draws = 0;
   const normalizedPlayerName = (playerName || "You").toLowerCase();
 
-  // Trier les matchs par date (du plus récent au plus ancien)
   const sortedMatches = playedMatches.sort((a, b) => new Date(b.date_played) - new Date(a.date_played));
 
-  // Calcul des stats
   playedMatches.forEach((match) => {
     const isPlayer1 = match.player1_name.toLowerCase() === normalizedPlayerName;
     const isPlayer2 = match.player2_name.toLowerCase() === normalizedPlayerName;
@@ -282,18 +280,15 @@ function displayQuickStats(data, playerName) {
     }
   });
 
-  // Récupérer les 3 derniers matchs
   const lastThreeMatches = sortedMatches.slice(0, 3);
-
-  // Générer le HTML pour les derniers matchs dans un tableau
   let lastMatchesTable = '';
   if (lastThreeMatches.length > 0) {
     lastMatchesTable = `
-      <table class="table table-sm table-striped">
+      <table class="table table-sm table-striped" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
         <thead>
           <tr>
-            <th scope="col">Match</th>
-            <th scope="col">Score</th>
+            <th scope="col" style="color: #e84393;">Match</th>
+            <th scope="col" style="color: #00b894;">Score</th>
           </tr>
         </thead>
         <tbody>
@@ -315,17 +310,16 @@ function displayQuickStats(data, playerName) {
     lastMatchesTable = '<p class="text-muted small">No recent matches.</p>';
   }
 
-  // Retourner le HTML dans une card
   return `
-    <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm h-100" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
-        <h4 class="card-title">Quick Stats for ${playerName || "You"}</h4>
+        <h4 class="card-title" style="color: #e84393;">Quick Stats for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item"><strong>Wins:</strong> ${wins}</li>
-          <li class="list-group-item"><strong>Losses:</strong> ${losses}</li>
-          <li class="list-group-item"><strong>Draws:</strong> ${draws}</li>
+          <li class="list-group-item" style="background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
+          <li class="list-group-item" style="background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
+          <li class="list-group-item" style="background: transparent; border: none; color: #a6c1ee;"><strong>Draws:</strong> ${draws}</li>
         </ul>
-        <h5 class="mb-2">Last 3 Matches</h5>
+        <h5 class="mb-2" style="color: #00b894;">Last 3 Matches</h5>
         ${lastMatchesTable}
       </div>
     </div>
@@ -346,32 +340,32 @@ export function displayWelcomePage() {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <div class="container py-4">
+    <div class="container py-5" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); background-size: 400% 400%; animation: gradientBG 15s ease infinite; font-family: 'Poppins', sans-serif;">
       <div class="row justify-content-center">
         <!-- Colonne gauche : Welcome Card et Notifications -->
         <div class="col-md-6 d-flex flex-column gap-4">
           <!-- Welcome Card -->
-          <div class="card shadow-sm">
+          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body d-flex align-items-center">
               <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px; background-color: red;">
                 <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
               </div>
-              <h3 class="card-title mb-0">Welcome ${username}</h3>
+              <h3 class="card-title mb-0" style="color: #e84393; font-weight: 700; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">Welcome ${username}</h3>
             </div>
           </div>
           <!-- Pending Friend Requests Card -->
-          <div class="card shadow-sm">
+          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body">
-              <h4 class="card-title mb-3">Pending Friend Requests</h4>
+              <h4 class="card-title mb-3" style="color: #e84393;">Pending Friend Requests</h4>
               <div>
                 <ul class="list-group" id="pendingFriendRequests"></ul>
               </div>
             </div>
           </div>
           <!-- Pending Tournament Authentications Card -->
-          <div class="card shadow-sm">
+          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body">
-              <h4 class="card-title mb-3">Pending Tournament Authentications</h4>
+              <h4 class="card-title mb-3" style="color: #00b894;">Pending Tournament Authentications</h4>
               <div>
                 <ul class="list-group" id="pendingTournamentAuthentications"></ul>
               </div>
@@ -1189,303 +1183,8 @@ function fetchRanking() {
     });
 }
 
-
-// === BEGIN refactored displayGameForm() function ===
-
-// export function displayGameForm() {
-//   // Vide tous les conteneurs
-//   clearContainers();
-//
-//   // Initialise les paramètres de jeu par défaut
-//   let gameSettings = initializeGameSettings();
-//
-//   // Crée et insère le formulaire dans le DOM
-//   createGameForm(gameSettings);
-//
-//   // Configure les événements du formulaire
-//   setupFormEventListeners(gameSettings);
-// }
-//
-// function clearContainers(){
-//   document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-// }
-//
-// function initializeGameSettings() {
-//   localStorage.setItem("isTournamentMatch", false);
-//   return {
-//     mode: "solo",
-//     difficulty: "easy",
-//     design: "retro",
-//     numberOfGames: 1,
-//     setsPerGame: 3,
-//     player1: localStorage.getItem("username") || "",
-//     player2: "Bot-AI",
-//     control1: "arrows",
-//     control2: "wasd",
-//     isTournamentMatch: false
-//   };
-// }
-//
-//
-// function createGameForm(gameSettings) {
-//   const formContainer = document.getElementById("app_main");
-//   formContainer.innerHTML = `
-//     <form id="gameForm" class="container">
-//       <div class="row">
-//           <div class="col-12 col-md-6">
-//               <h3>Game Settings</h3>
-//               <div class="mb-3">
-//                   <label class="form-label">Game Mode:</label>
-//                   <div class="btn-group" role="group" aria-label="Game Mode">
-//                       <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-//                       <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
-//                   </div>
-//               </div>
-//               <div class="mb-3">
-//                   <label class="form-label">Difficulty:</label>
-//                   <div class="btn-group" role="group" aria-label="Difficulty">
-//                       <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-//                       <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-//                       <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
-//                   </div>
-//               </div>
-//               <div class="mb-3">
-//                   <label class="form-label">Design:</label>
-//                   <div class="btn-group" role="group" aria-label="Design">
-//                       <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-//                       <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
-//                   </div>
-//               </div>
-//           </div>
-//           <div class="col-12 col-md-6">
-//               <h3>Match Settings</h3>
-//               <div class="mb-3">
-//                   <label for="numberOfGames" class="form-label">Number of Games:</label>
-//                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control" style="width: 60px;">
-//               </div>
-//               <div class="mb-3">
-//                   <label for="setsPerGame" class="form-label">Sets per Game:</label>
-//                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
-//               </div>
-//           </div>
-//       </div>
-//
-//       <div class="row mt-4">
-//           <div class="col-12 col-md-6">
-//               <h3>Player 1</h3>
-//               <div class="mb-3">
-//                   <label for="player1" class="form-label">Name:</label>
-//                   <input type="text" id="player1" value="${gameSettings.player1}" class="form-control" disabled>
-//               </div>
-//               <div class="mb-3">
-//                   <label for="control1" class="form-label">Control:</label>
-//                   <select id="control1" class="form-select">
-//                       <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-//                       <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-//                       <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
-//                   </select>
-//               </div>
-//           </div>
-//           <div class="col-12 col-md-6" id="player2Container">
-//               <h3>Player 2</h3>
-//               <div class="mb-3">
-//                   <label for="player2" class="form-label">Name:</label>
-//                   <!-- <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}> -->
-//                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control">
-//               </div>
-//               <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-//                   <label for="control2" class="form-label">Control:</label>
-//                   <select id="control2" class="form-select">
-//                       <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-//                       <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-//                       <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
-//                   </select>
-//               </div>
-//           </div>
-//       </div>
-//       <div class="text-center mt-4">
-//         <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
-//       </div>
-//     </form>
-//
-//     <div id="result" style="display: none;">
-//       <h2>Game Results</h2>
-//       <p id="summary"></p>
-//     </div>
-//     <!-- <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>   -->
-//   `;
-// }
-//
-// function setupFormEventListeners(gameSettings) {
-//   setupModeButtons(gameSettings);
-//   setupDifficultyAndDesignButtons(gameSettings);
-//   setupInputListeners(gameSettings);
-//   setupStartGameButton(gameSettings);
-// }
-//
-// function setupModeButtons(gameSettings) {
-//   document.getElementById("onePlayer").addEventListener("click", function() {
-//     setupSoloMode(gameSettings);
-//   });
-//
-//   document.getElementById("twoPlayers").addEventListener("click", function() {
-//     setupMultiplayerMode(gameSettings);
-//   });
-// }
-//
-// function setupSoloMode(gameSettings) {
-//   gameSettings.mode = "solo";
-//   document.getElementById("player2Container").style.display = "block";
-//   document.getElementById("player2").value = "Bot-AI";
-//   gameSettings.player2 = "Bot-AI";
-//   document.getElementById("player2").disabled = true;
-//   document.getElementById("control2Container").style.display = "none";
-//   updateControlOptions("arrows", "wasd");
-// }
-//
-// function setupMultiplayerMode(gameSettings) {
-//   gameSettings.mode = "multiplayer";
-//   document.getElementById("player2Container").style.display = "block";
-//   document.getElementById("player2").value = "";
-//   gameSettings.player2 = "";
-//   document.getElementById("player2").disabled = false;
-//   document.getElementById("control2Container").style.display = "block";
-//   updateControlOptions("arrows", "wasd", true);
-// }
-//
-// function updateControlOptions(control1, control2, isMultiplayer = false) {
-//   document.getElementById("control1").value = control1;
-//   document.getElementById("control2").value = control2;
-//
-//   if (isMultiplayer) {
-//     disableSameControlOption("control1", control2);
-//     disableSameControlOption("control2", control1);
-//   }
-//
-//   function disableSameControlOption(controlId, valueToDisable) {
-//     const control = document.getElementById(controlId);
-//     control.querySelectorAll("option").forEach(opt => opt.disabled = false);
-//     control.querySelector(`option[value="${valueToDisable}"]`).disabled = true;
-//   }
-// }
-//
-// function setupDifficultyAndDesignButtons(gameSettings) {
-//   document.querySelectorAll(".difficulty-button, .design-button").forEach(button => {
-//     button.addEventListener("click", function() {
-//       toggleActiveButton(`.${this.classList[0]}`, this.id);
-//       if (this.classList.contains("difficulty-button")) {
-//         gameSettings.difficulty = this.id;
-//       } else {
-//         gameSettings.design = this.id;
-//       }
-//     });
-//   });
-// }
-//
-// function setupInputListeners(gameSettings) {
-//   document.getElementById("numberOfGames").addEventListener("input", function() {
-//     gameSettings.numberOfGames = parseInt(this.value);
-//   });
-//
-//   document.getElementById("setsPerGame").addEventListener("input", function() {
-//     gameSettings.setsPerGame = parseInt(this.value);
-//   });
-//
-//   document.getElementById("player2").addEventListener("input", function() {
-//     gameSettings.player2 = this.value;
-//   });
-//
-//   document.getElementById("control1").addEventListener("change", function () {
-//     gameSettings.control1 = this.value;
-//     updateControlOptions(this.value, gameSettings.control2);
-//   });
-//
-//   document.getElementById("control2").addEventListener("change", function () {
-//     gameSettings.control2 = this.value;
-//     updateControlOptions(gameSettings.control1, this.value);
-//   });
-// }
-//
-// function setupStartGameButton(gameSettings) {
-//   let alertShown = false;
-//   let lastCheckedPlayer2 = "";
-//   let needAuth = false;
-//   let isTwoPlayerMode = gameSettings.mode === "multiplayer";
-//
-//   document.getElementById("startGameButton").addEventListener("click", async () => {
-//     const player1 = gameSettings.player1;
-//     let player2 = document.getElementById("player2").value.trim();
-//     const numberOfGames = gameSettings.numberOfGames;
-//     const setsPerGame = gameSettings.setsPerGame;
-//
-//     console.log("Start button clicked");
-//
-//     if (!alertShown || player2 !== lastCheckedPlayer2) {
-//       alertShown = false;
-//       needAuth = false;  
-//       if (isTwoPlayerMode) {
-//         try {
-//           const playerData = await checkPlayerExists(player2);
-//
-//           if (playerData.exists && !playerData.is_guest) {
-//             alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
-//             alertShown = true;
-//             lastCheckedPlayer2 = player2;
-//             needAuth = true;
-//             return;
-//           } else if (playerData.exists) {
-//             alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
-//             alertShown = true;
-//             lastCheckedPlayer2 = player2;
-//             return;
-//           } else {
-//             startGameSetup(gameSettings);
-//             return;
-//           }
-//         } catch (error) {
-//           console.error("Error checking player existence:", error);
-//           alert("There was an error checking player existence. Please try again.");
-//           return;
-//         }
-//       } else {
-//         startGameSetup(gameSettings);
-//         return;
-//       }
-//     }
-//
-//     if (needAuth) {
-//       const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
-//       if (authResult) {
-//         startGameSetup(gameSettings);
-//       }
-//     } else if (player2 !== lastCheckedPlayer2) {
-//       startGameSetup(gameSettings);
-//     } else {
-//       startGameSetup(gameSettings);
-//     }
-//
-//     console.log("Starting game with settings:", gameSettings);
-//   });
-// }
-//
-// function toggleActiveButton(group, selectedId) {
-//   document.querySelectorAll(group).forEach(button => {
-//     button.classList.remove('btn-primary');
-//     button.classList.add('btn-outline-primary');
-//   });
-//   document.getElementById(selectedId).classList.remove('btn-outline-primary');
-//   document.getElementById(selectedId).classList.add('btn-primary');
-// }
-
-// ===  END refactored displayGameForm() function ===
-
-
-
-
 export function displayGameForm() {
-
+  
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -1509,130 +1208,129 @@ export function displayGameForm() {
   };
 
   formContainer.innerHTML = `
-    <form id="gameForm" class="container">
-      <div class="row">
-          <div class="col-12 col-md-6">
-              <h3>Game Settings</h3>
+<form id="gameForm" class="container w-100">
+  
+    <ul class="nav nav-pills mb-3 d-flex justify-content-center" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="pills-game-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab" aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+        </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pills-match-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab" aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pills-player-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab" aria-controls="pills-player-settings" aria-selected="false">Player Settings</button>
+      </li>
+    </ul>
+    <div class="tab-content" id="pills-tabContent">
+      <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
+        <div class="d-flex justify-content-center mt-3">
+          <!-- Game Settings Container -->
+          <div class="col p-3 d-flex flex-column">
+            <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
+            <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
               <div class="mb-3">
-                  <label class="form-label">Game Mode:</label>
-                  <div class="btn-group" role="group" aria-label="Game Mode">
-                      <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-                      <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
-                  </div>
+                <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
+                <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
+                  <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+                  <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+                </div>
               </div>
               <div class="mb-3">
-                  <label class="form-label">Difficulty:</label>
-                  <div class="btn-group" role="group" aria-label="Difficulty">
-                      <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-                      <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-                      <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
-                  </div>
+                <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
+                <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
+                  <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+                  <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+                  <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+                </div>
               </div>
               <div class="mb-3">
-                  <label class="form-label">Design:</label>
-                  <div class="btn-group" role="group" aria-label="Design">
-                      <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-                      <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
-                  </div>
+                <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
+                <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
+                  <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+                  <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+                </div>
               </div>
+            </div>
           </div>
-          <div class="col-12 col-md-6">
-              <h3>Match Settings</h3>
-              <div class="mb-3">
-                  <label for="numberOfGames" class="form-label">Number of Games:</label>
-                  <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control" style="width: 60px;">
-              </div>
-              <div class="mb-3">
-                  <label for="setsPerGame" class="form-label">Sets per Game:</label>
-                  <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
-              </div>
-          </div>
-      </div>
-
-      <div class="row mt-4">
-          <div class="col-12 col-md-6">
-              <h3>Player 1</h3>
-              <div class="mb-3">
-                  <label for="player1" class="form-label">Name:</label>
-                  <input type="text" id="player1" value="${gameSettings.player1}" class="form-control" disabled>
-              </div>
-              <div class="mb-3">
-                  <label for="control1" class="form-label">Control:</label>
-                  <select id="control1" class="form-select">
-                      <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-                      <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                      <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
-                  </select>
-              </div>
-          </div>
-          <div class="col-12 col-md-6" id="player2Container">
-              <h3>Player 2</h3>
-              <div class="mb-3">
-                  <label for="player2" class="form-label">Name:</label>
-                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}>
-              </div>
-              <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-                  <label for="control2" class="form-label">Control:</label>
-                  <select id="control2" class="form-select">
-                      <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                      <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-                      <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
-                  </select>
-              </div>
-          </div>
-      </div>
-      <div class="text-center mt-4">
-        <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
-      </div>
-    </form>
-
-    <div id="result" style="display: none;">
-      <h2>Game Results</h2>
-      <p id="summary"></p>
+        </div>
     </div>
 
-    <div class="modal fade" id="registeredUserModal" tabindex="-1" aria-labelledby="registeredUserModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="registeredUserModalLabel">Attention</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="authNeeded">Continue</button>
+
+
+    <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
+      <div class="d-flex justify-content-center mt-3">
+        <!-- Match Settings Container -->
+        <div class="col p-3 d-flex flex-column">
+          <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
+          <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+            <div class="mb-3">
+              <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+              <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2" style="width: 60px;">
+            </div>
+            <div class="mb-3">
+              <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+              <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modale pour joueur invité -->
-    <div class="modal fade" id="guestPlayerModal" tabindex="-1" aria-labelledby="guestPlayerModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="guestPlayerModalLabel">Attention</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+    <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
+      <div class="d-flex justify-content-between align-items-stretch mt-3">
+        <div class="col p-3 d-flex flex-column">
+          <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
+          <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+            <div class="mb-3">
+              <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Name:</label>
+              <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control" disabled>
+            </div>
+            <div class="mb-3">
+              <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
+              <select id="control1" class="form-select">
+                <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+                <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+              </select>
           </div>
-          <div class="modal-body">
-            Player 2 exists as an existing guest player. Play with this username or change it.
+        </div>
+      </div>
+
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
+        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div class="mb-3">
+            <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
+            <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="continueWithGuest">Continue</button>
+          <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+            <label for="control2" class="form-label">Control:</label>
+            <select id="control2" class="form-select">
+              <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+              <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+              <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+            </select>
           </div>
         </div>
       </div>
     </div>
+  
+    <div class="text-center mt-4">
+      <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
+    </div>
+  </form>
+  
+  <div id="result" style="display: none;">
+    <h2>Game Results</h2>
+    <p id="summary"></p>
+  </div>
   `;
 
-  function toggleActiveButton(group, selectedId) {
+    function toggleActiveButton(group, selectedId) {
       document.querySelectorAll(group).forEach(button => {
-          button.classList.remove('btn-primary');
-          button.classList.add('btn-outline-primary');
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-outline-primary');
       });
       document.getElementById(selectedId).classList.remove('btn-outline-primary');
       document.getElementById(selectedId).classList.add('btn-primary');
