@@ -656,9 +656,26 @@ export function displaySettings() {
 }
 
 
-export function displayStats() {
+// // Fonction pour supprimer tous les écouteurs d'événements existants et éviter les doublons
+// function removeEventListeners() {
+//   const buttons = [
+//     "viewResultsButton",
+//     "viewPlayerResult",
+//     "viewRankingButton",
+//     "searchPlayerButton" // Nouvel ID pour le bouton dans fetchPlayerResult
+//   ];
+//   buttons.forEach((id) => {
+//     const button = document.getElementById(id);
+//     if (button) {
+//       const newButton = button.cloneNode(true);
+//       button.parentNode.replaceChild(newButton, button);
+//     }
+//   });
+// }
 
-  //empty all the containers
+// Fonction principale pour afficher les statistiques et initialiser les boutons
+export function displayStats() {
+  // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -667,9 +684,12 @@ export function displayStats() {
   appTop.innerHTML = `
     <div class="container mt-4">
       <h3 class="text-center text-primary mb-4">Statistics</h3>
-      <div class="d-flex justify-content-center gap-3">
+      <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
-          Your Results
+          My Results
+        </button>
+        <button id="viewPlayerResult" class="btn btn-outline-secondary btn-lg shadow-sm">
+          Search Player's Result
         </button>
         <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
           Overall Ranking
@@ -678,158 +698,255 @@ export function displayStats() {
     </div>
   `;
 
-  document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
+  // Supprime les anciens écouteurs pour éviter les doublons
+  // removeEventListeners();
+
+  // Ajoute les nouveaux écouteurs
+  document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
+  document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
-
-
 }
 
-// function displayUserResults(data) {
-//   // Empty the containers
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const appMain = document.getElementById("app_main");
-//   appMain.innerHTML = `
-//     <h3 class="mb-3">Your Results:</h3>
-//     <div class="table-responsive">
-//       <table class="table table-striped table-hover">
-//         <thead class="thead-dark">
-//           <tr>
-//             <th scope="col">Date</th>
-//             <th scope="col">Players</th>
-//             <th scope="col">Score (Sets)</th>
-//             <th scope="col">Winner</th>
-//             <th scope="col">Tournament</th>
-//           </tr>
-//         </thead>
-//         <tbody id="resultats"></tbody>
-//       </table>
-//     </div>
-//   `;
-//
-//   const resultatsDiv = document.getElementById("resultats");
-//
-//   if (Array.isArray(data) && data.length > 0) {
-//     // Trier les données par date (antéchronologique)
-//     const sortedData = data.sort((a, b) => {
-//       const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
-//       const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
-//       return dateB - dateA; // Plus récent en premier
-//     });
-//
-//     sortedData.forEach((match) => {
-//       const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
-//       const player1 = match.player1_name || "Unknown Player 1";
-//       const player2 = match.player2_name || "Unknown Player 2";
-//       const winner = match.winner || "In Progress";
-//       const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-//       const tournament = match.tournament ? match.tournament_name || "Unknown" : "-";
-//
-//       resultatsDiv.innerHTML += `
-//         <tr>
-//           <td>${date}</td>
-//           <td>${player1} vs ${player2}</td>
-//           <td>${score}</td>
-//           <td>${winner}</td>
-//           <td>${tournament}</td>
-//         </tr>
-//       `;
-//     });
-//   } else {
-//     resultatsDiv.innerHTML = `
-//       <tr>
-//         <td colspan="5" class="text-center">No results found.</td>
-//       </tr>
-//     `;
-//   }
-// }
+// Fonction pour afficher le formulaire de recherche de résultats d'un joueur
+function fetchPlayerResult() {
+  const appDiv = document.getElementById("app_main");
+  appDiv.innerHTML = `
+    <div class="form-group mt-2">
+      <label for="playerName">Player Name</label>
+      <input type="text" id="playerName" class="form-control" required> 
+      <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2">
+        Search Results
+      </button>
+    </div>
+  `;
 
+  // Supprime les anciens écouteurs pour éviter les doublons
+  // removeEventListeners();
 
-function fetchResultats() {
-  const username = localStorage.getItem("username");
+  // Ajoute un écouteur pour le bouton de recherche
+  document.getElementById("searchPlayerButton").addEventListener("click", () => {
+    const playerName = document.getElementById("playerName").value.trim();
+    if (playerName) {
+      fetchResultats(playerName); // Passe le nom du joueur à fetchResultats
+    } else {
+      alert("Please enter a player name.");
+    }
+  });
+}
 
-  fetch(`/api/results/?user1=${username}`, {
+// Fonction pour calculer et afficher les statistiques de synthèse
+function displaySummaryStats(data, playerName) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return '<p class="text-muted">No summary statistics available.</p>';
+  }
+
+  const playedMatches = data.filter(match => match.is_played === true);
+  if (playedMatches.length === 0) {
+    return '<p class="text-muted">No played matches available for summary statistics.</p>';
+  }
+
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  let totalMatches = 0;
+  let totalSetsWon = 0;
+  let totalSetsLost = 0;
+  let totalPointsScored = 0;
+  let totalPointsConceded = 0;
+  let longestWinningStreak = 0;
+  let currentWinningStreak = 0;
+  let totalSetsPlayed = 0;
+  let tournamentWins = 0;
+
+  // Normaliser le nom du joueur pour la comparaison
+  const normalizedPlayerName = (playerName || "You").toLowerCase();
+
+  // Trier les matchs par date pour la série de victoires
+  playedMatches.sort((a, b) => new Date(a.date_played) - new Date(b.date_played));
+
+  playedMatches.forEach((match) => {
+    totalMatches++;
+
+    // Vérifier si le joueur est player1 ou player2
+    const isPlayer1 = match.player1_name.toLowerCase() === normalizedPlayerName;
+    const isPlayer2 = match.player2_name.toLowerCase() === normalizedPlayerName;
+    const winnerName = (match.winner_name || "").toLowerCase();
+
+    // Si le joueur n'est ni player1 ni player2, ignorer ce match pour ses stats
+    if (!isPlayer1 && !isPlayer2) return;
+
+    // Calcul des sets et points en fonction du rôle du joueur
+    const playerSetsWon = isPlayer1 ? match.player1_sets_won : match.player2_sets_won;
+    const playerSetsLost = isPlayer1 ? match.player2_sets_won : match.player1_sets_won;
+    const playerPointsScored = isPlayer1 ? match.player1_total_points : match.player2_total_points;
+    const playerPointsConceded = isPlayer1 ? match.player2_total_points : match.player1_total_points;
+
+    totalSetsWon += playerSetsWon || 0;
+    totalSetsLost += playerSetsLost || 0;
+    totalPointsScored += playerPointsScored || 0;
+    totalPointsConceded += playerPointsConceded || 0;
+    totalSetsPlayed += match.sets && Array.isArray(match.sets) ? match.sets.length : 0;
+
+    // Déterminer victoire, défaite ou nul
+    if (winnerName === normalizedPlayerName) {
+      wins++;
+      currentWinningStreak++;
+      longestWinningStreak = Math.max(longestWinningStreak, currentWinningStreak);
+      if (match.is_tournament_match) tournamentWins++;
+    } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress" && winnerName !== "") {
+      losses++;
+      currentWinningStreak = 0;
+    } else {
+      draws++;
+      currentWinningStreak = 0;
+    }
+  });
+
+  // Calculs des ratios et pourcentages
+  const avgPointsPerSet = totalSetsPlayed > 0 ? (totalPointsScored / totalSetsPlayed).toFixed(1) : 0;
+  const winLossRatio = losses > 0 ? (wins / losses).toFixed(2) : wins > 0 ? "∞" : "0.00";
+  const setsRatio = totalSetsLost > 0 ? (totalSetsWon / totalSetsLost).toFixed(2) : totalSetsWon > 0 ? "∞" : "0.00";
+  const pointsRatio = totalPointsConceded > 0 ? (totalPointsScored / totalPointsConceded).toFixed(2) : totalPointsScored > 0 ? "∞" : "0.00";
+  const winPercentage = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
+  const lossPercentage = totalMatches > 0 ? ((losses / totalMatches) * 100).toFixed(1) : 0;
+  const drawPercentage = totalMatches > 0 ? ((draws / totalMatches) * 100).toFixed(1) : 0;
+  const tournamentWinPercentage = totalMatches > 0 ? ((tournamentWins / totalMatches) * 100).toFixed(1) : 0;
+
+  // Vérification des pourcentages
+  const totalPercentage = parseFloat(winPercentage) + parseFloat(lossPercentage) + parseFloat(drawPercentage);
+  if (Math.abs(totalPercentage - 100) > 0.1 && totalMatches > 0) {
+    console.warn(`Percentages do not add up to 100%: ${totalPercentage}%`);
+  }
+
+  return `
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title">Summary Statistics for ${playerName || "You"}</h4>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><strong>Total Matches Played:</strong> ${totalMatches}</li>
+          <li class="list-group-item"><strong>Wins:</strong> ${wins} (${winPercentage}%)</li>
+          <li class="list-group-item"><strong>Losses:</strong> ${losses} (${lossPercentage}%)</li>
+          <li class="list-group-item"><strong>Draws:</strong> ${draws} (${drawPercentage}%)</li>
+          <li class="list-group-item"><strong>Win/Loss Ratio:</strong> ${winLossRatio}:1</li>
+          <li class="list-group-item"><strong>Sets Won/Lost Ratio:</strong> ${setsRatio}:1</li>
+          <li class="list-group-item"><strong>Points Scored/Conceded Ratio:</strong> ${pointsRatio}:1</li>
+          <li class="list-group-item"><strong>Longest Winning Streak:</strong> ${longestWinningStreak} matches</li>
+          <li class="list-group-item"><strong>Average Points per Match:</strong> ${totalMatches > 0 ? (totalPointsScored / totalMatches).toFixed(1) : 0}</li>
+          <li class="list-group-item"><strong>Total Sets Played:</strong> ${totalSetsPlayed}</li>
+          <li class="list-group-item"><strong>Average Points per Set:</strong> ${avgPointsPerSet}</li>
+          <li class="list-group-item"><strong>Tournament Wins:</strong> ${tournamentWins} (${tournamentWinPercentage}% of matches)</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// Fonction modifiée pour inclure les statistiques de synthèse et filtrer les matchs non joués
+function fetchResultats(player = null) {
+  const username = player || localStorage.getItem("username");
+
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
     method: "GET",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
-      console.log(data);
+      console.log("Fetched results:", data);
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3 class="mb-3">Your Results:</h3>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Players</th>
-                <th scope="col">Score (Sets)</th>
-                <th scope="col">Points</th>
-                <th scope="col">Winner</th>
-                <th scope="col">Tournament</th>
-              </tr>
-            </thead>
-            <tbody id="results"></tbody>
-          </table>
+        <h3 class="mb-3">Results for ${player || "You"}:</h3>
+        ${displaySummaryStats(data, player || "You")}
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title">Match History</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col" data-priority="1">Date</th>
+                    <th scope="col" data-priority="1">Players</th>
+                    <th scope="col" data-priority="2">Score (Sets)</th>
+                    <th scope="col" data-priority="3">Points</th>
+                    <th scope="col" data-priority="2">Winner</th>
+                    <th scope="col" data-priority="4">Tournament</th>
+                  </tr>
+                </thead>
+                <tbody id="results"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
 
       const resultatsDiv = document.getElementById("results");
 
       if (Array.isArray(data) && data.length > 0) {
-        const sortedData = data.sort((a, b) => {
+        // Filtrer les matchs joués
+        const playedMatches = data.filter(match => match.is_played === true);
+        const sortedData = playedMatches.sort((a, b) => {
           const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
           const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
-          return dateB - dateA;
+          return dateB - dateA; // Trie du plus récent au plus ancien
         });
 
-        sortedData.forEach((match) => {
-          const dateObj = match.date_played ? new Date(match.date_played) : null;
-          const dateStr = dateObj ? dateObj.toLocaleDateString() : "Unknown Date";
-          const timeStr = dateObj ? dateObj.toLocaleTimeString() : "Unknown Time";
-          const player1 = match.player1_name || "Unknown Player 1";
-          const player2 = match.player2_name || "Unknown Player 2";
-          const winner = match.winner_name || "In Progress";
-          const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-          const points = `${match.player1_total_points || 0} - ${match.player2_total_points || 0}`;
-          const tournament = match.tournament_name || "-";
+        if (sortedData.length > 0) {
+          sortedData.forEach((match) => {
+            const dateObj = match.date_played ? new Date(match.date_played) : null;
+            const dateStr = dateObj ? dateObj.toLocaleDateString() : "Unknown Date";
+            const timeStr = dateObj ? dateObj.toLocaleTimeString() : "Unknown Time";
+            const player1 = match.player1_name || "Unknown Player 1";
+            const player2 = match.player2_name || "Unknown Player 2";
+            const winner = match.winner_name || "In Progress";
+            const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+            const points = `${match.player1_total_points || 0} - ${match.player2_total_points || 0}`;
+            const tournament = match.tournament_name || "-";
 
-          // Détails des sets
-          let setsDetails = "";
-          if (match.sets && Array.isArray(match.sets)) {
-            setsDetails = match.sets
-              .map((set) => `Set ${set.set_number}: ${set.player1_score}-${set.player2_score}`)
-              .join("<br>");
-          }
+            // Détails des sets
+            let setsDetails = "";
+            if (match.sets && Array.isArray(match.sets)) {
+              setsDetails = match.sets
+                .map((set) => `Set ${set.set_number}: ${set.player1_score}-${set.player2_score}`)
+                .join("<br>");
+            }
 
-          resultatsDiv.innerHTML += `
+            resultatsDiv.innerHTML += `
+              <tr>
+                <td>
+                  ${dateStr}
+                  <br>
+                  <small class="text-muted">${timeStr}</small>
+                </td>
+                <td>${player1} vs ${player2}</td>
+                <td>
+                  ${setScore}
+                  ${setsDetails ? `<br><small class="text-muted">${setsDetails}</small>` : ""}
+                </td>
+                <td>${points}</td>
+                <td>${winner}</td>
+                <td>${tournament}</td>
+              </tr>
+            `;
+          });
+        } else {
+          resultatsDiv.innerHTML = `
             <tr>
-              <td>
-                ${dateStr}
-                <br>
-                <small class="text-muted">${timeStr}</small>
-              </td>
-              <td>${player1} vs ${player2}</td>
-              <td>
-                ${setScore}
-                ${setsDetails ? `<br><small class="text-muted">${setsDetails}</small>` : ""}
-              </td>
-              <td>${points}</td>
-              <td>${winner}</td>
-              <td>${tournament}</td>
+              <td colspan="6" class="text-center">No played results found for ${player || "you"}.</td>
             </tr>
           `;
-        });
+        }
       } else {
         resultatsDiv.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center">No results found.</td>
+            <td colspan="6" class="text-center">No results found for ${player || "you"}.</td>
           </tr>
         `;
       }
@@ -837,7 +954,7 @@ function fetchResultats() {
     .catch((error) => {
       console.error("Error fetching results:", error);
       const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `<p class="text-danger">Error loading results.</p>`;
+      appDiv.innerHTML = `<p class="text-danger">Error loading results: ${error.message}</p>`;
     });
 }
 
@@ -886,26 +1003,30 @@ function fetchRanking() {
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
         <h3 class="mb-3">Player Ranking:</h3>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">Rank</th>
-                <th scope="col">Player</th>
-                <th scope="col">Wins</th>
-                <th scope="col">Losses</th>
-                <th scope="col">Draws</th>
-                <th scope="col">Sets Won</th>
-                <th scope="col">Sets Lost</th>
-                <th scope="col">Points Scored</th>
-                <th scope="col">Points Conceded</th>
-              </tr>
-            </thead>
-            <tbody id="ranking"></tbody>
-          </table>
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title">Ranking Overview</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col" data-priority="1">Rank</th>
+                    <th scope="col" data-priority="1">Player</th>
+                    <th scope="col" data-priority="2">Wins</th>
+                    <th scope="col" data-priority="2">Losses</th>
+                    <th scope="col" data-priority="3">Draws</th>
+                    <th scope="col" data-priority="3">Sets Won</th>
+                    <th scope="col" data-priority="3">Sets Lost</th>
+                    <th scope="col" data-priority="4">Points Scored</th>
+                    <th scope="col" data-priority="4">Points Conceded</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
-
       const rankingDiv = document.getElementById("ranking");
 
       if (Array.isArray(data) && data.length > 0) {

@@ -204,7 +204,7 @@ class PongMatch(models.Model):
     winner = models.ForeignKey(
         Player,
         on_delete=models.CASCADE,
-        null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou non terminés
+        null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou nuls
         blank=True,  # Idem pour les formulaires et l'admin
     )
     date_played = models.DateTimeField(auto_now_add=True)
@@ -216,17 +216,62 @@ class PongMatch(models.Model):
         null=True,
         blank=True,
     )
-    is_played = models.BooleanField(default=False)
-
-    def is_match_played(self):
-        return (
-            self.player1_sets_won != 0
-            or self.player2_sets_won != 0
-            or self.winner is not None
-        )
 
     def __str__(self):
         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
+
+
+# class PongMatch(models.Model):
+#     user1 = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.SET_NULL,
+#         related_name="initiated_matches",
+#         null=True,
+#         blank=True,
+#     )
+#     user2 = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.SET_NULL,
+#         related_name="opponent_matches",
+#         null=True,
+#         blank=True,
+#     )
+#     player1 = models.ForeignKey(
+#         Player, on_delete=models.CASCADE, related_name="matches_as_player1"
+#     )
+#     player2 = models.ForeignKey(
+#         Player, on_delete=models.CASCADE, related_name="matches_as_player2"
+#     )
+#     sets_to_win = models.IntegerField(default=1)
+#     points_per_set = models.IntegerField(default=3)
+#     player1_sets_won = models.IntegerField(default=0)
+#     player2_sets_won = models.IntegerField(default=0)
+#     winner = models.ForeignKey(
+#         Player,
+#         on_delete=models.CASCADE,
+#         null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou non terminés
+#         blank=True,  # Idem pour les formulaires et l'admin
+#     )
+#     date_played = models.DateTimeField(auto_now_add=True)
+#     is_tournament_match = models.BooleanField(default=False)
+#     tournament = models.ForeignKey(
+#         Tournament,
+#         on_delete=models.CASCADE,
+#         related_name="matches",
+#         null=True,
+#         blank=True,
+#     )
+#     is_played = models.BooleanField(default=False)
+#
+#     def is_match_played(self):
+#         return (
+#             self.player1_sets_won != 0
+#             or self.player2_sets_won != 0
+#             or self.winner is not None
+#         )
+#
+#     def __str__(self):
+#         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
 
 
 class PongSet(models.Model):

@@ -73,6 +73,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
     sets = PongSetSerializer(many=True, read_only=False, required=False)
     player1_total_points = serializers.SerializerMethodField()
     player2_total_points = serializers.SerializerMethodField()
+    is_played = serializers.SerializerMethodField()  # Champ virtuel calculé
 
     class Meta:
         model = PongMatch
@@ -93,9 +94,9 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "winner_name",
             "tournament_name",
             "sets",
-            "is_played",
             "player1_total_points",
             "player2_total_points",
+            "is_played",  # Ajouté ici
         ]
         extra_kwargs = {
             "user1": {"allow_null": True},
@@ -127,6 +128,24 @@ class PongMatchSerializer(serializers.ModelSerializer):
 
     def get_player2_total_points(self, obj):
         return sum(set.player2_score or 0 for set in obj.sets.all())
+
+    def get_is_played(self, obj):
+        """
+        Détermine si le match est joué en vérifiant si des sets ont des scores non nuls
+        ou si un gagnant est défini.
+        """
+        # Vérifie si des sets existent et si au moins un set a un score non nul
+        sets = obj.sets.all()
+        if sets.exists():
+            for set_instance in sets:
+                if set_instance.player1_score > 0 or set_instance.player2_score > 0:
+                    return True
+        # Vérifie si un gagnant est défini ou s'il y a un match nul (sets gagnés égaux et non nuls)
+        if obj.winner or (
+            obj.player1_sets_won > 0 and obj.player1_sets_won == obj.player2_sets_won
+        ):
+            return True
+        return False
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
