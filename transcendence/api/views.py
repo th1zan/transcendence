@@ -5,7 +5,6 @@ import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
 
 import jwt
-from api.authentication import CookieJWTAuthentication
 from asgiref.sync import async_to_sync  # for notifications over WebSockets
 from channels.layers import get_channel_layer
 from django.conf import settings
@@ -35,6 +34,8 @@ from rest_framework_simplejwt.token_blacklist.models import (
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from api.authentication import CookieJWTAuthentication
 
 from .models import (
     CustomUser,
@@ -68,15 +69,12 @@ class PongMatchList(generics.ListCreateAPIView):
         user_param = self.request.query_params.get("user1")
 
         if user_param:
-            # Récupérer l'ID du joueur à partir du nom d'utilisateur
             player_id = (
                 Player.objects.filter(player=user_param)
                 .values_list("id", flat=True)
                 .first()
             )
-
             if player_id:
-                # Filtrer les matchs où le joueur est soit player1 soit player2
                 queryset = queryset.filter(Q(player1=player_id) | Q(player2=player_id))
 
         return queryset
@@ -138,7 +136,9 @@ class PongScoreView(APIView):
             print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
             if not player2.authenticated:
                 return Response(
-                    {"error": "Player2 must be authenticated for multiplayer matches."},
+                    {
+                        "error": "Player2 must be authenticated i(or guest) for multiplayer matches."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
             match_data["user2"] = player2.user.id
@@ -247,18 +247,22 @@ class PongScoreView(APIView):
                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
 
-                if match_data.get("winner"):
-                    try:
-                        winner_player = Player.objects.get(player=match_data["winner"])
-                        match.winner = winner_player
-                    except Player.DoesNotExist:
-                        match.winner = None  # Si le joueur n'est pas trouvé, on met le gagnant à None
-                else:
+            if match_data.get("winner"):
+                try:
+                    winner_player = Player.objects.get(player=match_data["winner"])
+                    print(f"1. winner is:  {winner_player}")
+                    match.winner = winner_player
+                except Player.DoesNotExist:
                     match.winner = (
-                        None  # Si aucun gagnant n'est spécifié, on met aussi à None
+                        None  # Si le joueur n'est pas trouvé, on met le gagnant à None
                     )
+            else:
+                print(f"2. no winner.")
+                match.winner = (
+                    None  # Si aucun gagnant n'est spécifié, on met aussi à None
+                )
 
-                match.save()
+            match.save()
 
             return Response(match_serializer.data, status=status.HTTP_200_OK)
         else:
@@ -1183,17 +1187,85 @@ class UserTournamentsView(APIView):
             )
 
 
+# class RankingView(APIView):
+#     def get(self, request):
+#         # Calculer le nombre de victoires pour chaque joueur
+#         players = Player.objects.all()
+#         ranking_data = []
+#
+#         for player in players:
+#             total_wins = PongMatch.objects.filter(winner=player).count()
+#             ranking_data.append({"name": player.player, "total_wins": total_wins})
+#
+#         # Trier le classement par nombre de victoires décroissant
+#         ranking_data.sort(key=lambda x: x["total_wins"], reverse=True)
+#
+#         return Response(ranking_data)
+
+
 class RankingView(APIView):
     def get(self, request):
-        # Calculer le nombre de victoires pour chaque joueur
         players = Player.objects.all()
         ranking_data = []
 
         for player in players:
+            # Matchs gagnés
             total_wins = PongMatch.objects.filter(winner=player).count()
-            ranking_data.append({"name": player.player, "total_wins": total_wins})
 
-        # Trier le classement par nombre de victoires décroissant
+            # Matchs joués où le joueur est player1 ou player2
+            matches_played = PongMatch.objects.filter(
+                Q(player1=player) | Q(player2=player)
+            )
+
+            # Matchs perdus : joués mais pas gagnés (winner != player et winner non null)
+            total_losses = (
+                matches_played.exclude(winner=player)
+                .filter(winner__isnull=False)
+                .count()
+            )
+
+            # Matchs nuls : joués mais sans vainqueur (winner est null)
+            total_draws = matches_played.filter(winner__isnull=True).count()
+
+            # Sets gagnés et perdus
+            sets_won = 0
+            sets_lost = 0
+            points_scored = 0
+            points_conceded = 0
+
+            # Parcourir les matchs joués pour calculer sets et points
+            for match in matches_played:
+                if match.player1 == player:
+                    sets_won += match.player1_sets_won or 0
+                    sets_lost += match.player2_sets_won or 0
+                elif match.player2 == player:
+                    sets_won += match.player2_sets_won or 0
+                    sets_lost += match.player1_sets_won or 0
+
+                # Points à partir des sets
+                sets = match.sets.all()
+                for pong_set in sets:
+                    if match.player1 == player:
+                        points_scored += pong_set.player1_score or 0
+                        points_conceded += pong_set.player2_score or 0
+                    elif match.player2 == player:
+                        points_scored += pong_set.player2_score or 0
+                        points_conceded += pong_set.player1_score or 0
+
+            ranking_data.append(
+                {
+                    "name": player.player,
+                    "total_wins": total_wins,
+                    "total_losses": total_losses,
+                    "total_draws": total_draws,
+                    "sets_won": sets_won,
+                    "sets_lost": sets_lost,
+                    "points_scored": points_scored,
+                    "points_conceded": points_conceded,
+                }
+            )
+
+        # Trier par nombre de victoires décroissant
         ranking_data.sort(key=lambda x: x["total_wins"], reverse=True)
 
         return Response(ranking_data)
@@ -1316,6 +1388,64 @@ class TournamentPlayersView(APIView):
         except TournamentPlayer.DoesNotExist:
             return Response(
                 {"error": "Tournament or players not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PendingTournamentAuthenticationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        username = request.user.username  # Utilisateur connecté
+        # Récupérer les tournois où l'utilisateur est joueur mais non authentifié
+        pending_auths = TournamentPlayer.objects.filter(
+            player__user__username=username,
+            authenticated=False,
+            tournament__is_finished=False,  # Exclure les tournois terminés
+        ).select_related("tournament")
+
+        # Formater la réponse
+        data = [
+            {
+                "tournament_id": tp.tournament.id,
+                "tournament_name": tp.tournament.tournament_name,
+                "player_name": tp.player.player,
+            }
+            for tp in pending_auths
+        ]
+        return Response({"pending_authentications": data})
+
+
+class ConfirmTournamentParticipationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, tournament_id):
+        player_name = request.data.get("player_name")
+        if not player_name:
+            return Response(
+                {"error": "Player name is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            tournament_player = TournamentPlayer.objects.get(
+                tournament_id=tournament_id,
+                player__user__username=request.user.username,
+                player__player=player_name,
+                authenticated=False,
+            )
+            tournament_player.authenticated = True
+            tournament_player.save()
+            return Response(
+                {"message": "Player authenticated successfully", "success": True},
+                status=status.HTTP_200_OK,
+            )
+        except TournamentPlayer.DoesNotExist:
+            return Response(
+                {"error": "Player not found or already authenticated"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:

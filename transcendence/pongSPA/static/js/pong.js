@@ -1,4 +1,4 @@
-import { displayGameForm, displayWelcomePage } from "./app.js";
+import { displayGameForm, displayWelcomePage, navigateTo } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 import { displayMenu } from "./menu.js";
 
@@ -109,17 +109,22 @@ function updateGamePanel() {
       const quitButton = document.createElement("button");
       quitButton.id = "quitGameButton";
       quitButton.textContent = "Quit Game";
+      quitButton.classList = "btn btn-danger";
       quitButton.onclick = function() {
         stopGameProcess();
         
+      console.log("Back to updateGamePanel: AFTER stopGameProcess");
         // Déterminer la fonction à appeler ensuite en fonction du contexte
-        const isTournamentMatch = localStorage.getItem("isTournamentMatch");
         if (isTournamentMatch === true) {
-          DisplayTournamentGame();
+          console.log("Quit in Tournament mode");
+          navigateTo('tournament');
+          // DisplayTournamentGame();
         } else if (isTournamentMatch=== false) {
-          const username = localStorage.getItem("username");
-          displayMenu(username);
-          displayWelcomePage()
+          // const username = localStorage.getItem("username");
+          console.log("Quit in Solo mode");
+          // displayMenu(username);
+          // displayWelcomePage();
+          navigateTo('welcome');
         }
       };
       gamePanel.appendChild(quitButton);
@@ -128,7 +133,6 @@ function updateGamePanel() {
 
   console.log("Call to updateGamePanel");
 }
-
 
 export function startGameSetup(gameSettings) {
 
@@ -281,12 +285,32 @@ function updateResults() {
   if (resultDiv) {
     resultDiv.style.display = "block";
     let summary = `
-      <h3>Set History:</h3>
+      <h3 class="mb-3">Set History:</h3>
+      <table class="table table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col">Set n°</th>
+            <th scope="col">${player1}</th>
+            <th scope="col">${player2}</th>
+          </tr>
+        </thead>
+        <tbody>
     `;
 
     setHistory.forEach((set, index) => {
-      summary += `Set ${index + 1}: ${player1} ${set.player1_score} - ${player2} ${set.player2_score}<br>`;
+      summary += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${set.player1_score}</td>
+          <td>${set.player2_score}</td>
+        </tr>
+      `;
     });
+
+    summary += `
+        </tbody>
+      </table>
+    `;
 
     document.getElementById("summary").innerHTML = summary;
   }
@@ -315,8 +339,7 @@ function handleGameEnd(winner) {
 }
 
 function displayResults(matchID) {
-  let isTournamentMatch = localStorage.getItem("isTournamentMatch"); // Si non défini, on suppose que c'est une partie solo
-
+  console.log("displayResults:: isTournamentMatch: ", isTournamentMatch);
   // Empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -338,27 +361,61 @@ function displayResults(matchID) {
     return response.json();
   })
   .then(data => {
+    console.log("displayResults .then:: isTournamentMatch: ", isTournamentMatch);
     let buttonText = isTournamentMatch === true ? 'Back to Tournament' : 'New Game';
+    console.log("displayResults::.then buttonText: ", buttonText);
 
-    let summary = `
-      <button id="backButton">${buttonText}</button>
-      <br><br>
-      <strong>${data.player1_name} vs ${data.player2_name}</strong><br>
-      <strong>${data.player1_sets_won} : ${data.player2_sets_won}</strong> (Number of sets)<br>
-      <strong>Winner: ${data.winner_name}</strong><br>
-      <h3>Set Details:</h3>
-    `;
+  let summary = `
+        <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
+        <h3 class="mt-3">Game Summary:</h3>
+        <table class="table table-sm">
+          <tbody>
+            <tr>
+              <td><strong>Game</strong></td>
+              <td>${data.player1_name} vs ${data.player2_name}</td>
+            </tr>
+            <tr>
+              <td><strong>Score (sets)</strong></td>
+              <td>${data.player1_sets_won} : ${data.player2_sets_won}</td>
+            </tr>
+            <tr>
+              <td><strong>Winner</strong></td>
+              <td>${data.winner_name}</td>
+            </tr>
+          </tbody>
+        </table>
+        <h3 class="mt-3">Set Details:</h3>
+        <table class="table table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col">Set n°</th>
+              <th scope="col">Set's score</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
 
-    if (data.sets && Array.isArray(data.sets)) {
-      data.sets.forEach((set, index) => {
+      if (data.sets && Array.isArray(data.sets)) {
+        data.sets.forEach((set, index) => {
+          summary += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${set.player1_score} - ${set.player2_score}</td>
+            </tr>
+          `;
+        });
+      } else {
         summary += `
-          <strong>Set n°${index + 1}:</strong><br>
-          ${set.player1_score} - ${set.player2_score}<br>
+          <tr>
+            <td colspan="2">No sets recorded.</td>
+          </tr>
         `;
-      });
-    } else {
-      summary += "No sets recorded.";
-    }
+      }
+
+      summary += `
+          </tbody>
+        </table>
+      `;
 
     let summaryDiv = document.getElementById("app_main");
     summaryDiv.innerHTML = summary;
@@ -368,7 +425,7 @@ function displayResults(matchID) {
       backButton.addEventListener("click", () => {
         summaryDiv.innerHTML = ""; 
 
-        if (gameType === 'tournament') {
+        if (isTournamentMatch === true) {
           DisplayTournamentGame();
         } else {
           displayGameForm();
@@ -779,11 +836,13 @@ function stopGameProcess() {
     console.log("WebSocket disconnected.");
   }
 
+    console.log("StopGameProcess: BEFORE cleaning app div");
  //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
+    console.log("StopGameProcess: AFTER cleaning app div");
   // Désactiver d'autres écouteurs si nécessaire
   // canvas.removeEventListener('mousemove', handleMouseMove);
 

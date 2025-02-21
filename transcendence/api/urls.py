@@ -3,19 +3,39 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from . import views
-from .views import (AnonymizeAccountView, AuthenticateMatchPlayerView,
-                    AuthenticateTournamentPlayerView,
-                    CustomTokenObtainPairView, CustomTokenRefreshView,
-                    CustomTokenValidateView, CustomUser, DeleteAccountView,
-                    FriendsOnlineStatusView, ListFriendsView, LogoutView,
-                    PongMatchDetail, PongMatchList, PongScoreView, RankingView,
-                    RemoveFriendView, RespondToFriendRequestView,
-                    SendFriendRequestView, TournamentCreationView,
-                    TournamentFinalizationView, TournamentMatchesView,
-                    TournamentPlayersView, TournamentSearchView,
-                    UploadAvatarView, UserDetailView, UserRegisterView,
-                    UserTournamentsView, ViewFriendRequestsView,
-                    check_player_exists)
+from .views import (
+    AnonymizeAccountView,
+    AuthenticateMatchPlayerView,
+    AuthenticateTournamentPlayerView,
+    ConfirmTournamentParticipationView,
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
+    CustomTokenValidateView,
+    CustomUser,
+    DeleteAccountView,
+    FriendsOnlineStatusView,
+    ListFriendsView,
+    LogoutView,
+    PendingTournamentAuthenticationsView,
+    PongMatchDetail,
+    PongMatchList,
+    PongScoreView,
+    RankingView,
+    RemoveFriendView,
+    RespondToFriendRequestView,
+    SendFriendRequestView,
+    TournamentCreationView,
+    TournamentFinalizationView,
+    TournamentMatchesView,
+    TournamentPlayersView,
+    TournamentSearchView,
+    UploadAvatarView,
+    UserDetailView,
+    UserRegisterView,
+    UserTournamentsView,
+    ViewFriendRequestsView,
+    check_player_exists,
+)
 
 urlpatterns = [
     path("user/tournaments/", UserTournamentsView.as_view(), name="user-tournaments"),
@@ -81,10 +101,19 @@ urlpatterns = [
         name="tournament_matches",
     ),
     path("user/exists/", views.check_user_exists, name="check_user_exists"),
+    path(
+        "user/pending-tournament-authentications/",
+        PendingTournamentAuthenticationsView.as_view(),
+        name="pending-tournament-authentications",
+    ),
     path("player/exists/", check_player_exists, name="check_player_exists"),
     path("ranking/", RankingView.as_view(), name="ranking"),
     path("tournaments/", TournamentSearchView.as_view(), name="search_tournaments"),
+    path(
+        "auth/confirm-participation/<int:tournament_id>/",
+        ConfirmTournamentParticipationView.as_view(),
+        name="confirm-tournament-participation",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
 
 # This ensures that media folder (which can also be mounted as a volume in production setups) is properly linked to Django project.

@@ -69,8 +69,10 @@ class PongMatchSerializer(serializers.ModelSerializer):
     player1_name = serializers.SerializerMethodField()
     player2_name = serializers.SerializerMethodField()
     winner_name = serializers.SerializerMethodField()
-    # sets = PongSetSerializer(many=True, read_only=False)
+    tournament_name = serializers.SerializerMethodField()
     sets = PongSetSerializer(many=True, read_only=False, required=False)
+    player1_total_points = serializers.SerializerMethodField()
+    player2_total_points = serializers.SerializerMethodField()
 
     class Meta:
         model = PongMatch
@@ -89,8 +91,11 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "player1_name",
             "player2_name",
             "winner_name",
+            "tournament_name",
             "sets",
             "is_played",
+            "player1_total_points",
+            "player2_total_points",
         ]
         extra_kwargs = {
             "user1": {"allow_null": True},
@@ -99,7 +104,10 @@ class PongMatchSerializer(serializers.ModelSerializer):
         }
 
     winner = serializers.SlugRelatedField(
-        read_only=False, slug_field="player", queryset=Player.objects.all()
+        read_only=False,
+        slug_field="player",
+        queryset=Player.objects.all(),
+        allow_null=True,
     )
 
     def get_player1_name(self, obj):
@@ -110,6 +118,15 @@ class PongMatchSerializer(serializers.ModelSerializer):
 
     def get_winner_name(self, obj):
         return obj.winner.player if obj.winner else "No winner"
+
+    def get_tournament_name(self, obj):
+        return obj.tournament.tournament_name if obj.tournament else "-"
+
+    def get_player1_total_points(self, obj):
+        return sum(set.player1_score or 0 for set in obj.sets.all())
+
+    def get_player2_total_points(self, obj):
+        return sum(set.player2_score or 0 for set in obj.sets.all())
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
