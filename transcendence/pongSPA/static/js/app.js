@@ -1,6 +1,6 @@
 import { startGameSetup } from "./pong.js";
 import { validateToken } from "./auth.js";
-import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists} from "./tournament.js";
+import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists } from "./tournament.js";
 import {
   anonymizeAccount,
   createAccount,
@@ -23,7 +23,7 @@ let isUserLoggedIn = false; //false for connection formular
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
 
-//  0. Clear all cookies
+  //  0. Clear all cookies
   document.cookie.split(";").forEach((c) => {
     console.log('clear the cookies');
     document.cookie = c
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadPrivacyPolicyModal();
 
-// 1. Determine the initial route based on the URL hash
+  // 1. Determine the initial route based on the URL hash
   let initialRoute = window.location.hash.replace('#', '') || 'login';
   console.log('Initial route determined:', initialRoute);
 
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isUserLoggedIn = false;
 
   // 2. Check if the user is logged in.
-    validateToken().then((isTokenValid) => {
+  validateToken().then((isTokenValid) => {
     console.log('validateToken resolved with:', isTokenValid);
     isUserLoggedIn = isTokenValid;
     if (isUserLoggedIn) {
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
   // 5. Listener for history changes
-    window.addEventListener("popstate", function(event) {
+  window.addEventListener("popstate", function (event) {
     console.log('Popstate event triggered. Current state:', event.state);
     let route;
     if (event.state) {
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('Navigating to route:', route);
     console.log('Custom History:', customHistory);
     handleRouteChange(route);
-    });
+  });
 });
 
 
@@ -132,7 +132,7 @@ function handleRouteChange(route) {
 
     if (publicRoutes.includes(route) || (isUserLoggedIn)) {
       console.log('Route is public or user is logged in');
-      switch(route) {
+      switch (route) {
         case 'login':
           if (!isUserLoggedIn) {
             displayConnectionFormular();
@@ -175,7 +175,7 @@ function handleRouteChange(route) {
             updateUI(displayWelcomePage);
           }
       }
-   } else {
+    } else {
       console.log('User not logged in, redirecting to login');
       navigateTo('login');
     }
@@ -230,13 +230,13 @@ export function showCustomModal(title, message, continueCallback) {
 
   // Gestion du bouton Cancel
   const cancelButton = document.getElementById('cancelButton');
-  cancelButton.onclick = function() {
+  cancelButton.onclick = function () {
     modal.hide();
   };
 
   // Gestion du bouton Continue
   const continueButton = document.getElementById('continueButton');
-  continueButton.onclick = function() {
+  continueButton.onclick = function () {
     continueCallback();
     modal.hide();
   };
@@ -324,39 +324,39 @@ function fetchPendingTournamentAuthentications() {
       "Content-Type": "application/json",
     },
   })
-  .then(response => response.json())
-  .then(data => {
-    const authList = document.getElementById("pendingTournamentAuthentications");
-    authList.innerHTML = "";
+    .then(response => response.json())
+    .then(data => {
+      const authList = document.getElementById("pendingTournamentAuthentications");
+      authList.innerHTML = "";
 
-    if (data.pending_authentications && data.pending_authentications.length > 0) {
-      data.pending_authentications.forEach(tournament => {
-        const listItem = document.createElement("li");
-        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-        listItem.innerHTML = `
+      if (data.pending_authentications && data.pending_authentications.length > 0) {
+        data.pending_authentications.forEach(tournament => {
+          const listItem = document.createElement("li");
+          listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+          listItem.innerHTML = `
           <span>${tournament.tournament_name} (as ${tournament.player_name})</span>
           <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">Confirm Participation</button>
         `;
-        authList.appendChild(listItem);
-      });
-
-      // Ajouter des événements pour les boutons "Confirm Participation"
-      document.querySelectorAll(".confirm-auth").forEach(button => {
-        button.addEventListener("click", event => {
-          const tournamentId = event.target.getAttribute("data-tournament-id");
-          const playerName = event.target.getAttribute("data-player-name");
-          confirmTournamentParticipation(tournamentId, playerName);
+          authList.appendChild(listItem);
         });
-      });
-    } else {
-      authList.innerHTML = `<li class="list-group-item text-center">No pending tournament authentications.</li>`;
-    }
-  })
-  .catch(error => {
-    console.error("Error fetching pending tournament authentications:", error);
-    const authList = document.getElementById("pendingTournamentAuthentications");
-    authList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading tournament authentications.</li>`;
-  });
+
+        // Ajouter des événements pour les boutons "Confirm Participation"
+        document.querySelectorAll(".confirm-auth").forEach(button => {
+          button.addEventListener("click", event => {
+            const tournamentId = event.target.getAttribute("data-tournament-id");
+            const playerName = event.target.getAttribute("data-player-name");
+            confirmTournamentParticipation(tournamentId, playerName);
+          });
+        });
+      } else {
+        authList.innerHTML = `<li class="list-group-item text-center">No pending tournament authentications.</li>`;
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching pending tournament authentications:", error);
+      const authList = document.getElementById("pendingTournamentAuthentications");
+      authList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading tournament authentications.</li>`;
+    });
 }
 
 function confirmTournamentParticipation(tournamentId, playerName) {
@@ -370,24 +370,24 @@ function confirmTournamentParticipation(tournamentId, playerName) {
       player_name: playerName // Pas besoin de username, car request.user le gère
     }),
   })
-  .then(response => {
-    if (!response.ok) throw new Error("Authentication failed: " + response.status);
-    return response.json();
-  })
-  .then(data => {
-    if (data.message === "Player authenticated successfully") {
-      console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
-      showModal('genericModal', 'Success', 'Participation confirmed successfully!', 'OK', () => {
-        fetchPendingTournamentAuthentications(); // Rafraîchir la liste
-      });
-    } else {
-      throw new Error("Unexpected response");
-    }
-  })
-  .catch(error => {
-    console.error("Error confirming participation:", error);
-    showModal('genericModal', 'Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
-  });
+    .then(response => {
+      if (!response.ok) throw new Error("Authentication failed: " + response.status);
+      return response.json();
+    })
+    .then(data => {
+      if (data.message === "Player authenticated successfully") {
+        console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
+        showModal('genericModal', 'Success', 'Participation confirmed successfully!', 'OK', () => {
+          fetchPendingTournamentAuthentications(); // Rafraîchir la liste
+        });
+      } else {
+        throw new Error("Unexpected response");
+      }
+    })
+    .catch(error => {
+      console.error("Error confirming participation:", error);
+      showModal('genericModal', 'Error', 'Failed to confirm participation. Please try again.', 'OK', () => { });
+    });
 }
 
 
@@ -443,7 +443,7 @@ export function fetchPendingFriendRequests() {
 
 export function displayTournament() {
 
-      console.log('Tournament');
+  console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <div class="container py-4">
@@ -453,10 +453,10 @@ export function displayTournament() {
           New Tournament
         </button>
         <div class="d-flex align-items-center gap-2" id="searchTournament">
-          <input 
-            type="text" 
-            id="tournamentNameInput" 
-            class="form-control form-control-lg rounded-pill" 
+          <input
+            type="text"
+            id="tournamentNameInput"
+            class="form-control form-control-lg rounded-pill"
             placeholder="Tournament Name"
           >
           <button id="tournamentSearchButton" class="btn btn-secondary btn-sm px-4 py-2 rounded-pill shadow">
@@ -471,24 +471,24 @@ export function displayTournament() {
   // let resultDiv = document.getElementById("app_main");
   //   resultDiv.style.display = "block";
 
-    document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
-    document.getElementById("tournamentSearchButton").addEventListener("click", () => {
-      const tournamentNameInput = document.getElementById("tournamentNameInput");
-      if (!tournamentNameInput) {
-        console.error("The element 'tournamentNameInput'  is not available.");
-        return;
-      }
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      console.error("The element 'tournamentNameInput'  is not available.");
+      return;
+    }
 
-      const tournamentName = tournamentNameInput.value;
-      if (!tournamentName) {
-        alert("Please enter a tournament name.");
-        return;
-      }
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      alert("Please enter a tournament name.");
+      return;
+    }
 
-      localStorage.setItem("tournamentName", tournamentName);
-      validateSearch();
-    });
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
 
 }
 
@@ -607,10 +607,10 @@ export function displaySettings() {
       displayHTMLforSettings(user);
     })
     .catch(error => {
-    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+      const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
 
-    const appDiv = document.getElementById("app_main");
-    appDiv.innerHTML = `
+      const appDiv = document.getElementById("app_main");
+      appDiv.innerHTML = `
     <div class="container mt-4">
       <h3 class="text-center">Account Management</h3>
 
@@ -658,13 +658,13 @@ export function displaySettings() {
        </div>
     `;
 
-    document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-    document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
-    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
-    document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
-  })
-  .catch(error => {
-    console.error("Error loading user data:", error);
+      document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+      document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+      document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+      document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+    })
+    .catch(error => {
+      console.error("Error loading user data:", error);
     });
 
 }
@@ -965,13 +965,13 @@ function fetchRanking() {
 }
 
 export function displayGameForm() {
-  
+
   //empty all the containers
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  localStorage.setItem("isTournamentMatch", false); 
+  localStorage.setItem("isTournamentMatch", false);
   const formContainer = document.getElementById("app_main");
   const username = localStorage.getItem("username")
 
@@ -989,142 +989,190 @@ export function displayGameForm() {
   };
 
   formContainer.innerHTML = `
-<form id="gameForm" class="container w-100">
-  
-    <ul class="nav nav-pills mb-3 d-flex justify-content-center" id="pills-tab" role="tablist">
-        <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="pills-game-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab" aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
-        </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pills-match-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab" aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pills-player-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab" aria-controls="pills-player-settings" aria-selected="false">Player Settings</button>
-      </li>
-    </ul>
-    <div class="tab-content" id="pills-tabContent">
-      <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
-        <div class="d-flex justify-content-center mt-3">
-          <!-- Game Settings Container -->
-          <div class="col p-3 d-flex flex-column">
-            <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
-            <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-              <div class="mb-3">
-                <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
-                <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
-                  <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-                  <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
-                <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-                  <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-                  <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-                  <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
-                <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
-                  <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-                  <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
-                </div>
-              </div>
-            </div>
+  <form id="gameForm" class="container w-100">
+
+	<ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active border border-primary border-opacity-50 rounded-0" id="pills-player-settings-tab"
+        data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
+        aria-controls="pills-player-settings" aria-selected="true">Player Settings</button>
+    </li>
+
+		<li class="nav-item" role="presentation">
+    <button class="nav-link border border-primary border-opacity-50 rounded-0" id="pills-match-settings-tab"
+    data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
+    aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
+		</li>
+
+    <li class="nav-item" role="presentation">
+      <button class="nav-link border border-primary border-opacity-50 rounded-0"
+        id="pills-game-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button"
+        role="tab" aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+	  </li>
+  </ul>
+
+
+	<div class="tab-content" id="pills-tabContent">
+  <div class="tab-pane fade show active" id="pills-player-settings" role="tabpanel"
+    aria-labelledby="pills-player-settings-tab">
+    <div class="d-flex justify-content-between align-items-stretch mt-3">
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player
+          1</h3>
+        <div
+          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div class="mb-3">
+            <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
+              class="form-label">Name:</label>
+            <input type="text" id="player1" value="${gameSettings.player1}"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control"
+              disabled>
           </div>
-        </div>
-    </div>
-
-
-
-    <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
-      <div class="d-flex justify-content-center mt-3">
-        <!-- Match Settings Container -->
-        <div class="col p-3 d-flex flex-column">
-          <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
-          <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-            <div class="mb-3">
-              <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
-              <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2" style="width: 60px;">
-            </div>
-            <div class="mb-3">
-              <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
-              <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
-      <div class="d-flex justify-content-between align-items-stretch mt-3">
-        <div class="col p-3 d-flex flex-column">
-          <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
-          <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-            <div class="mb-3">
-              <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Name:</label>
-              <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control" disabled>
-            </div>
-            <div class="mb-3">
-              <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
-              <select id="control1" class="form-select">
-                <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-                <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
-              </select>
+          <div class="mb-3">
+            <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
+              class="form-label">Control:</label>
+            <select id="control1" class="form-select">
+              <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows"
+                ${gameSettings.control1==="arrows" ? "selected" : "" }>Arrow Keys</option>
+              <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd"
+                ${gameSettings.control1==="wasd" ? "selected" : "" }>WASD</option>
+              <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse"
+                ${gameSettings.control1==="mouse" ? "selected" : "" }>Mouse</option>
+            </select>
           </div>
         </div>
       </div>
 
       <div class="col p-3 d-flex flex-column">
-        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
-        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player
+          2</h3>
+        <div
+          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
           <div class="mb-3">
-            <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
-            <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+            <label for="player2" class="form-label"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
+            <input type="text" id="player2" value="${gameSettings.player2}" class="form-control"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
           </div>
-          <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+          <div id="control2Container" class="mb-3" style="${gameSettings.mode === " solo"
+            ? "display:none;" : "display:block;" }">
             <label for="control2" class="form-label">Control:</label>
             <select id="control2" class="form-select">
-              <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-              <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-              <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+              <option value="wasd" ${gameSettings.control2==="wasd" ? "selected" : "" }>WASD</option>
+              <option value="arrows" ${gameSettings.control2==="arrows" ? "selected" : "" }>Arrow Keys
+              </option>
+              <option value="mouse" ${gameSettings.control2==="mouse" ? "selected" : "" }>Mouse
+              </option>
             </select>
           </div>
         </div>
       </div>
     </div>
-  
-    <div class="text-center mt-4">
-      <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
-    </div>
-  </form>
-  
-  <div id="result" style="display: none;">
-    <h2>Game Results</h2>
-    <p id="summary"></p>
   </div>
+
+
+	<div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
+			<div class="d-flex justify-content-center mt-3">
+				<!-- Match Settings Container -->
+				<div class="col p-3 d-flex flex-column">
+					<h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match
+						Settings</h3>
+					<div
+						class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+						<div class="mb-3">
+							<label for="numberOfGames" class="form-label"
+								style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of
+								Games:</label>
+							<input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1"
+								max="5" class="form-control p-2" style="width: 60px;">
+						</div>
+						<div class="mb-3">
+							<label for="setsPerGame" class="form-label"
+								style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+							<input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5"
+								class="form-control" style="width: 60px;">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="tab-pane fade" id="pills-game-settings" role="tabpanel"
+			aria-labelledby="pills-game-settings-tab">
+			<div class="d-flex justify-content-center mt-3">
+				<div class="col p-3 d-flex flex-column">
+					<h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game
+						Settings</h3>
+					<div
+						class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+						<div class="mb-3">
+							<label class="form-label"
+								style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
+							<div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
+								<button id="onePlayer" class="mode-button btn ${gameSettings.mode === " solo"
+									? "btn-primary" : "btn-outline-primary" }" type="button">1 Player</button>
+								<button id="twoPlayers" class="mode-button btn ${gameSettings.mode === " multiplayer"
+									? "btn-primary" : "btn-outline-primary" }" type="button">2 Players</button>
+							</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label"
+								style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
+							<div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
+								<button class="difficulty-button btn ${gameSettings.difficulty === " easy"
+									? "btn-primary" : "btn-outline-primary" }" id="easy" type="button">Easy</button>
+								<button class="difficulty-button btn ${gameSettings.difficulty === " medium"
+									? "btn-primary" : "btn-outline-primary" }" id="medium" type="button">Medium</button>
+								<button class="difficulty-button btn ${gameSettings.difficulty === " hard"
+									? "btn-primary" : "btn-outline-primary" }" id="hard" type="button">Hard</button>
+							</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label"
+								style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
+							<div class="btn-group d-flex pag-2" role="group" aria-label="Design">
+								<button class="design-button btn ${gameSettings.design === " retro" ? "btn-primary"
+									: "btn-outline-primary" }" id="retro" type="button">Retro</button>
+								<button class="design-button btn ${gameSettings.design === " neon" ? "btn-primary"
+									: "btn-outline-primary" }" id="neon" type="button">Neon</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+<div class="text-center mt-4">
+	<button id="startGameButton" class="btn btn-success" type="button">Start Game</button>
+</div>
+
+<div id="result" style="display: none;">
+	<h2>Game Results</h2>
+	<p id="summary"></p>
+</div>
+
   `;
 
-    function toggleActiveButton(group, selectedId) {
-      document.querySelectorAll(group).forEach(button => {
-        button.classList.remove('btn-primary');
-        button.classList.add('btn-outline-primary');
-      });
-      document.getElementById(selectedId).classList.remove('btn-outline-primary');
-      document.getElementById(selectedId).classList.add('btn-primary');
+  function toggleActiveButton(group, selectedId) {
+    document.querySelectorAll(group).forEach(button => {
+      button.classList.remove('btn-primary');
+      button.classList.add('btn-outline-primary');
+    });
+    document.getElementById(selectedId).classList.remove('btn-outline-primary');
+    document.getElementById(selectedId).classList.add('btn-primary');
   }
 
   document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
-      button.addEventListener("click", function() {
-          toggleActiveButton(`.${this.classList[0]}`, this.id);
-      });
+    button.addEventListener("click", function () {
+      toggleActiveButton(`.${this.classList[0]}`, this.id);
+    });
   });
 
   let isTwoPlayerMode = false;
-  document.getElementById("onePlayer").addEventListener("click", function() {
+  document.getElementById("onePlayer").addEventListener("click", function () {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "Bot-AI";
     gameSettings.player2 = "Bot-AI";
@@ -1141,7 +1189,7 @@ export function displayGameForm() {
     gameSettings.mode = "solo";
   });
 
-  document.getElementById("twoPlayers").addEventListener("click", function() {
+  document.getElementById("twoPlayers").addEventListener("click", function () {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = ""; // Laissez vide pour permettre à l'utilisateur de saisir
     gameSettings.player2 = ""; // Réinitialisez également dans gameSettings
@@ -1161,15 +1209,15 @@ export function displayGameForm() {
     gameSettings.mode = "multiplayer";
   });
 
-  document.getElementById("numberOfGames").addEventListener("input", function() {
+  document.getElementById("numberOfGames").addEventListener("input", function () {
     gameSettings.numberOfGames = parseInt(this.value);
   });
 
-  document.getElementById("setsPerGame").addEventListener("input", function() {
+  document.getElementById("setsPerGame").addEventListener("input", function () {
     gameSettings.setsPerGame = parseInt(this.value);
   });
 
-  document.getElementById("player2").addEventListener("input", function() {
+  document.getElementById("player2").addEventListener("input", function () {
     gameSettings.player2 = this.value;
   });
 
@@ -1192,20 +1240,20 @@ export function displayGameForm() {
   });
 
   document.querySelectorAll(".difficulty-button").forEach(button => {
-    button.addEventListener("click", function() {
+    button.addEventListener("click", function () {
       gameSettings.difficulty = this.id;
     });
   });
 
   document.querySelectorAll(".design-button").forEach(button => {
-    button.addEventListener("click", function() {
+    button.addEventListener("click", function () {
       gameSettings.design = this.id;
     });
   });
 
-  let alertShown = false; 
-  let lastCheckedPlayer2 = ""; 
-  let needAuth = false; 
+  let alertShown = false;
+  let lastCheckedPlayer2 = "";
+  let needAuth = false;
 
   document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
@@ -1217,7 +1265,7 @@ export function displayGameForm() {
 
     if (!alertShown || player2 !== lastCheckedPlayer2) {
       alertShown = false;
-      needAuth = false;  
+      needAuth = false;
       if (isTwoPlayerMode) {
         try {
           const playerData = await checkPlayerExists(player2);
@@ -1232,7 +1280,7 @@ export function displayGameForm() {
           if (playerData.exists && !playerData.is_guest) {
             // Affiche la modale pour joueur enregistré
             registeredUserModal.show();
-            document.getElementById('authNeeded').addEventListener('click', function() {
+            document.getElementById('authNeeded').addEventListener('click', function () {
               alertShown = true;
               lastCheckedPlayer2 = player2;
               needAuth = true;
@@ -1242,7 +1290,7 @@ export function displayGameForm() {
           } else if (playerData.exists) {
             // Affiche la modale pour joueur invité
             guestPlayerModal.show();
-            document.getElementById('continueWithGuest').addEventListener('click', function() {
+            document.getElementById('continueWithGuest').addEventListener('click', function () {
               alertShown = true;
               lastCheckedPlayer2 = player2;
               guestPlayerModal.hide(); // Ferme la modale après l'action
@@ -1267,17 +1315,17 @@ export function displayGameForm() {
     // Vérification de l'authentification après les alertes pour les utilisateurs enregistrés
     // et lancement du jeu pour les joueurs invités existants après le deuxième clic
     if (needAuth) {
-        // Ici, c'est le deuxième clic qui déclenche l'authentification
-        const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
-        if (authResult) {
-            startGameSetup(gameSettings);
-        }
+      // Ici, c'est le deuxième clic qui déclenche l'authentification
+      const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
+      if (authResult) {
+        startGameSetup(gameSettings);
+      }
     } else if (player2 !== lastCheckedPlayer2) {
-        // Si player2 a changé, on lance le jeu directement
-        startGameSetup(gameSettings);
+      // Si player2 a changé, on lance le jeu directement
+      startGameSetup(gameSettings);
     } else {
-        // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
-        startGameSetup(gameSettings);
+      // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
+      startGameSetup(gameSettings);
     }
 
     console.log("Starting game with settings:", gameSettings);
@@ -1292,7 +1340,7 @@ export function displayGameForm() {
 //   document.getElementById('app_main').innerHTML = '';
 //   document.getElementById('app_bottom').innerHTML = '';
 //
-//   localStorage.setItem("isTournamentMatch", false); 
+//   localStorage.setItem("isTournamentMatch", false);
 //   const formContainer = document.getElementById("app_main");
 //   const username = localStorage.getItem("username")
 //
@@ -1491,9 +1539,9 @@ export function displayGameForm() {
 //     });
 //   });
 //
-//   let alertShown = false; 
-//   let lastCheckedPlayer2 = ""; 
-//   let needAuth = false; 
+//   let alertShown = false;
+//   let lastCheckedPlayer2 = "";
+//   let needAuth = false;
 //
 // document.getElementById("startGameButton").addEventListener("click", async () => {
 //     const player1 = username;
@@ -1505,7 +1553,7 @@ export function displayGameForm() {
 //
 //     if (!alertShown || player2 !== lastCheckedPlayer2) {
 //         alertShown = false;
-//         needAuth = false;  
+//         needAuth = false;
 //         if (isTwoPlayerMode) {
 //             try {
 //                 const playerData = await checkPlayerExists(player2);
@@ -1598,7 +1646,7 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
     const modalBootstrap = new bootstrap.Modal(loginModal);
     modalBootstrap.show();
 
-    document.getElementById('submitLogin').addEventListener('click', async function() {
+    document.getElementById('submitLogin').addEventListener('click', async function () {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 

@@ -5,7 +5,14 @@
 
 /* styles.css */
 
+h3 {
+	font-family: 'Press Start 2P', cursive; font-size: 24px;
+}
 
+#menu > div {
+	width: 150px;
+	background-color: brown;
+}
 
 /* .btn { */
 /*   font-family: 'Press Start 2P', cursive; */
@@ -18,12 +25,12 @@
 
 /* html { */
 /*   font-family: 'Press Start 2P', cursive; */
-/*   font-size: 16px; /* Taille de base recommandée pour lisibilité */ 
+/*   font-size: 16px; /* Taille de base recommandée pour lisibilité */
 /* } */
 /**/
-/* /* Désactiver le lissage pour un rendu net */ 
+/* /* Désactiver le lissage pour un rendu net */
 /* body { */
-/*   -webkit-font-smoothing: none; /* Chrome, Safari */ 
-/*   -moz-osx-font-smoothing: none; /* Firefox macOS */ 
-/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois utile */ 
+/*   -webkit-font-smoothing: none; /* Chrome, Safari */
+/*   -moz-osx-font-smoothing: none; /* Firefox macOS */
+/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois utile */
 /* } */
