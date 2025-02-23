@@ -6,24 +6,196 @@
 /* styles.css */
 
 
+/*CSS Maria*/
+h3 {
+	font-family: 'Press Start 2P', cursive; font-size: 24px;
+}
 
-/* .btn { */
-/*   font-family: 'Press Start 2P', cursive; */
-/*   font-size: 12px; /* Gardez votre taille si vous voulez */ */
-/*   -webkit-font-smoothing: none; /* Désactive le lissage sur Webkit (Chrome, Safari) */ */
-/*   -moz-osx-font-smoothing: none; /* Désactive le lissage sur Firefox macOS */ */
-/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois efficace */ */
-/* } */
-/**/
+#menu > div {
+	width: 150px;
+	background-color: brown;
+}
 
-/* html { */
-/*   font-family: 'Press Start 2P', cursive; */
-/*   font-size: 16px; /* Taille de base recommandée pour lisibilité */ 
-/* } */
-/**/
-/* /* Désactiver le lissage pour un rendu net */ 
-/* body { */
-/*   -webkit-font-smoothing: none; /* Chrome, Safari */ 
-/*   -moz-osx-font-smoothing: none; /* Firefox macOS */ 
-/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois utile */ 
-/* } */
+/* Style global de base */
+html {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px; /* Taille de base pour une bonne lisibilité */
+}
+
+/* Désactiver le lissage des polices pour un effet rétro net */
+body {
+  -webkit-font-smoothing: none; /* Chrome, Safari */
+  -moz-osx-font-smoothing: none; /* Firefox macOS */
+  font-smooth: never; /* Non standard, mais parfois utile */
+  background-color: #f8f9fa; /* Couleur de fond légère pour contraste */
+  color: #212529; /* Texte sombre par défaut pour lisibilité */
+}
+
+/* Titres avec tailles décroissantes selon leur importance */
+h1 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 32px; /* Plus grand pour h1 */
+  text-align: center;
+  padding: 10px 0;
+}
+
+h2 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 28px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+h3 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 24px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+h4 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+h5 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 18px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+h6 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+/* Conteneurs principaux */
+.container, .col {
+  padding: 15px;
+}
+
+/* Onglets de navigation */
+.nav-pills .nav-link {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 15px;
+  color: #007bff;
+  background-color: #fff;
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  margin: 0 5px;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Contenu des onglets */
+.tab-content {
+  margin-top: 20px;
+}
+
+.tab-pane .border {
+  border: 2px solid #007bff !important;
+  border-radius: 5px;
+  padding: 15px;
+  background-color: #fff;
+}
+
+/* Étiquettes */
+.form-label {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 15px;
+  color: #212529;
+}
+
+/* Boutons */
+.btn {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: none;
+  font-smooth: never;
+  padding: 10px 20px; /* Espacement vertical (10px) et horizontal (20px) accru */
+  border-radius: 5px;
+  margin: 5px; /* Espacement extérieur entre les boutons */
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Boutons dans un btn-group : pas d'espacement supplémentaire */
+.btn-group .btn {
+  margin: 0; /* Annule l'espacement extérieur pour btn-group */
+  padding: 10px 15px; /* Padding légèrement réduit horizontalement pour cohérence */
+}
+
+/* Champs de formulaire */
+.form-control, .form-select {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 15px;
+  padding: 8px;
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #212529;
+}
+
+.form-control:disabled {
+  background-color: #e9ecef;
+}
+
+/* Spécifique aux inputs numériques */
+input[type="number"] {
+  width: 60px;
+}
+
+/* Section des résultats */
+#result {
+  margin-top: 20px;
+  padding: 15px;
+  border: 2px solid #007bff;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+#result h2 {
+  font-size: 28px; /* Ajusté pour correspondre à la hiérarchie */
+}
+
+#summary {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 15px;
+}
+
+/* Menu (si utilisé ailleurs) */
+#menu > div {
+  width: 150px;
+  background-color: brown;
+  padding: 10px;
+  border: 2px solid #fff;
+  border-radius: 5px;
+}
