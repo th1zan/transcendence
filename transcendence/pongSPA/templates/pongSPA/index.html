@@ -49,26 +49,23 @@
         <p class="m-0">© 2025 PONG - All rights reserved</p>
     </footer>
 
-    <!-- Canevas pour les modales -->
-    <div id="modalsContainer">
-        <!-- Modale 1: modale générique -->
-        <div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="genericModalLabel">Generic Modal</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="genericModalBody">
-                        <!-- Le contenu sera inséré ici dynamiquement -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" id="genericModalCancel" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="genericModalAction">Action</button>
-                    </div>
-                </div>
-            </div>
+    <!-- Modale avec un seul bouton personnalisé (information/warning) -->
+    <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="customModalLabel">Custom Modal</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="customModalBody">
+            <!-- Le contenu sera inséré ici dynamiquement -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="customModalAction">OK</button>
+          </div>
         </div>
+      </div>
+    </div>
 
     <!-- Modale pour la fin de partie -->
     <div class="modal fade" id="gameEndModal" tabindex="-1" aria-labelledby="gameEndModalLabel" aria-hidden="true">

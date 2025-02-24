@@ -186,36 +186,59 @@ function handleRouteChange(route) {
 }
 
 
-// Fonction générique pour afficher une modale
 export function showModal(modalId, title, message, actionText, actionCallback) {
   const modalElement = document.getElementById(modalId);
+  if (!modalElement) {
+    console.error(`Modal element with ID ${modalId} not found`);
+    return;
+  }
+
   const modal = new bootstrap.Modal(modalElement, {
     keyboard: false
   });
 
   // Mise à jour du titre
-  document.getElementById(`${modalId}Label`).textContent = title;
+  const titleElement = document.getElementById(`${modalId}Label`);
+  if (titleElement) {
+    titleElement.textContent = title;
+  } else {
+    console.error(`Title element for ${modalId}Label not found`);
+  }
 
   // Mise à jour du message avec l'ID correct selon la modale
-  const bodyElement = (modalId === 'gameEndModal') 
-    ? document.getElementById('gameEndMessage') 
-    : document.getElementById(`${modalId}Body`);
+  const bodyIds = {
+    'gameEndModal': 'gameEndMessage',
+    'genericModal': 'genericModalBody',
+    'customModal': 'customModalBody'
+  };
+  const bodyElement = document.getElementById(bodyIds[modalId] || `${modalId}Body`);
   if (bodyElement) {
     bodyElement.textContent = message;
   } else {
     console.error(`Modal body element not found for ${modalId}`);
   }
 
-  // Mise à jour du bouton d'action
-  const actionButton = document.getElementById('nextGameButton'); // ID spécifique pour gameEndModal
+  // Mise à jour du bouton d'action avec l'ID correct selon la modale
+  const actionButtonIds = {
+    'gameEndModal': 'nextGameButton',
+    'genericModal': 'genericModalAction',
+    'customModal': 'customModalAction' // Utilisation de customModalAction pour un seul bouton
+  };
+  const actionButtonId = actionButtonIds[modalId] || `${modalId}Action`;
+  const actionButton = document.getElementById(actionButtonId);
+
   if (actionButton) {
-    actionButton.textContent = actionText;
+    actionButton.textContent = actionText || 'OK'; // Utiliser actionText ou une valeur par défaut
     actionButton.removeEventListener('click', actionButton.handler);
     actionButton.addEventListener('click', function handler() {
-      actionCallback();
-      modal.hide();
+      if (actionCallback) {
+        actionCallback();
+      }
+      modal.hide(); // Toujours fermer la modale après l’action
     });
     actionButton.handler = actionButton.onclick;
+  } else {
+    console.error(`Action button for ${actionButtonId} not found`);
   }
 
   // Affiche la modale et déplace le focus
