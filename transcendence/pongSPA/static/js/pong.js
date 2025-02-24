@@ -1,4 +1,4 @@
-import { displayGameForm, displayWelcomePage, navigateTo } from "./app.js";
+import { displayGameForm, displayWelcomePage, navigateTo, showModal } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 import { displayMenu } from "./menu.js";
 
@@ -323,19 +323,26 @@ function handleGameEnd(winner) {
   updateResults();
 
   if (currentGame < numberOfGames) {
-    alert(`${winner} wins this game! Starting the next game...`);
-    resetScores();
-    updateResults(); // Mettre à jour les résultats avant de démarrer le prochain jeu
-    startPongGame(); // Démarrer la prochaine partie
+    // Remplacer l'alert par une modale
+    showModal(
+      'gameEndModal',
+      'Game Result', // Titre
+      `${winner} wins this game! Starting the next game...`, // Message
+      'Next Game', // Texte du bouton d'action
+      () => { // Callback pour l'action
+        resetScores();
+        updateResults();
+        startPongGame();
+      }
+    );
   } else {
     sendScore().then((matchID) => {
       stopGameProcess();
-      displayResults(matchID); // Passer matchID comme argument
+      displayResults(matchID);
     }).catch((error) => {
       console.error("Error in game end processing:", error);
     });
   }
-
 }
 
 function displayResults(matchID) {

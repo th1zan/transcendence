@@ -193,27 +193,35 @@ export function showModal(modalId, title, message, actionText, actionCallback) {
     keyboard: false
   });
 
-  // Mise à jour du titre et du message
+  // Mise à jour du titre
   document.getElementById(`${modalId}Label`).textContent = title;
-  document.getElementById(`${modalId}Body`).textContent = message;
 
-  // Mise à jour du texte du bouton d'action et ajout de l'écouteur d'événement
-  const actionButton = document.getElementById(`${modalId}Action`);
+  // Mise à jour du message avec l'ID correct selon la modale
+  const bodyElement = (modalId === 'gameEndModal') 
+    ? document.getElementById('gameEndMessage') 
+    : document.getElementById(`${modalId}Body`);
+  if (bodyElement) {
+    bodyElement.textContent = message;
+  } else {
+    console.error(`Modal body element not found for ${modalId}`);
+  }
+
+  // Mise à jour du bouton d'action
+  const actionButton = document.getElementById('nextGameButton'); // ID spécifique pour gameEndModal
   if (actionButton) {
     actionButton.textContent = actionText;
-    actionButton.removeEventListener('click', actionButton.handler); // Supprime l'ancien écouteur
+    actionButton.removeEventListener('click', actionButton.handler);
     actionButton.addEventListener('click', function handler() {
       actionCallback();
       modal.hide();
     });
-    actionButton.handler = actionButton.onclick; // Stocke le nouvel écouteur
+    actionButton.handler = actionButton.onclick;
   }
 
   // Affiche la modale et déplace le focus
   modal.show();
-  const focusableElement = modalElement.querySelector(`#${modalId}Action`); // Focus sur le bouton "Action"
-  if (focusableElement) {
-    focusableElement.focus(); // Déplace le focus dans la modale
+  if (actionButton) {
+    actionButton.focus();
   }
 }
 
