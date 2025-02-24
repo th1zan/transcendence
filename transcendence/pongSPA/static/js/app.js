@@ -186,7 +186,8 @@ function handleRouteChange(route) {
 }
 
 
-export function showModal(modalId, title, message, actionText, actionCallback) {
+export function showModal(title, message, actionText, actionCallback) {
+  const modalId = 'oneButtonModal';
   const modalElement = document.getElementById(modalId);
   if (!modalElement) {
     console.error(`Modal element with ID ${modalId} not found`);
@@ -205,40 +206,28 @@ export function showModal(modalId, title, message, actionText, actionCallback) {
     console.error(`Title element for ${modalId}Label not found`);
   }
 
-  // Mise à jour du message avec l'ID correct selon la modale
-  const bodyIds = {
-    'gameEndModal': 'gameEndMessage',
-    'genericModal': 'genericModalBody',
-    'customModal': 'customModalBody'
-  };
-  const bodyElement = document.getElementById(bodyIds[modalId] || `${modalId}Body`);
+  // Mise à jour du message
+  const bodyElement = document.getElementById(`${modalId}Body`);
   if (bodyElement) {
     bodyElement.textContent = message;
   } else {
     console.error(`Modal body element not found for ${modalId}`);
   }
 
-  // Mise à jour du bouton d'action avec l'ID correct selon la modale
-  const actionButtonIds = {
-    'gameEndModal': 'nextGameButton',
-    'genericModal': 'genericModalAction',
-    'customModal': 'customModalAction' // Utilisation de customModalAction pour un seul bouton
-  };
-  const actionButtonId = actionButtonIds[modalId] || `${modalId}Action`;
-  const actionButton = document.getElementById(actionButtonId);
-
+  // Mise à jour du bouton d'action
+  const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
-    actionButton.textContent = actionText || 'OK'; // Utiliser actionText ou une valeur par défaut
+    actionButton.textContent = actionText || 'Close'; // Utiliser actionText ou "Close" par défaut
     actionButton.removeEventListener('click', actionButton.handler);
     actionButton.addEventListener('click', function handler() {
       if (actionCallback) {
-        actionCallback();
+        actionCallback(); // Exécuter l’action supplémentaire si nécessaire
       }
       modal.hide(); // Toujours fermer la modale après l’action
     });
     actionButton.handler = actionButton.onclick;
   } else {
-    console.error(`Action button for ${actionButtonId} not found`);
+    console.error(`Action button for ${modalId}Action not found`);
   }
 
   // Affiche la modale et déplace le focus
@@ -247,36 +236,6 @@ export function showModal(modalId, title, message, actionText, actionCallback) {
     actionButton.focus();
   }
 }
-
-// Fonction pour afficher une modale avec deux boutons personnalisés
-export function showCustomModal(title, message, continueCallback) {
-  const modalElement = document.getElementById('customModal');
-  const modal = new bootstrap.Modal(modalElement, {
-    keyboard: false
-  });
-
-  // Mise à jour du titre et du message
-  document.getElementById('customModalLabel').textContent = title;
-  document.getElementById('customModalBody').textContent = message;
-
-  // Gestion du bouton Cancel
-  const cancelButton = document.getElementById('cancelButton');
-  cancelButton.onclick = function() {
-    modal.hide();
-  };
-
-  // Gestion du bouton Continue
-  const continueButton = document.getElementById('continueButton');
-  continueButton.onclick = function() {
-    continueCallback();
-    modal.hide();
-  };
-
-  // Affiche la modale et déplace le focus
-  modal.show();
-  continueButton.focus(); // Focus sur le bouton "Continue"
-}
-
 
 function displayQuickStats(data, playerName) {
   if (!Array.isArray(data) || data.length === 0) {
@@ -506,7 +465,7 @@ function confirmTournamentParticipation(tournamentId, playerName) {
   .then(data => {
     if (data.message === "Player authenticated successfully") {
       console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
-      showModal('genericModal', 'Success', 'Participation confirmed successfully!', 'OK', () => {
+      showModal('Success', 'Participation confirmed successfully!', 'OK', () => {
         fetchPendingTournamentAuthentications(); // Rafraîchir la liste
       });
     } else {
@@ -515,7 +474,7 @@ function confirmTournamentParticipation(tournamentId, playerName) {
   })
   .catch(error => {
     console.error("Error confirming participation:", error);
-    showModal('genericModal', 'Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
+    showModal('Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
   });
 }
 
@@ -845,9 +804,8 @@ export function displayStats() {
       </div>
     </div>
   `;
-
-  // Supprime les anciens écouteurs pour éviter les doublons
-  // removeEventListeners();
+  //display user results
+  fetchResultats();
 
   // Ajoute les nouveaux écouteurs
   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
@@ -1011,7 +969,7 @@ function fetchResultats(player = null) {
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3 class="mb-3">Results for ${player || "You"}:</h3>
+        <!-- <h3 class="mb-3">Results for ${player || "You"}:</h3> -->
         ${displaySummaryStats(data, player || "You")}
         <div class="card mb-4 shadow-sm">
           <div class="card-body">
@@ -1354,42 +1312,8 @@ export function displayGameForm() {
       <p id="summary"></p>
     </div>
 
-    <!-- Modales ajoutées ici -->
-    <div class="modal fade" id="registeredUserModal" tabindex="-1" aria-labelledby="registeredUserModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="registeredUserModalLabel">Utilisateur enregistré</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Cet utilisateur est enregistré. Une authentification est requise.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-            <button type="button" class="btn btn-primary" id="authNeeded">Authentifier</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Modale personnalisée ajoutée ici -->
 
-    <div class="modal fade" id="guestPlayerModal" tabindex="-1" aria-labelledby="guestPlayerModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="guestPlayerModalLabel">Joueur invité</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Cet utilisateur est un invité. Voulez-vous continuer ?
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-            <button type="button" class="btn btn-primary" id="continueWithGuest">Continuer</button>
-          </div>
-        </div>
-      </div>
-    </div>
   `;
 
   // Fonction pour basculer les boutons actifs
@@ -1520,29 +1444,30 @@ export function displayGameForm() {
         try {
           const playerData = await checkPlayerExists(player2);
 
-          const registeredUserModal = new bootstrap.Modal(document.getElementById('registeredUserModal'), {
-            keyboard: false
-          });
-          const guestPlayerModal = new bootstrap.Modal(document.getElementById('guestPlayerModal'), {
-            keyboard: false
-          });
-
           if (playerData.exists && !playerData.is_guest) {
-            registeredUserModal.show();
-            document.getElementById('authNeeded').addEventListener('click', function() {
-              alertShown = true;
-              lastCheckedPlayer2 = player2;
-              needAuth = true;
-              registeredUserModal.hide();
-            });
+            // Utiliser oneButtonModal pour indiquer qu'une authentification est requise
+            showModal(
+              'Utilisateur enregistré',
+              'Cet utilisateur est enregistré. Une authentification est requise.',
+              'OK',
+              () => {
+                alertShown = true;
+                lastCheckedPlayer2 = player2;
+                needAuth = true;
+              }
+            );
             return;
           } else if (playerData.exists) {
-            guestPlayerModal.show();
-            document.getElementById('continueWithGuest').addEventListener('click', function() {
-              alertShown = true;
-              lastCheckedPlayer2 = player2;
-              guestPlayerModal.hide();
-            });
+            // Utiliser oneButtonModal pour confirmer la continuation avec un invité
+            showModal(
+              'Joueur invité',
+              'Cet utilisateur est un invité. Voulez-vous continuer ?',
+              'OK',
+              () => {
+                alertShown = true;
+                lastCheckedPlayer2 = player2;
+              }
+            );
             return;
           } else {
             startGameSetup(gameSettings);
@@ -1550,7 +1475,13 @@ export function displayGameForm() {
           }
         } catch (error) {
           console.error("Error checking player existence:", error);
-          alert("There was an error checking player existence. Please try again.");
+          // Utiliser oneButtonModal pour un message d'erreur
+          showModal(
+            'Utilisateur introuvable',
+            'There was an error checking player existence. Please try again.',
+            'OK',
+            () => {}
+          );
           return;
         }
       } else {

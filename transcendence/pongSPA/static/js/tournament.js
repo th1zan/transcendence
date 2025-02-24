@@ -1,6 +1,6 @@
 
 import { startGameSetup } from "./pong.js";
-import {showModal, showCustomModal} from "./app.js";
+import {showModal} from "./app.js";
 
 
 
@@ -741,7 +741,7 @@ const savePlayersButton = document.getElementById('savePlayers');
 validateButton.onclick = () => {
   const tournamentName = document.getElementById('tournamentName').value.trim();
   if (!tournamentName) {
-    showModal('genericModal', 'Error', 'The tournament name cannot be empty', 'OK', () => {});
+    showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
     return;
   }
   fetch("/api/tournament/new/", {
@@ -761,12 +761,12 @@ validateButton.onclick = () => {
       document.getElementById('step1').style.display = 'none';
       document.getElementById('step2').style.display = 'block';
     } else {
-      showModal('genericModal', 'Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
+      showModal('Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
     }
   })
   .catch(error => {
     console.error("Error validating tournament name:", error);
-    showModal('genericModal', 'Error', 'There was an error validating the tournament name.', 'OK', () => {});
+    showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
   });
 };
 
@@ -783,12 +783,12 @@ savePlayersButton.onclick = () => {
     .filter(player => player.name !== '');
 
   if (players.length < 2) {
-    showModal('genericModal', 'Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+    showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
     return;
   }
 
   localStorage.setItem("players", JSON.stringify(players));
-  showModal('genericModal', 'Success', 'Players saved successfully!', 'OK', () => {
+  showModal('Success', 'Players saved successfully!', 'OK', () => {
     document.getElementById('step2').style.display = 'none';
     document.getElementById('step3').style.display = 'block';
   });
@@ -797,7 +797,7 @@ savePlayersButton.onclick = () => {
 submitButton.onclick = () => {
   const players = JSON.parse(localStorage.getItem("players") || "[]");
   if (players.length < 2) {
-    showModal('genericModal', 'Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+    showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
     return;
   }
 
@@ -820,16 +820,16 @@ submitButton.onclick = () => {
   .then(data => {
     if (data.message) {
       console.log("Tournament finalized:", data);
-      showModal('genericModal', 'Success', 'Tournament finalized successfully!', 'OK', () => {
+      showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
         DisplayTournamentGame(); // Assuming this function shows the tournament game page
       });
     } else {
-      showModal('genericModal', 'Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
+      showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
     }
   })
   .catch(error => {
     console.error("Error finalizing tournament:", error);
-    showModal('genericModal', 'Error', 'There was an error finalizing the tournament.', 'OK', () => {});
+    showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
   });
 };
 }
@@ -932,7 +932,7 @@ export function displayUserTournaments() {
 const username = localStorage.getItem("username");
 
 if (!username) {
-  showModal('genericModal', 'Login Required', 'Please log in to view your tournaments.', 'OK', function() {});
+  showModal('Login Required', 'Please log in to view your tournaments.', 'OK', function() {});
   return;
 }
 

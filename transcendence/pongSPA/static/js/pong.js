@@ -325,10 +325,9 @@ function handleGameEnd(winner) {
   if (currentGame < numberOfGames) {
     // Remplacer l'alert par une modale
     showModal(
-      'gameEndModal',
-      'Game Result', // Titre
-      `${winner} wins this game! Starting the next game...`, // Message
-      'Next Game', // Texte du bouton d'action
+      'Set\'s End', // Titre
+      `${winner} wins this set! Starting the next set...`, // Message
+      'Next Set', // Texte du bouton d'action (renommé pour plus de clarté)
       () => { // Callback pour l'action
         resetScores();
         updateResults();

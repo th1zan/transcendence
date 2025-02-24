@@ -133,7 +133,6 @@ export function displayRegistrationForm() {
       if (!privacyPolicyAccepted) {
       console.log('Tentative d’affichage de la modale...');
       showModal(
-        'genericModal',
         'Privacy Policy Required',
         'You must accept the Privacy Policy to register.',
         'OK',

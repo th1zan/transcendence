@@ -49,62 +49,26 @@
         <p class="m-0">© 2025 PONG - All rights reserved</p>
     </footer>
 
-    <!-- Modale avec un seul bouton personnalisé (information/warning) -->
-    <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+  <!-- Template de Modale -->
+  <div id="modalsContainer">
+    <!-- modale avec un seul bouton personnalisé (information/warning/action) -->
+    <div class="modal fade" id="oneButtonModal" tabindex="-1" aria-labelledby="oneButtonModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="customModalLabel">Custom Modal</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title" id="oneButtonModalLabel">modal title</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
           </div>
-          <div class="modal-body" id="customModalBody">
-            <!-- Le contenu sera inséré ici dynamiquement -->
+          <div class="modal-body" id="oneButtonModalBody">
+            <!-- le contenu sera inséré ici dynamiquement -->
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="customModalAction">OK</button>
+            <button type="button" class="btn btn-primary" id="oneButtonModalAction">close</button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Modale pour la fin de partie -->
-    <div class="modal fade" id="gameEndModal" tabindex="-1" aria-labelledby="gameEndModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="gameEndModalLabel">Game Over</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="gameEndMessage">
-                    <!-- Le message sera inséré ici dynamiquement -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="nextGameButton">Next Game</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modale avec deux boutons personnalisés -->
-    <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="customModalLabel">Custom Modal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="customModalBody">
-                    <!-- Le contenu sera inséré ici dynamiquement -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelButton" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="continueButton">Continue</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- </div> -->
+  </div>
 
 
 
