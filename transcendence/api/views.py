@@ -11,7 +11,6 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -29,30 +28,17 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
+from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
+                                                             OutstandingToken)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-from .models import (
-    CustomUser,
-    FriendRequest,
-    Notification,
-    Player,
-    PongMatch,
-    PongSet,
-    Tournament,
-    TournamentPlayer,
-)
-from .serializers import (
-    PongMatchSerializer,
-    PongSetSerializer,
-    TournamentPlayerSerializer,
-    TournamentSerializer,
-    UserRegisterSerializer,
-)
+from .models import (CustomUser, FriendRequest, Notification, Player,
+                     PongMatch, PongSet, Tournament, TournamentPlayer)
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer,
+                          UserRegisterSerializer)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
 
@@ -73,8 +59,9 @@ class PongMatchList(generics.ListCreateAPIView):
                 .values_list("id", flat=True)
                 .first()
             )
-            if player_id:
-                queryset = queryset.filter(Q(player1=player_id) | Q(player2=player_id))
+            if not player_id:
+                return PongMatch.objects.none()  # Retourne un queryset vide
+            queryset = queryset.filter(Q(player1=player_id) | Q(player2=player_id))
 
         return queryset
 

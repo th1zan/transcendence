@@ -817,12 +817,19 @@ export function displayStats() {
 function fetchPlayerResult() {
   const appDiv = document.getElementById("app_main");
   appDiv.innerHTML = `
-    <div class="form-group mt-2">
-      <label for="playerName">Player Name</label>
-      <input type="text" id="playerName" class="form-control" required> 
-      <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2">
-        Search Results
-      </button>
+    <div class="container mt-4">
+      <div class="card" style="width: 100%; max-width: 500px; margin: auto;">
+        <div class="card-body">
+          <h5 class="card-title text-center mb-3">Search Player Results</h5>
+          <div class="form-group mt-2">
+            <label for="playerName" class="form-label">Player Name</label>
+            <input type="text" id="playerName" class="form-control" required>
+            <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2 w-100">
+              Search Results
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -835,7 +842,13 @@ function fetchPlayerResult() {
     if (playerName) {
       fetchResultats(playerName); // Passe le nom du joueur à fetchResultats
     } else {
-      alert("Please enter a player name.");
+      // Remplacer l'alert par oneButtonModal
+      showModal(
+        'Warning',
+        'Please enter a player name.',
+        'OK', // Texte du bouton
+        () => {} // Action vide, juste fermer la modale
+      );
     }
   });
 }
@@ -1108,7 +1121,6 @@ function fetchRanking() {
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3 class="mb-3">Player Ranking:</h3>
         <div class="card mb-4 shadow-sm">
           <div class="card-body">
             <h4 class="card-title">Ranking Overview</h4>
