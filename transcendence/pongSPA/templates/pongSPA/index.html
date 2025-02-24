@@ -57,7 +57,6 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="oneButtonModalLabel">modal title</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
           </div>
           <div class="modal-body" id="oneButtonModalBody">
             <!-- le contenu sera inséré ici dynamiquement -->
@@ -68,7 +67,25 @@
         </div>
       </div>
     </div>
-  </div>
+        <!-- modal de confirmation -->
+      <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+            </div>
+            <div class="modal-body" id="confirmationModalBody">
+              <!-- Le message de confirmation sera inséré ici dynamiquement -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="confirmationModalNo">No</button>
+              <button type="button" class="btn btn-primary" id="confirmationModalYes">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
 
 
 
