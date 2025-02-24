@@ -535,9 +535,12 @@ export function displayTournament() {
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
   <div class="container py-4">
-    <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px; color: #000;">Tournament</h3>
     <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
       <li class="nav-item" role="presentation">
+        <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+          My Tournaments
+        </button>
+      </li><li class="nav-item" role="presentation">
         <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
           New Tournament
         </button>
@@ -564,6 +567,7 @@ export function displayTournament() {
   // let resultDiv = document.getElementById("app_main");
   //   resultDiv.style.display = "block";
 
+    document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
     document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
     document.getElementById("tournamentSearchButton").addEventListener("click", () => {
@@ -587,102 +591,82 @@ export function displayTournament() {
 
 
 export function displayFriends() {
-
-  //empty all the containers
+  // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById("app_main");
   appTop.innerHTML = `
-    <h3>Friends</h3>
-    <br>
-    <div>
-      <input type="text" id="friendUsername" placeholder="Username" class="form-control" />
-      <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
+    <div class="container mt-4">
+      <div class="row g-4">
+        <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm" style="border-radius: 8px;">
+            <div class="card-body text-center">
+              <h5 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Send Friend Request</h5>
+              <div class="form-group mt-2">
+                <label for="friendUsername" class="form-label" style="font-family: 'Press Start 2P', cursive;">Username</label>
+                <input type="text" id="friendUsername" placeholder="Username" class="form-control" required style="font-family: 'Press Start 2P', cursive;">
+                <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" style="font-family: 'Press Start 2P', cursive;">
+                  Send Friend Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Colonne 2 : 3 cartes pour les demandes et amis -->
+        <div class="col-12 col-md-8">
+          <div class="row g-4">
+            <!-- Carte pour les demandes d'amis en attente -->
+            <div class="col-12">
+              <div class="card shadow-sm" style="border-radius: 8px;">
+                <div class="card-body text-center">
+                  <h4 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Pending Friend Requests</h4>
+                  <ul id="friendRequests" class="list-group list-group-flush"></ul>
+                </div>
+              </div>
+            </div>
+            <!-- Carte pour la liste des amis -->
+            <div class="col-12">
+              <div class="card shadow-sm" style="border-radius: 8px;">
+                <div class="card-body text-center">
+                  <h4 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">My Friends</h4>
+                  <ul id="friendList" class="list-group list-group-flush"></ul>
+                </div>
+              </div>
+            </div>
+            <!-- Carte vide pour équilibrer la mise en page (facultatif, peut être retirée si le contenu est dynamique) -->
+            <div class="col-12 d-md-none d-lg-block" style="height: 0;"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <br>
-    <br>
-    <h4>Pending Friend Requests</h4>
-    <ul id="friendRequests" class="list-group"></ul>
-    <br>
-    <br>
-    <h4>My Friends</h4>
-    <ul id="friendList" class="list-group"></ul>
   `;
 
   document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
     const friendUsername = document.getElementById("friendUsername").value.trim();
     if (friendUsername) {
       sendFriendRequest(friendUsername);
+    } else {
+      // Remplacer une éventuelle alert par oneButtonModal
+      showModal(
+        'Warning',
+        'Please enter a username.',
+        'OK', // Texte du bouton
+        () => {} // Action vide, juste fermer la modale
+      );
     }
   });
+
   fetchFriendRequests();
   fetchFriends();
 }
 
-function displayHTMLforSettings(user) {
-
-  //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
-
-  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
-  const appTop = document.getElementById("app_main");
-
-  appTop.innerHTML = `
-  <div class="container mt-4">
-    <h3 class="text-center">Account Management</h3>
-
-    <div class="card shadow-sm p-4 mt-3">
-      <h4 class="text-center">Update Profile Picture</h4>
-      <div class="d-flex flex-column align-items-center">
-        <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
-
-        <div class="mt-3 w-75">
-          <label class="form-label">Choose a new profile picture:</label>
-          <div class="input-group">
-            <input type="file" id="avatarInput" accept="image/*" class="form-control">
-            <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Profile Information Update -->
-    <div class="card shadow-sm p-4 mt-3">
-      <h4 class="text-center">Edit Profile Information</h4>
-      <div class="form-group mt-2">
-        <label>Username:</label>
-        <input type="text" id="usernameInput" class="form-control" value="${user.username}">
-      </div>
-      <div class="form-group mt-2">
-        <label>Email:</label>
-        <input type="email" id="emailInput" class="form-control" value="${user.email}">
-      </div>
-      <div class="form-group mt-2">
-        <label>Phone Number:</label>
-        <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
-      </div>
-      <div class="d-flex justify-content-center mt-3">
-        <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
-      </div>
-    </div>
-
-    <!-- Account Actions -->
-    <div class="d-flex justify-content-center mt-4">
-      <button id="deleteAccountButton" class="btn btn-link nav-link text-danger">Delete account</button>
-      <button id="anonymizeAccountButton" class="btn btn-link nav-link text-warning">Anonimize account</button>
-    </div>
-  `;
-
-  document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-  document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
-  document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
-  document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
-}
-
 export function displaySettings() {
+
+
+  const user = localStorage.getItem("username");
 
   // 1. fetch the user's settings
   fetch("/api/auth/user/", {
@@ -790,7 +774,6 @@ export function displayStats() {
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <div class="container mt-4">
-      <h3 class="text-center text-primary mb-4">Statistics</h3>
       <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
           My Results
@@ -982,25 +965,26 @@ function fetchResultats(player = null) {
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <!-- <h3 class="mb-3">Results for ${player || "You"}:</h3> -->
         ${displaySummaryStats(data, player || "You")}
-        <div class="card mb-4 shadow-sm">
-          <div class="card-body">
-            <h4 class="card-title">Match History</h4>
-            <div class="table-responsive">
-              <table class="table table-striped table-hover">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col" data-priority="1">Date</th>
-                    <th scope="col" data-priority="1">Players</th>
-                    <th scope="col" data-priority="2">Score (Sets)</th>
-                    <th scope="col" data-priority="3">Points</th>
-                    <th scope="col" data-priority="2">Winner</th>
-                    <th scope="col" data-priority="4">Tournament</th>
-                  </tr>
-                </thead>
-                <tbody id="results"></tbody>
-              </table>
+        <div class="container mt-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <h4 class="card-title">Match History</h4>
+              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped table-hover">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th scope="col" data-priority="1">Date</th>
+                      <th scope="col" data-priority="1">Players</th>
+                      <th scope="col" data-priority="2">Score (Sets)</th>
+                      <th scope="col" data-priority="3">Points</th>
+                      <th scope="col" data-priority="2">Winner</th>
+                      <th scope="col" data-priority="4">Tournament</th>
+                    </tr>
+                  </thead>
+                  <tbody id="results"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -1073,7 +1057,15 @@ function fetchResultats(player = null) {
     .catch((error) => {
       console.error("Error fetching results:", error);
       const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `<p class="text-danger">Error loading results: ${error.message}</p>`;
+      appDiv.innerHTML = `
+        <div class="container mt-4">
+          <div class "card mb-4 shadow-sm">
+            <div class="card-body">
+              <p class="text-danger text-center">Error loading results: ${error.message}</p>
+            </div>
+          </div>
+        </div>
+      `;
     });
 }
 
