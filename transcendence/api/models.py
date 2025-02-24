@@ -204,29 +204,91 @@ class PongMatch(models.Model):
     winner = models.ForeignKey(
         Player,
         on_delete=models.CASCADE,
-        null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou non terminés
-        blank=True,  # Idem pour les formulaires et l'admin
+        null=True,
+        blank=True,
     )
     date_played = models.DateTimeField(auto_now_add=True)
     is_tournament_match = models.BooleanField(default=False)
     tournament = models.ForeignKey(
-        Tournament,
+        "Tournament",
         on_delete=models.CASCADE,
         related_name="matches",
         null=True,
         blank=True,
     )
-    is_played = models.BooleanField(default=False)
-
-    def is_match_played(self):
-        return (
-            self.player1_sets_won != 0
-            or self.player2_sets_won != 0
-            or self.winner is not None
-        )
 
     def __str__(self):
         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
+
+    def is_match_played(self):
+        """
+        Détermine si le match est joué en vérifiant les scores des sets ou le gagnant.
+        """
+        sets = self.sets.all()
+        if sets.exists():
+            for set_instance in sets:
+                if (set_instance.player1_score or 0) > 0 or (
+                    set_instance.player2_score or 0
+                ) > 0:
+                    return True
+        if self.winner or (
+            self.player1_sets_won > 0 and self.player1_sets_won == self.player2_sets_won
+        ):
+            return True
+        return False
+
+
+# class PongMatch(models.Model):
+#     user1 = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.SET_NULL,
+#         related_name="initiated_matches",
+#         null=True,
+#         blank=True,
+#     )
+#     user2 = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.SET_NULL,
+#         related_name="opponent_matches",
+#         null=True,
+#         blank=True,
+#     )
+#     player1 = models.ForeignKey(
+#         Player, on_delete=models.CASCADE, related_name="matches_as_player1"
+#     )
+#     player2 = models.ForeignKey(
+#         Player, on_delete=models.CASCADE, related_name="matches_as_player2"
+#     )
+#     sets_to_win = models.IntegerField(default=1)
+#     points_per_set = models.IntegerField(default=3)
+#     player1_sets_won = models.IntegerField(default=0)
+#     player2_sets_won = models.IntegerField(default=0)
+#     winner = models.ForeignKey(
+#         Player,
+#         on_delete=models.CASCADE,
+#         null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou non terminés
+#         blank=True,  # Idem pour les formulaires et l'admin
+#     )
+#     date_played = models.DateTimeField(auto_now_add=True)
+#     is_tournament_match = models.BooleanField(default=False)
+#     tournament = models.ForeignKey(
+#         Tournament,
+#         on_delete=models.CASCADE,
+#         related_name="matches",
+#         null=True,
+#         blank=True,
+#     )
+#     is_played = models.BooleanField(default=False)
+#
+#     def is_match_played(self):
+#         return (
+#             self.player1_sets_won != 0
+#             or self.player2_sets_won != 0
+#             or self.winner is not None
+#         )
+#
+#     def __str__(self):
+#         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
 
 
 class PongSet(models.Model):
@@ -287,9 +349,25 @@ class Notification(models.Model):
 
 @receiver(post_save, sender=PongMatch)
 def update_tournament_status_on_match_update(sender, instance, **kwargs):
-    if instance.is_tournament_match and instance.is_match_played():
+    # Calculer si le match est joué
+    sets = instance.sets.all()
+    is_played = False
+    if sets.exists():
+        for set_instance in sets:
+            if (set_instance.player1_score or 0) > 0 or (
+                set_instance.player2_score or 0
+            ) > 0:
+                is_played = True
+                break
+    if instance.winner or (
+        instance.player1_sets_won > 0
+        and instance.player1_sets_won == instance.player2_sets_won
+    ):
+        is_played = True
+
+    # Mettre à jour le tournoi si nécessaire
+    if instance.is_tournament_match and is_played:
         tournament = instance.tournament
         if tournament:
-            # Réévaluez si le tournoi est terminé après chaque match joué dans un tournoi
             tournament.is_finished = tournament.is_tournament_finished()
             tournament.save()

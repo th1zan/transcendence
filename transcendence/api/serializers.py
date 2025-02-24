@@ -4,7 +4,8 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import CustomUser, Player, PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
+                     TournamentPlayer)
 
 
 # class TournamentSerializer(serializers.ModelSerializer):
@@ -73,6 +74,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
     sets = PongSetSerializer(many=True, read_only=False, required=False)
     player1_total_points = serializers.SerializerMethodField()
     player2_total_points = serializers.SerializerMethodField()
+    is_played = serializers.SerializerMethodField()  # Champ virtuel calculé
 
     class Meta:
         model = PongMatch
@@ -93,9 +95,9 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "winner_name",
             "tournament_name",
             "sets",
-            "is_played",
             "player1_total_points",
             "player2_total_points",
+            "is_played",
         ]
         extra_kwargs = {
             "user1": {"allow_null": True},
@@ -127,6 +129,12 @@ class PongMatchSerializer(serializers.ModelSerializer):
 
     def get_player2_total_points(self, obj):
         return sum(set.player2_score or 0 for set in obj.sets.all())
+
+    def get_is_played(self, obj):
+        """
+        Utilise la méthode is_match_played du modèle PongMatch pour déterminer si le match est joué.
+        """
+        return obj.is_match_played()
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

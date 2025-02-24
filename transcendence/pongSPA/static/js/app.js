@@ -247,73 +247,171 @@ export function showCustomModal(title, message, continueCallback) {
 }
 
 
+function displayQuickStats(data, playerName) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return '<p class="text-muted">No data available.</p>';
+  }
+
+  const playedMatches = data.filter(match => match.is_played === true);
+  if (playedMatches.length === 0) {
+    return '<p class="text-muted">No played matches available.</p>';
+  }
+
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  const normalizedPlayerName = (playerName || "You").toLowerCase();
+
+  const sortedMatches = playedMatches.sort((a, b) => new Date(b.date_played) - new Date(a.date_played));
+
+  playedMatches.forEach((match) => {
+    const isPlayer1 = match.player1_name.toLowerCase() === normalizedPlayerName;
+    const isPlayer2 = match.player2_name.toLowerCase() === normalizedPlayerName;
+    const winnerName = (match.winner_name || "").toLowerCase();
+
+    if (!isPlayer1 && !isPlayer2) return;
+
+    if (winnerName === normalizedPlayerName) {
+      wins++;
+    } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress" && winnerName !== "") {
+      losses++;
+    } else {
+      draws++;
+    }
+  });
+
+  const lastThreeMatches = sortedMatches.slice(0, 3);
+  let lastMatchesTable = '';
+  if (lastThreeMatches.length > 0) {
+    lastMatchesTable = `
+      <table class="table table-sm table-striped" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
+        <thead>
+          <tr>
+            <th scope="col" style="color: #e84393;">Match</th>
+            <th scope="col" style="color: #00b894;">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lastThreeMatches.map(match => {
+            const player1 = match.player1_name || "Unknown Player 1";
+            const player2 = match.player2_name || "Unknown Player 2";
+            const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+            return `
+              <tr>
+                <td>${player1} vs ${player2}</td>
+                <td>${setScore}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  } else {
+    lastMatchesTable = '<p class="text-muted small">No recent matches.</p>';
+  }
+
+  return `
+    <div class="card mb-4 shadow-sm h-100" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+      <div class="card-body">
+        <h4 class="card-title" style="color: #e84393;">Quick Stats for ${playerName || "You"}</h4>
+        <ul class="list-group list-group-flush mb-3">
+          <li class="list-group-item" style="background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
+          <li class="list-group-item" style="background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
+          <li class="list-group-item" style="background: transparent; border: none; color: #a6c1ee;"><strong>Draws:</strong> ${draws}</li>
+        </ul>
+        <h5 class="mb-2" style="color: #00b894;">Last 3 Matches</h5>
+        ${lastMatchesTable}
+      </div>
+    </div>
+  `;
+}
+
 export function displayWelcomePage() {
   const username = localStorage.getItem("username");
-
-  // const appDiv = document.getElementById('app');
-  // Les styles commentés sont préservés mais non appliqués ici pour clarté
-  // appDiv.style.backgroundImage = "url('/static/pong.jpg')";
-  // appDiv.style.backgroundRepeat = "no-repeat";
-  // appDiv.style.backgroundAttachment = "fixed";
-  // appDiv.style.backgroundSize = "100% 100%";
 
   // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
+  // app_top reste vide
   const appTop = document.getElementById('app_top');
-  // appTop.style.backgroundColor = 'rgba(0, 123, 255, 0.5)';
-  appTop.innerHTML = `
-    <div>
-      <div>
-        <h2>Hello ${username}</h2>
-      </div>
-      <div class="align-self-end">
-        <div class="rounded-circle d-flex align-self-center m-3 overflow-hidden" style="width:100px; height:60%; background-color: red;">
-          <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
-        </div>
-      </div>
-    </div>
-  `;
+  appTop.innerHTML = '';
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-   <div class="container py-5" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); background-size: 400% 400%; animation: gradientBG 15s ease infinite; font-family: 'Poppins', sans-serif;">
-  <h3 class="text-center mb-4" style="color: #fff; font-weight: 700; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">Welcome Page</h3>
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card mb-4" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
-        <div class="card-body">
-          <h4 class="mb-3" style="color: #e84393;">Pending Friend Requests</h4>
-          <ul class="list-group" id="pendingFriendRequests">
-            <li class="list-group-item" style="background-color: rgba(255, 255, 255, 0.9); border: none; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">Friend Request 1</li>
-            <li class="list-group-item" style="background-color: rgba(255, 255, 255, 0.9); border: none; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">Friend Request 2</li>
-          </ul>
+    <div class="container py-5" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); background-size: 400% 400%; animation: gradientBG 15s ease infinite; font-family: 'Poppins', sans-serif;">
+      <div class="row justify-content-center">
+        <!-- Colonne gauche : Welcome Card et Notifications -->
+        <div class="col-md-6 d-flex flex-column gap-4">
+          <!-- Welcome Card -->
+          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+            <div class="card-body d-flex align-items-center">
+              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px; background-color: red;">
+                <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
+              </div>
+              <h3 class="card-title mb-0" style="color: #e84393; font-weight: 700; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">Welcome ${username}</h3>
+            </div>
+          </div>
+          <!-- Pending Friend Requests Card -->
+          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+            <div class="card-body">
+              <h4 class="card-title mb-3" style="color: #e84393;">Pending Friend Requests</h4>
+              <div>
+                <ul class="list-group" id="pendingFriendRequests"></ul>
+              </div>
+            </div>
+          </div>
+          <!-- Pending Tournament Authentications Card -->
+          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+            <div class="card-body">
+              <h4 class="card-title mb-3" style="color: #00b894;">Pending Tournament Authentications</h4>
+              <div>
+                <ul class="list-group" id="pendingTournamentAuthentications"></ul>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="card" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
-        <div class="card-body">
-          <h4 class="mb-3" style="color: #00b894;">Pending Tournament Authentications</h4>
-          <ul class="list-group" id="pendingTournamentAuthentications">
-            <li class="list-group-item" style="background-color: rgba(255, 255, 255, 0.9); border: none; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">Tournament 1</li>
-            <li class="list-group-item" style="background-color: rgba(255, 255, 255, 0.9); border: none; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">Tournament 2</li>
-          </ul>
+        <!-- Colonne droite : Quick Stats -->
+        <div class="col-md-6" id="quickStatsContainer">
+          <!-- Les stats rapides seront insérées ici -->
         </div>
       </div>
     </div>
-  </div>
-</div>
   `;
 
   const appBottom = document.getElementById("app_bottom");
   appBottom.innerHTML = `
-    Footer de la page
+    <!-- Footer de la page -->
   `;
 
   // Charger les requêtes d’amis et les tournois non authentifiés
   fetchPendingFriendRequests();
   fetchPendingTournamentAuthentications();
+
+  // Charger les stats rapides et les derniers matchs
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const quickStatsContainer = document.getElementById("quickStatsContainer");
+      quickStatsContainer.innerHTML = displayQuickStats(data, username);
+    })
+    .catch(error => {
+      console.error("Error fetching quick stats:", error);
+      const quickStatsContainer = document.getElementById("quickStatsContainer");
+      quickStatsContainer.innerHTML = `<p class="text-danger">Error loading quick stats: ${error.message}</p>`;
+    });
 }
 
 function fetchPendingTournamentAuthentications() {
@@ -446,26 +544,31 @@ export function displayTournament() {
   console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
-    <div class="container py-4">
-      <h3 class="display-5 text-center text-dark fw-bold mb-4">Tournament</h3>
-      <div class="d-flex justify-content-center align-items-center gap-4">
-        <button id="newTournamentButton" class="btn btn-primary btn-lg px-4 py-2 rounded-pill shadow">
+  <div class="container py-4">
+    <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px; color: #000;">Tournament</h3>
+    <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
           New Tournament
         </button>
+      </li>
+      <li class="nav-item" role="presentation">
         <div class="d-flex align-items-center gap-2" id="searchTournament">
-          <input
-            type="text"
-            id="tournamentNameInput"
-            class="form-control form-control-lg rounded-pill"
-            placeholder="Tournament Name"
+          <input 
+            type="text" 
+            id="tournamentNameInput" 
+            class="form-control rounded-pill" 
+            placeholder="Tournament Name" 
+            style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
           >
-          <button id="tournamentSearchButton" class="btn btn-secondary btn-sm px-4 py-2 rounded-pill shadow">
-            Search for Tournament
+          <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            Search
           </button>
         </div>
-      </div>
-    </div>
-  `;
+      </li>
+    </ul>
+  </div>
+`;
 
   displayUserTournaments();
   // let resultDiv = document.getElementById("app_main");
@@ -670,9 +773,26 @@ export function displaySettings() {
 }
 
 
-export function displayStats() {
+// // Fonction pour supprimer tous les écouteurs d'événements existants et éviter les doublons
+// function removeEventListeners() {
+//   const buttons = [
+//     "viewResultsButton",
+//     "viewPlayerResult",
+//     "viewRankingButton",
+//     "searchPlayerButton" // Nouvel ID pour le bouton dans fetchPlayerResult
+//   ];
+//   buttons.forEach((id) => {
+//     const button = document.getElementById(id);
+//     if (button) {
+//       const newButton = button.cloneNode(true);
+//       button.parentNode.replaceChild(newButton, button);
+//     }
+//   });
+// }
 
-  //empty all the containers
+// Fonction principale pour afficher les statistiques et initialiser les boutons
+export function displayStats() {
+  // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -681,9 +801,12 @@ export function displayStats() {
   appTop.innerHTML = `
     <div class="container mt-4">
       <h3 class="text-center text-primary mb-4">Statistics</h3>
-      <div class="d-flex justify-content-center gap-3">
+      <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
-          Your Results
+          My Results
+        </button>
+        <button id="viewPlayerResult" class="btn btn-outline-secondary btn-lg shadow-sm">
+          Search Player's Result
         </button>
         <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
           Overall Ranking
@@ -692,158 +815,255 @@ export function displayStats() {
     </div>
   `;
 
-  document.getElementById("viewResultsButton").addEventListener("click", fetchResultats);
+  // Supprime les anciens écouteurs pour éviter les doublons
+  // removeEventListeners();
+
+  // Ajoute les nouveaux écouteurs
+  document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
+  document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
-
-
 }
 
-// function displayUserResults(data) {
-//   // Empty the containers
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const appMain = document.getElementById("app_main");
-//   appMain.innerHTML = `
-//     <h3 class="mb-3">Your Results:</h3>
-//     <div class="table-responsive">
-//       <table class="table table-striped table-hover">
-//         <thead class="thead-dark">
-//           <tr>
-//             <th scope="col">Date</th>
-//             <th scope="col">Players</th>
-//             <th scope="col">Score (Sets)</th>
-//             <th scope="col">Winner</th>
-//             <th scope="col">Tournament</th>
-//           </tr>
-//         </thead>
-//         <tbody id="resultats"></tbody>
-//       </table>
-//     </div>
-//   `;
-//
-//   const resultatsDiv = document.getElementById("resultats");
-//
-//   if (Array.isArray(data) && data.length > 0) {
-//     // Trier les données par date (antéchronologique)
-//     const sortedData = data.sort((a, b) => {
-//       const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
-//       const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
-//       return dateB - dateA; // Plus récent en premier
-//     });
-//
-//     sortedData.forEach((match) => {
-//       const date = match.date_played ? new Date(match.date_played).toLocaleString() : "Unknown Date";
-//       const player1 = match.player1_name || "Unknown Player 1";
-//       const player2 = match.player2_name || "Unknown Player 2";
-//       const winner = match.winner || "In Progress";
-//       const score = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-//       const tournament = match.tournament ? match.tournament_name || "Unknown" : "-";
-//
-//       resultatsDiv.innerHTML += `
-//         <tr>
-//           <td>${date}</td>
-//           <td>${player1} vs ${player2}</td>
-//           <td>${score}</td>
-//           <td>${winner}</td>
-//           <td>${tournament}</td>
-//         </tr>
-//       `;
-//     });
-//   } else {
-//     resultatsDiv.innerHTML = `
-//       <tr>
-//         <td colspan="5" class="text-center">No results found.</td>
-//       </tr>
-//     `;
-//   }
-// }
+// Fonction pour afficher le formulaire de recherche de résultats d'un joueur
+function fetchPlayerResult() {
+  const appDiv = document.getElementById("app_main");
+  appDiv.innerHTML = `
+    <div class="form-group mt-2">
+      <label for="playerName">Player Name</label>
+      <input type="text" id="playerName" class="form-control" required> 
+      <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2">
+        Search Results
+      </button>
+    </div>
+  `;
 
+  // Supprime les anciens écouteurs pour éviter les doublons
+  // removeEventListeners();
 
-function fetchResultats() {
-  const username = localStorage.getItem("username");
+  // Ajoute un écouteur pour le bouton de recherche
+  document.getElementById("searchPlayerButton").addEventListener("click", () => {
+    const playerName = document.getElementById("playerName").value.trim();
+    if (playerName) {
+      fetchResultats(playerName); // Passe le nom du joueur à fetchResultats
+    } else {
+      alert("Please enter a player name.");
+    }
+  });
+}
 
-  fetch(`/api/results/?user1=${username}`, {
+// Fonction pour calculer et afficher les statistiques de synthèse
+function displaySummaryStats(data, playerName) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return '<p class="text-muted">No summary statistics available.</p>';
+  }
+
+  const playedMatches = data.filter(match => match.is_played === true);
+  if (playedMatches.length === 0) {
+    return '<p class="text-muted">No played matches available for summary statistics.</p>';
+  }
+
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  let totalMatches = 0;
+  let totalSetsWon = 0;
+  let totalSetsLost = 0;
+  let totalPointsScored = 0;
+  let totalPointsConceded = 0;
+  let longestWinningStreak = 0;
+  let currentWinningStreak = 0;
+  let totalSetsPlayed = 0;
+  let tournamentWins = 0;
+
+  // Normaliser le nom du joueur pour la comparaison
+  const normalizedPlayerName = (playerName || "You").toLowerCase();
+
+  // Trier les matchs par date pour la série de victoires
+  playedMatches.sort((a, b) => new Date(a.date_played) - new Date(b.date_played));
+
+  playedMatches.forEach((match) => {
+    totalMatches++;
+
+    // Vérifier si le joueur est player1 ou player2
+    const isPlayer1 = match.player1_name.toLowerCase() === normalizedPlayerName;
+    const isPlayer2 = match.player2_name.toLowerCase() === normalizedPlayerName;
+    const winnerName = (match.winner_name || "").toLowerCase();
+
+    // Si le joueur n'est ni player1 ni player2, ignorer ce match pour ses stats
+    if (!isPlayer1 && !isPlayer2) return;
+
+    // Calcul des sets et points en fonction du rôle du joueur
+    const playerSetsWon = isPlayer1 ? match.player1_sets_won : match.player2_sets_won;
+    const playerSetsLost = isPlayer1 ? match.player2_sets_won : match.player1_sets_won;
+    const playerPointsScored = isPlayer1 ? match.player1_total_points : match.player2_total_points;
+    const playerPointsConceded = isPlayer1 ? match.player2_total_points : match.player1_total_points;
+
+    totalSetsWon += playerSetsWon || 0;
+    totalSetsLost += playerSetsLost || 0;
+    totalPointsScored += playerPointsScored || 0;
+    totalPointsConceded += playerPointsConceded || 0;
+    totalSetsPlayed += match.sets && Array.isArray(match.sets) ? match.sets.length : 0;
+
+    // Déterminer victoire, défaite ou nul
+    if (winnerName === normalizedPlayerName) {
+      wins++;
+      currentWinningStreak++;
+      longestWinningStreak = Math.max(longestWinningStreak, currentWinningStreak);
+      if (match.is_tournament_match) tournamentWins++;
+    } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress" && winnerName !== "") {
+      losses++;
+      currentWinningStreak = 0;
+    } else {
+      draws++;
+      currentWinningStreak = 0;
+    }
+  });
+
+  // Calculs des ratios et pourcentages
+  const avgPointsPerSet = totalSetsPlayed > 0 ? (totalPointsScored / totalSetsPlayed).toFixed(1) : 0;
+  const winLossRatio = losses > 0 ? (wins / losses).toFixed(2) : wins > 0 ? "∞" : "0.00";
+  const setsRatio = totalSetsLost > 0 ? (totalSetsWon / totalSetsLost).toFixed(2) : totalSetsWon > 0 ? "∞" : "0.00";
+  const pointsRatio = totalPointsConceded > 0 ? (totalPointsScored / totalPointsConceded).toFixed(2) : totalPointsScored > 0 ? "∞" : "0.00";
+  const winPercentage = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
+  const lossPercentage = totalMatches > 0 ? ((losses / totalMatches) * 100).toFixed(1) : 0;
+  const drawPercentage = totalMatches > 0 ? ((draws / totalMatches) * 100).toFixed(1) : 0;
+  const tournamentWinPercentage = totalMatches > 0 ? ((tournamentWins / totalMatches) * 100).toFixed(1) : 0;
+
+  // Vérification des pourcentages
+  const totalPercentage = parseFloat(winPercentage) + parseFloat(lossPercentage) + parseFloat(drawPercentage);
+  if (Math.abs(totalPercentage - 100) > 0.1 && totalMatches > 0) {
+    console.warn(`Percentages do not add up to 100%: ${totalPercentage}%`);
+  }
+
+  return `
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title">Summary Statistics for ${playerName || "You"}</h4>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><strong>Total Matches Played:</strong> ${totalMatches}</li>
+          <li class="list-group-item"><strong>Wins:</strong> ${wins} (${winPercentage}%)</li>
+          <li class="list-group-item"><strong>Losses:</strong> ${losses} (${lossPercentage}%)</li>
+          <li class="list-group-item"><strong>Draws:</strong> ${draws} (${drawPercentage}%)</li>
+          <li class="list-group-item"><strong>Win/Loss Ratio:</strong> ${winLossRatio}:1</li>
+          <li class="list-group-item"><strong>Sets Won/Lost Ratio:</strong> ${setsRatio}:1</li>
+          <li class="list-group-item"><strong>Points Scored/Conceded Ratio:</strong> ${pointsRatio}:1</li>
+          <li class="list-group-item"><strong>Longest Winning Streak:</strong> ${longestWinningStreak} matches</li>
+          <li class="list-group-item"><strong>Average Points per Match:</strong> ${totalMatches > 0 ? (totalPointsScored / totalMatches).toFixed(1) : 0}</li>
+          <li class="list-group-item"><strong>Total Sets Played:</strong> ${totalSetsPlayed}</li>
+          <li class="list-group-item"><strong>Average Points per Set:</strong> ${avgPointsPerSet}</li>
+          <li class="list-group-item"><strong>Tournament Wins:</strong> ${tournamentWins} (${tournamentWinPercentage}% of matches)</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// Fonction modifiée pour inclure les statistiques de synthèse et filtrer les matchs non joués
+function fetchResultats(player = null) {
+  const username = player || localStorage.getItem("username");
+
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
     method: "GET",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
-      console.log(data);
+      console.log("Fetched results:", data);
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3 class="mb-3">Your Results:</h3>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Players</th>
-                <th scope="col">Score (Sets)</th>
-                <th scope="col">Points</th>
-                <th scope="col">Winner</th>
-                <th scope="col">Tournament</th>
-              </tr>
-            </thead>
-            <tbody id="results"></tbody>
-          </table>
+        <h3 class="mb-3">Results for ${player || "You"}:</h3>
+        ${displaySummaryStats(data, player || "You")}
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title">Match History</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col" data-priority="1">Date</th>
+                    <th scope="col" data-priority="1">Players</th>
+                    <th scope="col" data-priority="2">Score (Sets)</th>
+                    <th scope="col" data-priority="3">Points</th>
+                    <th scope="col" data-priority="2">Winner</th>
+                    <th scope="col" data-priority="4">Tournament</th>
+                  </tr>
+                </thead>
+                <tbody id="results"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
 
       const resultatsDiv = document.getElementById("results");
 
       if (Array.isArray(data) && data.length > 0) {
-        const sortedData = data.sort((a, b) => {
+        // Filtrer les matchs joués
+        const playedMatches = data.filter(match => match.is_played === true);
+        const sortedData = playedMatches.sort((a, b) => {
           const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
           const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
-          return dateB - dateA;
+          return dateB - dateA; // Trie du plus récent au plus ancien
         });
 
-        sortedData.forEach((match) => {
-          const dateObj = match.date_played ? new Date(match.date_played) : null;
-          const dateStr = dateObj ? dateObj.toLocaleDateString() : "Unknown Date";
-          const timeStr = dateObj ? dateObj.toLocaleTimeString() : "Unknown Time";
-          const player1 = match.player1_name || "Unknown Player 1";
-          const player2 = match.player2_name || "Unknown Player 2";
-          const winner = match.winner_name || "In Progress";
-          const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-          const points = `${match.player1_total_points || 0} - ${match.player2_total_points || 0}`;
-          const tournament = match.tournament_name || "-";
+        if (sortedData.length > 0) {
+          sortedData.forEach((match) => {
+            const dateObj = match.date_played ? new Date(match.date_played) : null;
+            const dateStr = dateObj ? dateObj.toLocaleDateString() : "Unknown Date";
+            const timeStr = dateObj ? dateObj.toLocaleTimeString() : "Unknown Time";
+            const player1 = match.player1_name || "Unknown Player 1";
+            const player2 = match.player2_name || "Unknown Player 2";
+            const winner = match.winner_name || "In Progress";
+            const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
+            const points = `${match.player1_total_points || 0} - ${match.player2_total_points || 0}`;
+            const tournament = match.tournament_name || "-";
 
-          // Détails des sets
-          let setsDetails = "";
-          if (match.sets && Array.isArray(match.sets)) {
-            setsDetails = match.sets
-              .map((set) => `Set ${set.set_number}: ${set.player1_score}-${set.player2_score}`)
-              .join("<br>");
-          }
+            // Détails des sets
+            let setsDetails = "";
+            if (match.sets && Array.isArray(match.sets)) {
+              setsDetails = match.sets
+                .map((set) => `Set ${set.set_number}: ${set.player1_score}-${set.player2_score}`)
+                .join("<br>");
+            }
 
-          resultatsDiv.innerHTML += `
+            resultatsDiv.innerHTML += `
+              <tr>
+                <td>
+                  ${dateStr}
+                  <br>
+                  <small class="text-muted">${timeStr}</small>
+                </td>
+                <td>${player1} vs ${player2}</td>
+                <td>
+                  ${setScore}
+                  ${setsDetails ? `<br><small class="text-muted">${setsDetails}</small>` : ""}
+                </td>
+                <td>${points}</td>
+                <td>${winner}</td>
+                <td>${tournament}</td>
+              </tr>
+            `;
+          });
+        } else {
+          resultatsDiv.innerHTML = `
             <tr>
-              <td>
-                ${dateStr}
-                <br>
-                <small class="text-muted">${timeStr}</small>
-              </td>
-              <td>${player1} vs ${player2}</td>
-              <td>
-                ${setScore}
-                ${setsDetails ? `<br><small class="text-muted">${setsDetails}</small>` : ""}
-              </td>
-              <td>${points}</td>
-              <td>${winner}</td>
-              <td>${tournament}</td>
+              <td colspan="6" class="text-center">No played results found for ${player || "you"}.</td>
             </tr>
           `;
-        });
+        }
       } else {
         resultatsDiv.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center">No results found.</td>
+            <td colspan="6" class="text-center">No results found for ${player || "you"}.</td>
           </tr>
         `;
       }
@@ -851,7 +1071,7 @@ function fetchResultats() {
     .catch((error) => {
       console.error("Error fetching results:", error);
       const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `<p class="text-danger">Error loading results.</p>`;
+      appDiv.innerHTML = `<p class="text-danger">Error loading results: ${error.message}</p>`;
     });
 }
 
@@ -900,26 +1120,30 @@ function fetchRanking() {
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
         <h3 class="mb-3">Player Ranking:</h3>
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">Rank</th>
-                <th scope="col">Player</th>
-                <th scope="col">Wins</th>
-                <th scope="col">Losses</th>
-                <th scope="col">Draws</th>
-                <th scope="col">Sets Won</th>
-                <th scope="col">Sets Lost</th>
-                <th scope="col">Points Scored</th>
-                <th scope="col">Points Conceded</th>
-              </tr>
-            </thead>
-            <tbody id="ranking"></tbody>
-          </table>
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title">Ranking Overview</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                  <tr>
+                    <th scope="col" data-priority="1">Rank</th>
+                    <th scope="col" data-priority="1">Player</th>
+                    <th scope="col" data-priority="2">Wins</th>
+                    <th scope="col" data-priority="2">Losses</th>
+                    <th scope="col" data-priority="3">Draws</th>
+                    <th scope="col" data-priority="3">Sets Won</th>
+                    <th scope="col" data-priority="3">Sets Lost</th>
+                    <th scope="col" data-priority="4">Points Scored</th>
+                    <th scope="col" data-priority="4">Points Conceded</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
-
       const rankingDiv = document.getElementById("ranking");
 
       if (Array.isArray(data) && data.length > 0) {
@@ -965,30 +1189,36 @@ function fetchRanking() {
 }
 
 export function displayGameForm() {
+<<<<<<< HEAD
 
   //empty all the containers
+=======
+  // Vide tous les conteneurs
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
   localStorage.setItem("isTournamentMatch", false);
   const formContainer = document.getElementById("app_main");
-  const username = localStorage.getItem("username")
+  const username = localStorage.getItem("username");
 
   let gameSettings = {
     mode: "solo",
     difficulty: "easy",
     design: "retro",
-    numberOfGames: 1, //entre 1 et 5
-    setsPerGame: 3, //entre 1 et 5
+    numberOfGames: 1, // entre 1 et 5
+    setsPerGame: 3, // entre 1 et 5
     player1: localStorage.getItem("username"),
     player2: "Bot-AI",
     control1: "arrows",
     control2: "wasd",
-    isTournamentMatch: false
+    isTournamentMatch: false,
+    isAIActive: true // Ajouté pour clarifier la logique IA
   };
 
   formContainer.innerHTML = `
+<<<<<<< HEAD
   <form id="gameForm" class="container w-100">
 
 	<ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
@@ -1064,10 +1294,155 @@ export function displayGameForm() {
               <option value="mouse" ${gameSettings.control2==="mouse" ? "selected" : "" }>Mouse
               </option>
             </select>
+=======
+    <form id="gameForm" class="container w-100">
+      <ul class="nav nav-pills mb-3 d-flex justify-content-center" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="pills-game-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab" aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="pills-match-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab" aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="pills-player-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab" aria-controls="pills-player-settings" aria-selected="false">Player Settings</button>
+        </li>
+      </ul>
+      <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
+          <div class="d-flex justify-content-center mt-3">
+            <div class="col p-3 d-flex flex-column">
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
+              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                <div class="mb-3">
+                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
+                  <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
+                    <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+                    <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
+                  <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
+                  <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
+                    <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+                    <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
+          <div class="d-flex justify-content-center mt-3">
+            <div class="col p-3 d-flex flex-column">
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
+              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                <div class="mb-3">
+                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+                  <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2" style="width: 60px;">
+                </div>
+                <div class="mb-3">
+                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+                  <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
+          <div class="d-flex justify-content-between align-items-stretch mt-3">
+            <div class="col p-3 d-flex flex-column">
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
+              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                <div class="mb-3">
+                  <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Name:</label>
+                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control" disabled>
+                </div>
+                <div class="mb-3">
+                  <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
+                  <select id="control1" class="form-select">
+                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col p-3 d-flex flex-column">
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
+              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                <div class="mb-3">
+                  <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
+                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+                </div>
+                <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+                  <label for="control2" class="form-label">Control:</label>
+                  <select id="control2" class="form-select">
+                    <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="result" style="display: none;">
+      <h2>Game Results</h2>
+      <p id="summary"></p>
+    </div>
+
+    <!-- Modales ajoutées ici -->
+    <div class="modal fade" id="registeredUserModal" tabindex="-1" aria-labelledby="registeredUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="registeredUserModalLabel">Utilisateur enregistré</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Cet utilisateur est enregistré. Une authentification est requise.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="button" class="btn btn-primary" id="authNeeded">Authentifier</button>
           </div>
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="guestPlayerModal" tabindex="-1" aria-labelledby="guestPlayerModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="guestPlayerModalLabel">Joueur invité</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Cet utilisateur est un invité. Voulez-vous continuer ?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="button" class="btn btn-primary" id="continueWithGuest">Continuer</button>
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
+          </div>
+        </div>
+      </div>
+    </div>
+<<<<<<< HEAD
   </div>
 
 
@@ -1156,6 +1531,11 @@ export function displayGameForm() {
 
   `;
 
+=======
+  `;
+
+  // Fonction pour basculer les boutons actifs
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
   function toggleActiveButton(group, selectedId) {
     document.querySelectorAll(group).forEach(button => {
       button.classList.remove('btn-primary');
@@ -1165,51 +1545,88 @@ export function displayGameForm() {
     document.getElementById(selectedId).classList.add('btn-primary');
   }
 
+  // Ajout des écouteurs pour les boutons de mode, difficulté et design
   document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
+<<<<<<< HEAD
     button.addEventListener("click", function () {
+=======
+    button.addEventListener("click", function() {
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
       toggleActiveButton(`.${this.classList[0]}`, this.id);
     });
   });
 
   let isTwoPlayerMode = false;
+<<<<<<< HEAD
   document.getElementById("onePlayer").addEventListener("click", function () {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = "Bot-AI";
+=======
+
+  // Gestion du mode "One Player"
+  document.getElementById("onePlayer").addEventListener("click", function() {
+    const player2Input = document.getElementById("player2");
+    const control2Container = document.getElementById("control2Container");
+
+    player2Input.value = "Bot-AI";
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
     gameSettings.player2 = "Bot-AI";
-    document.getElementById("player2").disabled = true;
-    document.getElementById("control2Container").style.display = "none";
+    gameSettings.isAIActive = true;
+    player2Input.disabled = true;
+    control2Container.style.display = "none";
 
-    document.getElementById("control1").value = "arrows";
-    document.getElementById("control2").value = "wasd";
-
-    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
-    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
+    const control1 = document.getElementById("control1");
+    const control2 = document.getElementById("control2");
+    control1.value = "arrows";
+    control2.value = "wasd";
+    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
 
     isTwoPlayerMode = false;
     gameSettings.mode = "solo";
+    toggleActiveButton(".mode-button", "onePlayer");
   });
 
+<<<<<<< HEAD
   document.getElementById("twoPlayers").addEventListener("click", function () {
     document.getElementById("player2Container").style.display = "block";
     document.getElementById("player2").value = ""; // Laissez vide pour permettre à l'utilisateur de saisir
     gameSettings.player2 = ""; // Réinitialisez également dans gameSettings
     document.getElementById("player2").disabled = false; // Assurez-vous qu'il est activable
     document.getElementById("control2Container").style.display = "block";
+=======
+  // Gestion du mode "Two Players"
+  document.getElementById("twoPlayers").addEventListener("click", function() {
+    const player2Input = document.getElementById("player2");
+    const control2Container = document.getElementById("control2Container");
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
 
-    document.getElementById("control1").value = "arrows";
-    document.getElementById("control2").value = "wasd";
+    player2Input.value = "";
+    gameSettings.player2 = "";
+    gameSettings.isAIActive = false;
+    player2Input.disabled = false;
+    control2Container.style.display = "block";
 
-    document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
-    document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
-
-    document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
-    document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
+    const control1 = document.getElementById("control1");
+    const control2 = document.getElementById("control2");
+    control1.value = "arrows";
+    control2.value = "wasd";
+    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control1.querySelector("option[value='wasd']").disabled = true;
+    control2.querySelector("option[value='arrows']").disabled = true;
 
     isTwoPlayerMode = true;
     gameSettings.mode = "multiplayer";
+    toggleActiveButton(".mode-button", "twoPlayers");
   });
 
+<<<<<<< HEAD
   document.getElementById("numberOfGames").addEventListener("input", function () {
+=======
+  // Mise à jour des paramètres via les inputs
+  document.getElementById("numberOfGames").addEventListener("input", function() {
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
     gameSettings.numberOfGames = parseInt(this.value);
   });
 
@@ -1221,20 +1638,18 @@ export function displayGameForm() {
     gameSettings.player2 = this.value;
   });
 
-  document.getElementById("control1").addEventListener("change", function () {
+  document.getElementById("control1").addEventListener("change", function() {
     const selected = this.value;
     gameSettings.control1 = this.value;
     const control2 = document.getElementById("control2");
-
     control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
     control2.querySelector(`option[value="${selected}"]`).disabled = true;
   });
 
-  document.getElementById("control2").addEventListener("change", function () {
+  document.getElementById("control2").addEventListener("change", function() {
     const selected = this.value;
     gameSettings.control2 = this.value;
     const control1 = document.getElementById("control1");
-
     control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
     control1.querySelector(`option[value="${selected}"]`).disabled = true;
   });
@@ -1255,6 +1670,7 @@ export function displayGameForm() {
   let lastCheckedPlayer2 = "";
   let needAuth = false;
 
+  // Gestion du bouton "Start Game"
   document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
     let player2 = document.getElementById("player2").value.trim();
@@ -1278,22 +1694,20 @@ export function displayGameForm() {
           });
 
           if (playerData.exists && !playerData.is_guest) {
-            // Affiche la modale pour joueur enregistré
             registeredUserModal.show();
             document.getElementById('authNeeded').addEventListener('click', function () {
               alertShown = true;
               lastCheckedPlayer2 = player2;
               needAuth = true;
-              registeredUserModal.hide(); // Ferme la modale après l'action
+              registeredUserModal.hide();
             });
             return;
           } else if (playerData.exists) {
-            // Affiche la modale pour joueur invité
             guestPlayerModal.show();
             document.getElementById('continueWithGuest').addEventListener('click', function () {
               alertShown = true;
               lastCheckedPlayer2 = player2;
-              guestPlayerModal.hide(); // Ferme la modale après l'action
+              guestPlayerModal.hide();
             });
             return;
           } else {
@@ -1302,7 +1716,6 @@ export function displayGameForm() {
           }
         } catch (error) {
           console.error("Error checking player existence:", error);
-          // Ici, vous pourriez aussi créer une modale pour les erreurs si vous le souhaitez
           alert("There was an error checking player existence. Please try again.");
           return;
         }
@@ -1312,19 +1725,24 @@ export function displayGameForm() {
       }
     }
 
-    // Vérification de l'authentification après les alertes pour les utilisateurs enregistrés
-    // et lancement du jeu pour les joueurs invités existants après le deuxième clic
     if (needAuth) {
+<<<<<<< HEAD
       // Ici, c'est le deuxième clic qui déclenche l'authentification
+=======
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
       const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
       if (authResult) {
         startGameSetup(gameSettings);
       }
+<<<<<<< HEAD
     } else if (player2 !== lastCheckedPlayer2) {
       // Si player2 a changé, on lance le jeu directement
       startGameSetup(gameSettings);
     } else {
       // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
+=======
+    } else {
+>>>>>>> 8b7935809b3300eb3c8c033284fd2789530bbecd
       startGameSetup(gameSettings);
     }
 
