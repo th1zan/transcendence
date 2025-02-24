@@ -167,6 +167,7 @@ export function getToken(username, password) {
       // Handle successful login
       if (ok && data.message === "Login successful") {
         console.log("✅ Login successful!");
+        localStorage.setItem("username", username);
         displayMenu();
         navigateTo("welcome");
       } else {
