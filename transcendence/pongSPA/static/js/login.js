@@ -1,4 +1,4 @@
-import { getToken, createAccount } from './auth.js';
+import { getToken, createAccount, toggle2FA, verify2FALogin } from './auth.js';
 
 
 // login
@@ -39,6 +39,16 @@ export function displayConnectionFormular() {
               Sign In
             </button>
           </form>
+
+          <!-- OTP Verification Section (Hidden by Default) -->
+          <div id="otpSection" style="display: none;">
+            <p class="text-center" style="font-size: 1.3rem;">Enter the 6-digit code sent to your email:</p>
+            <input type="text" id="otpInput" class="form-control form-control-lg" placeholder="Enter OTP">
+            <button id="otpVerifyButton" class="btn btn-primary w-100 mt-3 py-3" style="font-size: 1.3rem;">Verify OTP</button>
+            <button id="backToLoginButton" class="btn btn-secondary w-100 mt-2 py-3" style="font-size: 1.3rem;">Back to Login</button>
+          </div>
+
+
           <button
             id="signupButton"
             class="btn btn-primary w-100 mt-4 py-3"
@@ -49,6 +59,7 @@ export function displayConnectionFormular() {
       </div>
       `;
 
+    // Handle login form submission
     document
       .getElementById("loginForm")
       .addEventListener("submit", function (event) {
@@ -58,6 +69,18 @@ export function displayConnectionFormular() {
         getToken(username, password);
       });
 
+    // Handle OTP verification
+    document.getElementById("otpVerifyButton").addEventListener("click", function () {
+        verify2FALogin();
+    });
+
+    // Handle Back to Login button
+    document.getElementById("backToLoginButton").addEventListener("click", function () {
+        document.getElementById("otpSection").style.display = "none";
+        document.getElementById("loginForm").style.display = "block";
+    });
+
+    // Handle sign-up button
     document
       .getElementById("signupButton")
       .addEventListener("click", displayRegistrationForm);

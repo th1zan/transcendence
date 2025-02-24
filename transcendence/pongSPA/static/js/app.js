@@ -11,6 +11,10 @@ import {
   updateProfile,
   uploadAvatar,
   getCookie,
+  toggle2FA,
+  update2FAStatus,
+  verifyOTP,
+  verify2FALogin,
 } from "./auth.js";
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
@@ -679,6 +683,21 @@ function displayHTMLforSettings(user) {
       </div>
     </div>
 
+    <!-- ✅ 2FA Section -->
+    <div class="card shadow-sm p-4 mt-3">
+      <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
+      <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? "2FA is Enabled ✅" : "2FA is Disabled ❌"}</p>
+      <div class="d-flex justify-content-center">
+        <button id="toggle2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
+          ${user.is_2fa_enabled ? "Disable 2FA" : "Enable 2FA"}
+        </button>
+      </div>
+      <div id="otpSection" class="text-center mt-3" style="display:none;">
+        <input type="text" id="otpInput" class="form-control text-center w-50 mx-auto" placeholder="Enter OTP">
+        <button id="verifyOTPButton" class="btn btn-primary mt-2">Verify OTP</button>
+      </div>
+    </div>
+
     <!-- Account Actions -->
     <div class="d-flex justify-content-center mt-4">
       <button id="deleteAccountButton" class="btn btn-link nav-link text-danger">Delete account</button>
@@ -690,6 +709,9 @@ function displayHTMLforSettings(user) {
   document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
   document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
   document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+  document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
+  document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
+  update2FAStatus();
 }
 
 export function displaySettings() {
@@ -710,7 +732,7 @@ export function displaySettings() {
       displayHTMLforSettings(user);
     })
     .catch(error => {
-    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
 
     const appDiv = document.getElementById("app_main");
     appDiv.innerHTML = `
@@ -754,6 +776,21 @@ export function displaySettings() {
         </div>
       </div>
 
+      <!-- ✅ 2FA Section -->
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
+        <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? "2FA is Enabled ✅" : "2FA is Disabled ❌"}</p>
+        <div class="d-flex justify-content-center">
+          <button id="enable2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
+            ${user.is_2fa_enabled ? "Disable 2FA" : "Enable 2FA"}
+          </button>
+        </div>
+        <div id="otpSection" class="text-center mt-3" style="display:none;">
+          <input type="text" id="otpInput" class="form-control text-center w-50 mx-auto" placeholder="Enter OTP">
+          <button id="verifyOTPButton" class="btn btn-primary mt-2">Verify OTP</button>
+        </div>
+      </div>
+
       <!-- Account Actions -->
       <div class="d-flex justify-content-center mt-4">
       <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Delete Account</button>
@@ -765,6 +802,9 @@ export function displaySettings() {
     document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
     document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
     document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+    document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
+    document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
+    update2FAStatus();
   })
   .catch(error => {
     console.error("Error loading user data:", error);

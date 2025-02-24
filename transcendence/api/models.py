@@ -29,6 +29,8 @@ class CustomUser(AbstractUser):
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
     # The avatar will be saved under media/avatars/ with a random default image if none is uploaded.
     avatar = models.ImageField(upload_to="", blank=True, null=True)
+    is_2fa_enabled = models.BooleanField(default=False)
+    otp_secret = models.CharField(max_length=6, blank=True, null=True)  # Store OTP
 
     def set_random_avatar(self):
         # List of default avatar images in the 'avatars/' folder
@@ -71,35 +73,6 @@ class CustomUser(AbstractUser):
         """Update last_seen timestamp when the user is active"""
         self.last_seen = now()
         self.save()
-
-    # def save(self, *args, **kwargs):
-    #     is_new = self.pk is None
-    #     # If new and no avatar provided, first save to obtain pk.
-    #     if is_new:
-    #         super().save(*args, **kwargs)
-    #         if not self.avatar:
-    #             # List of default avatars
-    #             default_avatars = [
-    #                 'avatars/avatar1.png',
-    #                 'avatars/avatar2.png',
-    #                 'avatars/avatar3.png',
-    #                 'avatars/avatar4.png',
-    #                 'avatars/avatar5.png',
-    #                 'avatars/avatar6.png',
-    #                 'avatars/avatar7.png',
-    #             ]
-    #             # Select a random avatar
-    #             chosen_avatar = random.choice(default_avatars)
-    #             new_filename = f"user_{self.id}.png"
-
-    #             # Open the chosen image file and assign it to the avatar field
-    #             with open(os.path.join('media', chosen_avatar), 'rb') as f:
-    #                 self.avatar.save(new_filename, File(f), save=False)
-
-    #         # Save the user object with the assigned avatar
-    #         super().save(*args, **kwargs)
-    #     else:
-    #         super().save(*args, **kwargs)
 
     # USERNAME_FIELD = "username" @ receiver(post_save, sender=Tournament)
     USERNAME_FIELD = "username"

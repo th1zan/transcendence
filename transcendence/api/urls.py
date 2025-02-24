@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 from .views import (
@@ -34,6 +34,9 @@ from .views import (
     UserRegisterView,
     UserTournamentsView,
     ViewFriendRequestsView,
+	Toggle2FAView,
+	Verify2FALoginView,
+	Session2FAView,
     check_player_exists,
 )
 
@@ -43,8 +46,14 @@ urlpatterns = [
     path("results/<int:pk>/", PongMatchDetail.as_view(), name="pongmatch-detail"),
     path("scores/", PongScoreView.as_view(), name="pong-score"),
     path("scores/<int:pk>/", PongScoreView.as_view(), name="pong-score-detail"),
+	# path("api/auth/", include("api.auth.urls")),
     path("auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
+	path("auth/toggle-2fa/", Toggle2FAView.as_view(), name="toggle-2fa"),
+    # path("auth/verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
+	# path("auth/enable-2fa/", Enable2FAView.as_view(), name="enable-2fa"),
+    path("auth/verify-2fa-login/", Verify2FALoginView.as_view(), name="verify-2fa-login"),
+	path("auth/session-2fa/", Session2FAView.as_view(), name="session-2fa"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
     path("auth/validate/", CustomTokenValidateView.as_view(), name="token_validate"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
