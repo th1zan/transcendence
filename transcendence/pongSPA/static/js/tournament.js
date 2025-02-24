@@ -86,14 +86,25 @@ return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
 }
 
 function updatePlayerStatusUI(playerName) {
-// This function would update the UI for the authenticated player
-const playerElements = document.querySelectorAll('li');
-playerElements.forEach(element => {
-  if (element.textContent.includes(playerName)) {
-    element.innerHTML = `${playerName} - ✔️ Authenticated`;
-  }
-});
+  // Cible les lignes <tr> du tableau des joueurs dans displayTournamentGameList
+  const playerRows = document.querySelectorAll('#app_main table tbody tr');
+  playerRows.forEach(row => {
+    const nameCell = row.querySelector('td:first-child'); // Première colonne (nom)
+    const statusCell = row.querySelector('td:nth-child(2)'); // Deuxième colonne (statut)
+    const actionCell = row.querySelector('td:nth-child(3)'); // Troisième colonne (action)
+
+    if (nameCell && nameCell.textContent === playerName) {
+      // Met à jour le statut
+      statusCell.innerHTML = '<span class="badge bg-success">✔️ Authenticated</span>';
+      // Supprime le bouton d’authentification
+      if (actionCell) {
+        actionCell.innerHTML = ''; // Vide la cellule contenant le bouton
+      }
+    }
+  });
 }
+
+
 
 
 function displayTournamentGameList(data) {

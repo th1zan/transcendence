@@ -4,7 +4,8 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import CustomUser, Player, PongMatch, PongSet, Tournament, TournamentPlayer
+from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
+                     TournamentPlayer)
 
 
 # class TournamentSerializer(serializers.ModelSerializer):
@@ -96,7 +97,7 @@ class PongMatchSerializer(serializers.ModelSerializer):
             "sets",
             "player1_total_points",
             "player2_total_points",
-            "is_played",  # Ajouté ici
+            "is_played",
         ]
         extra_kwargs = {
             "user1": {"allow_null": True},
@@ -131,21 +132,9 @@ class PongMatchSerializer(serializers.ModelSerializer):
 
     def get_is_played(self, obj):
         """
-        Détermine si le match est joué en vérifiant si des sets ont des scores non nuls
-        ou si un gagnant est défini.
+        Utilise la méthode is_match_played du modèle PongMatch pour déterminer si le match est joué.
         """
-        # Vérifie si des sets existent et si au moins un set a un score non nul
-        sets = obj.sets.all()
-        if sets.exists():
-            for set_instance in sets:
-                if set_instance.player1_score > 0 or set_instance.player2_score > 0:
-                    return True
-        # Vérifie si un gagnant est défini ou s'il y a un match nul (sets gagnés égaux et non nuls)
-        if obj.winner or (
-            obj.player1_sets_won > 0 and obj.player1_sets_won == obj.player2_sets_won
-        ):
-            return True
-        return False
+        return obj.is_match_played()
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
