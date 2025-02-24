@@ -874,58 +874,117 @@ DisplayTournamentGame();
 
 
 export function validateSearch() {
-let tournamentName;
+  
 
-// Vérifiez si le nom du tournoi est déjà dans le stockage local
-tournamentName = localStorage.getItem("tournamentName");
+  document.getElementById('app_bottom').innerHTML = '';
 
-if (!tournamentName) {
-  alert("Please enter a tournament name.");
-  return;
-}
+  let tournamentName;
 
-const appMain = document.getElementById("app_main");
-appMain.innerHTML = `
-  <div id="tournamentList"></div>
-`;
+  // Vérifiez si le nom du tournoi est déjà dans le stockage local
+  tournamentName = localStorage.getItem("tournamentName");
 
-fetch(`/api/tournaments/?name=${tournamentName}`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    const tournamentListDiv = document.getElementById("tournamentList");
-    tournamentListDiv.innerHTML = "<h3>Tournaments Found:</h3>";
-    if (Array.isArray(data) && data.length > 0) {
-      data.forEach((tournament) => {
-        const tournamentDiv = document.createElement('div');
-        // Ajoute une coche pour les tournois terminés ou une raquette pour ceux en cours
-        const emoji = tournament.is_finished ? '✅' : '🏓';
-        tournamentDiv.innerHTML = `
-          <p>
-            ${emoji} Name: ${tournament.tournament_name}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
-            <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
-          </p>`;
-        tournamentListDiv.appendChild(tournamentDiv);
-      });
+  if (!tournamentName) {
+    showModal(
+      'Warning',
+      'Please enter a tournament name.',
+      'OK',
+      () => {}
+    );
+    return;
+  }
 
-      document.querySelectorAll('.selectTournamentButton').forEach(button => {
-        button.addEventListener('click', event => {
-          const tournamentId = event.target.getAttribute('data-id');
-          const tournamentName = event.target.getAttribute('data-name');
-          selectTournament(tournamentId, tournamentName);
-        });
-      });
-    } else {
-      tournamentListDiv.innerHTML += "<p>No tournament found with that name.</p>";
-    }
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = `
+    <div class="container mt-4">
+      <div class="card mb-4 shadow-sm border-primary border-1">
+        <div class="card-body p-3">
+          <div class="card shadow-sm border-primary border-1">
+            <div class="card-header text-center" style="background: white;">
+              <h2 class="display-6 mb-0 text-primary">Tournaments Found</h2>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover">
+                  <thead class="bg-primary text-white">
+                    <tr>
+                      <th scope="col" class="text-center" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
+                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
+                      <th scope="col" class="text-center" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
+                      <th scope="col" class="text-center" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
+                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tournamentBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  fetch(`/api/tournaments/?name=${tournamentName}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
-  .catch((error) => {
-    console.error("Error while searching for tournaments:", error);
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      const tournamentBody = document.getElementById("tournamentBody");
+      // Ensure data is an array before manipulating it
+      const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
+
+      if (tournaments.length > 0) {
+        tournaments.forEach((tournament) => {
+          const emoji = tournament.is_finished ? '✅' : '🏓';
+          const statusBadge = tournament.is_finished ? 
+            '<span class="badge bg-success">Finished</span>' : 
+            '<span class="badge bg-info text-dark">Ongoing</span>';
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${tournament.tournament_name} ${emoji}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${statusBadge}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${tournament.id}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${new Date(tournament.date).toLocaleDateString()}</td>
+            <td class="text-center align-middle">
+              <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+                <i class="bi bi-play-fill"></i> Select
+              </button>
+            </td>
+          `;
+          tournamentBody.appendChild(row);
+        });
+
+        // Relier le bouton "Select" pour naviguer vers la page du tournoi
+        document.querySelectorAll('.selectTournamentButton').forEach(button => {
+          button.addEventListener('click', event => {
+            const tournamentId = event.target.getAttribute('data-id');
+            const tournamentName = event.target.getAttribute('data-name');
+            selectTournament(tournamentId, tournamentName);
+          });
+        });
+      } else {
+        tournamentBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">No tournament found with that name.</td>
+          </tr>
+        `;
+      }
+    })
+    .catch((error) => {
+      console.error("Error while searching for tournaments:", error);
+      const tournamentBody = document.getElementById("tournamentBody");
+      tournamentBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+            Error loading tournament information: ${error.message}
+          </td>
+        </tr>
+      `;
+    });
 }
 
 export function displayUserTournaments() {
