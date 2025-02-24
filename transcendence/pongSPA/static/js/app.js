@@ -287,8 +287,8 @@ function displayQuickStats(data, playerName) {
       <table class="table table-sm table-striped" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
         <thead>
           <tr>
-            <th scope="col" style="color: #e84393;">Match</th>
-            <th scope="col" style="color: #00b894;">Score</th>
+            <th scope="col" style="font-family: 'Press Start 2P', cursive; font-size: 14px; color: #e84393;">Match</th>
+            <th scope="col" style="font-family: 'Press Start 2P', cursive; font-size: 14px; color: #00b894;">Score</th>
           </tr>
         </thead>
         <tbody>
@@ -311,13 +311,13 @@ function displayQuickStats(data, playerName) {
   }
 
   return `
-    <div class="card mb-4 shadow-sm h-100" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+    <div class="card mb-4 shadow-sm h-100" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
         <h4 class="card-title" style="color: #e84393;">Quick Stats for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item" style="background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
-          <li class="list-group-item" style="background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
-          <li class="list-group-item" style="background: transparent; border: none; color: #a6c1ee;"><strong>Draws:</strong> ${draws}</li>
+          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
+          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
+          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color:rgb(124, 164, 234);"><strong>Draws:</strong> ${draws}</li>
         </ul>
         <h5 class="mb-2" style="color: #00b894;">Last 3 Matches</h5>
         ${lastMatchesTable}
@@ -340,21 +340,21 @@ export function displayWelcomePage() {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <div class="container py-5" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); background-size: 400% 400%; animation: gradientBG 15s ease infinite; font-family: 'Poppins', sans-serif;">
+    <div class="container py-5" font-family: 'Poppins', sans-serif;">
       <div class="row justify-content-center">
         <!-- Colonne gauche : Welcome Card et Notifications -->
         <div class="col-md-6 d-flex flex-column gap-4">
           <!-- Welcome Card -->
-          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body d-flex align-items-center">
-              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px; background-color: red;">
+              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px;">
                 <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
               </div>
               <h3 class="card-title mb-0" style="color: #e84393; font-weight: 700; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">Welcome ${username}</h3>
             </div>
           </div>
           <!-- Pending Friend Requests Card -->
-          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body">
               <h4 class="card-title mb-3" style="color: #e84393;">Pending Friend Requests</h4>
               <div>
@@ -363,7 +363,7 @@ export function displayWelcomePage() {
             </div>
           </div>
           <!-- Pending Tournament Authentications Card -->
-          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body">
               <h4 class="card-title mb-3" style="color: #00b894;">Pending Tournament Authentications</h4>
               <div>
@@ -447,13 +447,13 @@ function fetchPendingTournamentAuthentications() {
           });
         });
       } else {
-        authList.innerHTML = `<li class="list-group-item text-center">No pending tournament authentications.</li>`;
+        authList.innerHTML = `<li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending tournament authentications.</li>`;
       }
     })
     .catch(error => {
       console.error("Error fetching pending tournament authentications:", error);
       const authList = document.getElementById("pendingTournamentAuthentications");
-      authList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading tournament authentications.</li>`;
+      authList.innerHTML = `<li class="list-group-item text-center text-danger" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">Error loading tournament authentications.</li>`;
     });
 }
 
@@ -529,7 +529,7 @@ export function fetchPendingFriendRequests() {
           });
         });
       } else {
-        requestList.innerHTML = `<li class="list-group-item text-center">No pending friend requests.</li>`;
+        requestList.innerHTML = `<li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending friend requests.</li>`;
       }
     })
     .catch(error => {
