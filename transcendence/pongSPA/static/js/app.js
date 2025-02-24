@@ -746,25 +746,181 @@ export function displaySettings() {
 
 }
 
+function fetchStatsDashboard() {
+  const username = localStorage.getItem("username");
+  if (!username) {
+    showModal('Login Required', 'Please log in to view your statistics.', 'OK', () => {});
+    return;
+  }
 
-// // Fonction pour supprimer tous les écouteurs d'événements existants et éviter les doublons
-// function removeEventListeners() {
-//   const buttons = [
-//     "viewResultsButton",
-//     "viewPlayerResult",
-//     "viewRankingButton",
-//     "searchPlayerButton" // Nouvel ID pour le bouton dans fetchPlayerResult
-//   ];
-//   buttons.forEach((id) => {
-//     const button = document.getElementById(id);
-//     if (button) {
-//       const newButton = button.cloneNode(true);
-//       button.parentNode.replaceChild(newButton, button);
-//     }
-//   });
-// }
+  // Utiliser la même API que fetchResultats
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const statsCharts = document.getElementById("statsCharts");
+      statsCharts.innerHTML = ''; // Vider le conteneur des graphiques
 
-// Fonction principale pour afficher les statistiques et initialiser les boutons
+      // Calculer les statistiques à partir du JSON
+      const playedMatches = Array.isArray(data) ? data.filter(match => match.is_played === true) : [];
+      const normalizedUsername = username.toLowerCase();
+
+      let wins = 0;
+      let losses = 0;
+      let tournamentWins = 0;
+      let totalMatches = 0;
+
+      // Calculer les statistiques globales
+      playedMatches.forEach((match) => {
+        totalMatches++;
+        const isPlayer1 = match.player1_name.toLowerCase() === normalizedUsername;
+        const isPlayer2 = match.player2_name.toLowerCase() === normalizedUsername;
+        const winnerName = (match.winner_name || "").toLowerCase();
+
+        if (isPlayer1 || isPlayer2) {
+          if (winnerName === normalizedUsername) {
+            wins++;
+            if (match.is_tournament_match) tournamentWins++;
+          } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress") {
+            losses++;
+          }
+        }
+      });
+
+      // Préparer les données pour l'historique des sessions (victoires/défaites par date)
+      const gameSessions = playedMatches.map(match => ({
+        date: new Date(match.date_played).toLocaleDateString(),
+        outcome: match.winner_name.toLowerCase() === normalizedUsername ? 1 : 0, // 1 pour victoire, 0 pour défaite
+        isTournament: match.is_tournament_match
+      }));
+      const sessionDates = [...new Set(gameSessions.map(session => session.date))].sort(); // Dates uniques, triées
+      const sessionOutcomes = sessionDates.map(date => {
+        const session = gameSessions.find(s => s.date === date);
+        return session ? session.outcome : 0;
+      });
+      const tournamentSessions = sessionDates.map(date => {
+        const session = gameSessions.find(s => s.date === date);
+        return session ? session.isTournament : false;
+      });
+
+      // 1. Graphique des statistiques utilisateur (victoires/défaites, matchs de tournoi)
+      const userStatsChartDiv = document.createElement('div');
+      userStatsChartDiv.className = 'col-12 col-md-6';
+      userStatsChartDiv.innerHTML = `
+        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">User Performance</h5>
+        <canvas id="userStatsChart" style="max-height: 200px;"></canvas>
+      `;
+      statsCharts.appendChild(userStatsChartDiv);
+
+      // 2. Graphique de l'historique des sessions de jeu
+      const gameSessionsChartDiv = document.createElement('div');
+      gameSessionsChartDiv.className = 'col-12 col-md-6';
+      gameSessionsChartDiv.innerHTML = `
+        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">Game Sessions History</h5>
+        <canvas id="gameSessionsChart" style="max-height: 200px;"></canvas>
+      `;
+      statsCharts.appendChild(gameSessionsChartDiv);
+
+      // Initialiser les graphiques avec Chart.js
+      const userStatsCtx = document.getElementById('userStatsChart').getContext('2d');
+      new Chart(userStatsCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Wins', 'Losses', 'Tournament Wins'],
+          datasets: [{
+            label: 'User Performance',
+            data: [wins, losses, tournamentWins],
+            backgroundColor: ['#28a745', '#dc3545', '#007bff'], // Vert pour victoires, rouge pour défaites, bleu pour tournois
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: { 
+            y: { 
+              beginAtZero: true,
+              max: Math.max(wins, losses, tournamentWins) + 1 // Limiter l'échelle
+            }
+          },
+          plugins: {
+            title: { display: true, text: `Stats for ${username}`, font: { family: 'Press Start 2P', size: 16 } },
+            legend: { position: 'top' }
+          },
+          maintainAspectRatio: false,
+          responsive: true,
+          maxHeight: 200 // Limiter la hauteur maximale du graphique
+        }
+      });
+
+      // Graphique de l'historique des sessions
+      const gameSessionsCtx = document.getElementById('gameSessionsChart').getContext('2d');
+      new Chart(gameSessionsCtx, {
+        type: 'line',
+        data: {
+          labels: sessionDates,
+          datasets: [{
+            label: 'Game Outcomes',
+            data: sessionOutcomes,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            fill: true,
+            tension: 0.1,
+            pointBackgroundColor: sessionOutcomes.map(outcome => outcome === 1 ? '#28a745' : '#dc3545'), // Points verts pour victoires, rouges pour défaites
+            pointRadius: 5
+          }, {
+            label: 'Tournament Matches',
+            data: tournamentSessions.map(isTournament => isTournament ? 1 : 0),
+            borderColor: 'rgba(220, 53, 69, 0.5)', // Rouge semi-transparent pour les matchs de tournoi
+            borderDash: [5, 5], // Ligne pointillée pour différencier
+            fill: false,
+            tension: 0.1,
+            pointRadius: 0 // Pas de points visibles pour cette ligne
+          }]
+        },
+        options: {
+          scales: { 
+            y: { 
+              beginAtZero: true, 
+              ticks: { callback: value => value === 1 ? 'Win/Tournament' : 'Loss' },
+              max: 1.5 // Pour laisser de l'espace pour les étiquettes
+            }
+          },
+          plugins: {
+            title: { display: true, text: 'Match History Over Time', font: { family: 'Press Start 2P', size: 16 } },
+            legend: { position: 'top' }
+          },
+          maintainAspectRatio: false,
+          responsive: true,
+          maxHeight: 200 // Limiter la hauteur maximale du graphique
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching stats dashboard:", error);
+      const statsCharts = document.getElementById("statsCharts");
+      statsCharts.innerHTML = `
+        <div class="container mt-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <p class="text-danger text-center">Error loading statistics: ${error.message}</p>
+              <button id="retryStats" class="btn btn-primary mt-2 w-100" style="font-family: 'Press Start 2P', cursive;">Retry</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById("retryStats")?.addEventListener("click", () => fetchStatsDashboard());
+    });
+}
+
 export function displayStats() {
   // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
@@ -774,6 +930,7 @@ export function displayStats() {
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <div class="container mt-4">
+      <h3 class="text-center text-primary mb-4">Statistics</h3>
       <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
           My Results
@@ -787,14 +944,59 @@ export function displayStats() {
       </div>
     </div>
   `;
-  //display user results
+
+  const appMain = document.getElementById("app_bottom");
+  appMain.innerHTML = `
+    <div class="container mt-4">
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body" id="statsDashboard">
+          <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
+          <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Afficher les résultats utilisateur et initialiser le dashboard
   fetchResultats();
+  fetchStatsDashboard();
 
   // Ajoute les nouveaux écouteurs
   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
   document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 }
+
+// export function displayStats() {
+//   // Vide tous les conteneurs
+//   document.getElementById('app_top').innerHTML = '';
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   const appTop = document.getElementById("app_top");
+//   appTop.innerHTML = `
+//     <div class="container mt-4">
+//       <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
+//         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
+//           My Results
+//         </button>
+//         <button id="viewPlayerResult" class="btn btn-outline-secondary btn-lg shadow-sm">
+//           Search Player's Result
+//         </button>
+//         <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
+//           Overall Ranking
+//         </button>
+//       </div>
+//     </div>
+//   `;
+//   //display user results
+//   fetchResultats();
+//
+//   // Ajoute les nouveaux écouteurs
+//   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
+//   document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
+//   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+// }
 
 // Fonction pour afficher le formulaire de recherche de résultats d'un joueur
 function fetchPlayerResult() {
