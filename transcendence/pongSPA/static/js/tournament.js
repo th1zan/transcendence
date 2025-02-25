@@ -1039,7 +1039,7 @@ export function displayUserTournaments() {
         <div id="userTournamentList">
           <div class="card shadow-sm border-primary border-1">
             <div class="card-header text-center" style="background: white;">
-              <h2 class="display-6 mb-0 text-primary">Your Tournaments</h2>
+              <h3>Your Tournaments</h3>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">

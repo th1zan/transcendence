@@ -28,6 +28,49 @@ body {
   color: #212529; /* Texte sombre par défaut pour lisibilité */
 }
 
+/* Style pour les tableaux dans .table-responsive avec .table-striped et .table-hover */
+.table-responsive .table.table-striped.table-hover {
+    background: rgba(255, 255, 255, 0.4) !important; /* Fond blanc avec 40% d'opacité, priorité forcée */
+    border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
+}
+
+/* Style pour les lignes alternées (.table-striped) */
+.table-responsive .table.table-striped tbody tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.6) !important; /* Lignes impaires légèrement plus opaques */
+}
+
+.table-responsive .table.table-striped tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.3) !important; /* Lignes paires légèrement moins opaques */
+}
+
+/* Style pour l’effet hover sur les lignes (.table-hover) */
+.table-responsive .table.table-hover tbody tr:hover {
+    background-color: rgba(200, 200, 200, 0.4) !important; /* Fond gris semi-transparent au hover */
+    transition: background-color 0.3s ease; /* Transition fluide pour l’effet hover */
+}
+
+/* Style pour l’en-tête .thead-dark (optionnel, si vous voulez un fond différent) */
+.table-responsive .table thead.thead-dark {
+    background: rgba(52, 58, 64, 0.9) !important; /* Fond semi-transparent sombre pour thead-dark, ajustable */
+}
+
+/* Style pour les listes avec .list-group */
+.list-group {
+    background:transparent; /* Fond blanc avec 40% d'opacité */
+}
+
+/* .list-group { */
+/*     background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité */ 
+/*     border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
+/*     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */ 
+/* } */
+
+/* Style pour les items de la liste pour assurer la cohérence */
+.list-group-item {
+    background: transparent; /* Garde les items transparents pour ne pas surclasser le fond du .list-group */
+    border: none; /* Supprime les bordures par défaut de Bootstrap pour les .list-group-item */
+}
 
 /* *********************************** */
 /* Styles pour le menu de navigation   */
@@ -35,7 +78,6 @@ body {
 
 
 /* Styles pour le menu de navigation */
-/* Styles pour le menu de navigation */
 .menu-container {
     width: 190px; /* Largeur fixe */
     background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité, comme les cartes */
@@ -44,18 +86,7 @@ body {
     flex-direction: column; /* Disposition en colonne */
     border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
-}
-
-/* Style pour l'image dans le menu */
-/* Styles pour le menu de navigation */
-.menu-container {
-    width: 190px; /* Largeur fixe */
-    background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité, comme les cartes */
-    height: 100%; /* Hauteur complète */
-    display: flex; /* Utilise flexbox pour les enfants */
-    flex-direction: column; /* Disposition en colonne */
-    border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
+    padding: 20px; /* Marge intérieure autour du contenu du menu (espace entre les bords et les boutons) */
 }
 
 /* Style pour l'image dans le menu */
@@ -65,49 +96,50 @@ body {
     border-radius: 50%; /* Crée un cercle */
     object-fit: cover; /* Ajuste l’image pour couvrir tout le conteneur tout en conservant ses proportions */
     align-self: center; /* Centre horizontalement l’image */
-    margin-top: 1.5rem; /* my-4 en Bootstrap = 1.5rem */
-    margin-bottom: 1.5rem; /* my-4 en Bootstrap = 1.5rem */
+    margin-bottom: 20px; /* Espace sous l’image (plus grand que my-4 pour plus de marge) */
 }
 
 /* Styles pour les boutons du menu */
 .menu-button {
-    align-items: flex-start; /* Aligne les éléments enfants en haut */
-    background-color: #007bff; /* Fond bleu spécifié */
-    background-position: 0px 0px; /* Position du fond (par défaut, mais spécifié) */
+    background-color: #007bff; /* Fond bleu comme dans l’image 2 */
     border-radius: 5px; /* Coins arrondis de 5px */
-    color: #212529; /* Couleur du texte (noir/gris foncé) */
+    color: white; /* Texte blanc */
+    font-family: 'Press Start 2P', cursive; /* Police pixelisée */
+    font-size: 16px; /* Taille de police comme h4 (ajustable si nécessaire) */
     display: flex; /* Utilise flexbox */
-    font-family: 'Press Start 2P', cursive; /* Applique la police pixelisée */
-    font-size: 12px; /* Taille de police spécifiée */
-    justify-content: flex-start; /* Aligne le contenu à gauche */
-    line-height: 18px; /* Hauteur de ligne spécifiée */
-    margin: 5px 5px 16px; /* Marges : 5px haut, 5px droite/gauche, 16px bas */
-    padding: 10px 20px 10px 8px; /* Padding : 10px haut, 20px droite, 10px bas, 8px gauche */
+    justify-content: center; /* Centre horizontalement le texte */
+    align-items: center; /* Centre verticalement le texte */
+    padding: 10px 20px; /* Padding interne pour un bon espacement du texte */
+    margin: 10px 0; /* Marge verticale entre les boutons et autour (10px au-dessus et en dessous) */
     width: 100%; /* S’assure que les boutons prennent toute la largeur */
-    text-align: center; /* Centre le texte horizontalement */
-    transition: background-color 0.3s ease, color 0.3s ease; /* Transition fluide pour l’hover (ajoutée pour un effet interactif) */
+    text-align: center; /* Centre le texte (redondant avec justify-content, mais pour sécurité) */
+    border: none; /* Supprime la bordure par défaut */
+    transition: background-color 0.3s ease; /* Transition fluide pour l’hover */
 }
 
 .menu-button:hover {
     background-color: #0056b3; /* Fond plus foncé au hover (variation de #007bff) */
-    color: white; /* Texte blanc au hover pour contraste */
+    color: white; /* Texte reste blanc au hover */
     text-decoration: none; /* Supprime la décoration de texte au hover */
 }
 
 /* Style spécifique pour le bouton de déconnexion */
 #logoutButton {
-    background-color: #dc3545; /* Fond rouge spécifié pour Logout */
+    background-color: #dc3545; /* Fond rouge comme dans l’image 2 */
     border-radius: 5px; /* Coins arrondis de 5px */
-    color: #212529; /* Texte noir/gris foncé */
-    font-family: 'Press Start 2P', cursive; /* Applique la police pixelisée */
-    font-size: 12px; /* Taille de police spécifiée */
-    margin: 5px 5px 16px; /* Marges identiques aux autres boutons */
-    padding: 10px 20px 10px 8px; /* Padding identique aux autres boutons */
+    color: white; /* Texte blanc */
+    font-family: 'Press Start 2P', cursive; /* Police pixelisée */
+    font-size: 16px; /* Taille de police comme h4 */
+    padding: 10px 20px; /* Padding interne */
+    margin: 10px 0; /* Marge identique aux autres boutons */
+    width: 100%; /* S’assure que le bouton prend toute la largeur */
+    text-align: center; /* Centre le texte */
+    border: none; /* Supprime la bordure par défaut */
 }
 
 #logoutButton:hover {
     background-color: #c82333; /* Fond plus foncé au hover (variation de #dc3545) */
-    color: white; /* Texte blanc au hover */
+    color: white; /* Texte reste blanc au hover */
     text-decoration: none; /* Supprime la décoration de texte au hover */
 }
 
@@ -116,7 +148,95 @@ body {
     flex-grow: 1; /* Permet à cet élément de s’étendre pour occuper l’espace restant */
 }
 
+/* Titres avec tailles décroissantes selon leur importance (réduites de 20%) */
+h1 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 25.6px; /* 32px * 0.8 (réduction de 20%) */
+  text-align: center;
+  padding: 10px 0;
+}
 
+h2 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 22.4px; /* 28px * 0.8 */
+  text-align: center;
+  padding: 10px 0;
+}
+
+h3 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 19.2px; /* 24px * 0.8 */
+  text-align: center;
+  padding: 10px 0;
+}
+
+h4 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 16px; /* 20px * 0.8 */
+  text-align: center;
+  padding: 10px 0;
+}
+
+h5 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 14.4px; /* 18px * 0.8 */
+  text-align: center;
+  padding: 10px 0;
+}
+
+h6 {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12.8px; /* 16px * 0.8 */
+  text-align: center;
+  padding: 10px 0;
+}
+
+
+/* *********************************** */
+/* Styles pour les boutons               */
+/* ************************************ */
+
+
+
+/* Boutons */
+.btn {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: none;
+  font-smooth: never;
+  padding: 10px 20px; /* Espacement vertical (10px) et horizontal (20px) accru */
+  border-radius: 5px;
+  margin: 5px; /* Espacement extérieur entre les boutons */
+}
+/**/
+/* .btn-primary { */
+/*   background-color: #007bff; */
+/*   border-color: #007bff; */
+/*   color: #fff; */
+/* } */
+/**/
+/* .btn-primary:hover { */
+/*   background-color: #0056b3; */
+/*   border-color: #0056b3; */
+/* } */
+/**/
+/* .btn-outline-primary { */
+/*   color: #007bff; */
+/*   border-color: #007bff; */
+/* } */
+/**/
+/* .btn-outline-primary:hover { */
+/*   background-color: #007bff; */
+/*   color: #fff; */
+/* } */
+/**/
+/* /* Boutons dans un btn-group : pas d'espacement supplémentaire */ */
+/* .btn-group .btn { */
+/*   margin: 0; /* Annule l'espacement extérieur pour btn-group */ */
+/*   padding: 10px 15px; /* Padding légèrement réduit horizontalement pour cohérence */ */
+/* } */
+/**/
 
 /* *********************************** */
 /* Styles pour les titres               */
