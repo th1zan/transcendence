@@ -37,7 +37,6 @@ export function sendFriendRequest(friendUsername) {
 			alert("Error: " + data.error);
 			} else {
 			alert(`Friend request sent to ${friendUsername}.`);
-			// alert(data.message);
 			}
 		})
 		.catch((error) => {
@@ -67,8 +66,8 @@ export function respondToFriendRequest(friendUsername, action) {
 		  alert("Error: " + data.error);
 		} else {
 		  alert(data.message);
-		  fetchFriendRequests(); // Refresh the friend request list
-          fetchFriends(); // refresh the friend list
+		  fetchFriendRequests();
+          fetchFriends();
 		}
 	  })
 	  .catch((error) => {
@@ -96,7 +95,7 @@ export function removeFriend(friendUsername) {
 		  alert("Error: " + data.error);
 		} else {
 		  alert(data.message);
-		  fetchFriends(); // Refresh friend list
+		  fetchFriends();
 		}
 	  })
 	  .catch((error) => {
