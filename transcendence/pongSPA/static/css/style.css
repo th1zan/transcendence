@@ -5,47 +5,13 @@
 
 /* styles.css */
 
-h3 {
-	font-family: 'Press Start 2P', cursive; font-size: 24px;
-}
 
-#menu > div {
-	width: 150px;
-	background-color: brown;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    width: 100%; /* S’assure que le body prend toute la largeur */
-    min-width: 100%; /* Empêche toute restriction minimale */
-    max-width: none; /* Supprime toute limitation maximale */
-    background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
-    animation: gradientBG 15s ease infinite;
-}
-
-.container-fluid, #app {
-    background: transparent !important;
-}
-
+/*Background: dégradé */
 @keyframes gradientBG {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
-
-/* .btn { */
-/*   font-family: 'Press Start 2P', cursive; */
-/*   font-size: 12px; /* Gardez votre taille si vous voulez */ */
-/*   -webkit-font-smoothing: none; /* Désactive le lissage sur Webkit (Chrome, Safari) */ */
-/*   -moz-osx-font-smoothing: none; /* Désactive le lissage sur Firefox macOS */ */
-/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois efficace */ */
-/* } */
-/**/
-/* #menu > div { */
-/* 	width: 150px; */
-/* 	background-color: brown; */
-/* } */
 
 /* Style global de base */
 html {
@@ -62,52 +28,125 @@ body {
   color: #212529; /* Texte sombre par défaut pour lisibilité */
 }
 
-/* Titres avec tailles décroissantes selon leur importance */
+
+/* *********************************** */
+/* Styles pour le menu de navigation   */
+/* ************************************ */
+
+
+/* Styles pour le menu de navigation */
+/* Styles pour le menu de navigation */
+.menu-container {
+    width: 190px; /* Largeur fixe */
+    background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité, comme les cartes */
+    height: 100%; /* Hauteur complète */
+    display: flex; /* Utilise flexbox pour les enfants */
+    flex-direction: column; /* Disposition en colonne */
+    border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
+}
+
+/* Style pour l'image dans le menu */
+.menu-container img {
+    width: 90px; /* Largeur de l’image */
+    height: 100px; /* Hauteur de l’image */
+    border-radius: 50%; /* Crée un cercle */
+    object-fit: cover; /* Ajuste l’image pour couvrir tout le conteneur tout en conservant ses proportions */
+    align-self: center; /* Centre horizontalement l’image */
+    margin-top: 1.5rem; /* my-4 en Bootstrap = 1.5rem */
+    margin-bottom: 1.5rem; /* my-4 en Bootstrap = 1.5rem */
+}
+
+/* Styles pour les boutons du menu */
+.menu-button {
+    display: flex; /* Utilise flexbox pour aligner le contenu */
+    justify-content: flex-start; /* Aligne le contenu à gauche */
+    padding: 1rem 2rem; /* Augmente le padding interne (espace entre le texte et les bords) : 1rem vertical, 2rem horizontal */
+    margin-bottom: 2rem; /* Augmente l’espace entre les boutons (mb-3 devient mb-5, soit 2rem) */
+    width: 100%; /* S’assure que les boutons prennent toute la largeur */
+    background-color: transparent; /* Fond transparent */
+    border: 1px solid #0d6efd; /* Bord fin avec la couleur primaire de Bootstrap (bleu) */
+    border-radius: 0.375rem; /* Bords arrondis (correspond à btn dans Bootstrap) */
+    color: #0d6efd; /* Couleur du texte, correspondant à la couleur primaire */
+    font-family: 'Press Start 2P', cursive; /* Applique la police pixelisée */
+    font-size: 16px; /* Taille de police comme h4 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transition fluide pour l’hover */
+}
+
+.menu-button:hover {
+    background-color: #0d6efd; /* Fond bleu primaire au hover */
+    color: white; /* Texte blanc au hover pour contraste */
+    text-decoration: none; /* Supprime la décoration de texte au hover */
+}
+
+/* Style spécifique pour le bouton de déconnexion */
+#logoutButton {
+    background-color: transparent; /* Fond transparent */
+    border: 1px solid #dc3545; /* Bord fin avec la couleur danger de Bootstrap (rouge) */
+    color: #dc3545; /* Texte rouge */
+    font-family: 'Press Start 2P', cursive; /* Applique la police pixelisée */
+    font-size: 16px; /* Taille de police comme h4 */
+}
+
+#logoutButton:hover {
+    background-color: #dc3545; /* Fond rouge au hover */
+    color: white; /* Texte blanc au hover */
+    text-decoration: none; /* Supprime la décoration de texte au hover */
+}
+
+/* Style pour le conteneur flexible qui prend l’espace restant */
+.flex-grow-1 {
+    flex-grow: 1; /* Permet à cet élément de s’étendre pour occuper l’espace restant */
+}
+
+
+
+/* *********************************** */
+/* Styles pour les titres               */
+/* ************************************ */
+
+
+/* Titres avec tailles décroissantes selon leur importance (réduites de 20%) */
 h1 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 32px; /* Plus grand pour h1 */
+  font-size: 25.6px; /* 32px * 0.8 (réduction de 20%) */
   text-align: center;
   padding: 10px 0;
 }
 
 h2 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 28px;
+  font-size: 22.4px; /* 28px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
 
 h3 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 24px;
+  font-size: 19.2px; /* 24px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
 
 h4 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 20px;
+  font-size: 16px; /* 20px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
 
 h5 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 18px;
+  font-size: 14.4px; /* 18px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
 
 h6 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 16px;
+  font-size: 12.8px; /* 16px * 0.8 */
   text-align: center;
   padding: 10px 0;
-}
-
-/* Conteneurs principaux */
-.container, .col {
-  padding: 15px;
 }
 
 /* Onglets de navigation */
@@ -126,173 +165,48 @@ h6 {
   color: #fff;
 }
 
-/* Contenu des onglets */
 
-/* Cartes principales (opaques, fond blanc, bordure blanche) */
-/* .card { */
-/*   background-color: #ffffff; /* Fond blanc opaque */ */
-/*   border: 2px solid #ffffff; /* Bordure blanche fine */ */
-/*   border-radius: 5px; */
-/*   padding: 15px; */
-/*   box-shadow: none; */
-/*   outline: none; */
-/*   border-width: 2px !important; */
-/* } */
 
-/* /* Cartes secondaires/imbriquées (transparents, bordure blanche) */ */
-/* .card .card { */
-/*   background-color: transparent; /* Pas de fond */ */
-/*   border: 2px solid #ffffff; /* Bordure blanche fine */ */
-/*   border-radius: 5px; */
-/*   padding: 10px; */
-/*   box-shadow: none; */
-/*   outline: none; */
-/* } */
-/**/
-/* /* Texte dans les cartes */ */
-/* .card-title, .card-text { */
-/*   color: #212529; */
-/*   font-family: 'Press Start 2P', cursive; */
-/*   font-size: 16px; */
-/* } */
-/**/
-/* .card .card .card-title, .card .card .card-text { */
-/*   color: #ffffff; /* Texte blanc pour contraste sur fond transparent */ */
-/*   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2); /* Ombre légère pour lisibilité */ */
-/* } */
-/**/
-/* /* Boutons dans les cartes */ */
-/* .card .btn { */
-/*   font-family: 'Press Start 2P', cursive; */
-/*   font-size: 12px; */
-/*   -webkit-font-smoothing: none; */
-/*   -moz-osx-font-smoothing: none; */
-/*   font-smooth: never; */
-/*   background-color: #ffffff; */
-/*   border: 2px solid #ffffff; */
-/*   color: #212529; */
-/*   padding: 8px 16px; */
-/* } */
-/**/
-/* .card .card .btn { */
-/*   background-color: transparent; */
-/*   border: 2px solid #ffffff; */
-/*   color: #ffffff; */
-/* } */
-/**/
-/* /* Champs de formulaire dans les cartes */ */
-/* .card .form-control { */
-/*   background-color: #ffffff; */
-/*   border: 2px solid #ffffff; */
-/*   color: #212529; */
-/* } */
-/**/
-/* .card .card .form-control { */
-/*   background-color: transparent; */
-/*   border: 2px solid #ffffff; */
-/*   color: #ffffff; */
-/* } */
+/* ********************************** */
+/* Styles pour les cartes principales */
+/* ********************************** */
 
-.tab-content {
-  margin-top: 20px;
+
+
+.card {
+    background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité */
+    border: none; /* Supprime la bordure par défaut */
+    border-radius: 15px; /* Coins arrondis */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Animation pour les transformations et ombres */
+    width: 100%; /* S’assure que la carte prend toute la largeur disponible */
+    max-width: 100%; /* Évite les débordements */
+    margin: 0; /* Supprime les marges par défaut */
 }
 
-.tab-pane .border {
-  border: 2px solid #007bff !important;
-  border-radius: 5px;
-  padding: 15px;
-  background-color: #fff;
+/* Style pour le body des cartes */
+.card-body {
+    padding: 1rem; /* Padding par défaut pour le contenu */
 }
 
-/* Étiquettes */
-.form-label {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 15px;
-  color: #212529;
+/* Style spécifique pour la carte de bienvenue (alignement et éléments internes) */
+.welcome-card .card-body {
+    display: flex;
+    align-items: center; /* Aligne verticalement les éléments */
 }
 
-/* Boutons */
-.btn {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 12px;
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: none;
-  font-smooth: never;
-  padding: 10px 20px; /* Espacement vertical (10px) et horizontal (20px) accru */
-  border-radius: 5px;
-  margin: 5px; /* Espacement extérieur entre les boutons */
+/* Style pour les images circulaires dans la carte de bienvenue */
+.rounded-circle {
+    width: 100px; /* Largeur fixe de l’image */
+    height: 100px; /* Hauteur fixe */
+    overflow: hidden; /* Masque tout ce qui dépasse du cercle */
+    border-radius: 50%; /* Crée un cercle */
+    margin-right: 1rem; /* Espace à droite de l’image (me-3 en Bootstrap = 1rem) */
 }
 
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  color: #fff;
+.rounded-circle img {
+    width: 100%; /* Image prend toute la largeur du conteneur */
+    height: 100%; /* Image prend toute la hauteur */
+    object-fit: cover; /* Ajuste l’image pour couvrir tout le conteneur tout en conservant ses proportions */
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
-
-.btn-outline-primary {
-  color: #007bff;
-  border-color: #007bff;
-}
-
-.btn-outline-primary:hover {
-  background-color: #007bff;
-  color: #fff;
-}
-
-/* Boutons dans un btn-group : pas d'espacement supplémentaire */
-.btn-group .btn {
-  margin: 0; /* Annule l'espacement extérieur pour btn-group */
-  padding: 10px 15px; /* Padding légèrement réduit horizontalement pour cohérence */
-}
-
-/* Champs de formulaire */
-.form-control, .form-select {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 15px;
-  padding: 8px;
-  border: 2px solid #007bff;
-  border-radius: 5px;
-  background-color: #fff;
-  color: #212529;
-}
-
-.form-control:disabled {
-  background-color: #e9ecef;
-}
-
-/* Spécifique aux inputs numériques */
-input[type="number"] {
-  width: 60px;
-}
-
-/* Section des résultats */
-#result {
-  margin-top: 20px;
-  padding: 15px;
-  border: 2px solid #007bff;
-  border-radius: 5px;
-  background-color: #fff;
-}
-
-#result h2 {
-  font-size: 28px; /* Ajusté pour correspondre à la hiérarchie */
-}
-
-#summary {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 15px;
-}
-
-/* Menu (si utilisé ailleurs) */
-#menu > div {
-  width: 150px;
-  background-color: brown;
-  padding: 10px;
-  border: 2px solid #fff;
-  border-radius: 5px;
-}

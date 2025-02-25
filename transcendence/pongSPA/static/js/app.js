@@ -341,33 +341,35 @@ export function displayWelcomePage() {
       <div class="row justify-content-center">
         <!-- Colonne gauche : Welcome Card et Notifications -->
         <div class="col-md-6 d-flex flex-column gap-4">
-          <!-- Welcome Card -->
-          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
-            <div class="card-body d-flex align-items-center">
-              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px;">
-                <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
-              </div>
-              <h3 class="card-title mb-0" style="color: #e84393; font-weight: 700; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">Welcome ${username}</h3>
+            <!-- Welcome Card -->
+            <div class="card shadow-sm welcome-card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle overflow-hidden me-3">
+                        <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" />
+                    </div>
+                    <h3 class="card-title mb-0">Welcome ${username}</h3>
+                </div>
             </div>
-          </div>
-          <!-- Pending Friend Requests Card -->
-          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
-            <div class="card-body">
-              <h4 class="card-title mb-3" style="color: #e84393;">Pending Friend Requests</h4>
-              <div>
-                <ul class="list-group" id="pendingFriendRequests"></ul>
-              </div>
+
+            <!-- Pending Friend Requests Card -->
+            <div class="card shadow-sm pending-friend-card">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Pending Friend Requests</h4>
+                    <div>
+                        <ul class="list-group" id="pendingFriendRequests"></ul>
+                    </div>
+                </div>
             </div>
-          </div>
-          <!-- Pending Tournament Authentications Card -->
-          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
-            <div class="card-body">
-              <h4 class="card-title mb-3" style="color: #00b894;">Pending Tournament Authentications</h4>
-              <div>
-                <ul class="list-group" id="pendingTournamentAuthentications"></ul>
-              </div>
+
+            <!-- Pending Tournament Authentications Card -->
+            <div class="card shadow-sm pending-tournament-card">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Pending Tournament Authentications</h4>
+                    <div>
+                        <ul class="list-group" id="pendingTournamentAuthentications"></ul>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
         <!-- Colonne droite : Quick Stats -->
         <div class="col-md-6" id="quickStatsContainer">
