@@ -47,6 +47,18 @@ body {
 }
 
 /* Style pour l'image dans le menu */
+/* Styles pour le menu de navigation */
+.menu-container {
+    width: 190px; /* Largeur fixe */
+    background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité, comme les cartes */
+    height: 100%; /* Hauteur complète */
+    display: flex; /* Utilise flexbox pour les enfants */
+    flex-direction: column; /* Disposition en colonne */
+    border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
+}
+
+/* Style pour l'image dans le menu */
 .menu-container img {
     width: 90px; /* Largeur de l’image */
     height: 100px; /* Hauteur de l’image */
@@ -59,37 +71,42 @@ body {
 
 /* Styles pour les boutons du menu */
 .menu-button {
-    display: flex; /* Utilise flexbox pour aligner le contenu */
-    justify-content: flex-start; /* Aligne le contenu à gauche */
-    padding: 1rem 2rem; /* Augmente le padding interne (espace entre le texte et les bords) : 1rem vertical, 2rem horizontal */
-    margin-bottom: 2rem; /* Augmente l’espace entre les boutons (mb-3 devient mb-5, soit 2rem) */
-    width: 100%; /* S’assure que les boutons prennent toute la largeur */
-    background-color: transparent; /* Fond transparent */
-    border: 1px solid #0d6efd; /* Bord fin avec la couleur primaire de Bootstrap (bleu) */
-    border-radius: 0.375rem; /* Bords arrondis (correspond à btn dans Bootstrap) */
-    color: #0d6efd; /* Couleur du texte, correspondant à la couleur primaire */
+    align-items: flex-start; /* Aligne les éléments enfants en haut */
+    background-color: #007bff; /* Fond bleu spécifié */
+    background-position: 0px 0px; /* Position du fond (par défaut, mais spécifié) */
+    border-radius: 5px; /* Coins arrondis de 5px */
+    color: #212529; /* Couleur du texte (noir/gris foncé) */
+    display: flex; /* Utilise flexbox */
     font-family: 'Press Start 2P', cursive; /* Applique la police pixelisée */
-    font-size: 16px; /* Taille de police comme h4 */
-    transition: background-color 0.3s ease, color 0.3s ease; /* Transition fluide pour l’hover */
+    font-size: 12px; /* Taille de police spécifiée */
+    justify-content: flex-start; /* Aligne le contenu à gauche */
+    line-height: 18px; /* Hauteur de ligne spécifiée */
+    margin: 5px 5px 16px; /* Marges : 5px haut, 5px droite/gauche, 16px bas */
+    padding: 10px 20px 10px 8px; /* Padding : 10px haut, 20px droite, 10px bas, 8px gauche */
+    width: 100%; /* S’assure que les boutons prennent toute la largeur */
+    text-align: center; /* Centre le texte horizontalement */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transition fluide pour l’hover (ajoutée pour un effet interactif) */
 }
 
 .menu-button:hover {
-    background-color: #0d6efd; /* Fond bleu primaire au hover */
+    background-color: #0056b3; /* Fond plus foncé au hover (variation de #007bff) */
     color: white; /* Texte blanc au hover pour contraste */
     text-decoration: none; /* Supprime la décoration de texte au hover */
 }
 
 /* Style spécifique pour le bouton de déconnexion */
 #logoutButton {
-    background-color: transparent; /* Fond transparent */
-    border: 1px solid #dc3545; /* Bord fin avec la couleur danger de Bootstrap (rouge) */
-    color: #dc3545; /* Texte rouge */
+    background-color: #dc3545; /* Fond rouge spécifié pour Logout */
+    border-radius: 5px; /* Coins arrondis de 5px */
+    color: #212529; /* Texte noir/gris foncé */
     font-family: 'Press Start 2P', cursive; /* Applique la police pixelisée */
-    font-size: 16px; /* Taille de police comme h4 */
+    font-size: 12px; /* Taille de police spécifiée */
+    margin: 5px 5px 16px; /* Marges identiques aux autres boutons */
+    padding: 10px 20px 10px 8px; /* Padding identique aux autres boutons */
 }
 
 #logoutButton:hover {
-    background-color: #dc3545; /* Fond rouge au hover */
+    background-color: #c82333; /* Fond plus foncé au hover (variation de #dc3545) */
     color: white; /* Texte blanc au hover */
     text-decoration: none; /* Supprime la décoration de texte au hover */
 }
