@@ -98,7 +98,7 @@ export function displayRegistrationForm() {
 
   const appDiv = document.getElementById("app_main");
   appDiv.innerHTML = `
-    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+    <div class="d-flex justify-content-center align-items-center bg-transparent" style="min-height: 75vh;">
       <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
         <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
         <form id="signupForm">
