@@ -4,6 +4,7 @@ import { getToken, createAccount, toggle2FA, verify2FALogin } from './auth.js';
 
 // login
 export function displayConnectionFormular() {
+    document.getElementById('menu').innerHTML = '';
     document.getElementById('app_top').innerHTML = '';
     document.getElementById('app_main').innerHTML = '';
     document.getElementById('app_bottom').innerHTML = '';

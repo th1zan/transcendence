@@ -28,7 +28,23 @@ body {
   color: #212529; /* Texte sombre par défaut pour lisibilité */
 }
 
-/* Style pour les tableaux dans .table-responsive avec .table-striped et .table-hover */
+.table{
+    --bs-table-color: initial;
+    --bs-table-bg: initial;
+    --bs-table-border-color: transparent;
+} 
+
+.form-control {
+    background-color:rgba(255, 255, 255, 0.5) ;
+    --bs-border-width: 2px
+    --bs-border-color: transparen;
+}
+
+
+
+
+
+/* Style pmur les tableaux dans .table-responsive avec .table-striped et .table-hover */ */
 .table-responsive .table.table-striped.table-hover {
     background: rgba(255, 255, 255, 0.4) !important; /* Fond blanc avec 40% d'opacité, priorité forcée */
     border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
@@ -77,95 +93,159 @@ body {
 /* ************************************ */
 
 
-/* Styles pour le menu de navigation */
 .menu-container {
-    width: 190px; /* Largeur fixe */
-    background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité, comme les cartes */
-    height: 100%; /* Hauteur complète */
-    display: flex; /* Utilise flexbox pour les enfants */
-    flex-direction: column; /* Disposition en colonne */
-    border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
-    padding: 20px; /* Marge intérieure autour du contenu du menu (espace entre les bords et les boutons) */
+    /* width: 190px; */
+    background: rgba(255, 255, 255, 0.4);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow-x: hidden;
 }
 
-/* Style pour l'image dans le menu */
 .menu-container img {
-    width: 90px; /* Largeur de l’image */
-    height: 100px; /* Hauteur de l’image */
-    border-radius: 50%; /* Crée un cercle */
-    object-fit: cover; /* Ajuste l’image pour couvrir tout le conteneur tout en conservant ses proportions */
-    align-self: center; /* Centre horizontalement l’image */
-    margin-bottom: 20px; /* Espace sous l’image (plus grand que my-4 pour plus de marge) */
+    width: 90px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    align-self: center;
+    margin-bottom: 20px;
 }
 
-/* Styles pour les boutons du menu */
 .menu-button {
-    background-color: #007bff; /* Fond bleu comme dans l’image 2 */
-    border-radius: 5px; /* Coins arrondis de 5px */
-    color: white; /* Texte blanc */
-    font-family: 'Press Start 2P', cursive; /* Police pixelisée */
-    font-size: 16px; /* Taille de police comme h4 (ajustable si nécessaire) */
-    display: flex; /* Utilise flexbox */
-    justify-content: center; /* Centre horizontalement le texte */
-    align-items: center; /* Centre verticalement le texte */
-    padding: 10px 20px; /* Padding interne pour un bon espacement du texte */
-    margin: 10px 0; /* Marge verticale entre les boutons et autour (10px au-dessus et en dessous) */
-    width: 100%; /* S’assure que les boutons prennent toute la largeur */
-    text-align: center; /* Centre le texte (redondant avec justify-content, mais pour sécurité) */
-    border: none; /* Supprime la bordure par défaut */
-    transition: background-color 0.3s ease; /* Transition fluide pour l’hover */
+    background-color: #007bff;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    margin: 10px 0;
+    width: 100%;
+    text-align: center;
+    border: none;
+    transition: background-color 0.3s ease;
 }
 
 .menu-button:hover {
-    background-color: #0056b3; /* Fond plus foncé au hover (variation de #007bff) */
-    color: white; /* Texte reste blanc au hover */
-    text-decoration: none; /* Supprime la décoration de texte au hover */
+    background-color: #0056b3;
+    color: white;
+    text-decoration: none;
 }
 
-/* Style spécifique pour le bouton de déconnexion */
 #logoutButton {
-    background-color: #dc3545; /* Fond rouge comme dans l’image 2 */
-    border-radius: 5px; /* Coins arrondis de 5px */
-    color: white; /* Texte blanc */
-    font-family: 'Press Start 2P', cursive; /* Police pixelisée */
-    font-size: 16px; /* Taille de police comme h4 */
-    padding: 10px 20px; /* Padding interne */
-    margin: 10px 0; /* Marge identique aux autres boutons */
-    width: 100%; /* S’assure que le bouton prend toute la largeur */
-    text-align: center; /* Centre le texte */
-    border: none; /* Supprime la bordure par défaut */
+    background-color: #dc3545;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    padding: 10px 20px;
+    margin: 10px 0;
+    width: 100%;
+    text-align: center;
+    border: none;
 }
 
 #logoutButton:hover {
-    background-color: #c82333; /* Fond plus foncé au hover (variation de #dc3545) */
-    color: white; /* Texte reste blanc au hover */
-    text-decoration: none; /* Supprime la décoration de texte au hover */
+    background-color: #c82333;
+    color: white;
+    text-decoration: none;
 }
 
-/* Style pour le conteneur flexible qui prend l’espace restant */
 .flex-grow-1 {
-    flex-grow: 1; /* Permet à cet élément de s’étendre pour occuper l’espace restant */
+    flex-grow: 1;
 }
+
+.navbar {
+    /* background-color: brown; */
+    padding: 0;
+    height: auto;
+}
+
+.navbar-toggler {
+    border: 2px solid #ffffff;
+    margin-left: 10px;
+    margin-top: 0; /* Supprime l’espace en haut pour coller au bord */
+}
+
+.navbar-collapse {
+    /* background-color: brown; */
+    padding: 10px;
+    flex-grow: 1;
+}
+
+#menu {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 767.98px) {
+    .navbar-collapse {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        /* background-color: brown; */
+        padding: 20px;
+        z-index: 1000;
+    }
+    .menu-button {
+        width: 100%;
+    }
+    #menu {
+        height: auto;
+    }
+}
+
+@media (min-width: 768px) {
+    #menu {
+        height: 100vh;
+        padding-top: 0;
+    }
+    .navbar-collapse {
+        display: block !important;
+        padding: 0;
+    }
+    .navbar-toggler {
+        display: none;
+    }
+    .menu-container {
+        width: 190px;
+        margin-top: 0;
+    }
+}
+
+/* *********************************** */
+/* Styles pour les titres               */
+/* ************************************ */
+
 
 /* Titres avec tailles décroissantes selon leur importance (réduites de 20%) */
 h1 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 25.6px; /* 32px * 0.8 (réduction de 20%) */
+  font-size: 24px; /* 32px * 0.8 (réduction de 20%) */
   text-align: center;
   padding: 10px 0;
 }
 
 h2 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 22.4px; /* 28px * 0.8 */
+  font-size: 22px; /* 28px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
 
 h3 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 19.2px; /* 24px * 0.8 */
+  font-size: 18px; /* 24px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
@@ -179,14 +259,14 @@ h4 {
 
 h5 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 14.4px; /* 18px * 0.8 */
+  font-size: 14px; /* 18px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
 
 h6 {
   font-family: 'Press Start 2P', cursive;
-  font-size: 12.8px; /* 16px * 0.8 */
+  font-size: 12px; /* 16px * 0.8 */
   text-align: center;
   padding: 10px 0;
 }
@@ -207,7 +287,6 @@ h6 {
   font-smooth: never;
   padding: 10px 20px; /* Espacement vertical (10px) et horizontal (20px) accru */
   border-radius: 5px;
-  margin: 5px; /* Espacement extérieur entre les boutons */
 }
 /**/
 /* .btn-primary { */
@@ -231,83 +310,17 @@ h6 {
 /*   color: #fff; */
 /* } */
 /**/
-/* /* Boutons dans un btn-group : pas d'espacement supplémentaire */ */
+/* /* Boutons dans un btn-group : pas d'espacement supplémentaire */ 
 /* .btn-group .btn { */
-/*   margin: 0; /* Annule l'espacement extérieur pour btn-group */ */
-/*   padding: 10px 15px; /* Padding légèrement réduit horizontalement pour cohérence */ */
+/*   margin: 0; /* Annule l'espacement extérieur pour btn-group */ 
+/*   padding: 10px 15px; /* Padding légèrement réduit horizontalement pour cohérence */ 
 /* } */
 /**/
-
-/* *********************************** */
-/* Styles pour les titres               */
-/* ************************************ */
-
-
-/* Titres avec tailles décroissantes selon leur importance (réduites de 20%) */
-h1 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 25.6px; /* 32px * 0.8 (réduction de 20%) */
-  text-align: center;
-  padding: 10px 0;
-}
-
-h2 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 22.4px; /* 28px * 0.8 */
-  text-align: center;
-  padding: 10px 0;
-}
-
-h3 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 19.2px; /* 24px * 0.8 */
-  text-align: center;
-  padding: 10px 0;
-}
-
-h4 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 16px; /* 20px * 0.8 */
-  text-align: center;
-  padding: 10px 0;
-}
-
-h5 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 14.4px; /* 18px * 0.8 */
-  text-align: center;
-  padding: 10px 0;
-}
-
-h6 {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 12.8px; /* 16px * 0.8 */
-  text-align: center;
-  padding: 10px 0;
-}
-
-/* Onglets de navigation */
-.nav-pills .nav-link {
-  font-family: 'Press Start 2P', cursive;
-  font-size: 15px;
-  color: #007bff;
-  background-color: #fff;
-  border: 2px solid #007bff;
-  border-radius: 5px;
-  margin: 0 5px;
-}
-
-.nav-pills .nav-link.active {
-  background-color: #007bff;
-  color: #fff;
-}
-
 
 
 /* ********************************** */
 /* Styles pour les cartes principales */
 /* ********************************** */
-
 
 
 .card {

@@ -3,70 +3,96 @@ import { navigateTo } from "./app.js";
 
 
 export function displayMenu() {
-
-  /*when this displayMenu() function is called,
-  we can use and fill these HTML containers from index.html,
-  they are identified by their id:
-  - "app" in the center of the page
-  - "menu" on the left
-  - "footer" on the bottom
-  - "header" on the top
-  */
-
-  //empty all the containers
+  // Vider les conteneurs
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
   document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
   document.getElementById('app_bottom').className = 'semi-transparent-bg p-3 text-dark';
 
-
-
-  //class and CSS definition for the div and navbar (menu) container
+  // Class et CSS pour le conteneur du menu
   const menuDiv = document.getElementById("menu");
 
   menuDiv.innerHTML = `
-  <div class="menu-container d-flex flex-column h-100">
-    <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" />
+      <div class="container-fluid">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+              <div class="menu-container d-flex flex-column h-100 w-100">
+                  <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" />
+                  
+                  <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
+                  <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2" role="button">Play a game</button>
+                  <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
+                  <button id="statsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Statistics</button>
+                  <button id="friendsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Friends</button>
+                  <div class="flex-grow-1"></div>
+                  <button id="settingsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Settings</button>
+                  <button id="logoutButton" class="btn btn-danger nav-link menu-button w-100 mb-2">Logout</button>
+              </div>
+          </div>
+      </div>
+  `;
 
-    <button id="welcomeButton" class="btn btn-primary nav-link menu-button">Welcome page</button>
-    <button id="playButton" class="btn btn-primary nav-link menu-button" role="button" aria-selected="true">Play a game</button>
-    <button id="tournamentButton" class="btn btn-primary nav-link menu-button">Tournament</button>
-    <button id="statsButton" class="btn btn-primary nav-link menu-button">Statistics</button>
-    <button id="friendsButton" class="btn btn-primary nav-link menu-button">Friends</button>
-    <div class="flex-grow-1"></div>
-    <button id="settingsButton" class="btn btn-primary nav-link menu-button">Settings</button>
-    <button id="logoutButton" class="btn btn-danger nav-link menu-button">Logout</button>
-    </div>
-      `;
-
-
-document.getElementById("welcomeButton").addEventListener("click", function() {
-  navigateTo('welcome');
-});
-
-document.getElementById("playButton").addEventListener("click", function() {
-  navigateTo('game');
-});
-
-document.getElementById("tournamentButton").addEventListener("click", function() {
-  navigateTo('tournament');
-});
-
-document.getElementById("statsButton").addEventListener("click", function() {
-  navigateTo('stats');
-});
-
-document.getElementById("friendsButton").addEventListener("click", function() {
-  navigateTo('friends');
-});
-
-document.getElementById("settingsButton").addEventListener("click", function() {
-  navigateTo('settings');
-});
-
-
-
-  document.getElementById("logoutButton").addEventListener("click", function() {
-    logout();
+  // Ajouter les écouteurs d'événements après avoir inséré le HTML
+  document.getElementById("welcomeButton").addEventListener("click", function() {
+      navigateTo('welcome');
   });
 
+  document.getElementById("playButton").addEventListener("click", function() {
+      navigateTo('game');
+  });
+
+  document.getElementById("tournamentButton").addEventListener("click", function() {
+      navigateTo('tournament');
+  });
+
+  document.getElementById("statsButton").addEventListener("click", function() {
+      navigateTo('stats');
+  });
+
+  document.getElementById("friendsButton").addEventListener("click", function() {
+      navigateTo('friends');
+  });
+
+  document.getElementById("settingsButton").addEventListener("click", function() {
+      navigateTo('settings');
+  });
+
+  document.getElementById("logoutButton").addEventListener("click", function() {
+      logout();
+  });
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const menu = document.getElementById('menu');
+    const navbarToggler = menu.querySelector('.navbar-toggler');
+    const navbarCollapse = menu.querySelector('.navbar-collapse');
+
+    function toggleMenuBasedOnScroll() {
+        const scrollThreshold = 200; // Seuil en pixels (ajustable selon tes besoins)
+        const scrollPosition = window.scrollY || window.pageYOffset;
+
+        if (scrollPosition > scrollThreshold) {
+            // Passer en mode burger
+            menu.classList.remove('col-md-2');
+            menu.classList.add('col-12');
+            navbarToggler.style.display = 'block'; // Montre le bouton hamburger
+            navbarCollapse.classList.remove('show'); // Ferme le menu si ouvert
+            navbarCollapse.classList.add('collapse'); // Assure que le menu est collapsé
+        } else {
+            // Retourner en mode menu latéral
+            menu.classList.remove('col-12');
+            menu.classList.add('col-md-2');
+            navbarToggler.style.display = 'none'; // Cache le bouton hamburger sur grands écrans
+            navbarCollapse.classList.remove('collapse'); // Assure que le menu est visible
+            navbarCollapse.classList.add('show'); // Ouvre le menu sur grands écrans
+        }
+    }
+
+    // Écouter le défilement de la page
+    window.addEventListener('scroll', toggleMenuBasedOnScroll);
+
+    // Initialiser l’état au chargement
+    toggleMenuBasedOnScroll();
+});

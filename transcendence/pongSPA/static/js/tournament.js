@@ -133,7 +133,7 @@ function displayTournamentGameList(data) {
         <div class="card-body">
           <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Players</h3>
           <table class="table table-hover mb-0">
-            <thead class="text-dark" style="background-color: #e9ecef;">
+            <thead class="text-dark">
               <tr>
                 <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name</th>
                 <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
@@ -164,7 +164,7 @@ function displayTournamentGameList(data) {
         <div class="card-body">
           <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match List</h3>
           <table class="table table-hover mb-0">
-            <thead class="text-dark" style="background-color: #e9ecef;">
+            <thead class="text-dark">
               <tr>
                 <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Match</th>
                 <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Score</th>
@@ -325,7 +325,7 @@ function displayTournamentStandings(data) {
       <div class="card-body">
         <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Standings</h3>
         <table class="table table-striped table-hover mb-0">
-          <thead class="text-dark" style="background-color: #e9ecef;">
+          <thead class="text-dark"">
             <tr>
               <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Player</th>
               <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Wins</th>
@@ -931,7 +931,7 @@ export function validateSearch() {
       <div class="card mb-4 shadow-sm border-primary border-1">
         <div class="card-body p-3">
           <div class="card shadow-sm border-primary border-1">
-            <div class="card-header text-center" style="background: white;">
+            <div class="card-header text-center">
               <h2 class="display-6 mb-0 text-primary">Tournaments Found</h2>
             </div>
             <div class="card-body p-0">
@@ -1038,7 +1038,7 @@ export function displayUserTournaments() {
         <!-- Card interne pour le tableau avec barre de défilement -->
         <div id="userTournamentList">
           <div class="card shadow-sm border-primary border-1">
-            <div class="card-header text-center" style="background: white;">
+            <div class="card-header text-center"">
               <h3>Your Tournaments</h3>
             </div>
             <div class="card-body p-0">

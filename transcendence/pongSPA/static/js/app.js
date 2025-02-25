@@ -245,13 +245,36 @@ export function showModal(title, message, actionText, actionCallback) {
 }
 
 function displayQuickStats(data, playerName) {
+  // Vérifier si les données sont invalides ou vides
   if (!Array.isArray(data) || data.length === 0) {
-    return '<p class="text-muted">No data available.</p>';
+    return `
+      <div class="card shadow-sm pending-tournament-card">
+          <div class="card-body">
+              <h4 class="card-title mb-3">Quick Stats for ${playerName || "You"}</h4>
+              <div>
+                  <ul class="list-group" id="quickStatsList">
+                      <li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No data available.</li>
+                  </ul>
+              </div>
+          </div>
+      </div>
+    `;
   }
 
   const playedMatches = data.filter(match => match.is_played === true);
   if (playedMatches.length === 0) {
-    return '<p class="text-muted">No played matches available.</p>';
+    return `
+      <div class="card shadow-sm pending-tournament-card">
+          <div class="card-body">
+              <h4 class="card-title mb-3">Quick Stats for ${playerName || "You"}</h4>
+              <div>
+                  <ul class="list-group" id="quickStatsList">
+                      <li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No data available.</li>
+                  </ul>
+              </div>
+          </div>
+      </div>
+    `;
   }
 
   let wins = 0;
@@ -281,11 +304,11 @@ function displayQuickStats(data, playerName) {
   let lastMatchesTable = '';
   if (lastThreeMatches.length > 0) {
     lastMatchesTable = `
-      <table class="table table-sm table-striped" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
+      <table class="table table-sm table-striped" style="border-radius: 10px;">
         <thead>
           <tr>
-            <th scope="col" style="font-family: 'Press Start 2P', cursive; font-size: 14px; color: #e84393;">Match</th>
-            <th scope="col" style="font-family: 'Press Start 2P', cursive; font-size: 14px; color: #00b894;">Score</th>
+            <th scope="col">Match</th>
+            <th scope="col">Score</th>
           </tr>
         </thead>
         <tbody>
@@ -308,15 +331,15 @@ function displayQuickStats(data, playerName) {
   }
 
   return `
-    <div class="card mb-4 shadow-sm h-100" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+    <div class="card mb-4 shadow-sm h-100">
       <div class="card-body">
-        <h4 class="card-title" style="color: #e84393;">Quick Stats for ${playerName || "You"}</h4>
+        <h4 class="card-title">Quick Stats for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
-          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
-          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color:rgb(124, 164, 234);"><strong>Draws:</strong> ${draws}</li>
+          <li class="list-group-item"><strong>Wins:</strong> ${wins}</li>
+          <li class="list-group-item"><strong>Losses:</strong> ${losses}</li>
+          <li class="list-group-item"><strong>Draws:</strong> ${draws}</li>
         </ul>
-        <h5 class="mb-2" style="color: #00b894;">Last 3 Matches</h5>
+        <h5 class="mb-2">Last 3 Matches</h5>
         ${lastMatchesTable}
       </div>
     </div>
@@ -613,7 +636,7 @@ export function displayFriends() {
     <div class="container mt-4">
       <div class="row g-4">
         <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
           <div class="card shadow-sm" style="border-radius: 8px;">
             <div class="card-body text-center">
               <h5 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Send Friend Request</h5>
@@ -628,7 +651,7 @@ export function displayFriends() {
           </div>
         </div>
         <!-- Colonne 2 : 3 cartes pour les demandes et amis -->
-        <div class="col-12 col-md-8">
+        <div class="col-12 col-md-6">
           <div class="row g-4">
             <!-- Carte pour les demandes d'amis en attente -->
             <div class="col-12">
@@ -1283,7 +1306,7 @@ function fetchResultats(player = null) {
               <h4 class="card-title">Match History</h4>
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-striped table-hover">
-                  <thead class="thead-dark">
+                  <thead>
                     <tr>
                       <th scope="col" data-priority="1">Date</th>
                       <th scope="col" data-priority="1">Players</th>
