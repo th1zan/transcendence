@@ -14,6 +14,26 @@ h3 {
 	background-color: brown;
 }
 
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%; /* S’assure que le body prend toute la largeur */
+    min-width: 100%; /* Empêche toute restriction minimale */
+    max-width: none; /* Supprime toute limitation maximale */
+    background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+    animation: gradientBG 15s ease infinite;
+}
+
+.container-fluid, #app {
+    background: transparent !important;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
 /* .btn { */
 /*   font-family: 'Press Start 2P', cursive; */
 /*   font-size: 12px; /* Gardez votre taille si vous voulez */ */

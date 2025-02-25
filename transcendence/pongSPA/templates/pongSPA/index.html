@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"> 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-
-<body class="d-flex flex-column vh-100" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); animation: gradientBG 15s ease infinite">
+<body class="d-flex flex-column" style="min-height: 100vh; background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); animation: gradientBG 15s ease infinite">
+<!-- <body class="d-flex flex-column vh-100" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); animation: gradientBG 15s ease infinite"> -->
 
     <!-- Header -->
     <header id="header" class="header bg-dark text-white text-center py-3">
@@ -23,26 +23,23 @@
     </header>
 
     <!-- Main content with grid structure -->
-    <div class="container-fluid flex-grow-1">
-        <div class="row h-100 flex-nowrap">
+      <div class="container-fluid flex-grow-1">
+          <div class="row h-100">
+              <!-- Menu de navigation (Colonne gauche, 2 colonnes) -->
+              <nav id="menu" class="col-2 p-0">
+                  <!-- Le contenu du menu sera ajouté ici dynamiquement -->
+              </nav>
 
-            <!-- Menu de navigation (Colonne gauche) -->
-            <nav id="menu" class="p-0" style="width: auto;">
-               <!-- Le contenu du menu sera ajouté ici dynamiquement -->
-            </nav>
-
-            <!-- Contenu principal (Colonne droite) -->
-            <div id="app" class="p-1 h-100 d-flex nav flex-column nav-pills flex-grow-1" >
-                <!-- main placeholder for the app -->
-
-                <!-- 3 sections principales pour l'application, possible d'en ajouter plus -->
-                <div id="app_top" class="semi-transparent-bg p-3 text-dark"></div>
-                <div id="app_main" class="semi-transparent-bg flex-grow-1 p-3 text-dark"></div>
-                <div id="app_bottom" class="semi-transparent-bg p-3 text-dark"></div>
-                <!-- Ajouter d'autres sections du jeu ou de l'application ici -->
-            </div>
-        </div>
-    </div>
+              <!-- Contenu principal (Colonne droite, 10 colonnes) -->
+              <div id="app" class="col-10 p-1 h-100 d-flex flex-column nav-pills flex-grow-1">
+                  <!-- 3 sections principales pour l'application -->
+                  <div id="app_top" class="semi-transparent-bg p-3 text-dark"></div>
+                  <div id="app_main" class="semi-transparent-bg flex-grow-1 p-3 text-dark"></div>
+                  <div id="app_bottom" class="semi-transparent-bg p-3 text-dark"></div>
+                  <!-- Ajouter d'autres sections du jeu ou de l'application ici -->
+              </div>
+          </div>
+      </div>
 
     <!-- Footer -->
     <footer id="footer" class="footer bg-dark text-white text-center py-3">

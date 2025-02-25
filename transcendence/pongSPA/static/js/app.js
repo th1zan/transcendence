@@ -28,12 +28,14 @@ document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
 
   //  0. Clear all cookies
-  document.cookie.split(";").forEach((c) => {
-    console.log('clear the cookies');
-    document.cookie = c
-      .replace(/^ +/, "")
-      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  });
+  //
+  //  COMMENTED FOR DEBUGIN
+  // document.cookie.split(";").forEach((c) => {
+  //   console.log('clear the cookies');
+  //   document.cookie = c
+  //     .replace(/^ +/, "")
+  //     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  // });
 
   loadPrivacyPolicyModal();
 
