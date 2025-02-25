@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Variable globale pour l'état de connexion
   let isUserLoggedIn = false;
 
-  // 2. Check if the user is logged in.
+  // 2. Check if the user is logged in.V
     validateToken().then((isTokenValid) => {
     console.log('validateToken resolved with:', isTokenValid);
     isUserLoggedIn = isTokenValid;
@@ -199,7 +199,8 @@ export function showModal(title, message, actionText, actionCallback) {
   }
 
   const modal = new bootstrap.Modal(modalElement, {
-    keyboard: false
+    backdrop: 'static', // Empêche la fermeture en cliquant à côté
+    keyboard: false     // Empêche la fermeture avec la touche Échap
   });
 
   // Mise à jour du titre
@@ -534,63 +535,66 @@ export function fetchPendingFriendRequests() {
 }
 
 export function displayTournament() {
-
-      console.log('Tournament');
+  console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
-  <div class="container py-4">
-    <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-          My Tournaments
-        </button>
-      </li><li class="nav-item" role="presentation">
-        <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-          New Tournament
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <div class="d-flex align-items-center gap-2" id="searchTournament">
-          <input 
-            type="text" 
-            id="tournamentNameInput" 
-            class="form-control rounded-pill" 
-            placeholder="Tournament Name" 
-            style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
-          >
-          <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-            Search
+    <div class="container py-4">
+      <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            My Tournaments
           </button>
-        </div>
-      </li>
-    </ul>
-  </div>
-`;
+        </li><li class="nav-item" role="presentation">
+          <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            New Tournament
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <div class="d-flex align-items-center gap-2" id="searchTournament">
+            <input 
+              type="text" 
+              id="tournamentNameInput" 
+              class="form-control rounded-pill" 
+              placeholder="Tournament Name" 
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
+            >
+            <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+              Search
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  `;
 
   displayUserTournaments();
   // let resultDiv = document.getElementById("app_main");
   //   resultDiv.style.display = "block";
 
-    document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
-    document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+  document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
-    document.getElementById("tournamentSearchButton").addEventListener("click", () => {
-      const tournamentNameInput = document.getElementById("tournamentNameInput");
-      if (!tournamentNameInput) {
-        console.error("The element 'tournamentNameInput'  is not available.");
-        return;
-      }
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      console.error("The element 'tournamentNameInput'  is not available.");
+      return;
+    }
 
-      const tournamentName = tournamentNameInput.value;
-      if (!tournamentName) {
-        alert("Please enter a tournament name.");
-        return;
-      }
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      showModal(
+        'Warning',
+        'Please enter a tournament name.',
+        'OK',
+        () => {} // Action vide, juste fermer la modale
+      );
+      return;
+    }
 
-      localStorage.setItem("tournamentName", tournamentName);
-      validateSearch();
-    });
-
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
 }
 
 
@@ -1498,8 +1502,8 @@ export function displayGameForm() {
     mode: "solo",
     difficulty: "easy",
     design: "retro",
-    numberOfGames: 1, // entre 1 et 5
-    setsPerGame: 3, // entre 1 et 5
+    numberOfGames: 2, // entre 1 et 5
+    setsPerGame: 1, // entre 1 et 5
     player1: localStorage.getItem("username"),
     player2: "Bot-AI",
     control1: "arrows",
@@ -1802,7 +1806,11 @@ export function displayGameForm() {
       if (authResult) {
         startGameSetup(gameSettings);
       }
+    } else if (player2 !== lastCheckedPlayer2) {
+      // Si player2 a changé, on lance le jeu directement
+      startGameSetup(gameSettings);
     } else {
+      // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
       startGameSetup(gameSettings);
     }
 
@@ -2134,7 +2142,12 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
         loginModal.remove();
         resolve(true); // Résout la promesse en cas de succès
       } else {
-        alert("Authentication failed. Please try again.");
+        showModal(
+          'Error',
+          'Authentication failed. Please try again.',
+          'OK',
+          () => {}
+        );
         modalBootstrap.hide();
         loginModal.remove();
         resolve(false); // Résout la promesse en cas d'échec

@@ -244,13 +244,23 @@ function displayTournamentGameList(data) {
 
             let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
             if (!player1Authenticated) {
-              alert("Authentification requise pour " + player1);
+              showModal(
+                'Authentication Required',
+                `Authentification requise pour ${player1}`,
+                'OK',
+                () => {}
+              );
               return;
             }
 
             let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
             if (!player2Authenticated) {
-              alert("Authentification requise pour " + player2);
+              showModal(
+                'Authentication Required',
+                `Authentification requise pour ${player2}`,
+                'OK',
+                () => {}
+              );
               return;
             }
 
@@ -270,7 +280,12 @@ function displayTournamentGameList(data) {
             startGameSetup(gameSettings);
           } catch (error) {
             console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
-            alert("Une erreur est survenue lors de la vérification de l'authentification. Veuillez réessayer.");
+            showModal(
+              'Error',
+              'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
+              'OK',
+              () => {}
+            );
           }
         });
       });
@@ -417,18 +432,21 @@ export function DisplayTournamentGame() {
 
 
 export function createTournamentForm() {
-//empty all the containers
-// document.getElementById('app_top').innerHTML = '';
-document.getElementById('app_main').innerHTML = '';
-document.getElementById('app_bottom').innerHTML = '';
+  //empty all the containers
+  // document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
-const appMain = document.getElementById("app_main");
-if (!appMain) return;
+  const appMain = document.getElementById("app_main");
+  if (!appMain) return;
 
-appMain.innerHTML = getTournamentFormHTML();
+  appMain.innerHTML = getTournamentFormHTML();
 
-initializePlayerManagement();
-setupSubmitHandlers();
+  // Attendre que le DOM soit mis à jour avant d'appeler initializePlayerManagement et setupSubmitHandlers
+  requestAnimationFrame(() => {
+    initializePlayerManagement();
+    setupSubmitHandlers();
+  });
 }
 
 
@@ -734,109 +752,123 @@ if (playerDiv.classList.contains('additional-player')) {
 
 
 function setupSubmitHandlers() {
-const validateButton = document.getElementById('validateTournamentName');
-const submitButton = document.getElementById('submitButton');
-const savePlayersButton = document.getElementById('savePlayers');
+  const validateButton = document.getElementById('validateTournamentName');
+  const submitButton = document.getElementById('submitButton');
+  const savePlayersButton = document.getElementById('savePlayers');
 
-validateButton.onclick = () => {
-  const tournamentName = document.getElementById('tournamentName').value.trim();
-  if (!tournamentName) {
-    showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
+  if (!validateButton || !submitButton || !savePlayersButton) {
+    console.error('One or more buttons not found in DOM');
     return;
   }
-  fetch("/api/tournament/new/", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      tournament_name: tournamentName
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.tournament_id && data.message === "Tournament created successfully") {
-      localStorage.setItem("tournamentName", data.tournament_name);
-      localStorage.setItem("tournamentId", data.tournament_id);
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-    } else {
-      showModal('Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
-    }
-  })
-  .catch(error => {
-    console.error("Error validating tournament name:", error);
-    showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
-  });
-};
 
-savePlayersButton.onclick = () => {
-  const players = Array.from(document.getElementById('playerContainer').querySelectorAll('input'))
-    .map((input, index) => {
-      const playerDiv = input.parentElement;
-      return {
-        name: input.value.trim(),
-        authenticated: index === 0 ? true : false, // Only the first player (host) is authenticated
-        guest: playerDiv.getAttribute('data-is-guest') === 'true'
-      };
+  validateButton.onclick = () => {
+    const tournamentName = document.getElementById('tournamentName')?.value.trim();
+    if (!tournamentName) {
+      showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
+      return;
+    }
+    fetch("/api/tournament/new/", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tournament_name: tournamentName
+      }),
     })
-    .filter(player => player.name !== '');
+    .then(response => response.json())
+    .then(data => {
+      if (data.tournament_id && data.message === "Tournament created successfully") {
+        localStorage.setItem("tournamentName", data.tournament_name);
+        localStorage.setItem("tournamentId", data.tournament_id);
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        if (step1) step1.style.display = 'none';
+        if (step2) step2.style.display = 'block';
+      } else {
+        showModal('Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
+      }
+    })
+    .catch(error => {
+      console.error("Error validating tournament name:", error);
+      showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
+    });
+  };
 
-  if (players.length < 2) {
-    showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
-    return;
-  }
+  savePlayersButton.onclick = () => {
+    const players = Array.from(document.getElementById('playerContainer')?.querySelectorAll('input') || [])
+      .map((input, index) => {
+        const playerDiv = input.parentElement;
+        return {
+          name: input.value.trim(),
+          authenticated: index === 0 ? true : false, // Only the first player (host) is authenticated
+          guest: playerDiv?.getAttribute('data-is-guest') === 'true'
+        };
+      })
+      .filter(player => player.name !== '');
 
-  localStorage.setItem("players", JSON.stringify(players));
-  showModal('Success', 'Players saved successfully!', 'OK', () => {
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step3').style.display = 'block';
-  });
-};
-
-submitButton.onclick = () => {
-  const players = JSON.parse(localStorage.getItem("players") || "[]");
-  if (players.length < 2) {
-    showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
-    return;
-  }
-
-  const numberOfGames = document.getElementById('numberOfGames').value;
-  const pointsToWin = document.getElementById('pointsToWin').value;
-  const tournamentId = localStorage.getItem("tournamentId");
-
-  fetch(`/api/tournament/finalize/${tournamentId}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      players: players,
-      number_of_games: numberOfGames,
-      points_to_win: pointsToWin
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.message) {
-      console.log("Tournament finalized:", data);
-      showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
-        DisplayTournamentGame(); // Assuming this function shows the tournament game page
-      });
-    } else {
-      showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
+    if (players.length < 2) {
+      showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+      return;
     }
-  })
-  .catch(error => {
-    console.error("Error finalizing tournament:", error);
-    showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
-  });
-};
+
+    localStorage.setItem("players", JSON.stringify(players));
+    showModal('Success', 'Players saved successfully!', 'OK', () => {
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      if (step2) step2.style.display = 'none';
+      if (step3) step3.style.display = 'block';
+    });
+  };
+
+  submitButton.onclick = () => {
+    const players = JSON.parse(localStorage.getItem("players") || "[]");
+    if (players.length < 2) {
+      showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+      return;
+    }
+
+    const numberOfGames = document.getElementById('numberOfGames')?.value;
+    const pointsToWin = document.getElementById('pointsToWin')?.value;
+    const tournamentId = localStorage.getItem("tournamentId");
+
+    fetch(`/api/tournament/finalize/${tournamentId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        players: players,
+        number_of_games: numberOfGames,
+        points_to_win: pointsToWin
+      }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message) {
+        console.log("Tournament finalized:", data);
+        showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
+          DisplayTournamentGame(); // Assuming this function shows the tournament game page
+        });
+      } else {
+        showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
+      }
+    })
+    .catch(error => {
+      console.error("Error finalizing tournament:", error);
+      showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
+    });
+  };
 }
 
 function handleError(error, message) {
-console.error(message, error);
-alert(message);
+  console.error(message, error);
+  showModal(
+    'Error',
+    message,
+    'OK',
+    () => {}
+  );
 }
 
 function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
