@@ -471,7 +471,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             username = request.data.get("username")
             user = CustomUser.objects.get(username=username)
 
-            # ✅ Check if 2FA is enabled and not verified
+            # Check if 2FA is enabled and not verified
             if user.is_2fa_enabled and not request.session.get("2fa_verified"):
                 # Generate a new OTP
                 otp_code = str(random.randint(100000, 999999))
@@ -543,10 +543,8 @@ class Verify2FALoginView(APIView):
         entered_otp = str(otp_code).strip()
 
         if stored_otp and stored_otp == entered_otp:
-            user.is_2fa_enabled = (
-                True  # (Optional: You may want to set this already during setup)
-            )
-            user.otp_secret = None  # Clear OTP
+            user.is_2fa_enabled = True
+            user.otp_secret = None
             user.save()
 
             # Mark session as 2FA verified
@@ -593,7 +591,6 @@ class Toggle2FAView(APIView):
 
     def post(self, request):
         user = request.user
-        # otp_code may be provided for verification
         otp_code = request.data.get("otp_code")
 
         # If 2FA is currently enabled, then toggle to disable it
@@ -676,8 +673,8 @@ class Session2FAView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.session["2fa_verified"] = True  # ✅ Store 2FA session flag
-        request.session.modified = True  # ✅ Ensure session is saved
+        request.session["2fa_verified"] = True
+        request.session.modified = True
         return Response({"message": "2FA session stored successfully."}, status=200)
 
 

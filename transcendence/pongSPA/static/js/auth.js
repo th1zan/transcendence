@@ -130,18 +130,18 @@ export function getToken(username, password) {
     body: JSON.stringify({ username, password }),
   })
     .then(response => {
-      console.log("🔹 Response Status:", response.status, response.statusText);
+      console.log("Response Status:", response.status, response.statusText);
       return response.json().then(data => {
-        console.log("🔹 Server Response Data:", data);
+        console.log("Server Response Data:", data);
         return { ok: response.ok, status: response.status, data };
       });
     })
     .then(({ ok, status, data }) => {
-      console.log("🔹 Processing response...", { ok, status, data });
+      console.log("Processing response...", { ok, status, data });
 
       // Check for 2FA requirement
-      if (data.detail === "2FA verification required. Please verify OTP." || status === 401 || status === 403) {
-        console.log("🔐 2FA required! Switching to OTP input field...");
+      if (data.detail === "2FA verification required. Please verify OTP.") {
+        console.log("2FA required! Switching to OTP input field...");
 
         const otpSection = document.getElementById("otpSection");
         const otpInput = document.getElementById("otpInput");
@@ -150,7 +150,7 @@ export function getToken(username, password) {
         console.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
 
         if (!otpSection || !otpInput || !loginForm) {
-          console.error("🚨 OTP section/input or login form not found in DOM!");
+          console.error("OTP section/input or login form not found in DOM!");
           alert("Something went wrong. Please refresh the page and try again.");
           return;
         }
@@ -159,14 +159,14 @@ export function getToken(username, password) {
         otpSection.style.display = "block";
         otpInput.focus();
 
-        console.log("✅ UI switched to OTP section");
+        console.log("UI switched to OTP section");
         sessionStorage.setItem("2fa_pending_user", username);
         return;
       }
 
       // Handle successful login
       if (ok && data.message === "Login successful") {
-        console.log("✅ Login successful!");
+        console.log("Login successful!");
         localStorage.setItem("username", username);
         displayMenu();
         navigateTo("welcome");
@@ -176,8 +176,8 @@ export function getToken(username, password) {
       }
     })
     .catch(error => {
-      console.error("❌ Login failed:", error);
-      alert(`❌ Login failed: ${error.message}`);
+      console.error("Login failed:", error);
+      alert(`Login failed: ${error.message}`);
     });
 }
 

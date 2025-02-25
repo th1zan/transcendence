@@ -209,13 +209,13 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "pong42lausanne@gmail.com"
-EMAIL_HOST_PASSWORD = "tpyr gtki xzzc udcr"
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# EMAIL_HOST_USER = "pong42lausanne@gmail.com"
+# EMAIL_HOST_PASSWORD = ""
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 # put in .env 
 # EMAIL_HOST_USER=pong42lausanne@gmail.com
-# EMAIL_HOST_PASSWORD=tpyr gtki xzzc udcr
+# EMAIL_HOST_PASSWORD=xxxx xxxx xxxx xxxx code is shared in Discord chat
 
 # Cette configuration va envoyer les logs SQL à la console avec un niveau de log DEBUG.
 LOGGING = {
