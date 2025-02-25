@@ -5,10 +5,21 @@
 
 /* styles.css */
 
+h3 {
+	font-family: 'Press Start 2P', cursive; font-size: 24px;
+}
 
-/*CSS Maria*/
-/* h3 { */
-/* 	font-family: 'Press Start 2P', cursive; font-size: 24px; */
+#menu > div {
+	width: 150px;
+	background-color: brown;
+}
+
+/* .btn { */
+/*   font-family: 'Press Start 2P', cursive; */
+/*   font-size: 12px; /* Gardez votre taille si vous voulez */ */
+/*   -webkit-font-smoothing: none; /* Désactive le lissage sur Webkit (Chrome, Safari) */ */
+/*   -moz-osx-font-smoothing: none; /* Désactive le lissage sur Firefox macOS */ */
+/*   font-smooth: never; /* Option supplémentaire, non standard mais parfois efficace */ */
 /* } */
 /**/
 /* #menu > div { */

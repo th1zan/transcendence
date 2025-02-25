@@ -1,6 +1,6 @@
 import { startGameSetup } from "./pong.js";
 import { validateToken } from "./auth.js";
-import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists} from "./tournament.js";
+import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists } from "./tournament.js";
 import {
   anonymizeAccount,
   createAccount,
@@ -27,7 +27,7 @@ let isUserLoggedIn = false; //false for connection formular
 document.addEventListener("DOMContentLoaded", () => {
   //when the DOM is loaded, this event is triggered and it will:
 
-//  0. Clear all cookies
+  //  0. Clear all cookies
   document.cookie.split(";").forEach((c) => {
     console.log('clear the cookies');
     document.cookie = c
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadPrivacyPolicyModal();
 
-// 1. Determine the initial route based on the URL hash
+  // 1. Determine the initial route based on the URL hash
   let initialRoute = window.location.hash.replace('#', '') || 'login';
   console.log('Initial route determined:', initialRoute);
 
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
 
   // 5. Listener for history changes
-    window.addEventListener("popstate", function(event) {
+  window.addEventListener("popstate", function (event) {
     console.log('Popstate event triggered. Current state:', event.state);
     let route;
     if (event.state) {
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('Navigating to route:', route);
     console.log('Custom History:', customHistory);
     handleRouteChange(route);
-    });
+  });
 });
 
 
@@ -136,7 +136,7 @@ function handleRouteChange(route) {
 
     if (publicRoutes.includes(route) || (isUserLoggedIn)) {
       console.log('Route is public or user is logged in');
-      switch(route) {
+      switch (route) {
         case 'login':
           if (!isUserLoggedIn) {
             displayConnectionFormular();
@@ -179,7 +179,7 @@ function handleRouteChange(route) {
             updateUI(displayWelcomePage);
           }
       }
-   } else {
+    } else {
       console.log('User not logged in, redirecting to login');
       navigateTo('login');
     }
@@ -282,8 +282,8 @@ function displayQuickStats(data, playerName) {
       <table class="table table-sm table-striped" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
         <thead>
           <tr>
-            <th scope="col" style="color: #e84393;">Match</th>
-            <th scope="col" style="color: #00b894;">Score</th>
+            <th scope="col" style="font-family: 'Press Start 2P', cursive; font-size: 14px; color: #e84393;">Match</th>
+            <th scope="col" style="font-family: 'Press Start 2P', cursive; font-size: 14px; color: #00b894;">Score</th>
           </tr>
         </thead>
         <tbody>
@@ -306,13 +306,13 @@ function displayQuickStats(data, playerName) {
   }
 
   return `
-    <div class="card mb-4 shadow-sm h-100" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+    <div class="card mb-4 shadow-sm h-100" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
         <h4 class="card-title" style="color: #e84393;">Quick Stats for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item" style="background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
-          <li class="list-group-item" style="background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
-          <li class="list-group-item" style="background: transparent; border: none; color: #a6c1ee;"><strong>Draws:</strong> ${draws}</li>
+          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color: #00b894;"><strong>Wins:</strong> ${wins}</li>
+          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color: #e84393;"><strong>Losses:</strong> ${losses}</li>
+          <li class="list-group-item" style="font-family: 'Press Start 2P', cursive; font-size: 15px; background: transparent; border: none; color:rgb(124, 164, 234);"><strong>Draws:</strong> ${draws}</li>
         </ul>
         <h5 class="mb-2" style="color: #00b894;">Last 3 Matches</h5>
         ${lastMatchesTable}
@@ -335,21 +335,21 @@ export function displayWelcomePage() {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <div class="container py-5" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); background-size: 400% 400%; animation: gradientBG 15s ease infinite; font-family: 'Poppins', sans-serif;">
+    <div class="container py-5" font-family: 'Poppins', sans-serif;">
       <div class="row justify-content-center">
         <!-- Colonne gauche : Welcome Card et Notifications -->
         <div class="col-md-6 d-flex flex-column gap-4">
           <!-- Welcome Card -->
-          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body d-flex align-items-center">
-              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px; background-color: red;">
+              <div class="rounded-circle overflow-hidden me-3" style="width: 100px; height: 100px;">
                 <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" width="100%" height="100%" />
               </div>
               <h3 class="card-title mb-0" style="color: #e84393; font-weight: 700; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">Welcome ${username}</h3>
             </div>
           </div>
           <!-- Pending Friend Requests Card -->
-          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body">
               <h4 class="card-title mb-3" style="color: #e84393;">Pending Friend Requests</h4>
               <div>
@@ -358,7 +358,7 @@ export function displayWelcomePage() {
             </div>
           </div>
           <!-- Pending Tournament Authentications Card -->
-          <div class="card shadow-sm" style="background: rgba(255, 255, 255, 0.9); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card shadow-sm" style="background: rgb(223, 247, 223); border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
             <div class="card-body">
               <h4 class="card-title mb-3" style="color: #00b894;">Pending Tournament Authentications</h4>
               <div>
@@ -417,39 +417,39 @@ function fetchPendingTournamentAuthentications() {
       "Content-Type": "application/json",
     },
   })
-  .then(response => response.json())
-  .then(data => {
-    const authList = document.getElementById("pendingTournamentAuthentications");
-    authList.innerHTML = "";
+    .then(response => response.json())
+    .then(data => {
+      const authList = document.getElementById("pendingTournamentAuthentications");
+      authList.innerHTML = "";
 
-    if (data.pending_authentications && data.pending_authentications.length > 0) {
-      data.pending_authentications.forEach(tournament => {
-        const listItem = document.createElement("li");
-        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-        listItem.innerHTML = `
+      if (data.pending_authentications && data.pending_authentications.length > 0) {
+        data.pending_authentications.forEach(tournament => {
+          const listItem = document.createElement("li");
+          listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+          listItem.innerHTML = `
           <span>${tournament.tournament_name} (as ${tournament.player_name})</span>
           <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">Confirm Participation</button>
         `;
-        authList.appendChild(listItem);
-      });
-
-      // Ajouter des événements pour les boutons "Confirm Participation"
-      document.querySelectorAll(".confirm-auth").forEach(button => {
-        button.addEventListener("click", event => {
-          const tournamentId = event.target.getAttribute("data-tournament-id");
-          const playerName = event.target.getAttribute("data-player-name");
-          confirmTournamentParticipation(tournamentId, playerName);
+          authList.appendChild(listItem);
         });
-      });
-    } else {
-      authList.innerHTML = `<li class="list-group-item text-center">No pending tournament authentications.</li>`;
-    }
-  })
-  .catch(error => {
-    console.error("Error fetching pending tournament authentications:", error);
-    const authList = document.getElementById("pendingTournamentAuthentications");
-    authList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading tournament authentications.</li>`;
-  });
+
+        // Ajouter des événements pour les boutons "Confirm Participation"
+        document.querySelectorAll(".confirm-auth").forEach(button => {
+          button.addEventListener("click", event => {
+            const tournamentId = event.target.getAttribute("data-tournament-id");
+            const playerName = event.target.getAttribute("data-player-name");
+            confirmTournamentParticipation(tournamentId, playerName);
+          });
+        });
+      } else {
+        authList.innerHTML = `<li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending tournament authentications.</li>`;
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching pending tournament authentications:", error);
+      const authList = document.getElementById("pendingTournamentAuthentications");
+      authList.innerHTML = `<li class="list-group-item text-center text-danger" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">Error loading tournament authentications.</li>`;
+    });
 }
 
 function confirmTournamentParticipation(tournamentId, playerName) {
@@ -524,7 +524,7 @@ export function fetchPendingFriendRequests() {
           });
         });
       } else {
-        requestList.innerHTML = `<li class="list-group-item text-center">No pending friend requests.</li>`;
+        requestList.innerHTML = `<li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending friend requests.</li>`;
       }
     })
     .catch(error => {
@@ -773,8 +773,8 @@ export function displaySettings() {
     .catch(error => {
     const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
 
-    const appDiv = document.getElementById("app_main");
-    appDiv.innerHTML = `
+      const appDiv = document.getElementById("app_main");
+      appDiv.innerHTML = `
     <div class="container mt-4">
       <h3 class="text-center">Account Management</h3>
 
@@ -1513,112 +1513,144 @@ export function displayGameForm() {
   };
 
   formContainer.innerHTML = `
-    <form id="gameForm" class="container w-100">
-      <ul class="nav nav-pills mb-3 d-flex justify-content-center" id="pills-tab" role="tablist">
+  <form id="gameForm" class="container w-100">
+
+    <ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active border border-primary border-opacity-50 rounded-0" id="pills-player-settings-tab"
+        data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
+        aria-controls="pills-player-settings" aria-selected="true">Player Settings</button>
+    </li>
+
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="pills-game-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab" aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+    <button class="nav-link border border-primary border-opacity-50 rounded-0" id="pills-match-settings-tab"
+    data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
+    aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
         </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="pills-match-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab" aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="pills-player-settings-tab" data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab" aria-controls="pills-player-settings" aria-selected="false">Player Settings</button>
-        </li>
-      </ul>
-      <div class="tab-content" id="pills-tabContent">
-        <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
-          <div class="d-flex justify-content-center mt-3">
-            <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-                <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
-                  <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
-                    <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-                    <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
-                  <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
-                  <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
-                    <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-                    <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+
+    <li class="nav-item" role="presentation">
+      <button class="nav-link border border-primary border-opacity-50 rounded-0" id="pills-game-settings-tab"
+      data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
+      aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+      </li>
+  </ul>
+
+
+  <div class="tab-content" id="pills-tabContent">
+  <div class="tab-pane fade show active" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
+    <div class="d-flex justify-content-between align-items-stretch mt-3">
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
+        <div
+          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div class="mb-3">
+            <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
+              class="form-label">Name:</label>
+            <input type="text" id="player1" value="${gameSettings.player1}"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control"
+              disabled>
           </div>
-        </div>
-        <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
-          <div class="d-flex justify-content-center mt-3">
-            <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-                <div class="mb-3">
-                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
-                  <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2" style="width: 60px;">
-                </div>
-                <div class="mb-3">
-                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
-                  <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
-                </div>
-              </div>
-            </div>
+          <div class="mb-3">
+            <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
+              class="form-label">Control:</label>
+            <select id="control1" class="form-select">
+              <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows"
+                ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+              <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd"
+                ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+              <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse"
+                ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+            </select>
           </div>
-        </div>
-        <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
-          <div class="d-flex justify-content-between align-items-stretch mt-3">
-            <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-                <div class="mb-3">
-                  <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Name:</label>
-                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control" disabled>
-                </div>
-                <div class="mb-3">
-                  <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
-                  <select id="control1" class="form-select">
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
-                <div class="mb-3">
-                  <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
-                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
-                </div>
-                <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-                  <label for="control2" class="form-label">Control:</label>
-                  <select id="control2" class="form-select">
-                    <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="text-center mt-4">
-          <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
         </div>
       </div>
-    </form>
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
+        <div
+          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div class="mb-3">
+            <label for="player2" class="form-label"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
+            <input type="text" id="player2" value="${gameSettings.player2}" class="form-control"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+          </div>
+          <div id="control2Container" class="mb-3" style="${gameSettings.mode === " solo"? "display:none;" : "display:block;"}">
+            <label for="control2" class="form-label">Control:</label>
+            <select id="control2" class="form-select">
+              <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+              <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys
+              </option>
+              <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <div id="result" style="display: none;">
+
+  <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
+    <div class="d-flex justify-content-center mt-3">
+      <!-- Match Settings Container -->
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
+        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div class="mb-3">
+            <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+            <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2" style="width: 60px;">
+          </div>
+          <div class="mb-3">
+            <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+            <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-pane fade" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
+    <div class="d-flex justify-content-center mt-3">
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
+        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div class="mb-3">
+            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
+            <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
+              <button id="onePlayer" class="mode-button active btn ${gameSettings.mode === " solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+              <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === " multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
+            <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
+              <button class="difficulty-button active btn ${gameSettings.difficulty === " easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+              <button class="difficulty-button btn ${gameSettings.difficulty === " medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+              <button class="difficulty-button btn ${gameSettings.difficulty === " hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
+            <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
+              <button class="design-button active btn ${gameSettings.design === " retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+              <button class="design-button btn ${gameSettings.design === " neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</form>
+
+
+</form>
+
+  <div class="text-center mt-4">
+    <button id="startGameButton" class="btn btn-success" type="button">Start Game</button>
+  </div>
+
+  <div id="result" style="display: none;">
       <h2>Game Results</h2>
       <p id="summary"></p>
     </div>
@@ -1699,11 +1731,11 @@ export function displayGameForm() {
     gameSettings.numberOfGames = parseInt(this.value);
   });
 
-  document.getElementById("setsPerGame").addEventListener("input", function() {
+  document.getElementById("setsPerGame").addEventListener("input", function () {
     gameSettings.setsPerGame = parseInt(this.value);
   });
 
-  document.getElementById("player2").addEventListener("input", function() {
+  document.getElementById("player2").addEventListener("input", function () {
     gameSettings.player2 = this.value;
   });
 
@@ -1724,13 +1756,13 @@ export function displayGameForm() {
   });
 
   document.querySelectorAll(".difficulty-button").forEach(button => {
-    button.addEventListener("click", function() {
+    button.addEventListener("click", function () {
       gameSettings.difficulty = this.id;
     });
   });
 
   document.querySelectorAll(".design-button").forEach(button => {
-    button.addEventListener("click", function() {
+    button.addEventListener("click", function () {
       gameSettings.design = this.id;
     });
   });
@@ -1826,7 +1858,7 @@ export function displayGameForm() {
 //   document.getElementById('app_main').innerHTML = '';
 //   document.getElementById('app_bottom').innerHTML = '';
 //
-//   localStorage.setItem("isTournamentMatch", false); 
+//   localStorage.setItem("isTournamentMatch", false);
 //   const formContainer = document.getElementById("app_main");
 //   const username = localStorage.getItem("username")
 //
@@ -2025,9 +2057,9 @@ export function displayGameForm() {
 //     });
 //   });
 //
-//   let alertShown = false; 
-//   let lastCheckedPlayer2 = ""; 
-//   let needAuth = false; 
+//   let alertShown = false;
+//   let lastCheckedPlayer2 = "";
+//   let needAuth = false;
 //
 // document.getElementById("startGameButton").addEventListener("click", async () => {
 //     const player1 = username;
@@ -2039,7 +2071,7 @@ export function displayGameForm() {
 //
 //     if (!alertShown || player2 !== lastCheckedPlayer2) {
 //         alertShown = false;
-//         needAuth = false;  
+//         needAuth = false;
 //         if (isTwoPlayerMode) {
 //             try {
 //                 const playerData = await checkPlayerExists(player2);
@@ -2132,7 +2164,7 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
     const modalBootstrap = new bootstrap.Modal(loginModal);
     modalBootstrap.show();
 
-    document.getElementById('submitLogin').addEventListener('click', async function() {
+    document.getElementById('submitLogin').addEventListener('click', async function () {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
 
