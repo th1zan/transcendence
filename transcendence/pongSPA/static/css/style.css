@@ -107,6 +107,72 @@ h6 {
 }
 
 /* Contenu des onglets */
+
+/* Cartes principales (opaques, fond blanc, bordure blanche) */
+/* .card { */
+/*   background-color: #ffffff; /* Fond blanc opaque */ */
+/*   border: 2px solid #ffffff; /* Bordure blanche fine */ */
+/*   border-radius: 5px; */
+/*   padding: 15px; */
+/*   box-shadow: none; */
+/*   outline: none; */
+/*   border-width: 2px !important; */
+/* } */
+
+/* /* Cartes secondaires/imbriquées (transparents, bordure blanche) */ */
+/* .card .card { */
+/*   background-color: transparent; /* Pas de fond */ */
+/*   border: 2px solid #ffffff; /* Bordure blanche fine */ */
+/*   border-radius: 5px; */
+/*   padding: 10px; */
+/*   box-shadow: none; */
+/*   outline: none; */
+/* } */
+/**/
+/* /* Texte dans les cartes */ */
+/* .card-title, .card-text { */
+/*   color: #212529; */
+/*   font-family: 'Press Start 2P', cursive; */
+/*   font-size: 16px; */
+/* } */
+/**/
+/* .card .card .card-title, .card .card .card-text { */
+/*   color: #ffffff; /* Texte blanc pour contraste sur fond transparent */ */
+/*   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2); /* Ombre légère pour lisibilité */ */
+/* } */
+/**/
+/* /* Boutons dans les cartes */ */
+/* .card .btn { */
+/*   font-family: 'Press Start 2P', cursive; */
+/*   font-size: 12px; */
+/*   -webkit-font-smoothing: none; */
+/*   -moz-osx-font-smoothing: none; */
+/*   font-smooth: never; */
+/*   background-color: #ffffff; */
+/*   border: 2px solid #ffffff; */
+/*   color: #212529; */
+/*   padding: 8px 16px; */
+/* } */
+/**/
+/* .card .card .btn { */
+/*   background-color: transparent; */
+/*   border: 2px solid #ffffff; */
+/*   color: #ffffff; */
+/* } */
+/**/
+/* /* Champs de formulaire dans les cartes */ */
+/* .card .form-control { */
+/*   background-color: #ffffff; */
+/*   border: 2px solid #ffffff; */
+/*   color: #212529; */
+/* } */
+/**/
+/* .card .card .form-control { */
+/*   background-color: transparent; */
+/*   border: 2px solid #ffffff; */
+/*   color: #ffffff; */
+/* } */
+
 .tab-content {
   margin-top: 20px;
 }
