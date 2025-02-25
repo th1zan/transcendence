@@ -687,7 +687,6 @@ export function updateProfile() {
 }
 
 
-
 export function validateToken() {
   // Vérifie si le username est dans le localStorage
   const username = localStorage.getItem('username');
