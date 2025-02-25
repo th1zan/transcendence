@@ -1,4 +1,4 @@
-import { displayGameForm, displayWelcomePage, navigateTo } from "./app.js";
+import { displayGameForm, displayWelcomePage, navigateTo, showModal } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 import { displayMenu } from "./menu.js";
 
@@ -60,16 +60,37 @@ function connectWebSocket()
 }
 
 // Démarrer le jeu Pong
+let retryCount = 0;
+const MAX_RETRIES = 10; // Limiter à 10 tentatives (1 seconde au total, à 100 ms par tentative)
+
 function startPongGame() {
   console.log("Starting Pong Game");
 
   const canvas = document.getElementById("pong");
 
   if (!canvas) {
-    console.error("Canvas not found. Please try again in 100 ms.");
-    setTimeout(startPongGame, 100);
-    return;
+    if (retryCount < MAX_RETRIES) {
+      console.warn(`Canvas not found. Retry ${retryCount + 1}/${MAX_RETRIES} in 100 ms.`);
+      retryCount++;
+      setTimeout(startPongGame, 100);
+      return;
+    } else {
+      console.error('Failed to find canvas after maximum retries. Please check the DOM.');
+      showModal(
+        'Error',
+        'Failed to start the game. The game canvas could not be found. Please refresh the page and try again.',
+        'OK',
+        () => {
+          stopGameProcess();
+          navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur critique
+        }
+      );
+      return;
+    }
   }
+
+  // Réinitialiser le compteur de tentatives pour de futurs appels
+  retryCount = 0;
 
   const cnv_context = canvas.getContext("2d");
   console.log("Canvas context obtained:", cnv_context !== null);
@@ -79,10 +100,10 @@ function startPongGame() {
   resetScores();
   console.log("Scores reset");
 
-  console.log("Mode multilayer or solo:", mode);
-  if (mode != "multiplayer" ){
-    console.log("Mode: ", mode, " , let's connect to websocket.");
-    connectWebSocket(); 
+  console.log("Mode multiplayer or solo:", mode);
+  if (mode !== "multiplayer") {
+    console.log("Mode:", mode, ", let's connect to WebSocket.");
+    connectWebSocket();
   }
   console.log("WebSocket connection attempted");
 
@@ -135,7 +156,6 @@ function updateGamePanel() {
 }
 
 export function startGameSetup(gameSettings) {
-
   shouldReconnect = true;
 
   // Mettre à jour les variables globales
@@ -152,24 +172,37 @@ export function startGameSetup(gameSettings) {
   difficulty = gameSettings.difficulty;
   isTournamentMatch = gameSettings.isTournamentMatch;
 
-
-
   console.log("StartGameSetup: Game settings isTournamentMatch:", gameSettings.isTournamentMatch);
   console.log("StartGameSetup: isTournamentMatch:", isTournamentMatch);
- //empty all the containers
+
+  // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  //create a canva for the game in the div "app_main"
+  // Créer un canvas pour le jeu dans le div "app_main"
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <canvas id="pong" width="800" height="400"></canvas>
   `;
 
+  // Vérifier si le canvas existe immédiatement après sa création
+  const canvas = document.getElementById("pong");
+  if (!canvas) {
+    console.error('Canvas creation failed. Cannot start the game.');
+    showModal(
+      'Error',
+      'Failed to create the game canvas. Please refresh the page and try again.',
+      'OK',
+      () => {
+        navigateTo('welcome');
+      }
+    );
+    return;
+  }
+
   // Gérer l'affichage en fonction du contexte
   if (isTournamentMatch === true) {
-
     console.log("StartGameSetup: Tournament mode");
     // Si le contexte est un tournoi, cacher seulement les éléments spécifiques
     // document.getElementById("tournamentMatches").style.display = "none";
@@ -189,8 +222,10 @@ export function startGameSetup(gameSettings) {
   setHistory = [];
 
   updateGamePanel();
-  // Démarrer le jeu Pong
-  startPongGame();
+  // Démarrer le jeu Pong avec une vérification supplémentaire
+  requestAnimationFrame(() => {
+    startPongGame();
+  });
 }
 
 function resetScores() {
@@ -323,19 +358,51 @@ function handleGameEnd(winner) {
   updateResults();
 
   if (currentGame < numberOfGames) {
-    alert(`${winner} wins this game! Starting the next game...`);
-    resetScores();
-    updateResults(); // Mettre à jour les résultats avant de démarrer le prochain jeu
-    startPongGame(); // Démarrer la prochaine partie
+    // Remplacer l'alert par une modale (avec backdrop 'static' et keyboard false implicites via showModal modifié)
+    showModal(
+      'Set\'s End', // Titre
+      `${winner} wins this set! Starting the next set...`, // Message
+      'Next Set', // Texte du bouton d'action (renommé pour plus de clarté)
+      () => { // Callback pour l'action
+        resetScores();
+        updateResults();
+        // Vérifier si le canvas existe avant de lancer startPongGame
+        const canvas = document.getElementById("pong");
+        if (canvas) {
+          requestAnimationFrame(() => {
+            startPongGame();
+          });
+        } else {
+          console.error('Canvas not found after modal closure. Cannot start the next set.');
+          showModal(
+            'Error',
+            'Failed to start the next set. The game canvas could not be found. Please refresh the page and try again.',
+            'OK',
+            () => {
+              stopGameProcess();
+              navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur
+            }
+          );
+        }
+      }
+    );
   } else {
     sendScore().then((matchID) => {
       stopGameProcess();
-      displayResults(matchID); // Passer matchID comme argument
+      displayResults(matchID);
     }).catch((error) => {
       console.error("Error in game end processing:", error);
+      showModal(
+        'Error',
+        'An error occurred while processing the game end: ' + error.message,
+        'OK',
+        () => {
+          stopGameProcess();
+          navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur
+        }
+      );
     });
   }
-
 }
 
 function displayResults(matchID) {

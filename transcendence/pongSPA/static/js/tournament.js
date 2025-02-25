@@ -1,6 +1,6 @@
 
 import { startGameSetup } from "./pong.js";
-import {showModal, showCustomModal} from "./app.js";
+import {showModal} from "./app.js";
 
 
 
@@ -244,13 +244,23 @@ function displayTournamentGameList(data) {
 
             let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
             if (!player1Authenticated) {
-              alert("Authentification requise pour " + player1);
+              showModal(
+                'Authentication Required',
+                `Authentification requise pour ${player1}`,
+                'OK',
+                () => {}
+              );
               return;
             }
 
             let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
             if (!player2Authenticated) {
-              alert("Authentification requise pour " + player2);
+              showModal(
+                'Authentication Required',
+                `Authentification requise pour ${player2}`,
+                'OK',
+                () => {}
+              );
               return;
             }
 
@@ -270,7 +280,12 @@ function displayTournamentGameList(data) {
             startGameSetup(gameSettings);
           } catch (error) {
             console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
-            alert("Une erreur est survenue lors de la vérification de l'authentification. Veuillez réessayer.");
+            showModal(
+              'Error',
+              'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
+              'OK',
+              () => {}
+            );
           }
         });
       });
@@ -417,18 +432,21 @@ export function DisplayTournamentGame() {
 
 
 export function createTournamentForm() {
-//empty all the containers
-document.getElementById('app_top').innerHTML = '';
-document.getElementById('app_main').innerHTML = '';
-document.getElementById('app_bottom').innerHTML = '';
+  //empty all the containers
+  // document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
 
-const appMain = document.getElementById("app_main");
-if (!appMain) return;
+  const appMain = document.getElementById("app_main");
+  if (!appMain) return;
 
-appMain.innerHTML = getTournamentFormHTML();
+  appMain.innerHTML = getTournamentFormHTML();
 
-initializePlayerManagement();
-setupSubmitHandlers();
+  // Attendre que le DOM soit mis à jour avant d'appeler initializePlayerManagement et setupSubmitHandlers
+  requestAnimationFrame(() => {
+    initializePlayerManagement();
+    setupSubmitHandlers();
+  });
 }
 
 
@@ -650,7 +668,7 @@ function addPlayer(container, count, initialValue = '', isHost = false) {
       ${initialValue ? 'readonly' : ''} 
     >
     <span class="status-text me-2"></span>
-    ${!isHost ? '<button class="btn btn-sm remove-player">❌</button>' : ''}
+    ${!isHost ? '<button class="btn btn-sm remove-player">❌ remove</button>' : ''}
   `;
   if (!isHost) {
     playerDiv.classList.add('additional-player');
@@ -724,7 +742,7 @@ if (playerDiv.classList.contains('additional-player')) {
   }
 } else {
   // Host player
-  statusSpan.textContent = '✔️ Host';
+  statusSpan.textContent = '✔️ ';
   playerDiv.setAttribute('data-user-id', "host");
   playerDiv.setAttribute('data-is-guest', 'false');
   playerDiv.setAttribute('data-authenticated', 'true');
@@ -734,109 +752,123 @@ if (playerDiv.classList.contains('additional-player')) {
 
 
 function setupSubmitHandlers() {
-const validateButton = document.getElementById('validateTournamentName');
-const submitButton = document.getElementById('submitButton');
-const savePlayersButton = document.getElementById('savePlayers');
+  const validateButton = document.getElementById('validateTournamentName');
+  const submitButton = document.getElementById('submitButton');
+  const savePlayersButton = document.getElementById('savePlayers');
 
-validateButton.onclick = () => {
-  const tournamentName = document.getElementById('tournamentName').value.trim();
-  if (!tournamentName) {
-    showModal('genericModal', 'Error', 'The tournament name cannot be empty', 'OK', () => {});
+  if (!validateButton || !submitButton || !savePlayersButton) {
+    console.error('One or more buttons not found in DOM');
     return;
   }
-  fetch("/api/tournament/new/", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      tournament_name: tournamentName
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.tournament_id && data.message === "Tournament created successfully") {
-      localStorage.setItem("tournamentName", data.tournament_name);
-      localStorage.setItem("tournamentId", data.tournament_id);
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-    } else {
-      showModal('genericModal', 'Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
-    }
-  })
-  .catch(error => {
-    console.error("Error validating tournament name:", error);
-    showModal('genericModal', 'Error', 'There was an error validating the tournament name.', 'OK', () => {});
-  });
-};
 
-savePlayersButton.onclick = () => {
-  const players = Array.from(document.getElementById('playerContainer').querySelectorAll('input'))
-    .map((input, index) => {
-      const playerDiv = input.parentElement;
-      return {
-        name: input.value.trim(),
-        authenticated: index === 0 ? true : false, // Only the first player (host) is authenticated
-        guest: playerDiv.getAttribute('data-is-guest') === 'true'
-      };
+  validateButton.onclick = () => {
+    const tournamentName = document.getElementById('tournamentName')?.value.trim();
+    if (!tournamentName) {
+      showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
+      return;
+    }
+    fetch("/api/tournament/new/", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tournament_name: tournamentName
+      }),
     })
-    .filter(player => player.name !== '');
+    .then(response => response.json())
+    .then(data => {
+      if (data.tournament_id && data.message === "Tournament created successfully") {
+        localStorage.setItem("tournamentName", data.tournament_name);
+        localStorage.setItem("tournamentId", data.tournament_id);
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        if (step1) step1.style.display = 'none';
+        if (step2) step2.style.display = 'block';
+      } else {
+        showModal('Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
+      }
+    })
+    .catch(error => {
+      console.error("Error validating tournament name:", error);
+      showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
+    });
+  };
 
-  if (players.length < 2) {
-    showModal('genericModal', 'Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
-    return;
-  }
+  savePlayersButton.onclick = () => {
+    const players = Array.from(document.getElementById('playerContainer')?.querySelectorAll('input') || [])
+      .map((input, index) => {
+        const playerDiv = input.parentElement;
+        return {
+          name: input.value.trim(),
+          authenticated: index === 0 ? true : false, // Only the first player (host) is authenticated
+          guest: playerDiv?.getAttribute('data-is-guest') === 'true'
+        };
+      })
+      .filter(player => player.name !== '');
 
-  localStorage.setItem("players", JSON.stringify(players));
-  showModal('genericModal', 'Success', 'Players saved successfully!', 'OK', () => {
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step3').style.display = 'block';
-  });
-};
-
-submitButton.onclick = () => {
-  const players = JSON.parse(localStorage.getItem("players") || "[]");
-  if (players.length < 2) {
-    showModal('genericModal', 'Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
-    return;
-  }
-
-  const numberOfGames = document.getElementById('numberOfGames').value;
-  const pointsToWin = document.getElementById('pointsToWin').value;
-  const tournamentId = localStorage.getItem("tournamentId");
-
-  fetch(`/api/tournament/finalize/${tournamentId}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      players: players,
-      number_of_games: numberOfGames,
-      points_to_win: pointsToWin
-    }),
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.message) {
-      console.log("Tournament finalized:", data);
-      showModal('genericModal', 'Success', 'Tournament finalized successfully!', 'OK', () => {
-        DisplayTournamentGame(); // Assuming this function shows the tournament game page
-      });
-    } else {
-      showModal('genericModal', 'Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
+    if (players.length < 2) {
+      showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+      return;
     }
-  })
-  .catch(error => {
-    console.error("Error finalizing tournament:", error);
-    showModal('genericModal', 'Error', 'There was an error finalizing the tournament.', 'OK', () => {});
-  });
-};
+
+    localStorage.setItem("players", JSON.stringify(players));
+    showModal('Success', 'Players saved successfully!', 'OK', () => {
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      if (step2) step2.style.display = 'none';
+      if (step3) step3.style.display = 'block';
+    });
+  };
+
+  submitButton.onclick = () => {
+    const players = JSON.parse(localStorage.getItem("players") || "[]");
+    if (players.length < 2) {
+      showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+      return;
+    }
+
+    const numberOfGames = document.getElementById('numberOfGames')?.value;
+    const pointsToWin = document.getElementById('pointsToWin')?.value;
+    const tournamentId = localStorage.getItem("tournamentId");
+
+    fetch(`/api/tournament/finalize/${tournamentId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        players: players,
+        number_of_games: numberOfGames,
+        points_to_win: pointsToWin
+      }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message) {
+        console.log("Tournament finalized:", data);
+        showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
+          DisplayTournamentGame(); // Assuming this function shows the tournament game page
+        });
+      } else {
+        showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
+      }
+    })
+    .catch(error => {
+      console.error("Error finalizing tournament:", error);
+      showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
+    });
+  };
 }
 
 function handleError(error, message) {
-console.error(message, error);
-alert(message);
+  console.error(message, error);
+  showModal(
+    'Error',
+    message,
+    'OK',
+    () => {}
+  );
 }
 
 function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
@@ -874,199 +906,257 @@ DisplayTournamentGame();
 
 
 export function validateSearch() {
-let tournamentName;
+  
 
-// Vérifiez si le nom du tournoi est déjà dans le stockage local
-tournamentName = localStorage.getItem("tournamentName");
+  document.getElementById('app_bottom').innerHTML = '';
 
-if (!tournamentName) {
-  alert("Please enter a tournament name.");
-  return;
-}
+  let tournamentName;
 
-const appMain = document.getElementById("app_main");
-appMain.innerHTML = `
-  <div id="tournamentList"></div>
-`;
+  // Vérifiez si le nom du tournoi est déjà dans le stockage local
+  tournamentName = localStorage.getItem("tournamentName");
 
-fetch(`/api/tournaments/?name=${tournamentName}`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    const tournamentListDiv = document.getElementById("tournamentList");
-    tournamentListDiv.innerHTML = "<h3>Tournaments Found:</h3>";
-    if (Array.isArray(data) && data.length > 0) {
-      data.forEach((tournament) => {
-        const tournamentDiv = document.createElement('div');
-        // Ajoute une coche pour les tournois terminés ou une raquette pour ceux en cours
-        const emoji = tournament.is_finished ? '✅' : '🏓';
-        tournamentDiv.innerHTML = `
-          <p>
-            ${emoji} Name: ${tournament.tournament_name}, ID: ${tournament.id}, Date: ${new Date(tournament.date).toLocaleDateString()}
-            <button class="selectTournamentButton" data-id="${tournament.id}" data-name="${tournament.tournament_name}">Select</button>
-          </p>`;
-        tournamentListDiv.appendChild(tournamentDiv);
-      });
+  if (!tournamentName) {
+    showModal(
+      'Warning',
+      'Please enter a tournament name.',
+      'OK',
+      () => {}
+    );
+    return;
+  }
 
-      document.querySelectorAll('.selectTournamentButton').forEach(button => {
-        button.addEventListener('click', event => {
-          const tournamentId = event.target.getAttribute('data-id');
-          const tournamentName = event.target.getAttribute('data-name');
-          selectTournament(tournamentId, tournamentName);
-        });
-      });
-    } else {
-      tournamentListDiv.innerHTML += "<p>No tournament found with that name.</p>";
-    }
-  })
-  .catch((error) => {
-    console.error("Error while searching for tournaments:", error);
-  });
-}
-
-export function displayUserTournaments() {
-const username = localStorage.getItem("username");
-
-if (!username) {
-  showModal('genericModal', 'Login Required', 'Please log in to view your tournaments.', 'OK', function() {});
-  return;
-}
-
-const appMain = document.getElementById("app_main");
-appMain.innerHTML = `
-  <div class="card mb-4 shadow-sm border-primary border-1">
-    <div class="card-body p-3">
-      <!-- Bouton Show all tournaments aligné à gauche -->
-      <div class="mb-4">
-        <button id="toggleAllTournaments" class="btn btn-secondary btn-sm shadow-sm rounded-pill">Show all tournaments</button>
-      </div>
-      <!-- Card interne pour le tableau -->
-      <div id="userTournamentList">
-        <div class="card shadow-sm border-primary border-1">
-          <div class="card-header text-center" style="background: white;">
-            <h2 class="display-6 mb-0 text-primary">Your Tournaments</h2>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead class="bg-primary text-white">
-                  <tr>
-                    <th scope="col" class="text-center" data-priority="1">Tournament Name</th>
-                    <th scope="col" class="text-center" data-priority="2">Status</th>
-                    <th scope="col" class="text-center" data-priority="3">ID</th>
-                    <th scope="col" class="text-center" data-priority="4">Date</th>
-                    <th scope="col" class="text-center" data-priority="2">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="tournamentsBody">
-                </tbody>
-              </table>
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = `
+    <div class="container mt-4">
+      <div class="card mb-4 shadow-sm border-primary border-1">
+        <div class="card-body p-3">
+          <div class="card shadow-sm border-primary border-1">
+            <div class="card-header text-center" style="background: white;">
+              <h2 class="display-6 mb-0 text-primary">Tournaments Found</h2>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover">
+                  <thead class="bg-primary text-white">
+                    <tr>
+                      <th scope="col" class="text-center" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
+                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
+                      <th scope="col" class="text-center" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
+                      <th scope="col" class="text-center" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
+                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tournamentBody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-`;
+  `;
 
-fetch(`/api/user/tournaments/?username=${username}`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    const userTournamentListDiv = document.getElementById("userTournamentList");
+  fetch(`/api/tournaments/?name=${tournamentName}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const tournamentBody = document.getElementById("tournamentBody");
+      // Ensure data is an array before manipulating it
+      const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
 
-    // Ensure data is an array before manipulating it
-    const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
+      if (tournaments.length > 0) {
+        tournaments.forEach((tournament) => {
+          const emoji = tournament.is_finished ? '✅' : '🏓';
+          const statusBadge = tournament.is_finished ? 
+            '<span class="badge bg-success">Finished</span>' : 
+            '<span class="badge bg-info text-dark">Ongoing</span>';
 
-    if (tournaments.length > 0) {
-      // Reverse tournaments if it's an array
-      const reversedTournaments = Array.isArray(tournaments) ? [...tournaments].reverse() : tournaments;
-
-      const tournamentsBody = document.getElementById("tournamentsBody");
-      reversedTournaments.forEach((tournament) => {
-        const emoji = tournament.is_finished ? '✅' : '🏓';
-        const statusBadge = tournament.is_finished ? 
-          '<span class="badge bg-success">Finished</span>' : 
-          '<span class="badge bg-info text-dark">Ongoing</span>';
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="text-center align-middle">${tournament.tournament_name} ${emoji}</td>
-          <td class="text-center align-middle">${statusBadge}</td>
-          <td class="text-center align-middle">${tournament.id}</td>
-          <td class="text-center align-middle">${new Date(tournament.date).toLocaleDateString()}</td>
-          <td class="text-center align-middle">
-            <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}">
-              <i class="bi bi-play-fill"></i> Select
-            </button>
-          </td>
-        `;
-        tournamentsBody.appendChild(row);
-      });
-
-      // Filter for ongoing tournaments by default
-      filterTournaments('ongoing');
-
-      document.getElementById("toggleAllTournaments").addEventListener('click', () => {
-        const button = document.getElementById("toggleAllTournaments");
-        const tournamentsBody = document.getElementById("tournamentsBody");
-        if (button.textContent.includes("Show all tournaments")) {
-          filterTournaments('all');
-          button.textContent = "Show only ongoing tournaments";
-          button.classList.remove('btn-secondary');
-          button.classList.add('btn-info');
-        } else {
-          filterTournaments('ongoing');
-          button.textContent = "Show all tournaments";
-          button.classList.remove('btn-info');
-          button.classList.add('btn-secondary');
-        }
-      });
-
-      // Relier le bouton "Select" pour naviguer vers la page du tournoi
-      document.querySelectorAll('.selectTournamentButton').forEach(button => {
-        button.addEventListener('click', event => {
-          const tournamentId = event.target.getAttribute('data-id');
-          const tournamentName = event.target.getAttribute('data-name');
-          selectTournament(tournamentId, tournamentName);
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${tournament.tournament_name} ${emoji}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${statusBadge}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${tournament.id}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${new Date(tournament.date).toLocaleDateString()}</td>
+            <td class="text-center align-middle">
+              <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+                <i class="bi bi-play-fill"></i> Select
+              </button>
+            </td>
+          `;
+          tournamentBody.appendChild(row);
         });
-      });
-    } else {
-      userTournamentListDiv.innerHTML += `
-        <div class="alert alert-warning text-center" role="alert">
-          You are not participating in any tournament.
+
+        // Relier le bouton "Select" pour naviguer vers la page du tournoi
+        document.querySelectorAll('.selectTournamentButton').forEach(button => {
+          button.addEventListener('click', event => {
+            const tournamentId = event.target.getAttribute('data-id');
+            const tournamentName = event.target.getAttribute('data-name');
+            selectTournament(tournamentId, tournamentName);
+          });
+        });
+      } else {
+        tournamentBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">No tournament found with that name.</td>
+          </tr>
+        `;
+      }
+    })
+    .catch((error) => {
+      console.error("Error while searching for tournaments:", error);
+      const tournamentBody = document.getElementById("tournamentBody");
+      tournamentBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+            Error loading tournament information: ${error.message}
+          </td>
+        </tr>
+      `;
+    });
+}
+
+export function displayUserTournaments() {
+  const username = localStorage.getItem("username");
+
+  if (!username) {
+    showModal('Login Required', 'Please log in to view your tournaments.', 'OK', function() {});
+    return;
+  }
+
+  const appMain = document.getElementById("app_main");
+  appMain.innerHTML = `
+    <div class="card mb-4 shadow-sm border-primary border-1">
+      <div class="card-body p-3">
+        <!-- Bouton Show all tournaments aligné à gauche -->
+        <div class="mb-4">
+          <button id="toggleAllTournaments" class="btn btn-secondary btn-sm shadow-sm rounded-pill">Show all tournaments</button>
+        </div>
+        <!-- Card interne pour le tableau avec barre de défilement -->
+        <div id="userTournamentList">
+          <div class="card shadow-sm border-primary border-1">
+            <div class="card-header text-center" style="background: white;">
+              <h2 class="display-6 mb-0 text-primary">Your Tournaments</h2>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover">
+                  <thead class="bg-primary text-white">
+                    <tr>
+                      <th scope="col" class="text-center" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
+                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
+                      <th scope="col" class="text-center" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
+                      <th scope="col" class="text-center" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
+                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tournamentsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  fetch(`/api/user/tournaments/?username=${username}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const userTournamentListDiv = document.getElementById("userTournamentList");
+
+      // Ensure data is an array before manipulating it
+      const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
+
+      if (tournaments.length > 0) {
+        // Reverse tournaments if it's an array
+        const reversedTournaments = Array.isArray(tournaments) ? [...tournaments].reverse() : tournaments;
+
+        const tournamentsBody = document.getElementById("tournamentsBody");
+        reversedTournaments.forEach((tournament) => {
+          const emoji = tournament.is_finished ? '✅' : '🏓';
+          const statusBadge = tournament.is_finished ? 
+            '<span class="badge bg-success">Finished</span>' : 
+            '<span class="badge bg-info text-dark">Ongoing</span>';
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${tournament.tournament_name} ${emoji}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${statusBadge}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${tournament.id}</td>
+            <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${new Date(tournament.date).toLocaleDateString()}</td>
+            <td class="text-center align-middle">
+              <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+                <i class="bi bi-play-fill"></i> Select
+              </button>
+            </td>
+          `;
+          tournamentsBody.appendChild(row);
+        });
+
+        // Filter for ongoing tournaments by default
+        filterTournaments('ongoing');
+
+        document.getElementById("toggleAllTournaments").addEventListener('click', () => {
+          const button = document.getElementById("toggleAllTournaments");
+          const tournamentsBody = document.getElementById("tournamentsBody");
+          if (button.textContent.includes("Show all tournaments")) {
+            filterTournaments('all');
+            button.textContent = "Show only ongoing tournaments";
+            button.classList.remove('btn-secondary');
+            button.classList.add('btn-info');
+          } else {
+            filterTournaments('ongoing');
+            button.textContent = "Show all tournaments";
+            button.classList.remove('btn-info');
+            button.classList.add('btn-secondary');
+          }
+        });
+
+        // Relier le bouton "Select" pour naviguer vers la page du tournoi
+        document.querySelectorAll('.selectTournamentButton').forEach(button => {
+          button.addEventListener('click', event => {
+            const tournamentId = event.target.getAttribute('data-id');
+            const tournamentName = event.target.getAttribute('data-name');
+            selectTournament(tournamentId, tournamentName);
+          });
+        });
+      } else {
+        userTournamentListDiv.innerHTML += `
+          <div class="alert alert-warning text-center" role="alert" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+            You are not participating in any tournament.
+          </div>
+        `;
+      }
+    })
+    .catch((error) => {
+      console.error("Error retrieving user's tournaments:", error);
+      userTournamentListDiv.innerHTML = `
+        <div class="alert alert-danger text-center" role="alert" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+          Error loading tournament information.
         </div>
       `;
-    }
-  })
-  .catch((error) => {
-    console.error("Error retrieving user's tournaments:", error);
-    userTournamentListDiv.innerHTML = `
-      <div class="alert alert-danger text-center" role="alert">
-        Error loading tournament information.
-      </div>
-    `;
-  });
+    });
 
-function filterTournaments(filter) {
-  const rows = document.querySelectorAll('#tournamentsBody tr');
-  rows.forEach(row => {
-    const statusBadge = row.querySelector('.badge');
-    if (filter === 'all' || 
-        (filter === 'ongoing' && statusBadge.classList.contains('bg-info')) || 
-        (filter === 'finished' && statusBadge.classList.contains('bg-success'))) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
-    }
-  });
-}
+  function filterTournaments(filter) {
+    const rows = document.querySelectorAll('#tournamentsBody tr');
+    rows.forEach(row => {
+      const statusBadge = row.querySelector('.badge');
+      if (filter === 'all' || 
+          (filter === 'ongoing' && statusBadge.classList.contains('bg-info')) || 
+          (filter === 'finished' && statusBadge.classList.contains('bg-success'))) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
 }

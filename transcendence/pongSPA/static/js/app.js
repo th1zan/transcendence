@@ -11,6 +11,10 @@ import {
   updateProfile,
   uploadAvatar,
   getCookie,
+  toggle2FA,
+  update2FAStatus,
+  verifyOTP,
+  verify2FALogin,
 } from "./auth.js";
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
@@ -40,8 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Variable globale pour l'état de connexion
   let isUserLoggedIn = false;
 
-  // 2. Check if the user is logged in.
-  validateToken().then((isTokenValid) => {
+  // 2. Check if the user is logged in.V
+    validateToken().then((isTokenValid) => {
     console.log('validateToken resolved with:', isTokenValid);
     isUserLoggedIn = isTokenValid;
     if (isUserLoggedIn) {
@@ -186,66 +190,57 @@ function handleRouteChange(route) {
 }
 
 
-// Fonction générique pour afficher une modale
-export function showModal(modalId, title, message, actionText, actionCallback) {
+export function showModal(title, message, actionText, actionCallback) {
+  const modalId = 'oneButtonModal';
   const modalElement = document.getElementById(modalId);
+  if (!modalElement) {
+    console.error(`Modal element with ID ${modalId} not found`);
+    return;
+  }
+
   const modal = new bootstrap.Modal(modalElement, {
-    keyboard: false
+    backdrop: 'static', // Empêche la fermeture en cliquant à côté
+    keyboard: false     // Empêche la fermeture avec la touche Échap
   });
 
-  // Mise à jour du titre et du message
-  document.getElementById(`${modalId}Label`).textContent = title;
-  document.getElementById(`${modalId}Body`).textContent = message;
+  // Mise à jour du titre
+  const titleElement = document.getElementById(`${modalId}Label`);
+  if (titleElement) {
+    titleElement.textContent = title;
+  } else {
+    console.error(`Title element for ${modalId}Label not found`);
+  }
 
-  // Mise à jour du texte du bouton d'action et ajout de l'écouteur d'événement
+  // Mise à jour du message
+  const bodyElement = document.getElementById(`${modalId}Body`);
+  if (bodyElement) {
+    bodyElement.textContent = message;
+  } else {
+    console.error(`Modal body element not found for ${modalId}`);
+  }
+
+  // Mise à jour du bouton d'action
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
-    actionButton.textContent = actionText;
-    actionButton.removeEventListener('click', actionButton.handler); // Supprime l'ancien écouteur
+    actionButton.textContent = actionText || 'Close'; // Utiliser actionText ou "Close" par défaut
+    actionButton.removeEventListener('click', actionButton.handler);
     actionButton.addEventListener('click', function handler() {
-      actionCallback();
-      modal.hide();
+      if (actionCallback) {
+        actionCallback(); // Exécuter l’action supplémentaire si nécessaire
+      }
+      modal.hide(); // Toujours fermer la modale après l’action
     });
-    actionButton.handler = actionButton.onclick; // Stocke le nouvel écouteur
+    actionButton.handler = actionButton.onclick;
+  } else {
+    console.error(`Action button for ${modalId}Action not found`);
   }
 
   // Affiche la modale et déplace le focus
   modal.show();
-  const focusableElement = modalElement.querySelector(`#${modalId}Action`); // Focus sur le bouton "Action"
-  if (focusableElement) {
-    focusableElement.focus(); // Déplace le focus dans la modale
+  if (actionButton) {
+    actionButton.focus();
   }
 }
-
-// Fonction pour afficher une modale avec deux boutons personnalisés
-export function showCustomModal(title, message, continueCallback) {
-  const modalElement = document.getElementById('customModal');
-  const modal = new bootstrap.Modal(modalElement, {
-    keyboard: false
-  });
-
-  // Mise à jour du titre et du message
-  document.getElementById('customModalLabel').textContent = title;
-  document.getElementById('customModalBody').textContent = message;
-
-  // Gestion du bouton Cancel
-  const cancelButton = document.getElementById('cancelButton');
-  cancelButton.onclick = function () {
-    modal.hide();
-  };
-
-  // Gestion du bouton Continue
-  const continueButton = document.getElementById('continueButton');
-  continueButton.onclick = function () {
-    continueCallback();
-    modal.hide();
-  };
-
-  // Affiche la modale et déplace le focus
-  modal.show();
-  continueButton.focus(); // Focus sur le bouton "Continue"
-}
-
 
 function displayQuickStats(data, playerName) {
   if (!Array.isArray(data) || data.length === 0) {
@@ -468,24 +463,24 @@ function confirmTournamentParticipation(tournamentId, playerName) {
       player_name: playerName // Pas besoin de username, car request.user le gère
     }),
   })
-    .then(response => {
-      if (!response.ok) throw new Error("Authentication failed: " + response.status);
-      return response.json();
-    })
-    .then(data => {
-      if (data.message === "Player authenticated successfully") {
-        console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
-        showModal('genericModal', 'Success', 'Participation confirmed successfully!', 'OK', () => {
-          fetchPendingTournamentAuthentications(); // Rafraîchir la liste
-        });
-      } else {
-        throw new Error("Unexpected response");
-      }
-    })
-    .catch(error => {
-      console.error("Error confirming participation:", error);
-      showModal('genericModal', 'Error', 'Failed to confirm participation. Please try again.', 'OK', () => { });
-    });
+  .then(response => {
+    if (!response.ok) throw new Error("Authentication failed: " + response.status);
+    return response.json();
+  })
+  .then(data => {
+    if (data.message === "Player authenticated successfully") {
+      console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
+      showModal('Success', 'Participation confirmed successfully!', 'OK', () => {
+        fetchPendingTournamentAuthentications(); // Rafraîchir la liste
+      });
+    } else {
+      throw new Error("Unexpected response");
+    }
+  })
+  .catch(error => {
+    console.error("Error confirming participation:", error);
+    showModal('Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
+  });
 }
 
 
@@ -540,40 +535,43 @@ export function fetchPendingFriendRequests() {
 }
 
 export function displayTournament() {
-
   console.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
-  <div class="container py-4">
-    <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px; color: #000;">Tournament</h3>
-    <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-          New Tournament
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <div class="d-flex align-items-center gap-2" id="searchTournament">
-          <input 
-            type="text" 
-            id="tournamentNameInput" 
-            class="form-control rounded-pill" 
-            placeholder="Tournament Name" 
-            style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
-          >
-          <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-            Search
+    <div class="container py-4">
+      <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            My Tournaments
           </button>
-        </div>
-      </li>
-    </ul>
-  </div>
-`;
+        </li><li class="nav-item" role="presentation">
+          <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            New Tournament
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <div class="d-flex align-items-center gap-2" id="searchTournament">
+            <input 
+              type="text" 
+              id="tournamentNameInput" 
+              class="form-control rounded-pill" 
+              placeholder="Tournament Name" 
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
+            >
+            <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+              Search
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  `;
 
   displayUserTournaments();
   // let resultDiv = document.getElementById("app_main");
   //   resultDiv.style.display = "block";
 
+  document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
   document.getElementById("tournamentSearchButton").addEventListener("click", () => {
@@ -585,48 +583,90 @@ export function displayTournament() {
 
     const tournamentName = tournamentNameInput.value;
     if (!tournamentName) {
-      alert("Please enter a tournament name.");
+      showModal(
+        'Warning',
+        'Please enter a tournament name.',
+        'OK',
+        () => {} // Action vide, juste fermer la modale
+      );
       return;
     }
 
     localStorage.setItem("tournamentName", tournamentName);
     validateSearch();
   });
-
 }
 
 
 export function displayFriends() {
-
-  //empty all the containers
+  // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
   const appTop = document.getElementById("app_main");
   appTop.innerHTML = `
-    <h3>Friends</h3>
-    <br>
-    <div>
-      <input type="text" id="friendUsername" placeholder="Username" class="form-control" />
-      <button id="sendFriendRequestButton" class="btn btn-success mt-2">Send Friend Request</button>
+    <div class="container mt-4">
+      <div class="row g-4">
+        <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm" style="border-radius: 8px;">
+            <div class="card-body text-center">
+              <h5 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Send Friend Request</h5>
+              <div class="form-group mt-2">
+                <label for="friendUsername" class="form-label" style="font-family: 'Press Start 2P', cursive;">Username</label>
+                <input type="text" id="friendUsername" placeholder="Username" class="form-control" required style="font-family: 'Press Start 2P', cursive;">
+                <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" style="font-family: 'Press Start 2P', cursive;">
+                  Send Friend Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Colonne 2 : 3 cartes pour les demandes et amis -->
+        <div class="col-12 col-md-8">
+          <div class="row g-4">
+            <!-- Carte pour les demandes d'amis en attente -->
+            <div class="col-12">
+              <div class="card shadow-sm" style="border-radius: 8px;">
+                <div class="card-body text-center">
+                  <h4 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Pending Friend Requests</h4>
+                  <ul id="friendRequests" class="list-group list-group-flush"></ul>
+                </div>
+              </div>
+            </div>
+            <!-- Carte pour la liste des amis -->
+            <div class="col-12">
+              <div class="card shadow-sm" style="border-radius: 8px;">
+                <div class="card-body text-center">
+                  <h4 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">My Friends</h4>
+                  <ul id="friendList" class="list-group list-group-flush"></ul>
+                </div>
+              </div>
+            </div>
+            <!-- Carte vide pour équilibrer la mise en page (facultatif, peut être retirée si le contenu est dynamique) -->
+            <div class="col-12 d-md-none d-lg-block" style="height: 0;"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <br>
-    <br>
-    <h4>Pending Friend Requests</h4>
-    <ul id="friendRequests" class="list-group"></ul>
-    <br>
-    <br>
-    <h4>My Friends</h4>
-    <ul id="friendList" class="list-group"></ul>
   `;
 
   document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
     const friendUsername = document.getElementById("friendUsername").value.trim();
     if (friendUsername) {
       sendFriendRequest(friendUsername);
+    } else {
+      // Remplacer une éventuelle alert par oneButtonModal
+      showModal(
+        'Warning',
+        'Please enter a username.',
+        'OK', // Texte du bouton
+        () => {} // Action vide, juste fermer la modale
+      );
     }
   });
+
   fetchFriendRequests();
   fetchFriends();
 }
@@ -679,6 +719,21 @@ function displayHTMLforSettings(user) {
       </div>
     </div>
 
+    <!-- ✅ 2FA Section -->
+    <div class="card shadow-sm p-4 mt-3">
+      <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
+      <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? "2FA is Enabled ✅" : "2FA is Disabled ❌"}</p>
+      <div class="d-flex justify-content-center">
+        <button id="toggle2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
+          ${user.is_2fa_enabled ? "Disable 2FA" : "Enable 2FA"}
+        </button>
+      </div>
+      <div id="otpSection" class="text-center mt-3" style="display:none;">
+        <input type="text" id="otpInput" class="form-control text-center w-50 mx-auto" placeholder="Enter OTP">
+        <button id="verifyOTPButton" class="btn btn-primary mt-2">Verify OTP</button>
+      </div>
+    </div>
+
     <!-- Account Actions -->
     <div class="d-flex justify-content-center mt-4">
       <button id="deleteAccountButton" class="btn btn-link nav-link text-danger">Delete account</button>
@@ -690,9 +745,15 @@ function displayHTMLforSettings(user) {
   document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
   document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
   document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+  document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
+  document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
+  update2FAStatus();
 }
 
 export function displaySettings() {
+
+
+  const user = localStorage.getItem("username");
 
   // 1. fetch the user's settings
   fetch("/api/auth/user/", {
@@ -710,7 +771,7 @@ export function displaySettings() {
       displayHTMLforSettings(user);
     })
     .catch(error => {
-      const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
+    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
@@ -754,6 +815,21 @@ export function displaySettings() {
         </div>
       </div>
 
+      <!-- ✅ 2FA Section -->
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
+        <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? "2FA is Enabled ✅" : "2FA is Disabled ❌"}</p>
+        <div class="d-flex justify-content-center">
+          <button id="enable2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
+            ${user.is_2fa_enabled ? "Disable 2FA" : "Enable 2FA"}
+          </button>
+        </div>
+        <div id="otpSection" class="text-center mt-3" style="display:none;">
+          <input type="text" id="otpInput" class="form-control text-center w-50 mx-auto" placeholder="Enter OTP">
+          <button id="verifyOTPButton" class="btn btn-primary mt-2">Verify OTP</button>
+        </div>
+      </div>
+
       <!-- Account Actions -->
       <div class="d-flex justify-content-center mt-4">
       <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Delete Account</button>
@@ -761,36 +837,195 @@ export function displaySettings() {
        </div>
     `;
 
-      document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
-      document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
-      document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
-      document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
-    })
-    .catch(error => {
-      console.error("Error loading user data:", error);
+    document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
+    document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+    document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+    document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
+    document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
+    update2FAStatus();
+  })
+  .catch(error => {
+    console.error("Error loading user data:", error);
     });
 
 }
 
+function fetchStatsDashboard() {
+  const username = localStorage.getItem("username");
+  if (!username) {
+    showModal('Login Required', 'Please log in to view your statistics.', 'OK', () => {});
+    return;
+  }
 
-// // Fonction pour supprimer tous les écouteurs d'événements existants et éviter les doublons
-// function removeEventListeners() {
-//   const buttons = [
-//     "viewResultsButton",
-//     "viewPlayerResult",
-//     "viewRankingButton",
-//     "searchPlayerButton" // Nouvel ID pour le bouton dans fetchPlayerResult
-//   ];
-//   buttons.forEach((id) => {
-//     const button = document.getElementById(id);
-//     if (button) {
-//       const newButton = button.cloneNode(true);
-//       button.parentNode.replaceChild(newButton, button);
-//     }
-//   });
-// }
+  // Utiliser la même API que fetchResultats
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const statsCharts = document.getElementById("statsCharts");
+      statsCharts.innerHTML = ''; // Vider le conteneur des graphiques
 
-// Fonction principale pour afficher les statistiques et initialiser les boutons
+      // Calculer les statistiques à partir du JSON
+      const playedMatches = Array.isArray(data) ? data.filter(match => match.is_played === true) : [];
+      const normalizedUsername = username.toLowerCase();
+
+      let wins = 0;
+      let losses = 0;
+      let tournamentWins = 0;
+      let totalMatches = 0;
+
+      // Calculer les statistiques globales
+      playedMatches.forEach((match) => {
+        totalMatches++;
+        const isPlayer1 = match.player1_name.toLowerCase() === normalizedUsername;
+        const isPlayer2 = match.player2_name.toLowerCase() === normalizedUsername;
+        const winnerName = (match.winner_name || "").toLowerCase();
+
+        if (isPlayer1 || isPlayer2) {
+          if (winnerName === normalizedUsername) {
+            wins++;
+            if (match.is_tournament_match) tournamentWins++;
+          } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress") {
+            losses++;
+          }
+        }
+      });
+
+      // Préparer les données pour l'historique des sessions (victoires/défaites par date)
+      const gameSessions = playedMatches.map(match => ({
+        date: new Date(match.date_played).toLocaleDateString(),
+        outcome: match.winner_name.toLowerCase() === normalizedUsername ? 1 : 0, // 1 pour victoire, 0 pour défaite
+        isTournament: match.is_tournament_match
+      }));
+      const sessionDates = [...new Set(gameSessions.map(session => session.date))].sort(); // Dates uniques, triées
+      const sessionOutcomes = sessionDates.map(date => {
+        const session = gameSessions.find(s => s.date === date);
+        return session ? session.outcome : 0;
+      });
+      const tournamentSessions = sessionDates.map(date => {
+        const session = gameSessions.find(s => s.date === date);
+        return session ? session.isTournament : false;
+      });
+
+      // 1. Graphique des statistiques utilisateur (victoires/défaites, matchs de tournoi)
+      const userStatsChartDiv = document.createElement('div');
+      userStatsChartDiv.className = 'col-12 col-md-6';
+      userStatsChartDiv.innerHTML = `
+        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">User Performance</h5>
+        <canvas id="userStatsChart" style="max-height: 200px;"></canvas>
+      `;
+      statsCharts.appendChild(userStatsChartDiv);
+
+      // 2. Graphique de l'historique des sessions de jeu
+      const gameSessionsChartDiv = document.createElement('div');
+      gameSessionsChartDiv.className = 'col-12 col-md-6';
+      gameSessionsChartDiv.innerHTML = `
+        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">Game Sessions History</h5>
+        <canvas id="gameSessionsChart" style="max-height: 200px;"></canvas>
+      `;
+      statsCharts.appendChild(gameSessionsChartDiv);
+
+      // Initialiser les graphiques avec Chart.js
+      const userStatsCtx = document.getElementById('userStatsChart').getContext('2d');
+      new Chart(userStatsCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Wins', 'Losses', 'Tournament Wins'],
+          datasets: [{
+            label: 'User Performance',
+            data: [wins, losses, tournamentWins],
+            backgroundColor: ['#28a745', '#dc3545', '#007bff'], // Vert pour victoires, rouge pour défaites, bleu pour tournois
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: { 
+            y: { 
+              beginAtZero: true,
+              max: Math.max(wins, losses, tournamentWins) + 1 // Limiter l'échelle
+            }
+          },
+          plugins: {
+            title: { display: true, text: `Stats for ${username}`, font: { family: 'Press Start 2P', size: 16 } },
+            legend: { position: 'top' }
+          },
+          maintainAspectRatio: false,
+          responsive: true,
+          maxHeight: 200 // Limiter la hauteur maximale du graphique
+        }
+      });
+
+      // Graphique de l'historique des sessions
+      const gameSessionsCtx = document.getElementById('gameSessionsChart').getContext('2d');
+      new Chart(gameSessionsCtx, {
+        type: 'line',
+        data: {
+          labels: sessionDates,
+          datasets: [{
+            label: 'Game Outcomes',
+            data: sessionOutcomes,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            fill: true,
+            tension: 0.1,
+            pointBackgroundColor: sessionOutcomes.map(outcome => outcome === 1 ? '#28a745' : '#dc3545'), // Points verts pour victoires, rouges pour défaites
+            pointRadius: 5
+          }, {
+            label: 'Tournament Matches',
+            data: tournamentSessions.map(isTournament => isTournament ? 1 : 0),
+            borderColor: 'rgba(220, 53, 69, 0.5)', // Rouge semi-transparent pour les matchs de tournoi
+            borderDash: [5, 5], // Ligne pointillée pour différencier
+            fill: false,
+            tension: 0.1,
+            pointRadius: 0 // Pas de points visibles pour cette ligne
+          }]
+        },
+        options: {
+          scales: { 
+            y: { 
+              beginAtZero: true, 
+              ticks: { callback: value => value === 1 ? 'Win/Tournament' : 'Loss' },
+              max: 1.5 // Pour laisser de l'espace pour les étiquettes
+            }
+          },
+          plugins: {
+            title: { display: true, text: 'Match History Over Time', font: { family: 'Press Start 2P', size: 16 } },
+            legend: { position: 'top' }
+          },
+          maintainAspectRatio: false,
+          responsive: true,
+          maxHeight: 200 // Limiter la hauteur maximale du graphique
+        }
+      });
+    })
+    .catch((error) => {
+      console.error("Error fetching stats dashboard:", error);
+      const statsCharts = document.getElementById("statsCharts");
+      statsCharts.innerHTML = `
+        <div class="container mt-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <p class="text-danger text-center">Error loading statistics: ${error.message}</p>
+              <button id="retryStats" class="btn btn-primary mt-2 w-100" style="font-family: 'Press Start 2P', cursive;">Retry</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById("retryStats")?.addEventListener("click", () => fetchStatsDashboard());
+    });
+}
+
 export function displayStats() {
   // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
@@ -815,8 +1050,21 @@ export function displayStats() {
     </div>
   `;
 
-  // Supprime les anciens écouteurs pour éviter les doublons
-  // removeEventListeners();
+  const appMain = document.getElementById("app_bottom");
+  appMain.innerHTML = `
+    <div class="container mt-4">
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body" id="statsDashboard">
+          <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
+          <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Afficher les résultats utilisateur et initialiser le dashboard
+  fetchResultats();
+  fetchStatsDashboard();
 
   // Ajoute les nouveaux écouteurs
   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
@@ -824,16 +1072,54 @@ export function displayStats() {
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 }
 
+// export function displayStats() {
+//   // Vide tous les conteneurs
+//   document.getElementById('app_top').innerHTML = '';
+//   document.getElementById('app_main').innerHTML = '';
+//   document.getElementById('app_bottom').innerHTML = '';
+//
+//   const appTop = document.getElementById("app_top");
+//   appTop.innerHTML = `
+//     <div class="container mt-4">
+//       <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
+//         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
+//           My Results
+//         </button>
+//         <button id="viewPlayerResult" class="btn btn-outline-secondary btn-lg shadow-sm">
+//           Search Player's Result
+//         </button>
+//         <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
+//           Overall Ranking
+//         </button>
+//       </div>
+//     </div>
+//   `;
+//   //display user results
+//   fetchResultats();
+//
+//   // Ajoute les nouveaux écouteurs
+//   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
+//   document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
+//   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
+// }
+
 // Fonction pour afficher le formulaire de recherche de résultats d'un joueur
 function fetchPlayerResult() {
   const appDiv = document.getElementById("app_main");
   appDiv.innerHTML = `
-    <div class="form-group mt-2">
-      <label for="playerName">Player Name</label>
-      <input type="text" id="playerName" class="form-control" required> 
-      <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2">
-        Search Results
-      </button>
+    <div class="container mt-4">
+      <div class="card" style="width: 100%; max-width: 500px; margin: auto;">
+        <div class="card-body">
+          <h5 class="card-title text-center mb-3">Search Player Results</h5>
+          <div class="form-group mt-2">
+            <label for="playerName" class="form-label">Player Name</label>
+            <input type="text" id="playerName" class="form-control" required>
+            <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2 w-100">
+              Search Results
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -846,7 +1132,13 @@ function fetchPlayerResult() {
     if (playerName) {
       fetchResultats(playerName); // Passe le nom du joueur à fetchResultats
     } else {
-      alert("Please enter a player name.");
+      // Remplacer l'alert par oneButtonModal
+      showModal(
+        'Warning',
+        'Please enter a player name.',
+        'OK', // Texte du bouton
+        () => {} // Action vide, juste fermer la modale
+      );
     }
   });
 }
@@ -980,25 +1272,26 @@ function fetchResultats(player = null) {
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3 class="mb-3">Results for ${player || "You"}:</h3>
         ${displaySummaryStats(data, player || "You")}
-        <div class="card mb-4 shadow-sm">
-          <div class="card-body">
-            <h4 class="card-title">Match History</h4>
-            <div class="table-responsive">
-              <table class="table table-striped table-hover">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col" data-priority="1">Date</th>
-                    <th scope="col" data-priority="1">Players</th>
-                    <th scope="col" data-priority="2">Score (Sets)</th>
-                    <th scope="col" data-priority="3">Points</th>
-                    <th scope="col" data-priority="2">Winner</th>
-                    <th scope="col" data-priority="4">Tournament</th>
-                  </tr>
-                </thead>
-                <tbody id="results"></tbody>
-              </table>
+        <div class="container mt-4">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <h4 class="card-title">Match History</h4>
+              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped table-hover">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th scope="col" data-priority="1">Date</th>
+                      <th scope="col" data-priority="1">Players</th>
+                      <th scope="col" data-priority="2">Score (Sets)</th>
+                      <th scope="col" data-priority="3">Points</th>
+                      <th scope="col" data-priority="2">Winner</th>
+                      <th scope="col" data-priority="4">Tournament</th>
+                    </tr>
+                  </thead>
+                  <tbody id="results"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -1071,7 +1364,15 @@ function fetchResultats(player = null) {
     .catch((error) => {
       console.error("Error fetching results:", error);
       const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `<p class="text-danger">Error loading results: ${error.message}</p>`;
+      appDiv.innerHTML = `
+        <div class="container mt-4">
+          <div class "card mb-4 shadow-sm">
+            <div class="card-body">
+              <p class="text-danger text-center">Error loading results: ${error.message}</p>
+            </div>
+          </div>
+        </div>
+      `;
     });
 }
 
@@ -1119,7 +1420,6 @@ function fetchRanking() {
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
-        <h3 class="mb-3">Player Ranking:</h3>
         <div class="card mb-4 shadow-sm">
           <div class="card-body">
             <h4 class="card-title">Ranking Overview</h4>
@@ -1202,8 +1502,8 @@ export function displayGameForm() {
     mode: "solo",
     difficulty: "easy",
     design: "retro",
-    numberOfGames: 1, // entre 1 et 5
-    setsPerGame: 3, // entre 1 et 5
+    numberOfGames: 2, // entre 1 et 5
+    setsPerGame: 1, // entre 1 et 5
     player1: localStorage.getItem("username"),
     player2: "Bot-AI",
     control1: "arrows",
@@ -1355,42 +1655,8 @@ export function displayGameForm() {
       <p id="summary"></p>
     </div>
 
-    <!-- Modales ajoutées ici -->
-    <div class="modal fade" id="registeredUserModal" tabindex="-1" aria-labelledby="registeredUserModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="registeredUserModalLabel">Utilisateur enregistré</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Cet utilisateur est enregistré. Une authentification est requise.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-            <button type="button" class="btn btn-primary" id="authNeeded">Authentifier</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Modale personnalisée ajoutée ici -->
 
-    <div class="modal fade" id="guestPlayerModal" tabindex="-1" aria-labelledby="guestPlayerModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="guestPlayerModalLabel">Joueur invité</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            Cet utilisateur est un invité. Voulez-vous continuer ?
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-            <button type="button" class="btn btn-primary" id="continueWithGuest">Continuer</button>
-          </div>
-        </div>
-      </div>
-    </div>
   `;
 
   // Fonction pour basculer les boutons actifs
@@ -1521,29 +1787,30 @@ export function displayGameForm() {
         try {
           const playerData = await checkPlayerExists(player2);
 
-          const registeredUserModal = new bootstrap.Modal(document.getElementById('registeredUserModal'), {
-            keyboard: false
-          });
-          const guestPlayerModal = new bootstrap.Modal(document.getElementById('guestPlayerModal'), {
-            keyboard: false
-          });
-
           if (playerData.exists && !playerData.is_guest) {
-            registeredUserModal.show();
-            document.getElementById('authNeeded').addEventListener('click', function () {
-              alertShown = true;
-              lastCheckedPlayer2 = player2;
-              needAuth = true;
-              registeredUserModal.hide();
-            });
+            // Utiliser oneButtonModal pour indiquer qu'une authentification est requise
+            showModal(
+              'Utilisateur enregistré',
+              'Cet utilisateur est enregistré. Une authentification est requise.',
+              'OK',
+              () => {
+                alertShown = true;
+                lastCheckedPlayer2 = player2;
+                needAuth = true;
+              }
+            );
             return;
           } else if (playerData.exists) {
-            guestPlayerModal.show();
-            document.getElementById('continueWithGuest').addEventListener('click', function () {
-              alertShown = true;
-              lastCheckedPlayer2 = player2;
-              guestPlayerModal.hide();
-            });
+            // Utiliser oneButtonModal pour confirmer la continuation avec un invité
+            showModal(
+              'Joueur invité',
+              'Cet utilisateur est un invité. Voulez-vous continuer ?',
+              'OK',
+              () => {
+                alertShown = true;
+                lastCheckedPlayer2 = player2;
+              }
+            );
             return;
           } else {
             startGameSetup(gameSettings);
@@ -1551,7 +1818,13 @@ export function displayGameForm() {
           }
         } catch (error) {
           console.error("Error checking player existence:", error);
-          alert("There was an error checking player existence. Please try again.");
+          // Utiliser oneButtonModal pour un message d'erreur
+          showModal(
+            'Utilisateur introuvable',
+            'There was an error checking player existence. Please try again.',
+            'OK',
+            () => {}
+          );
           return;
         }
       } else {
@@ -1565,7 +1838,11 @@ export function displayGameForm() {
       if (authResult) {
         startGameSetup(gameSettings);
       }
+    } else if (player2 !== lastCheckedPlayer2) {
+      // Si player2 a changé, on lance le jeu directement
+      startGameSetup(gameSettings);
     } else {
+      // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
       startGameSetup(gameSettings);
     }
 
@@ -1897,7 +2174,12 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
         loginModal.remove();
         resolve(true); // Résout la promesse en cas de succès
       } else {
-        alert("Authentication failed. Please try again.");
+        showModal(
+          'Error',
+          'Authentication failed. Please try again.',
+          'OK',
+          () => {}
+        );
         modalBootstrap.hide();
         loginModal.remove();
         resolve(false); // Résout la promesse en cas d'échec

@@ -1,6 +1,186 @@
-import { displayWelcomePage, navigateTo } from "./app.js";
+import { displayWelcomePage, navigateTo, showModal } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
+
+// export function getToken(username, password) {
+//   const csrftoken = getCookie("csrftoken");
+
+//   fetch("/api/auth/login/", {
+//     method: "POST",
+//     credentials: "include",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "X-CSRFToken": csrftoken,
+//     },
+//     body: JSON.stringify({ username, password }),
+//   })
+//     .then(response => {
+//       return response.json().then(data => {
+//         console.log("Server Response:", data); 
+
+//         if (!response.ok) {
+//           throw new Error(data.detail || `HTTP error: ${response.status}`);
+//         }
+//         return data;
+//       });
+//     })
+//     .then(data => {
+//       console.log("Checking response for 2FA requirement...");
+
+//       // Detect if 2FA is required
+//       if (data.detail && data.detail.includes("2FA verification required")) {
+//         console.log("🔐 2FA required! Switching to OTP input field...");
+        
+//         // Show OTP input and hide login form
+//         document.getElementById("otpSection").style.display = "block";
+//         document.getElementById("loginSection").style.display = "none";
+//         document.getElementById("otpInput").focus();
+
+//         // Store the username for OTP verification later
+//         localStorage.setItem("2fa_pending_user", username);
+//         return; // Stop further execution
+//       }
+      
+//       // If login was successful (without 2FA)
+//       if (data.message === "Login successful") {
+//         console.log("Login successful");
+//         localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+//         displayMenu();
+//         displayWelcomePage()
+//         navigateTo('welcome');
+//       } else {
+//         alert("Connection error. Please retry.");
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Error during connection.", error);
+//     });
+// }
+
+// export function getToken(username, password) {
+//   const csrftoken = getCookie("csrftoken");
+
+//   fetch("/api/auth/login/", {
+//     method: "POST",
+//     credentials: "include",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "X-CSRFToken": csrftoken,
+//     },
+//     body: JSON.stringify({ username, password }),
+//   })
+//     .then(response => response.json().then(data => {
+//       console.log("🔹 Server Response:", data);
+
+//       if (!response.ok) {
+//         throw new Error(data.detail || `HTTP error: ${response.status}`);
+//       }
+//       return data;
+//     }))
+//     .then(data => {
+//       console.log("🔹 Checking response for 2FA requirement...");
+
+//       if (data.detail === "2FA verification required. Please verify OTP.") {
+//         console.log("🔐 2FA required! Switching to OTP input field...");
+
+//         // ✅ Check if OTP section exists
+//         const otpSection = document.getElementById("otpSection");
+//         const otpInput = document.getElementById("otpInput");
+//         const loginForm = document.getElementById("loginForm");
+
+//         if (!otpSection || !otpInput) {
+//           console.error("🚨 OTP section/input not found in DOM!");
+//           return;
+//         }
+
+//         // ✅ Hide login form, show OTP input
+//         if (loginForm) loginForm.style.display = "none";
+//         otpSection.style.display = "block";
+//         otpInput.focus();
+
+//         // ✅ Store username temporarily for OTP verification
+//         sessionStorage.setItem("2fa_pending_user", username);
+//         return; // 🚨 STOP further execution!
+//       }
+
+//       if (data.message === "Login successful") {
+//         console.log("✅ Login successful!");
+//         displayMenu();
+//         navigateTo("welcome");
+//       } else {
+//         alert("⚠️ Connection error. Please retry.");
+//       }
+//     })
+//     .catch(error => {
+//       console.error("❌ Login failed:", error);
+//       alert(`❌ Login failed: ${error.message}`);
+//     });
+// }
+
+
+export function showModalConfirmation(message, title = "Confirmation") {
+  return new Promise((resolve) => {
+    const modalElement = document.getElementById('confirmationModal');
+    if (!modalElement) {
+      console.error('Confirmation modal not found in DOM');
+      resolve(false); // Résout avec false en cas d’erreur
+      return;
+    }
+
+    const modal = new bootstrap.Modal(modalElement, {
+      keyboard: false
+    });
+
+    // Mise à jour du titre
+    const titleElement = document.getElementById('confirmationModalLabel');
+    if (titleElement) {
+      titleElement.textContent = title;
+    } else {
+      console.error('Confirmation modal title element not found');
+    }
+
+    // Mise à jour du message
+    const bodyElement = document.getElementById('confirmationModalBody');
+    if (bodyElement) {
+      bodyElement.textContent = message;
+    } else {
+      console.error('Confirmation modal body element not found');
+    }
+
+    // Gestion des boutons
+    const yesButton = document.getElementById('confirmationModalYes');
+    const noButton = document.getElementById('confirmationModalNo');
+
+    if (yesButton && noButton) {
+      // Supprimer les anciens écouteurs pour éviter les doublons
+      yesButton.removeEventListener('click', yesButton.handler);
+      noButton.removeEventListener('click', noButton.handler);
+
+      // Ajouter les nouveaux écouteurs
+      yesButton.addEventListener('click', function handler() {
+        modal.hide();
+        resolve(true); // Résout avec true si "Yes" est cliqué
+      });
+      yesButton.handler = yesButton.onclick;
+
+      noButton.addEventListener('click', function handler() {
+        modal.hide();
+        resolve(false); // Résout avec false si "No" est cliqué
+      });
+      noButton.handler = noButton.onclick;
+    } else {
+      console.error('Confirmation modal buttons not found');
+    }
+
+    // Afficher la modale
+    modal.show();
+
+    // Gérer la fermeture de la modale (par exemple, clic sur "Close" ou en dehors)
+    modalElement.addEventListener('hidden.bs.modal', () => {
+      resolve(false); // Résout avec false si la modale est fermée autrement
+    }, { once: true });
+  });
+}
 
 export function getToken(username, password) {
   const csrftoken = getCookie("csrftoken");
@@ -14,29 +194,65 @@ export function getToken(username, password) {
     },
     body: JSON.stringify({ username, password }),
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Connection error:" + response.status);
-      }
-      return response.json();
+    .then(response => {
+      console.log("🔹 Response Status:", response.status, response.statusText);
+      return response.json().then(data => {
+        console.log("🔹 Server Response Data:", data);
+        return { ok: response.ok, status: response.status, data };
+      });
     })
-    .then((data) => {
-      if (data.message === "Login successful") {
-        console.log("Login successful");
-        // if (data.access) {
-        //   localStorage.setItem("access_token", data.access);
-        //   console.log(localStorage.getItem("access_token"));
-        //   localStorage.setItem("refresh_token", data.refresh); // Save refresh token
-        localStorage.setItem("username", username); // Stocker le nom d'utilisateur
+    .then(({ ok, status, data }) => {
+      console.log("🔹 Processing response...", { ok, status, data });
+
+      // Check for 2FA requirement
+      if (data.detail === "2FA verification required. Please verify OTP." || status === 401 || status === 403) {
+        console.log("🔐 2FA required! Switching to OTP input field...");
+
+        const otpSection = document.getElementById("otpSection");
+        const otpInput = document.getElementById("otpInput");
+        const loginForm = document.getElementById("loginForm");
+
+        console.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
+
+        if (!otpSection || !otpInput || !loginForm) {
+          console.error("🚨 OTP section/input or login form not found in DOM!");
+          showModal(
+            'Error',
+            'Something went wrong. Please refresh the page and try again.',
+            'OK',
+            () => {}
+          );
+          return;
+        }
+
+        loginForm.style.display = "none";
+        otpSection.style.display = "block";
+        otpInput.focus();
+
+        console.log("✅ UI switched to OTP section");
+        sessionStorage.setItem("2fa_pending_user", username);
+        return;
+      }
+
+      // Handle successful login
+      if (ok && data.message === "Login successful") {
+        console.log("✅ Login successful!");
+        localStorage.setItem("username", username);
         displayMenu();
-        displayWelcomePage()
-        navigateTo('welcome');
+        navigateTo("welcome");
       } else {
-        alert("Connection error. Please retry.");
+        // Throw error for unexpected cases
+        throw new Error(data.detail || `Unexpected response (status: ${status})`);
       }
     })
-    .catch((error) => {
-      console.error("Error during connection.", error);
+    .catch(error => {
+      console.error("❌ Login failed:", error);
+      showModal(
+        'Error',
+        `❌ Login failed: ${error.message}`,
+        'OK',
+        () => {}
+      );
     });
 }
 
@@ -55,58 +271,259 @@ export function getCookie(name) {
   return cookieValue;
 }
 
-export function refreshToken() {
-  fetch("/api/auth/refresh/", {
+// export function refreshToken() {
+//   fetch("/api/auth/refresh/", {
+//     method: "POST",
+//     credentials: "include",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         throw new Error("Token refresh error:" + response.status);
+//       }
+//       return response.json();
+//     })
+//     .then((data) => {
+//       if (data.message === "Token refreshed successfully") {
+//         console.log("Token refreshed successfully");
+//       } else {
+//         alert("Token refresh error. Please retry.");
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Error during token refresh.", error);
+//     });
+// }
+
+export async function refreshToken() {
+  try {
+    let response = await fetch("/api/auth/refresh/", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    let data = await response.json();
+    console.log("🔄 Refresh response:", data);
+
+    if (response.ok && data.access) {
+      console.log("✅ Access token refreshed successfully");
+      return true;
+    }
+
+    console.warn("❌ Failed to refresh access token");
+    return false;
+
+  } catch (error) {
+    console.error("⚠️ Error refreshing token:", error);
+    return false;
+  }
+}
+
+export function toggle2FA() {
+  fetch("/api/auth/toggle-2fa/", {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Token refresh error:" + response.status);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      if (data.message === "Token refreshed successfully") {
-        console.log("Token refreshed successfully");
+    .then(response => response.json())
+    .then(data => {
+      console.log("Toggle 2FA response:", data);
+      
+      if (data.otp_required) {
+        document.getElementById("otpSection").style.display = "block"; // Show OTP field
       } else {
-        alert("Token refresh error. Please retry.");
+        update2FAStatus(); // Refresh status
       }
     })
-    .catch((error) => {
-      console.error("Error during token refresh.", error);
+    .catch(error => console.error("Error toggling 2FA:", error));
+}
+
+
+export function verifyOTP() {
+  const otpCode = document.getElementById("otpInput").value.trim();
+  if (!otpCode) {
+    showModal(
+      'Warning',
+      'Please enter the OTP code.',
+      'OK',
+      () => {}
+    );
+    return;
+  }
+
+  // This second call includes the OTP code in the body
+  fetch("/api/auth/toggle-2fa/", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ otp_code: otpCode }), // << pass the OTP
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Verify OTP (toggle2FA) response:", data);
+
+      if (data.message === "2FA successfully enabled.") {
+        showModal(
+          'Success',
+          '✅ 2FA enabled successfully!',
+          'OK',
+          () => {
+            // Hide the OTP section again
+            document.getElementById("otpSection").style.display = "none";
+            update2FAStatus(); // Refresh UI to show new status
+          }
+        );
+      } else if (data.error) {
+        showModal(
+          'Error',
+          `❌ ${data.error}`,
+          'OK',
+          () => {}
+        );
+      } else {
+        showModal(
+          'Error',
+          '❌ Unknown error verifying OTP.',
+          'OK',
+          () => {}
+        );
+      }
+    })
+    .catch(error => {
+      console.error("Error verifying OTP for 2FA:", error);
+      showModal(
+        'Error',
+        'Error verifying OTP: ' + error.message,
+        'OK',
+        () => {}
+      );
     });
 }
 
-export function logout() {
 
-  const confirmLogout = confirm("Are you sure you want to log out?");
-  if (!confirmLogout) return;
+export function verify2FALogin() {
+  const otp_code = document.getElementById("otpInput").value;
+  const username = sessionStorage.getItem("2fa_pending_user");
+  console.log("Verifying OTP for username:", username, "OTP entered:", otp_code);
 
-  fetch("/api/auth/logout/", {
+  if (!otp_code) {
+    showModal(
+      'Warning',
+      'Please enter the OTP code.',
+      'OK',
+      () => {}
+    );
+    return;
+  }
+
+  fetch("/api/auth/verify-2fa-login/", {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, otp_code }),
   })
-    .then((response) => {
-      if (!response.ok) {
-        return response.json().then((error) => {
-          throw new Error(error.error || "Logout request failed.");
-        });
+    .then(response => response.json())
+    .then(data => {
+      console.log("🔹 Verify 2FA Login response:", data);
+      if (data.success) {
+        showModal(
+          'Success',
+          '✅ 2FA verified! Redirecting...',
+          'OK',
+          () => {
+            // Set the username in localStorage so the welcome page can use it
+            localStorage.setItem("username", username);
+            // Also, clear the temporary session storage value
+            sessionStorage.removeItem("2fa_pending_user");
+            displayMenu();
+            navigateTo("welcome");
+          }
+        );
+      } else {
+        showModal(
+          'Error',
+          '❌ Invalid OTP. Try again.',
+          'OK',
+          () => {}
+        );
       }
-      localStorage.clear(); // Clear all user data
-      alert("Logout successful!");
-      window.location.href = "/"; // Redirect to login page
     })
-    .catch((error) => {
-      console.error("Logout failed:", error);
-      alert("An error occurred during logout: " + error.message);
+    .catch(error => console.error("❌ Error verifying OTP during login:", error));
+}
+
+
+export function update2FAStatus() {
+  fetch("/api/auth/user/", {  // Fetch user details including 2FA status
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(response => response.json())
+    .then(user => {
+      console.log("2FA Status Response:", user);
+
+      const statusElement = document.getElementById("2fa_status");
+      const toggleButton = document.getElementById("toggle2FAButton");
+
+      if (!statusElement || !toggleButton) { 
+        console.error("❌ 2FA elements not found in the DOM.");
+        return;
+      }
+
+      if (user.is_2fa_enabled) {
+        statusElement.innerText = "2FA is Enabled ✅";
+        toggleButton.innerText = "Disable 2FA";
+        toggleButton.classList.remove("btn-success");
+        toggleButton.classList.add("btn-danger");
+      } else {
+        statusElement.innerText = "2FA is Disabled ❌";
+        toggleButton.innerText = "Enable 2FA";
+        toggleButton.classList.remove("btn-danger");
+        toggleButton.classList.add("btn-success");
+      }
+    })
+    .catch(error => {
+      console.error("❌ Error fetching 2FA status:", error);
     });
+}
+
+export async function logout() {
+  const confirmed = await showModalConfirmation("Are you sure you want to log out?");
+  if (!confirmed) return;
+  try {
+    const response = await fetch("/api/auth/logout/", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Logout request failed.");
+    }
+    console.log("✅ Logout successful!");
+    showModal(
+      'Success',
+      'Logout successful!',
+      'OK',
+      () => {
+        localStorage.clear(); // Clear all user data
+        window.location.href = "/"; // Redirect to login page
+      }
+    );
+  } catch (error) {
+    console.error("Logout failed:", error);
+    showModal(
+      'Error',
+      'An error occurred during logout: ' + error.message,
+      'OK',
+      () => {}
+    );
+  }
 }
 
 export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
@@ -122,17 +539,27 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
       if (!response.ok) {
         return response.json().then((error) => {
           throw error;
-      });
-    }
-    return response.json();
+        });
+      }
+      return response.json();
     })
     .then((data) => {
       if (data.success) {
-        localStorage.setItem("username", newUsername);
-        alert("Account created successfully. You can now log in.");
-        displayConnectionFormular();
+        showModal(
+          'Success',
+          'Account created successfully. You can now log in.',
+          'OK',
+          () => {
+            displayConnectionFormular();
+          }
+        );
       } else {
-        alert("Error creating account. Please try again.");
+        showModal(
+          'Error',
+          'Error creating account. Please try again.',
+          'OK',
+          () => {}
+        );
       }
     })
     .catch((error) => {
@@ -146,16 +573,18 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
           errorMessage += `${field}: ${error[field]}\n`;
         }
       }
-      alert(errorMessage);
+      showModal(
+        'Error',
+        errorMessage,
+        'OK',
+        () => {}
+      );
     });
 }
 
-export function deleteAccount() {
-  const confirmDelete = confirm(
-    "Are you sure you want to delete your account? This action is irreversible.",
-  );
-
-  if (!confirmDelete) return;
+export async function deleteAccount() {
+  const confirmed = await showModalConfirmation("Are you sure you want to delete your account? This action is irreversible.");
+  if (!confirmed) return;
 
   fetch("/api/auth/delete-account/", {
     method: "DELETE",
@@ -171,28 +600,37 @@ export function deleteAccount() {
       return response.json();
     })
     .then((data) => {
-      alert("Account successfully deleted!");
-      localStorage.clear(); // Clear all user data from localStorage
+      showModal(
+        'Success',
+        'Account successfully deleted!',
+        'OK',
+        () => {
+          localStorage.clear(); // Clear all user data from localStorage
 
-      // Force page redirection and prevent lingering JavaScript
-      window.location.href = "/"; // Redirect to the login page
+          // Force page redirection and prevent lingering JavaScript
+          window.location.href = "/"; // Redirect to the login page
 
-      //displayConnectionFormular(); // Redirect back to the login page
+          //displayConnectionFormular(); // Redirect back to the login page
+        }
+      );
     })
     .catch((error) => {
       if (error.name !== "AbortError") {
         // Prevent errors due to reload interruption
         console.error("Error deleting account:", error);
-        alert("An error occurred:" + error.message);
+        showModal(
+          'Error',
+          'An error occurred:' + error.message,
+          'OK',
+          () => {}
+        );
       }
     });
 }
 
-export function anonymizeAccount() {
-  const confirmAnonymize = confirm(
-    "Are you sure you want to anonymize your account? This action is irreversible."
-  );
-  if (!confirmAnonymize) return;
+export async function anonymizeAccount() {
+  const confirmed = await showModalConfirmation("Are you sure you want to anonymize your account? This action is irreversible.");
+  if (!confirmed) return;
 
   fetch("/api/auth/anonymize-account/", {
     method: "POST",
@@ -213,13 +651,24 @@ export function anonymizeAccount() {
       return response.json();
     })
     .then((data) => {
-      alert(data.message || "Your account has been anonymized successfully.");
-      localStorage.clear();
-      window.location.href = "/";
+      showModal(
+        'Success',
+        data.message || "Your account has been anonymized successfully.",
+        'OK',
+        () => {
+          localStorage.clear();
+          window.location.href = "/";
+        }
+      );
     })
     .catch((error) => {
       console.error("Error anonymizing account:", error);
-      alert("An error occurred: " + error.message);
+      showModal(
+        'Error',
+        'An error occurred: ' + error.message,
+        'OK',
+        () => {}
+      );
     });
 }
 
@@ -228,7 +677,12 @@ export function uploadAvatar() {
   const file = input.files[0];
 
   if (!file) {
-    alert("Please select a file.");
+    showModal(
+      'Warning',
+      'Please select a file.',
+      'OK',
+      () => {}
+    );
     return;
   }
 
@@ -249,16 +703,27 @@ export function uploadAvatar() {
       return response.json();
     })
     .then(data => {
-      alert("Profile picture updated successfully!");
-      const profilePic = document.getElementById("profilePic");
+      showModal(
+        'Success',
+        'Profile picture updated successfully!',
+        'OK',
+        () => {
+          const profilePic = document.getElementById("profilePic");
 
-      if (profilePic && data.avatar_url) {
-        profilePic.src = data.avatar_url + "?t=" + new Date().getTime(); // Prevents caching issues
-      }
+          if (profilePic && data.avatar_url) {
+            profilePic.src = data.avatar_url + "?t=" + new Date().getTime(); // Prevents caching issues
+          }
+        }
+      );
     })
     .catch(error => {
       console.error("Error uploading profile picture:", error);
-      alert("Error: " + error.message);
+      showModal(
+        'Error',
+        'Error: ' + error.message,
+        'OK',
+        () => {}
+      );
     });
 }
 
@@ -276,7 +741,12 @@ export function updateProfile() {
   if (!emailRegex.test(emailValue)) {
     emailInput.classList.add("is-invalid"); // Bootstrap will show a validation error
     emailInput.classList.remove("is-valid");
-    alert("Invalid email format. Please enter a valid email (e.g., user@example.com).");
+    showModal(
+      'Error',
+      'Invalid email format. Please enter a valid email (e.g., user@example.com).',
+      'OK',
+      () => {}
+    );
     return; // Stop execution if email is invalid
   } else {
     emailInput.classList.remove("is-invalid");
@@ -285,7 +755,12 @@ export function updateProfile() {
 
   // Stop execution if there is an error
   if (hasError) {
-    alert("Please enter a valid email before saving changes.");
+    showModal(
+      'Error',
+      'Please enter a valid email before saving changes.',
+      'OK',
+      () => {}
+    );
     return;
   }
 
@@ -308,11 +783,21 @@ export function updateProfile() {
       return response.json();
     })
     .then(data => {
-      alert("Profile updated successfully!");
+      showModal(
+        'Success',
+        'Profile updated successfully!',
+        'OK',
+        () => {}
+      );
     })
     .catch(error => {
       console.error("Error updating profile:", error);
-      alert("An error occurred: " + error.message);
+      showModal(
+        'Error',
+        'An error occurred: ' + error.message,
+        'OK',
+        () => {}
+      );
     });
 }
 
@@ -354,3 +839,4 @@ export function validateToken() {
     return false;
   });
 }
+

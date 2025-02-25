@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import time
 import uuid  # Pour générer un pseudonyme aléatoire
 from itertools import combinations
@@ -11,7 +12,7 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
-
+from django.core.mail import send_mail
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -29,30 +30,17 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
+from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
+                                                             OutstandingToken)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-from .models import (
-    CustomUser,
-    FriendRequest,
-    Notification,
-    Player,
-    PongMatch,
-    PongSet,
-    Tournament,
-    TournamentPlayer,
-)
-from .serializers import (
-    PongMatchSerializer,
-    PongSetSerializer,
-    TournamentPlayerSerializer,
-    TournamentSerializer,
-    UserRegisterSerializer,
-)
+from .models import (CustomUser, FriendRequest, Notification, Player,
+                     PongMatch, PongSet, Tournament, TournamentPlayer)
+from .serializers import (PongMatchSerializer, PongSetSerializer,
+                          TournamentPlayerSerializer, TournamentSerializer,
+                          UserRegisterSerializer)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
 
@@ -73,8 +61,9 @@ class PongMatchList(generics.ListCreateAPIView):
                 .values_list("id", flat=True)
                 .first()
             )
-            if player_id:
-                queryset = queryset.filter(Q(player1=player_id) | Q(player2=player_id))
+            if not player_id:
+                return PongMatch.objects.none()  # Retourne un queryset vide
+            queryset = queryset.filter(Q(player1=player_id) | Q(player2=player_id))
 
         return queryset
 
@@ -479,10 +468,31 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             tokens = response.data
-            user = CustomUser.objects.get(username=request.data.get("username"))
+            username = request.data.get("username")
+            user = CustomUser.objects.get(username=username)
+
+            # ✅ Check if 2FA is enabled and not verified
+            if user.is_2fa_enabled and not request.session.get("2fa_verified"):
+                # Generate a new OTP
+                otp_code = str(random.randint(100000, 999999))
+                user.otp_secret = otp_code
+                user.save()
+                send_mail(
+                    "Your Two-Factor Authentication Code",
+                    f"Your OTP code is: {otp_code}",
+                    "noreply@yourdomain.com",
+                    [user.email],
+                    fail_silently=False,
+                )
+                return Response(
+                    {"detail": "2FA verification required. Please verify OTP."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
             user.is_online = True  # Set user as online
             user.update_last_seen()
             user.save()
+
             response = JsonResponse({"message": "Login successful"})
             response.set_cookie(
                 key="access_token",
@@ -499,6 +509,176 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 samesite="Lax",
             )
         return response
+
+
+class Verify2FALoginView(APIView):
+    """
+    Endpoint for verifying OTP during login for users with 2FA enabled.
+    This view does NOT require prior authentication.
+    Expects both username and OTP in the request.
+    On success, it issues new JWT tokens.
+    """
+
+    # No IsAuthenticated here because the user isn't fully authenticated yet
+    permission_classes = []
+
+    def post(self, request):
+        username = request.data.get("username")
+        otp_code = request.data.get("otp_code")
+
+        if not username or not otp_code:
+            return Response(
+                {"error": "Username and OTP code are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = CustomUser.objects.get(username=username)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {"error": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        stored_otp = str(user.otp_secret).strip() if user.otp_secret else None
+        entered_otp = str(otp_code).strip()
+
+        if stored_otp and stored_otp == entered_otp:
+            user.is_2fa_enabled = (
+                True  # (Optional: You may want to set this already during setup)
+            )
+            user.otp_secret = None  # Clear OTP
+            user.save()
+
+            # Mark session as 2FA verified
+            request.session["2fa_verified"] = True
+            request.session.modified = True
+
+            # Issue new JWT tokens for login completion
+            refresh = RefreshToken.for_user(user)
+            response = Response(
+                {
+                    "message": "2FA successfully verified.",
+                    "success": True,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                status=status.HTTP_200_OK,
+            )
+
+            # Set tokens as HttpOnly cookies
+            response.set_cookie(
+                "access_token",
+                str(refresh.access_token),
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+            )
+            response.set_cookie(
+                "refresh_token",
+                str(refresh),
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+            )
+
+            return response
+        else:
+            return Response(
+                {"error": "Invalid OTP. Try again."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class Toggle2FAView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        # otp_code may be provided for verification
+        otp_code = request.data.get("otp_code")
+
+        # If 2FA is currently enabled, then toggle to disable it
+        if user.is_2fa_enabled:
+            user.is_2fa_enabled = False
+            user.otp_secret = None
+            user.save()
+            # No OTP verification needed when disabling
+            return Response(
+                {"message": "2FA disabled successfully."}, status=status.HTTP_200_OK
+            )
+
+        # Otherwise, if 2FA is disabled:
+        if otp_code:
+            # If an OTP code is provided, verify it
+            stored_otp = str(user.otp_secret).strip() if user.otp_secret else None
+            entered_otp = str(otp_code).strip()
+
+            if stored_otp and stored_otp == entered_otp:
+                user.is_2fa_enabled = True
+                user.otp_secret = None  # Clear OTP after verification
+                user.save()
+
+                # Mark session as 2FA verified (do not flush, so session remains)
+                request.session["2fa_verified"] = True
+                request.session.modified = True
+
+                # Issue new JWT tokens so the user remains authenticated
+                refresh = RefreshToken.for_user(user)
+                response = Response(
+                    {"message": "2FA successfully enabled."}, status=status.HTTP_200_OK
+                )
+                response.set_cookie(
+                    "access_token",
+                    str(refresh.access_token),
+                    httponly=True,
+                    secure=False,
+                    samesite="Lax",
+                )
+                response.set_cookie(
+                    "refresh_token",
+                    str(refresh),
+                    httponly=True,
+                    secure=False,
+                    samesite="Lax",
+                )
+                return response
+            else:
+                return Response(
+                    {"error": "Invalid OTP. Try again."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            # No OTP provided: generate one and send via email.
+            otp_code_generated = str(random.randint(100000, 999999))
+            user.otp_secret = otp_code_generated
+            user.save()
+
+            send_mail(
+                "Your Two-Factor Authentication Code",
+                f"Your OTP code is: {otp_code_generated}",
+                "noreply@yourdomain.com",
+                [user.email],
+                fail_silently=False,
+            )
+            return Response(
+                {
+                    "message": "OTP sent to your email. Please verify.",
+                    "otp_required": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+
+class Session2FAView(APIView):
+    """
+    Stores 2FA verification status in the user's session.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request.session["2fa_verified"] = True  # ✅ Store 2FA session flag
+        request.session.modified = True  # ✅ Ensure session is saved
+        return Response({"message": "2FA session stored successfully."}, status=200)
 
 
 class AuthenticateMatchPlayerView(APIView):
@@ -681,15 +861,21 @@ class LogoutView(APIView):
             user.update_last_seen()
             user.save()
 
+            # ✅ Clear 2FA session status
+            request.session.flush()  # Removes all session data, including "2fa_verified"
+
             refresh_token = request.COOKIES.get("refresh_token")
             if refresh_token:
-                token = RefreshToken(refresh_token)
-                # Ensure the token is saved as an OutstandingToken
-                outstanding_token = OutstandingToken.objects.get(token=token)
-                if not BlacklistedToken.objects.filter(
-                    token=outstanding_token
-                ).exists():
-                    BlacklistedToken.objects.create(token=outstanding_token)
+                try:
+                    token = RefreshToken(refresh_token)
+                    # Ensure the token is saved as an OutstandingToken
+                    outstanding_token = OutstandingToken.objects.get(token=token)
+                    if not BlacklistedToken.objects.filter(
+                        token=outstanding_token
+                    ).exists():
+                        BlacklistedToken.objects.create(token=outstanding_token)
+                except OutstandingToken.DoesNotExist:
+                    pass  # If token
             response = JsonResponse({"detail": "Logout successful."})
             response.delete_cookie("access_token")
             response.delete_cookie("refresh_token")
@@ -793,6 +979,7 @@ class UserDetailView(APIView):
                 "avatar_url": (
                     user.avatar.url if user.avatar else "/media/avatars/default.png"
                 ),
+                "is_2fa_enabled": user.is_2fa_enabled,
             }
         )
 

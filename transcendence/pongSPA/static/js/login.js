@@ -1,4 +1,5 @@
-import { getToken, createAccount } from './auth.js';
+import {showModal } from './app.js';
+import { getToken, createAccount, toggle2FA, verify2FALogin } from './auth.js';
 
 
 // login
@@ -39,6 +40,16 @@ export function displayConnectionFormular() {
               Sign In
             </button>
           </form>
+
+          <!-- OTP Verification Section (Hidden by Default) -->
+          <div id="otpSection" style="display: none;">
+            <p class="text-center" style="font-size: 1.3rem;">Enter the 6-digit code sent to your email:</p>
+            <input type="text" id="otpInput" class="form-control form-control-lg" placeholder="Enter OTP">
+            <button id="otpVerifyButton" class="btn btn-primary w-100 mt-3 py-3" style="font-size: 1.3rem;">Verify OTP</button>
+            <button id="backToLoginButton" class="btn btn-secondary w-100 mt-2 py-3" style="font-size: 1.3rem;">Back to Login</button>
+          </div>
+
+
           <button
             id="signupButton"
             class="btn btn-primary w-100 mt-4 py-3"
@@ -49,6 +60,7 @@ export function displayConnectionFormular() {
       </div>
       `;
 
+    // Handle login form submission
     document
       .getElementById("loginForm")
       .addEventListener("submit", function (event) {
@@ -58,6 +70,18 @@ export function displayConnectionFormular() {
         getToken(username, password);
       });
 
+    // Handle OTP verification
+    document.getElementById("otpVerifyButton").addEventListener("click", function () {
+        verify2FALogin();
+    });
+
+    // Handle Back to Login button
+    document.getElementById("backToLoginButton").addEventListener("click", function () {
+        document.getElementById("otpSection").style.display = "none";
+        document.getElementById("loginForm").style.display = "block";
+    });
+
+    // Handle sign-up button
     document
       .getElementById("signupButton")
       .addEventListener("click", displayRegistrationForm);
@@ -67,69 +91,77 @@ export function displayConnectionFormular() {
 // account creation
 export function displayRegistrationForm() {
   history.pushState({ page: 'register' }, 'Register', '#register');
-    //empty all the containers
+  // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-
-const appDiv = document.getElementById("app_main");
-appDiv.innerHTML = `
-<div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
-  <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-    <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
-    <form id="signupForm">
-      <div class="form-group mb-4">
-        <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
-        <input
-          type="text"
-          id="newUsername"
-          class="form-control form-control-lg"
-          placeholder="Enter your username"
-          required
-        />
+  const appDiv = document.getElementById("app_main");
+  appDiv.innerHTML = `
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 75vh; background-color: #f8f9fa;">
+      <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
+        <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
+        <form id="signupForm">
+          <div class="form-group mb-4">
+            <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
+            <input
+              type="text"
+              id="newUsername"
+              class="form-control form-control-lg"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+          <div class="form-group mb-5">
+            <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
+            <input
+              type="password"
+              id="newPassword"
+              class="form-control form-control-lg"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <div class="form-check mb-4">
+            <!-- <input type="checkbox" id="privacyPolicyAccepted" required /> -->
+            <input type="checkbox" id="privacyPolicyAccepted"  />
+            <label for="privacyPolicyAccepted">
+              I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
+            </label>
+          </div>
+          <button
+            type="submit"
+            class="btn btn-success w-100 py-3 h5">
+            Create Account
+          </button>
+        </form>
+        <button
+          id="backToLoginButton"
+          class="btn btn-primary w-100 mt-4 py-3 h5">
+          Back to Login
+        </button>
       </div>
-      <div class="form-group mb-5">
-        <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
-        <input
-          type="password"
-          id="newPassword"
-          class="form-control form-control-lg"
-          placeholder="Enter your password"
-          required
-        />
-      </div>
-      <div class="form-check mb-4">
-        <input type="checkbox" id="privacyPolicyAccepted" required />
-        <label for="privacyPolicyAccepted">
-          I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
-        </label>
-      </div>
-      <button
-        type="submit"
-        class="btn btn-success w-100 py-3 h5">
-        Create Account
-      </button>
-    </form>
-    <button
-      id="backToLoginButton"
-      class="btn btn-primary w-100 mt-4 py-3 h5">
-      Back to Login
-    </button>
-  </div>
+    </div>
   `;
 
   document
     .getElementById("signupForm")
     .addEventListener("submit", function (event) {
       event.preventDefault();
+      console.log('Formulaire soumis, vérification de privacyPolicyAccepted...');
       const newUsername = document.getElementById("newUsername").value;
       const newPassword = document.getElementById("newPassword").value;
       const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
 
       if (!privacyPolicyAccepted) {
-        alert("You must accept the Privacy Policy to register.");
-        return;
+      console.log('Tentative d’affichage de la modale...');
+      showModal(
+        'Privacy Policy Required',
+        'You must accept the Privacy Policy to register.',
+        'OK',
+        () => {}
+      );
+      return;
       }
       createAccount(newUsername, newPassword, privacyPolicyAccepted);
     });
@@ -137,5 +169,4 @@ appDiv.innerHTML = `
   document
     .getElementById("backToLoginButton")
     .addEventListener("click", displayConnectionFormular);
-
 }
