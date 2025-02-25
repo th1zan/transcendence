@@ -3,7 +3,6 @@ import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
 
 
-
 export function showModalConfirmation(message, title = "Confirmation") {
   return new Promise((resolve) => {
     const modalElement = document.getElementById('confirmationModal');
@@ -101,7 +100,7 @@ export function getToken(username, password) {
         console.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
 
         if (!otpSection || !otpInput || !loginForm) {
-          console.error("🚨 OTP section/input or login form not found in DOM!");
+          console.error("OTP section/input or login form not found in DOM!");
           showModal(
             'Error',
             'Something went wrong. Please refresh the page and try again.',
@@ -132,10 +131,10 @@ export function getToken(username, password) {
       }
     })
     .catch(error => {
-      console.error("❌ Login failed:", error);
+      console.error("Login failed:", error);
       showModal(
         'Error',
-        `❌ Login failed: ${error.message}`,
+        `Login failed: ${error.message}`,
         'OK',
         () => {}
       );
@@ -221,7 +220,7 @@ export function toggle2FA() {
       if (data.otp_required) {
         document.getElementById("otpSection").style.display = "block"; // Show OTP field
       } else {
-        update2FAStatus(); // Refresh status
+        update2FAStatus();
       }
     })
     .catch(error => console.error("Error toggling 2FA:", error));

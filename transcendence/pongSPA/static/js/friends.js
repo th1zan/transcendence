@@ -115,8 +115,8 @@ export function respondToFriendRequest(friendUsername, action) {
             data.message,
             'OK',
             () => {
-              fetchFriendRequests(); // Refresh the friend request list
-              fetchFriends(); // refresh the friend list
+              fetchFriendRequests();
+              fetchFriends();
             }
           );
         }
@@ -162,7 +162,7 @@ export function removeFriend(friendUsername) {
               data.message,
               'OK',
               () => {
-                fetchFriends(); // Refresh friend list
+                fetchFriends();
               }
             );
           }

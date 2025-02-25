@@ -858,7 +858,7 @@ class LogoutView(APIView):
             user.update_last_seen()
             user.save()
 
-            # ✅ Clear 2FA session status
+            # Clear 2FA session status
             request.session.flush()  # Removes all session data, including "2fa_verified"
 
             refresh_token = request.COOKIES.get("refresh_token")
@@ -902,13 +902,13 @@ class AnonymizeAccountView(APIView):
 
             # Clear optional attributes if they exist
             if hasattr(user, "email"):
-                user.email = ""
+                user.email = None
             if hasattr(user, "first_name"):
-                user.first_name = ""
+                user.first_name = "Anonymous"
             if hasattr(user, "last_name"):
-                user.last_name = ""
+                user.last_name = "User"
             if hasattr(user, "phone_number"):
-                user.phone_number = ""
+                user.phone_number = None
             if hasattr(user, "profile_picture"):
                 user.profile_picture = None
             if hasattr(user, "friend_list"):
@@ -921,6 +921,7 @@ class AnonymizeAccountView(APIView):
             user.date_joined = None
             user.set_unusable_password()
             user.save()
+            request.session.flush()
 
             return Response(
                 {"message": f"Your account has been anonymized as {anonymous_name}."},
@@ -1060,40 +1061,6 @@ class UploadAvatarView(APIView):
             status=status.HTTP_200_OK,
         )
 
-
-# class AddFriendView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request):
-#         friend_username = request.data.get("username")
-#         if not friend_username:
-#             return Response(
-#                 {"error": "Username is required."}, status=status.HTTP_400_BAD_REQUEST
-#             )
-
-#         # Ensure consistency: Use `CustomUser` instead of `User`
-#         friend_user = get_object_or_404(CustomUser, username=friend_username)
-#         current_user = request.user  # Current authenticated user
-
-#         # Prevent adding oneself
-#         if current_user == friend_user:
-#             return Response(
-#                 {"error": "You cannot add yourself as a friend."},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         # Check if they are already friends
-#         if friend_user in current_user.friends.all():
-#             return Response({"message": "Already friends."}, status=status.HTTP_200_OK)
-
-#         # Add each other as friends (symmetrical relationship)
-#         current_user.friends.add(friend_user)
-#         friend_user.friends.add(current_user)
-
-#         return Response(
-#             {"message": f"{friend_username} added as a friend."},
-#             status=status.HTTP_200_OK,
-#         )
 
 
 class ListFriendsView(APIView):
