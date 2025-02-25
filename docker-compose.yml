@@ -7,7 +7,8 @@ services:
     image: nginx:1.27.0
     restart:        always
     healthcheck:
-      test:         ["CMD", "curl", "-f", "http://localhost"]
+      test: ["CMD", "curl", "-k", "-f", "https://localhost"]
+      # test:         ["CMD", "curl", "-f", "http://localhost"]
       interval:     1m30s
       timeout:      10s
       retries:      3
