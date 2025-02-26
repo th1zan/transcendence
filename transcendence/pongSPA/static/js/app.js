@@ -1081,7 +1081,6 @@ export function displayStats() {
     </div>
   `;
 
-  const appMain = document.getElementById("app_bottom");
   appMain.innerHTML = `
     <div class="container mt-4">
       <div class="card mb-4 shadow-sm bg-transparent">

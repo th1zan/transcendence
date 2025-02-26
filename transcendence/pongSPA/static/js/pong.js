@@ -132,7 +132,7 @@ function updateGamePanel() {
       quitButton.textContent = "Quit Game";
       quitButton.classList = "btn btn-danger";
       quitButton.onclick = function() {
-        stopGameProcess();
+        stopGameProcess(true);
         
       console.log("Back to updateGamePanel: AFTER stopGameProcess");
         // Déterminer la fonction à appeler ensuite en fonction du contexte
@@ -140,7 +140,7 @@ function updateGamePanel() {
           console.log("Quit in Tournament mode");
           navigateTo('tournament');
           // DisplayTournamentGame();
-        } else if (isTournamentMatch=== false) {
+        } else{
           // const username = localStorage.getItem("username");
           console.log("Quit in Solo mode");
           // displayMenu(username);
@@ -352,35 +352,45 @@ function updateResults() {
 }
 
 function handleGameEnd(winner) {
-  clearInterval(gameInterval); // Arrêter la boucle de jeu
+  clearInterval(gameInterval);
   currentGame++;
 
   updateResults();
 
   if (currentGame < numberOfGames) {
-    // Remplacer l'alert par une modale (avec backdrop 'static' et keyboard false implicites via showModal modifié)
     showModal(
-      'Set\'s End', // Titre
-      `${winner} wins this set! Starting the next set...`, // Message
-      'Next Set', // Texte du bouton d'action (renommé pour plus de clarté)
-      () => { // Callback pour l'action
+      'Set\'s End',
+      `${winner} wins this set! Starting the next set...`,
+      'Next Set',
+      () => {
         resetScores();
         updateResults();
-        // Vérifier si le canvas existe avant de lancer startPongGame
-        const canvas = document.getElementById("pong");
+
+        // Vérifier et préserver ou recréer le canvas
+        let canvas = document.getElementById("pong");
+        if (!canvas) {
+          console.warn('Canvas not found after modal closure. Recreating canvas.');
+          const appMain = document.getElementById("app_main");
+          // Restaurer uniquement le canvas sans vider complètement
+          if (!appMain.querySelector('#pong')) {
+            appMain.innerHTML = `<canvas id="pong" width="800" height="400"></canvas>`;
+          }
+          canvas = document.getElementById("pong");
+        }
+
         if (canvas) {
           requestAnimationFrame(() => {
             startPongGame();
           });
         } else {
-          console.error('Canvas not found after modal closure. Cannot start the next set.');
+          console.error('Failed to initialize canvas for next set.');
           showModal(
             'Error',
-            'Failed to start the next set. The game canvas could not be found. Please refresh the page and try again.',
+            'Failed to start the next set. The game canvas could not be initialized.',
             'OK',
             () => {
               stopGameProcess();
-              navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur
+              navigateTo('tournament');
             }
           );
         }
@@ -388,7 +398,7 @@ function handleGameEnd(winner) {
     );
   } else {
     sendScore().then((matchID) => {
-      stopGameProcess();
+      stopGameProcess(true); // Jeu terminé
       displayResults(matchID);
     }).catch((error) => {
       console.error("Error in game end processing:", error);
@@ -397,8 +407,8 @@ function handleGameEnd(winner) {
         'An error occurred while processing the game end: ' + error.message,
         'OK',
         () => {
-          stopGameProcess();
-          navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur
+          stopGameProcess(true);
+          navigateTo('tournament');
         }
       );
     });
@@ -889,31 +899,32 @@ async function sendScore() {
 //     });
 // }
 
-function stopGameProcess() {
-  // Arrêter l'intervalle de jeu
+function stopGameProcess(isGameFinished = false) {
   if (gameInterval) {
     clearInterval(gameInterval);
     gameInterval = null;
   }
 
-  // Fermer la connexion WebSocket
-  shouldReconnect = false;  // Désactiver la reconnexion automatique
+  shouldReconnect = false;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.close();
     console.log("WebSocket disconnected.");
   }
 
-    console.log("StopGameProcess: BEFORE cleaning app div");
- //empty all the containers
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
+  // Ne vider les conteneurs que si le jeu est terminé ou en mode solo
+  if (isGameFinished || !isTournamentMatch) {
+    document.getElementById('app_top').innerHTML = '';
+    document.getElementById('app_main').innerHTML = '';
+    document.getElementById('app_bottom').innerHTML = '';
+  } else {
+    console.log("Preserving DOM in tournament mode during set transition.");
+    // Optionnel : Restaurer le canvas si perdu
+    const appMain = document.getElementById("app_main");
+    if (!appMain.querySelector('#pong')) {
+      appMain.innerHTML = `<canvas id="pong" width="800" height="400"></canvas>`;
+    }
+  }
 
-    console.log("StopGameProcess: AFTER cleaning app div");
-  // Désactiver d'autres écouteurs si nécessaire
-  // canvas.removeEventListener('mousemove', handleMouseMove);
-
-  // Réinitialiser les variables de jeu
   player1Wins = 0;
   player2Wins = 0;
   currentGame = 0;

@@ -672,7 +672,9 @@ export function updateProfile() {
         'Success',
         'Profile updated successfully!',
         'OK',
-        () => {}
+        () => {
+        navigateTo('settings');
+        }
       );
     })
     .catch(error => {
@@ -684,6 +686,7 @@ export function updateProfile() {
         () => {}
       );
     });
+  navigateTo('settings');
 }
 
 
