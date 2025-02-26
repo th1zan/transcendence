@@ -304,7 +304,7 @@ function displayQuickStats(data, playerName) {
   let lastMatchesTable = '';
   if (lastThreeMatches.length > 0) {
     lastMatchesTable = `
-      <table class="table table-sm table-striped" style="border-radius: 10px;">
+      <table class="table table-sm table-striped bg-transparent border border-white" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
         <thead>
           <tr>
             <th scope="col">Match</th>
@@ -317,9 +317,9 @@ function displayQuickStats(data, playerName) {
             const player2 = match.player2_name || "Unknown Player 2";
             const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
             return `
-              <tr>
-                <td>${player1} vs ${player2}</td>
-                <td>${setScore}</td>
+              <tr class="bg-transparent">
+                <td class="bg-transparent">${player1} vs ${player2}</td>
+                <td class="bg-transparent">${setScore}</td>
               </tr>
             `;
           }).join('')}
@@ -464,7 +464,7 @@ function fetchPendingTournamentAuthentications() {
           });
         });
       } else {
-        authList.innerHTML = `<li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending tournament authentications.</li>`;
+        authList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending tournament authentications.</li>`;
       }
     })
     .catch(error => {
@@ -546,7 +546,7 @@ export function fetchPendingFriendRequests() {
           });
         });
       } else {
-        requestList.innerHTML = `<li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending friend requests.</li>`;
+        requestList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending friend requests.</li>`;
       }
     })
     .catch(error => {
@@ -631,13 +631,13 @@ export function displayFriends() {
     <div class="container mt-4">
       <div class="row g-4">
         <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
-        <div class="col-12 col-md-6">
-          <div class="card shadow-sm" style="border-radius: 8px;">
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
             <div class="card-body text-center">
               <h5 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Send Friend Request</h5>
               <div class="form-group mt-2">
                 <label for="friendUsername" class="form-label" style="font-family: 'Press Start 2P', cursive;">Username</label>
-                <input type="text" id="friendUsername" placeholder="Username" class="form-control" required style="font-family: 'Press Start 2P', cursive;">
+                <input type="text" id="friendUsername" placeholder="Username" class="form-control bg-transparent" required style="font-family: 'Press Start 2P', cursive;">
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" style="font-family: 'Press Start 2P', cursive;">
                   Send Friend Request
                 </button>
@@ -650,7 +650,7 @@ export function displayFriends() {
           <div class="row g-4">
             <!-- Carte pour les demandes d'amis en attente -->
             <div class="col-12">
-              <div class="card shadow-sm" style="border-radius: 8px;">
+              <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
                 <div class="card-body text-center">
                   <h4 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">Pending Friend Requests</h4>
                   <ul id="friendRequests" class="list-group list-group-flush"></ul>
@@ -659,7 +659,7 @@ export function displayFriends() {
             </div>
             <!-- Carte pour la liste des amis -->
             <div class="col-12">
-              <div class="card shadow-sm" style="border-radius: 8px;">
+              <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
                 <div class="card-body text-center">
                   <h4 class="card-title mb-3" style="font-family: 'Press Start 2P', cursive;">My Friends</h4>
                   <ul id="friendList" class="list-group list-group-flush"></ul>
@@ -1081,17 +1081,17 @@ export function displayStats() {
     </div>
   `;
 
-
-  // appMain.innerHTML = `
-  //   <div class="container mt-4">
-  //     <div class="card mb-4 shadow-sm">
-  //       <div class="card-body" id="statsDashboard">
-  //         <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
-  //         <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
-  //       </div>
-  //     </div>
-  //   </div>
-  // `;
+  const appMain = document.getElementById("app_bottom");
+  appMain.innerHTML = `
+    <div class="container mt-4">
+      <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card-body" id="statsDashboard">
+          <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
+          <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+  `;
 
   // Afficher les résultats utilisateur et initialiser le dashboard
   fetchResultats();
@@ -1285,12 +1285,12 @@ function fetchResultats(player = null) {
       appMain.innerHTML = `
         ${displaySummaryStats(data, player || "You")}
         <div class="container mt-4">
-          <div class="card mb-4 shadow-sm">
+          <div class="card mb-4 shadow-sm bg-transparent">
             <div class="card-body">
               <h4 class="card-title">Match History</h4>
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-striped table-hover">
-                  <thead>
+                <table class="table table-striped table-hover bg-transparent">
+                  <thead class="thead-dark bg-transparent">
                     <tr>
                       <th scope="col" data-priority="1">Date</th>
                       <th scope="col" data-priority="1">Players</th>
@@ -1300,7 +1300,7 @@ function fetchResultats(player = null) {
                       <th scope="col" data-priority="4">Tournament</th>
                     </tr>
                   </thead>
-                  <tbody id="results"></tbody>
+                  <tbody id="results" class="bg-transparent"></tbody>
                 </table>
               </div>
             </div>

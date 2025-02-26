@@ -265,10 +265,37 @@ h6 {
     border-opacity: 1;      /* Opacité héritée de ton HTML */
 }
 
-/* États spécifiques pour cohérence */
-#pills-tab .nav-link.active {
-    border-width: 5px;        /* Maintenir la bordure épaisse quand actif */
-    border-color: #007bff;    /* Couleur cohérente */
+/* <<<<<<< HEAD */
+/* /* États spécifiques pour cohérence */ */
+/* #pills-tab .nav-link.active { */
+/*     border-width: 5px;        */
+/*     border-color: #007bff;    */
+/* ======= */
+
+
+.table thead th {
+  background-color: transparent !important;
+}
+
+.table tbody tr {
+  background-color: transparent !important;
+}
+
+.table {
+  opacity: 0.9;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: transparent !important;
+}
+
+.table-hover tbody tr:hover {
+  background-color: transparent !important;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #007bff;
+  color: #fff;
 }
 
 #pills-tab .nav-link:hover {
