@@ -928,22 +928,22 @@ export function validateSearch() {
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <div class="container mt-4">
-      <div class="card mb-4 shadow-sm border-primary border-1">
+      <div class="card mb-4 shadow-sm border-primary border-1 bg-transparent">
         <div class="card-body p-3">
           <div class="card shadow-sm border-primary border-1">
             <div class="card-header text-center">
               <h2 class="display-6 mb-0 text-primary">Tournaments Found</h2>
             </div>
             <div class="card-body p-0">
-              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-hover">
-                  <thead class="bg-primary text-white">
+              <div class="table-responsive bg-transparent" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover bg-transparent">
+                  <thead class="bg-transparent text-white">
                     <tr>
-                      <th scope="col" class="text-center" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
-                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
-                      <th scope="col" class="text-center" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
-                      <th scope="col" class="text-center" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
-                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
                     </tr>
                   </thead>
                   <tbody id="tournamentBody"></tbody>
@@ -1030,7 +1030,7 @@ export function displayUserTournaments() {
   const appMain = document.getElementById("app_main");
   appMain.className = "semi-transparent-bg flex-grow-1 p-3 text-dark";
   appMain.innerHTML = `
-    <div class="card mb-4 shadow-sm border-primary border-1">
+    <div class="card mb-4 shadow-sm border-primary border-1 bg-transparent">
       <div class="card-body p-3">
         <!-- Bouton Show all tournaments aligné à gauche -->
         <div class="mb-4">
@@ -1038,20 +1038,20 @@ export function displayUserTournaments() {
         </div>
         <!-- Card interne pour le tableau avec barre de défilement -->
         <div id="userTournamentList">
-          <div class="card shadow-sm border-primary border-1">
-            <div class="card-header text-center"">
-              <h3>Your Tournaments</h3>
+          <div class="card shadow-sm border-primary border-1 bg-transparent">
+            <div class="card-header text-center bg-transparent" style="background: white;">
+              <h2 class="display-6 mb-0 text-primary">Your Tournaments</h2>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover">
-                  <thead class="bg-primary text-white">
+                  <thead class="bg-transparent text-white">
                     <tr>
-                      <th scope="col" class="text-center" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
-                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
-                      <th scope="col" class="text-center" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
-                      <th scope="col" class="text-center" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
-                      <th scope="col" class="text-center" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
                     </tr>
                   </thead>
                   <tbody id="tournamentsBody"></tbody>

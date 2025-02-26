@@ -331,7 +331,7 @@ function displayQuickStats(data, playerName) {
   }
 
   return `
-    <div class="card mb-4 shadow-sm h-100">
+    <div class="card mb-4 shadow-sm h-100 bg-transparent" style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
         <h4 class="card-title">Quick Stats for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush mb-3">
@@ -360,46 +360,38 @@ export function displayWelcomePage() {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <div class="container py-5" font-family: 'Poppins', sans-serif;">
-      <div class="row justify-content-center">
-        <!-- Colonne gauche : Welcome Card et Notifications -->
-        <div class="col-md-6 d-flex flex-column gap-4">
-            <!-- Welcome Card -->
-            <div class="card shadow-sm welcome-card">
-                <div class="card-body d-flex align-items-center">
-                    <div class="rounded-circle overflow-hidden me-3">
-                        <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" />
-                    </div>
-                    <h3 class="card-title mb-0">Welcome ${username}</h3>
-                </div>
-            </div>
-
-            <!-- Pending Friend Requests Card -->
-            <div class="card shadow-sm pending-friend-card">
-                <div class="card-body">
-                    <h4 class="card-title mb-3">Pending Friend Requests</h4>
-                    <div>
-                        <ul class="list-group" id="pendingFriendRequests"></ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pending Tournament Authentications Card -->
-            <div class="card shadow-sm pending-tournament-card">
-                <div class="card-body">
-                    <h4 class="card-title mb-3">Pending Tournament Authentications</h4>
-                    <div>
-                        <ul class="list-group" id="pendingTournamentAuthentications"></ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Colonne droite : Quick Stats -->
-        <div class="col-md-6" id="quickStatsContainer">
-          <!-- Les stats rapides seront insérées ici -->
-        </div>
+      <div class="container py-5">
+          <div class="row justify-content-center">
+              <div class="col-md-6 d-flex flex-column gap-4">
+                  <!-- Welcome Card -->
+                  <div class="card shadow-sm welcome-card">
+                      <div class="card-body d-flex align-items-center">
+                          <div class="rounded-circle overflow-hidden me-3">
+                              <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" />
+                          </div>
+                          <h3 class="card-title mb-0">Welcome ${username}</h3>
+                      </div>
+                  </div>
+                  <!-- Pending Friend Requests Card -->
+                  <div class="card shadow-sm pending-friend-card">
+                      <div class="card-body">
+                          <h4 class="card-title mb-3">Pending Friend Requests</h4>
+                          <ul class="list-group" id="pendingFriendRequests"></ul>
+                      </div>
+                  </div>
+                  <!-- Pending Tournament Authentications Card -->
+                  <div class="card shadow-sm pending-tournament-card">
+                      <div class="card-body">
+                          <h4 class="card-title mb-3">Pending Tournament Authentications</h4>
+                          <ul class="list-group" id="pendingTournamentAuthentications"></ul>
+                      </div>
+                  </div>
+              </div>
+              <div class="col-md-6" id="quickStatsContainer">
+                  <!-- Les stats rapides seront insérées ici -->
+              </div>
+          </div>
       </div>
-    </div>
   `;
 
   const appBottom = document.getElementById("app_bottom");
@@ -568,11 +560,11 @@ export function displayTournament() {
     <div class="container py-4">
       <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
         <li class="nav-item" role="presentation">
-          <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+          <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
             My Tournaments
           </button>
         </li><li class="nav-item" role="presentation">
-          <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+          <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
             New Tournament
           </button>
         </li>
@@ -581,11 +573,11 @@ export function displayTournament() {
             <input 
               type="text" 
               id="tournamentNameInput" 
-              class="form-control rounded-pill" 
+              class="form-control rounded-pill bg-transparent" 
               placeholder="Tournament Name" 
               style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
             >
-            <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
               Search
             </button>
           </div>
@@ -1238,22 +1230,22 @@ function displaySummaryStats(data, playerName) {
   }
 
   return `
-    <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm bg-transparent">
       <div class="card-body">
         <h4 class="card-title">Summary Statistics for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item"><strong>Total Matches Played:</strong> ${totalMatches}</li>
-          <li class="list-group-item"><strong>Wins:</strong> ${wins} (${winPercentage}%)</li>
-          <li class="list-group-item"><strong>Losses:</strong> ${losses} (${lossPercentage}%)</li>
-          <li class="list-group-item"><strong>Draws:</strong> ${draws} (${drawPercentage}%)</li>
-          <li class="list-group-item"><strong>Win/Loss Ratio:</strong> ${winLossRatio}:1</li>
-          <li class="list-group-item"><strong>Sets Won/Lost Ratio:</strong> ${setsRatio}:1</li>
-          <li class="list-group-item"><strong>Points Scored/Conceded Ratio:</strong> ${pointsRatio}:1</li>
-          <li class="list-group-item"><strong>Longest Winning Streak:</strong> ${longestWinningStreak} matches</li>
-          <li class="list-group-item"><strong>Average Points per Match:</strong> ${totalMatches > 0 ? (totalPointsScored / totalMatches).toFixed(1) : 0}</li>
-          <li class="list-group-item"><strong>Total Sets Played:</strong> ${totalSetsPlayed}</li>
-          <li class="list-group-item"><strong>Average Points per Set:</strong> ${avgPointsPerSet}</li>
-          <li class="list-group-item"><strong>Tournament Wins:</strong> ${tournamentWins} (${tournamentWinPercentage}% of matches)</li>
+          <li class="list-group-item bg-transparent"><strong>Total Matches Played:</strong> ${totalMatches}</li>
+          <li class="list-group-item bg-transparent"><strong>Wins:</strong> ${wins} (${winPercentage}%)</li>
+          <li class="list-group-item bg-transparent"><strong>Losses:</strong> ${losses} (${lossPercentage}%)</li>
+          <li class="list-group-item bg-transparent"><strong>Draws:</strong> ${draws} (${drawPercentage}%)</li>
+          <li class="list-group-item bg-transparent"><strong>Win/Loss Ratio:</strong> ${winLossRatio}:1</li>
+          <li class="list-group-item bg-transparent"><strong>Sets Won/Lost Ratio:</strong> ${setsRatio}:1</li>
+          <li class="list-group-item bg-transparent"><strong>Points Scored/Conceded Ratio:</strong> ${pointsRatio}:1</li>
+          <li class="list-group-item bg-transparent"><strong>Longest Winning Streak:</strong> ${longestWinningStreak} matches</li>
+          <li class="list-group-item bg-transparent"><strong>Average Points per Match:</strong> ${totalMatches > 0 ? (totalPointsScored / totalMatches).toFixed(1) : 0}</li>
+          <li class="list-group-item bg-transparent"><strong>Total Sets Played:</strong> ${totalSetsPlayed}</li>
+          <li class="list-group-item bg-transparent"><strong>Average Points per Set:</strong> ${avgPointsPerSet}</li>
+          <li class="list-group-item bg-transparent"><strong>Tournament Wins:</strong> ${tournamentWins} (${tournamentWinPercentage}% of matches)</li>
         </ul>
       </div>
     </div>
@@ -1533,19 +1525,19 @@ export function displayGameForm() {
 
     <ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active border border-primary border-opacity-50 rounded-0" id="pills-player-settings-tab"
+      <button class="nav-link active border border-primary border-opacity-50 rounded-0 bg-transparent" id="pills-player-settings-tab"
         data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
         aria-controls="pills-player-settings" aria-selected="true">Player Settings</button>
     </li>
 
         <li class="nav-item" role="presentation">
-    <button class="nav-link border border-primary border-opacity-50 rounded-0" id="pills-match-settings-tab"
+    <button class="nav-link border border-primary border-opacity-50 rounded-0 bg-transparent" id="pills-match-settings-tab"
     data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
     aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
         </li>
 
     <li class="nav-item" role="presentation">
-      <button class="nav-link border border-primary border-opacity-50 rounded-0" id="pills-game-settings-tab"
+      <button class="nav-link border border-primary border-opacity-50 rounded-0 bg-transparent" id="pills-game-settings-tab"
       data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
       aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
       </li>
@@ -1558,18 +1550,18 @@ export function displayGameForm() {
       <div class="col p-3 d-flex flex-column">
         <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
         <div
-          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
           <div class="mb-3">
             <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               class="form-label">Name:</label>
             <input type="text" id="player1" value="${gameSettings.player1}"
-              style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control"
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control bg-transparent"
               disabled>
           </div>
           <div class="mb-3">
             <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               class="form-label">Control:</label>
-            <select id="control1" class="form-select">
+            <select id="control1" class="form-select bg-transparent">
               <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows"
                 ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
               <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd"
@@ -1583,16 +1575,16 @@ export function displayGameForm() {
       <div class="col p-3 d-flex flex-column">
         <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
         <div
-          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
           <div class="mb-3">
             <label for="player2" class="form-label"
               style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
-            <input type="text" id="player2" value="${gameSettings.player2}" class="form-control"
+            <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent"
               style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
           </div>
           <div id="control2Container" class="mb-3" style="${gameSettings.mode === " solo"? "display:none;" : "display:block;"}">
             <label for="control2" class="form-label">Control:</label>
-            <select id="control2" class="form-select">
+            <select id="control2" class="form-select bg-transparent">
               <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
               <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys
               </option>
@@ -1611,14 +1603,14 @@ export function displayGameForm() {
       <!-- Match Settings Container -->
       <div class="col p-3 d-flex flex-column">
         <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
-        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
           <div class="mb-3">
             <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
-            <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2" style="width: 60px;">
+            <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2 bg-transparent" style="width: 60px;">
           </div>
           <div class="mb-3">
             <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
-            <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
+            <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
           </div>
         </div>
       </div>
@@ -1629,18 +1621,18 @@ export function displayGameForm() {
     <div class="d-flex justify-content-center mt-3">
       <div class="col p-3 d-flex flex-column">
         <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
-        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between">
+        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
           <div class="mb-3">
             <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
             <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
-              <button id="onePlayer" class="mode-button active btn ${gameSettings.mode === " solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+              <button id="onePlayer" class="mode-button btn ${gameSettings.mode === " solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
               <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === " multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
             <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-              <button class="difficulty-button active btn ${gameSettings.difficulty === " easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+              <button class="difficulty-button btn ${gameSettings.difficulty === " easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
               <button class="difficulty-button btn ${gameSettings.difficulty === " medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
               <button class="difficulty-button btn ${gameSettings.difficulty === " hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
             </div>
@@ -1648,7 +1640,7 @@ export function displayGameForm() {
           <div class="mb-3">
             <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
             <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
-              <button class="design-button active btn ${gameSettings.design === " retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+              <button class="design-button btn ${gameSettings.design === " retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
               <button class="design-button btn ${gameSettings.design === " neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
             </div>
           </div>

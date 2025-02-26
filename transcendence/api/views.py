@@ -480,7 +480,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 send_mail(
                     "Your Two-Factor Authentication Code",
                     f"Your OTP code is: {otp_code}",
-                    "noreply@yourdomain.com",
+                    "pong42lausanne@gmail.com",
                     [user.email],
                     fail_silently=False,
                 )
@@ -652,7 +652,7 @@ class Toggle2FAView(APIView):
             send_mail(
                 "Your Two-Factor Authentication Code",
                 f"Your OTP code is: {otp_code_generated}",
-                "noreply@yourdomain.com",
+                "pong42lausanne@gmail.com",
                 [user.email],
                 fail_silently=False,
             )

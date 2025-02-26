@@ -14,11 +14,11 @@ from django.utils.timezone import now
 
 
 class CustomUser(AbstractUser):
-    email = models.EmailField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True, default=None)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     phone_number = models.CharField(
-        max_length=15, unique=True, blank=True, null=True
+        max_length=15, unique=True, blank=True, null=True, default=None
     )  # We might use phone number for 2FA
     friends = models.ManyToManyField(
         "self", symmetrical=True, blank=True

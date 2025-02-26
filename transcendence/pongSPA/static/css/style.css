@@ -262,7 +262,7 @@ h6 {
 
 
 .card {
-    background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité */
+    background: rgba(255, 255, 255, 0.1); /* Fond blanc avec 40% d'opacité */
     border: none; /* Supprime la bordure par défaut */
     border-radius: 15px; /* Coins arrondis */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
