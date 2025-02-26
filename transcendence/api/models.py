@@ -269,6 +269,8 @@ class PongSet(models.Model):
     set_number = models.IntegerField()
     player1_score = models.IntegerField(default=0)
     player2_score = models.IntegerField(default=0)
+    exchanges = models.IntegerField(default=0)  # Nombre d'échanges
+    duration = models.FloatField(default=0.0)  # Durée en secondes
 
     def __str__(self):
         return f"Set {self.set_number} - {self.match.player1}: {self.player1_score}, {self.match.player2}: {self.player2_score}"
