@@ -1028,6 +1028,7 @@ export function displayUserTournaments() {
   }
 
   const appMain = document.getElementById("app_main");
+  appMain.className = "semi-transparent-bg flex-grow-1 p-3 text-dark";
   appMain.innerHTML = `
     <div class="card mb-4 shadow-sm border-primary border-1">
       <div class="card-body p-3">
