@@ -1528,19 +1528,19 @@ export function displayGameForm() {
 
     <ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active border border-primary border-opacity-50 rounded-0 bg-transparent" id="pills-player-settings-tab"
+      <button class="nav-link active border border-primary rounded-0 bg-transparent" id="pills-player-settings-tab"
         data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
         aria-controls="pills-player-settings" aria-selected="true">Player Settings</button>
     </li>
 
         <li class="nav-item" role="presentation">
-    <button class="nav-link border border-primary border-opacity-50 rounded-0 bg-transparent" id="pills-match-settings-tab"
+    <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-match-settings-tab"
     data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
     aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
         </li>
 
     <li class="nav-item" role="presentation">
-      <button class="nav-link border border-primary border-opacity-50 rounded-0 bg-transparent" id="pills-game-settings-tab"
+      <button class="nav-link border border-primary  rounded-0 bg-transparent" id="pills-game-settings-tab"
       data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
       aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
       </li>

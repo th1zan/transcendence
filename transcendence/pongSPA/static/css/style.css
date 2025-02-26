@@ -45,7 +45,7 @@ body {
 .form-control {
     background-color:rgba(255, 255, 255, 0.5) ;
     --bs-border-width: 2px
-    --bs-border-color: transparent;
+    --bs-border-color: #007bff; 
 }
 
 
@@ -244,6 +244,44 @@ h6 {
   font-size: 12px; /* 16px * 0.8 */
   text-align: center;
   padding: 10px 0;
+}
+
+/* *********************************** */
+/* Styles pour les Play a Game              */
+/* ************************************ */
+
+
+/* Styles pour les onglets de navigation (#pills-tab) */
+#pills-tab {
+    font-family: 'Press Start 2P', cursive; /* Conserver la police existante */
+}
+
+#pills-tab .nav-link {
+    font-size: 16px;          /* Police plus grande (par défaut 15px dans ton HTML inline) */
+    font-weight: bold;        /* Texte en gras */
+    border-width: 3px;        /* Bordure plus épaisse (par défaut 1px dans Bootstrap) */
+    border-color: #007bff;    /* Couleur bleue primaire, ajustable */
+    border-style: solid;      /* Style solide */
+    border-opacity: 1;      /* Opacité héritée de ton HTML */
+}
+
+/* États spécifiques pour cohérence */
+#pills-tab .nav-link.active {
+    border-width: 5px;        /* Maintenir la bordure épaisse quand actif */
+    border-color: #007bff;    /* Couleur cohérente */
+}
+
+#pills-tab .nav-link:hover {
+    border-color: #0056b3;    /* Couleur plus foncée au survol, comme btn-primary */
+}
+
+/* Styles pour le contenu des onglets (#pills-tabContent) */
+#pills-tabContent .tab-pane {
+    border-width: 3px;        /* Bordure plus épaisse pour les conteneurs internes */
+    border-style: solid;      /* Style solide */
+    border-color: #007bff;    /* Couleur bleue primaire */
+    border-radius: 5px;       /* Coins légèrement arrondis, ajustable */
+    padding: 1rem;            /* Padding interne pour éviter que le contenu colle aux bords */
 }
 
 
