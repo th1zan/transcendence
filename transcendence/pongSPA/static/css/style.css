@@ -45,7 +45,7 @@ body {
 .form-control {
     background-color:rgba(255, 255, 255, 0.5) ;
     --bs-border-width: 2px
-    --bs-border-color: transparen;
+    --bs-border-color: transparent;
 }
 
 
@@ -251,12 +251,24 @@ h6 {
 /* Styles pour les boutons               */
 /* ************************************ */
 
+/* Styles spécifiques pour les boutons dans displayTournament() */
+#myTournamentButton,
+#newTournamentButton,
+#tournamentSearchButton {
+    border: 2px solid #007bff; /* Bordure bleue, cohérente avec btn-primary */
+}
 
+/* Optionnel : ajuster au hover pour cohérence visuelle */
+#myTournamentButton:hover,
+#newTournamentButton:hover,
+#tournamentSearchButton:hover {
+    border-color: #0056b3; /* Couleur plus foncée au survol, comme le hover de btn-primary */
+}
 
 /* Boutons */
 .btn {
   font-family: 'Press Start 2P', cursive;
-  font-size: 12px;
+  font-size: 14px;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: none;
   font-smooth: never;
