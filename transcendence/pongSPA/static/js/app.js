@@ -1054,12 +1054,21 @@ function fetchStatsDashboard() {
 }
 
 export function displayStats() {
-  // Vide tous les conteneurs
-  document.getElementById('app_top').innerHTML = '';
-  document.getElementById('app_main').innerHTML = '';
-  document.getElementById('app_bottom').innerHTML = '';
+  const appMain = document.getElementById('app_main');
+  appMain.innerHTML = ''; // Nettoyage
+  appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap
+  appMain.style.maxHeight = '100%'; // Ajoute max-height
+  appMain.style.minHeight = '0';    // Ajoute min-height
 
-  const appTop = document.getElementById("app_top");
+  const appTop = document.getElementById('app_top');
+  appTop.innerHTML = '';
+  appTop.className = 'semi-transparent-bg p-3 text-dark';
+
+  const appBottom = document.getElementById('app_bottom');
+  appBottom.innerHTML = '';
+  appBottom.className = 'semi-transparent-bg p-3 text-dark';
+
+
   appTop.innerHTML = `
     <div class="container mt-4">
       <h3 class="text-center text-primary mb-4">Statistics</h3>
@@ -1077,21 +1086,21 @@ export function displayStats() {
     </div>
   `;
 
-  const appMain = document.getElementById("app_bottom");
-  appMain.innerHTML = `
-    <div class="container mt-4">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body" id="statsDashboard">
-          <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
-          <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
-        </div>
-      </div>
-    </div>
-  `;
+
+  // appMain.innerHTML = `
+  //   <div class="container mt-4">
+  //     <div class="card mb-4 shadow-sm">
+  //       <div class="card-body" id="statsDashboard">
+  //         <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
+  //         <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // `;
 
   // Afficher les résultats utilisateur et initialiser le dashboard
   fetchResultats();
-  fetchStatsDashboard();
+  // fetchStatsDashboard();
 
   // Ajoute les nouveaux écouteurs
   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
@@ -1099,41 +1108,15 @@ export function displayStats() {
   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
 }
 
-// export function displayStats() {
-//   // Vide tous les conteneurs
-//   document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const appTop = document.getElementById("app_top");
-//   appTop.innerHTML = `
-//     <div class="container mt-4">
-//       <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
-//         <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
-//           My Results
-//         </button>
-//         <button id="viewPlayerResult" class="btn btn-outline-secondary btn-lg shadow-sm">
-//           Search Player's Result
-//         </button>
-//         <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
-//           Overall Ranking
-//         </button>
-//       </div>
-//     </div>
-//   `;
-//   //display user results
-//   fetchResultats();
-//
-//   // Ajoute les nouveaux écouteurs
-//   document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
-//   document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
-//   document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
-// }
-
 // Fonction pour afficher le formulaire de recherche de résultats d'un joueur
 function fetchPlayerResult() {
-  const appDiv = document.getElementById("app_main");
-  appDiv.innerHTML = `
+  const appMain = document.getElementById('app_main');
+  appMain.innerHTML = ''; // Nettoyage
+  appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap
+  appMain.style.maxHeight = '100%'; // Ajoute max-height
+  appMain.style.minHeight = '0';    // Ajoute min-height
+  
+  appMain.innerHTML = `
     <div class="container mt-4">
       <div class="card" style="width: 100%; max-width: 500px; margin: auto;">
         <div class="card-body">
@@ -1297,8 +1280,14 @@ function fetchResultats(player = null) {
     .then((data) => {
       console.log("Fetched results:", data);
 
-      const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `
+      const appMain = document.getElementById('app_main');
+      appMain.innerHTML = ''; // Nettoyage
+      appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap
+      appMain.style.maxHeight = '100%'; // Ajoute max-height
+      appMain.style.minHeight = '0';    // Ajoute min-height
+
+
+      appMain.innerHTML = `
         ${displaySummaryStats(data, player || "You")}
         <div class="container mt-4">
           <div class="card mb-4 shadow-sm">

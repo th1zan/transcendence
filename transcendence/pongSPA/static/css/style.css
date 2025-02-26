@@ -28,6 +28,14 @@ body {
   color: #212529; /* Texte sombre par défaut pour lisibilité */
 }
 
+#header {
+    flex-shrink: 0; /* Empêche le header de rétrécir */
+}
+
+#footer {
+    flex-shrink: 0; /* Empêche le footer de rétrécir */
+}
+
 .table{
     --bs-table-color: initial;
     --bs-table-bg: initial;
@@ -92,6 +100,28 @@ body {
 /* Styles pour le menu de navigation   */
 /* ************************************ */
 
+
+#menu {
+    height: 100%;          /* Remplit la hauteur du conteneur parent */
+    position: sticky;      /* Reste visible au scroll */
+    top: 0;                /* Colle au haut */
+    overflow-x: hidden;    /* Pas de débordement horizontal */
+    overflow-y: auto;      /* Défilement interne si contenu trop long */
+}
+
+@media (min-width: 768px) {
+    #menu {
+        width: 16.666667%; /* Équivalent à col-md-2 (2/12) */
+        flex: 0 0 16.666667%; /* Force la largeur fixe */
+        max-width: 16.666667%; /* Limite la largeur */
+    }
+    .navbar-collapse {
+        display: block !important; /* Force le menu à rester déplié */
+    }
+    .navbar-toggler {
+        display: none !important; /* Cache le bouton burger */
+    }
+}
 
 .menu-container {
     /* width: 190px; */
@@ -160,69 +190,6 @@ body {
     flex-grow: 1;
 }
 
-.navbar {
-    /* background-color: brown; */
-    padding: 0;
-    height: auto;
-}
-
-.navbar-toggler {
-    border: 2px solid #ffffff;
-    margin-left: 10px;
-    margin-top: 0; /* Supprime l’espace en haut pour coller au bord */
-}
-
-.navbar-collapse {
-    /* background-color: brown; */
-    padding: 10px;
-    flex-grow: 1;
-}
-
-#menu {
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-@media (max-width: 767.98px) {
-    .navbar-collapse {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        /* background-color: brown; */
-        padding: 20px;
-        z-index: 1000;
-    }
-    .menu-button {
-        width: 100%;
-    }
-    #menu {
-        height: auto;
-    }
-}
-
-@media (min-width: 768px) {
-    #menu {
-        height: 100vh;
-        padding-top: 0;
-    }
-    .navbar-collapse {
-        display: block !important;
-        padding: 0;
-    }
-    .navbar-toggler {
-        display: none;
-    }
-    .menu-container {
-        width: 190px;
-        margin-top: 0;
-    }
-}
-
 /* *********************************** */
 /* Styles pour les titres               */
 /* ************************************ */
@@ -288,35 +255,6 @@ h6 {
   padding: 10px 20px; /* Espacement vertical (10px) et horizontal (20px) accru */
   border-radius: 5px;
 }
-/**/
-/* .btn-primary { */
-/*   background-color: #007bff; */
-/*   border-color: #007bff; */
-/*   color: #fff; */
-/* } */
-/**/
-/* .btn-primary:hover { */
-/*   background-color: #0056b3; */
-/*   border-color: #0056b3; */
-/* } */
-/**/
-/* .btn-outline-primary { */
-/*   color: #007bff; */
-/*   border-color: #007bff; */
-/* } */
-/**/
-/* .btn-outline-primary:hover { */
-/*   background-color: #007bff; */
-/*   color: #fff; */
-/* } */
-/**/
-/* /* Boutons dans un btn-group : pas d'espacement supplémentaire */ 
-/* .btn-group .btn { */
-/*   margin: 0; /* Annule l'espacement extérieur pour btn-group */ 
-/*   padding: 10px 15px; /* Padding légèrement réduit horizontalement pour cohérence */ 
-/* } */
-/**/
-
 
 /* ********************************** */
 /* Styles pour les cartes principales */
@@ -360,3 +298,17 @@ h6 {
     object-fit: cover; /* Ajuste l’image pour couvrir tout le conteneur tout en conservant ses proportions */
 }
 
+
+/* const appMain = document.getElementById('app_main'); */
+/* appMain.innerHTML = ''; // Nettoyage */
+/* appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap */
+/* appMain.style.maxHeight = '100%'; // Ajoute max-height */
+/* appMain.style.minHeight = '0';    // Ajoute min-height */
+/**/
+/* const appTop = document.getElementById('app_top'); */
+/* appTop.innerHTML = ''; */
+/* appTop.className = 'semi-transparent-bg p-3 text-dark'; */
+/**/
+/* const appBottom = document.getElementById('app_bottom'); */
+/* appBottom.innerHTML = ''; */
+/* appBottom.className = 'semi-transparent-bg p-3 text-dark'; */

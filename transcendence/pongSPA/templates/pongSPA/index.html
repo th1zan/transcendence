@@ -13,47 +13,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body class="d-flex flex-column" style="min-height: 100vh; background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); animation: gradientBG 15s ease infinite">
+<body class="d-flex flex-column min-vh-100" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); animation: gradientBG 15s ease infinite">
 
     <!-- Header -->
     <header id="header" class="header bg-dark text-white text-center py-3">
-        <h1 class="m-0">PONG - Jeu</h1>
+        <h1 class="m-0">PONG</h1>
     </header>
 
     <!-- Main content with grid structure -->
-    <div class="container-fluid flex-grow-1">
-        <div class="row h-100">
+    <div class="container-fluid flex-grow-1 d-flex flex-column" id="main">
+        <div class="row flex-grow-1">
             <!-- Barre de navigation responsive (Colonne gauche, 2 colonnes sur grand écran, pleine largeur sur petit écran) -->
-            <nav class="navbar navbar-expand-md col-12 col-md-2 p-0 d-flex flex-column" id="menu">
-                <div class="container-fluid flex-grow-1 d-flex flex-column">
-                    <!-- Bouton hamburger pour petits écrans, positionné en haut -->
-                    <button class="navbar-toggler mb-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    <!-- Contenu du menu (caché sur petits écrans, visible sur grands) -->
-                    <div class="collapse navbar-collapse flex-grow-1" id="navbarNav">
-                        <div class="menu-container d-flex flex-column h-100 w-100">
-                            <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" />
-                            
-                            <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
-                            <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2" role="button">Play a game</button>
-                            <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
-                            <button id="statsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Statistics</button>
-                            <button id="friendsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Friends</button>
-                            <div class="flex-grow-1"></div>
-                            <button id="settingsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Settings</button>
-                            <button id="logoutButton" class="btn btn-danger nav-link menu-button w-100 mb-2">Logout</button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
+           <nav class="navbar navbar-expand-md p-0 d-flex flex-column col-12 col-md-2" id="menu">             
+              <div class="container-fluid">
+                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                      <span class="navbar-toggler-icon"></span>
+                  </button>
+                  <div class="collapse navbar-collapse" id="navbarNav">
+                      <div class="menu-container d-flex flex-column h-100 w-100">
+                          <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr">
+                          <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
+                          <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2" role="button">Play a game</button>
+                          <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
+                          <button id="statsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Statistics</button>
+                          <button id="friendsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Friends</button>
+                          <div class="flex-grow-1"></div>
+                          <button id="settingsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Settings</button>
+                          <button id="logoutButton" class="btn btn-danger nav-link menu-button w-100 mb-2">Logout</button>
+                      </div>
+                  </div>
+              </div>
+          </nav>
             <!-- Contenu principal (Colonne droite, ajustée pour compenser le menu) -->
-            <div id="app" class="col-12 col-md-10 p-1 h-100 d-flex flex-column nav-pills flex-grow-1">
-                <!-- 3 sections principales pour l'application -->
+        <div id="app" class="col-12 col-md-10 p-1 d-flex flex-column">
                 <div id="app_top" class="semi-transparent-bg p-3 text-dark"></div>
-                <div id="app_main" class="semi-transparent-bg flex-grow-1 p-3 text-dark"></div>
+                <div id="app_main" class="semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto"></div>
                 <div id="app_bottom" class="semi-transparent-bg p-3 text-dark"></div>
             </div>
         </div>
