@@ -101,6 +101,26 @@ h6 {
   margin: 0 5px;
 }
 
+.table thead th {
+  background-color: transparent !important;
+}
+
+.table tbody tr {
+  background-color: transparent !important;
+}
+
+.table {
+  opacity: 0.9;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: transparent !important;
+}
+
+.table-hover tbody tr:hover {
+  background-color: transparent !important;
+}
+
 .nav-pills .nav-link.active {
   background-color: #007bff;
   color: #fff;
