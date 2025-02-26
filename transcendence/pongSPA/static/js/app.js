@@ -346,8 +346,11 @@ function displayQuickStats(data, playerName) {
   `;
 }
 
-export function displayWelcomePage() {
-  const username = localStorage.getItem("username");
+
+export async function displayWelcomePage() {
+  // Attendre l'URL de l'avatar
+  const avatarPicture = localStorage.getItem("avatarUrl"); // Fallback pour username
+  const username = localStorage.getItem("username") || "Guest"; // Fallback pour username
 
   // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
@@ -367,7 +370,7 @@ export function displayWelcomePage() {
                   <div class="card shadow-sm welcome-card">
                       <div class="card-body d-flex align-items-center">
                           <div class="rounded-circle overflow-hidden me-3">
-                              <img src="/static/mvillarr.jpg" class="object-fit-cover" alt="mvillarr" />
+                              <img src="${avatarPicture}" class="object-fit-cover" alt="Profile picture" />
                           </div>
                           <h3 class="card-title mb-0">Welcome ${username}</h3>
                       </div>

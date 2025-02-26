@@ -107,6 +107,7 @@ body {
     top: 0;                /* Colle au haut */
     overflow-x: hidden;    /* Pas de débordement horizontal */
     overflow-y: auto;      /* Défilement interne si contenu trop long */
+    min-height: 0;  
 }
 
 @media (min-width: 768px) {
@@ -114,6 +115,7 @@ body {
         width: 16.666667%; /* Équivalent à col-md-2 (2/12) */
         flex: 0 0 16.666667%; /* Force la largeur fixe */
         max-width: 16.666667%; /* Limite la largeur */
+        height: 100%; 
     }
     .navbar-collapse {
         display: block !important; /* Force le menu à rester déplié */
@@ -121,6 +123,11 @@ body {
     .navbar-toggler {
         display: none !important; /* Cache le bouton burger */
     }
+}
+
+.navbar-collapse {
+    height: 100%;          /* Propager la hauteur de #menu */
+    min-height: 0;         /* Compatibilité flex */
 }
 
 .menu-container {
@@ -133,6 +140,7 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
     overflow-x: hidden;
+    min-height: 0;
 }
 
 .menu-container img {

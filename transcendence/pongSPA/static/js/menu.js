@@ -2,8 +2,31 @@ import { logout } from './auth.js';
 import { navigateTo } from "./app.js";
 
 
-export function displayMenu() {
-  // Vider les conteneurs
+export async function fetchAndStoreAvatarUrl() {
+  try {
+    const response = await fetch("/api/auth/user/", {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch user data.");
+    }
+    const user = await response.json();
+    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
+    localStorage.setItem("avatarUrl", avatarUrl);
+    return avatarUrl; // Retourne l'URL pour un usage éventuel
+  } catch (error) {
+    console.error("Error fetching avatar URL:", error);
+    const defaultUrl = "/media/avatars/avatar1.png";
+    localStorage.setItem("avatarUrl", defaultUrl);
+    return defaultUrl;
+  }
+}
+
+export async function displayMenu() {
+  const avatarPicture = await fetchAndStoreAvatarUrl();
+
+  ;// Vider les conteneurs
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
   document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
   document.getElementById('app_bottom').className = 'semi-transparent-bg p-3 text-dark';
@@ -18,7 +41,7 @@ export function displayMenu() {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
               <div class="menu-container d-flex flex-column h-100 w-100">
-                  <img src="/static/mvillarr.jpg" class="rounded-circle object-fit-cover align-self-center my-4" alt="Mvillarr" />
+                  <img src="${avatarPicture}"  class="rounded-circle object-fit-cover align-self-center my-4" alt="Profile picture"  />
                   
                   <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
                   <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2" role="button">Play a game</button>
