@@ -108,6 +108,7 @@ body {
     overflow-x: hidden;    /* Pas de débordement horizontal */
     overflow-y: auto;      /* Défilement interne si contenu trop long */
     min-height: 0;  
+    z-index: 1;
 }
 
 @media (min-width: 768px) {
@@ -130,6 +131,7 @@ body {
     min-height: 0;         /* Compatibilité flex */
 }
 
+/* Mode normal (grand écran) */
 .menu-container {
     /* width: 190px; */
     background: rgba(255, 255, 255, 0.4);
@@ -141,6 +143,13 @@ body {
     padding: 20px;
     overflow-x: hidden;
     min-height: 0;
+}
+
+/* Mode burger (<768px) grande opacité */
+@media (max-width: 767.98px) {
+  .navbar-collapse.show .menu-container {
+    background: rgba(255, 255, 255, 0.5);
+  }
 }
 
 .menu-container img {

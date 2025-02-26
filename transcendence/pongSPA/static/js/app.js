@@ -1,4 +1,4 @@
-import { startGameSetup } from "./pong.js";
+import { startGameSetup, gameInterval, stopGameProcess } from "./pong.js";
 import { validateToken } from "./auth.js";
 import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists } from "./tournament.js";
 import {
@@ -111,6 +111,13 @@ function addToCustomHistory(route) {
 // Fonction pour naviguer et mettre à jour l'UI
 export function navigateTo(route) {
   console.log('Navigating to:', route);
+
+  // Vérifier si le jeu Pong est en cours et l'arrêter
+  if (gameInterval) {
+    console.log("Game is running. Stopping game before navigation...");
+    stopGameProcess(false); // Ne pas marquer comme terminé, juste arrêter
+  }
+
   history.pushState({ page: route }, '', `#${route}`);
   console.log('pushstate: ', history.state);
   addToCustomHistory(route);
