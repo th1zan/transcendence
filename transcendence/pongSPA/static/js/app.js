@@ -766,7 +766,7 @@ function displayHTMLforSettings(user) {
     <!-- Account Actions -->
     <div class="d-flex justify-content-center mt-4">
       <button id="deleteAccountButton" class="btn btn-link nav-link text-danger">Delete account</button>
-      <button id="anonymizeAccountButton" class="btn btn-link nav-link text-warning">Anonimize account</button>
+      <button id="anonymizeAccountButton" class="btn btn-link nav-link text-success">Anonimize account</button>
     </div>
   `;
 

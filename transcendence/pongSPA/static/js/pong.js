@@ -24,6 +24,9 @@ let collisionActive = false;
 let mode = "solo";
 let isTournamentMatch = false;
 
+let exchangesPerSet = 0; // Compteur d'échanges par set
+let setStartTime = null; // Temps de début du set
+
 // Variable pour stocker l'historique des sets
 let setHistory = [];
 
@@ -48,7 +51,10 @@ function connectWebSocket()
       opponent.y = data.y;
     }
   };
-
+function initSetStats() {
+  exchangesPerSet = 0; // Réinitialiser le compteur d'échanges
+  setStartTime = Date.now(); // Enregistrer le temps de début en millisecondes
+}
   ws.onerror = (error) => console.error("WebSocket error:", error);
 
   ws.onclose = (event) => {
@@ -63,6 +69,7 @@ function connectWebSocket()
 // Démarrer le jeu Pong
 let retryCount = 0;
 const MAX_RETRIES = 10; // Limiter à 10 tentatives (1 seconde au total, à 100 ms par tentative)
+
 
 function startPongGame() {
   console.log("Starting Pong Game");
@@ -83,14 +90,13 @@ function startPongGame() {
         'OK',
         () => {
           stopGameProcess();
-          navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur critique
+          navigateTo('welcome');
         }
       );
       return;
     }
   }
 
-  // Réinitialiser le compteur de tentatives pour de futurs appels
   retryCount = 0;
 
   const cnv_context = canvas.getContext("2d");
@@ -110,12 +116,94 @@ function startPongGame() {
 
   clearInterval(gameInterval);
 
+  initSetStats(); // Initialiser les stats juste avant le début de la boucle
+
   const fps = 50;
   gameInterval = setInterval(() => {
     update();
     render(cnv_context);
   }, 1000 / fps);
 }
+
+//   function startPongGame() {
+//     console.log("Starting Pong Game");
+//
+//     const canvas = document.getElementById("pong");
+//
+//     if (!canvas) {
+//       if (retryCount < MAX_RETRIES) {
+//         console.warn(`Canvas not found. Retry ${retryCount + 1}/${MAX_RETRIES} in 100 ms.`);
+//         retryCount++;
+//         setTimeout(startPongGame, 100);
+//         return;
+//       } else {
+//         console.error('Failed to find canvas after maximum retries. Please check the DOM.');
+//         showModal(
+//           'Error',
+//           'Failed to start the game. The game canvas could not be found. Please refresh the page and try again.',
+//           'OK',
+//           () => {
+//             stopGameProcess();
+//             navigateTo('welcome');
+//           }
+//         );
+//         return;
+//       }
+//     }
+//
+//   //TO DELETE IF IT WORKS AFTER STATISTIC IMPLEMENTAITON
+//   // if (!canvas) {
+//   //
+//   //   const cnv_context = canvas.getContext("2d");
+//   //   initGameObjects(canvas);
+//   //   resetScores();
+//   //
+//   //   if (retryCount < MAX_RETRIES) {
+//   //     console.warn(`Canvas not found. Retry ${retryCount + 1}/${MAX_RETRIES} in 100 ms.`);
+//   //     retryCount++;
+//   //     setTimeout(startPongGame, 100);
+//   //     return;
+//   //   } else {
+//   //     console.error('Failed to find canvas after maximum retries. Please check the DOM.');
+//   //     showModal(
+//   //       'Error',
+//   //       'Failed to start the game. The game canvas could not be found. Please refresh the page and try again.',
+//   //       'OK',
+//   //       () => {
+//   //         stopGameProcess();
+//   //         navigateTo('welcome'); // Retourner à la page d’accueil en cas d’erreur critique
+//   //       }
+//   //     );
+//   //     return;
+//   //   }
+//   // }
+//
+//   // Réinitialiser le compteur de tentatives pour de futurs appels
+//   retryCount = 0;
+//
+//   const cnv_context = canvas.getContext("2d");
+//   console.log("Canvas context obtained:", cnv_context !== null);
+//
+//   initGameObjects(canvas);
+//   console.log("Game objects initialized");
+//   resetScores();
+//   console.log("Scores reset");
+//
+//   console.log("Mode multiplayer or solo:", mode);
+//   if (mode !== "multiplayer") {
+//     console.log("Mode:", mode, ", let's connect to WebSocket.");
+//     connectWebSocket();
+//   }
+//   console.log("WebSocket connection attempted");
+//
+//   clearInterval(gameInterval);
+//
+//   const fps = 50;
+//   gameInterval = setInterval(() => {
+//     update();
+//     render(cnv_context);
+//   }, 1000 / fps);
+// }
 
 function updateGamePanel() {
   const gamePanel = document.getElementById("app_bottom");
@@ -263,6 +351,7 @@ function update() {
     ) {
       ball.velocityX = -ball.velocityX;
       ball.speed *= 1.05;
+      exchangesPerSet++; // Compter l'échange avec l'obstacle
     }
   }
 
@@ -271,6 +360,7 @@ function update() {
   if (collision(ball, playerPaddle)) {
     ball.velocityX = -ball.velocityX;
     ball.speed *= 1.05;
+    exchangesPerSet++;
   }
 
   if (ball.x - ball.radius < 0) {
@@ -293,28 +383,22 @@ function update() {
     }
   }
 
-// <<<<<<< HEAD
-//   //Envoyer la position de la balle au serveur
-//   if (ws && ws.readyState === WebSocket.OPEN) {
-//     const message = JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y });
-//     ws.send(message);
-//     console.log("Ball position sent: ", message);
-// =======
 
   if (mode != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
   }
 }
 
-
-function saveSetResult() {
-  // Enregistrer le résultat actuel du set
-  setHistory.push({
-    set_number: currentGame + 1,
-    player1_score: player.score,
-    player2_score: opponent.score,
-  });
-}
+// OLD function
+// function saveSetResult() {
+//
+//   // Enregistrer le résultat actuel du set
+//   setHistory.push({
+//     set_number: currentGame + 1,
+//     player1_score: player.score,
+//     player2_score: opponent.score,
+//   });
+// }
 
 function updateResults() {
   const resultDiv = document.getElementById("app_bottom");
@@ -365,6 +449,7 @@ function handleGameEnd(winner) {
       'Next Set',
       () => {
         resetScores();
+        initSetStats();
         updateResults();
 
         // Vérifier et préserver ou recréer le canvas
@@ -444,45 +529,39 @@ function displayResults(matchID) {
     console.log("displayResults::.then buttonText: ", buttonText);
 
   let summary = `
-        <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
-        <h3 class="mt-3">Game Summary:</h3>
-        <table class="table table-sm">
-          <tbody>
-            <tr>
-              <td><strong>Game</strong></td>
-              <td>${data.player1_name} vs ${data.player2_name}</td>
-            </tr>
-            <tr>
-              <td><strong>Score (sets)</strong></td>
-              <td>${data.player1_sets_won} : ${data.player2_sets_won}</td>
-            </tr>
-            <tr>
-              <td><strong>Winner</strong></td>
-              <td>${data.winner_name}</td>
-            </tr>
-          </tbody>
-        </table>
-        <h3 class="mt-3">Set Details:</h3>
-        <table class="table table-striped">
-          <thead class="thead-dark">
-            <tr>
-              <th scope="col">Set n°</th>
-              <th scope="col">Set's score</th>
-            </tr>
-          </thead>
-          <tbody>
+    <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
+    <h3 class="mt-3">Game Summary:</h3>
+    <table class="table table-sm">
+      <tbody>
+        <tr><td><strong>Game</strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
+        <tr><td><strong>Score (sets)</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
+        <tr><td><strong>Winner</strong></td><td>${data.winner_name}</td></tr>
+      </tbody>
+    </table>
+    <h3 class="mt-3">Set Details:</h3>
+    <table class="table table-striped">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Set n°</th>
+          <th scope="col">Score</th>
+          <th scope="col">Exchanges</th>
+          <th scope="col">Duration (s)</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  if (data.sets && Array.isArray(data.sets)) {
+    data.sets.forEach((set, index) => {
+      summary += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${set.player1_score} - ${set.player2_score}</td>
+          <td>${set.exchanges || 0}</td>
+          <td>${set.duration ? set.duration.toFixed(1) : 0}</td>
+        </tr>
       `;
-
-      if (data.sets && Array.isArray(data.sets)) {
-        data.sets.forEach((set, index) => {
-          summary += `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${set.player1_score} - ${set.player2_score}</td>
-            </tr>
-          `;
-        });
-      } else {
+    });
+  } else {
         summary += `
           <tr>
             <td colspan="2">No sets recorded.</td>
@@ -784,7 +863,7 @@ async function sendScore() {
       player1: player1,
       user2: user2,
       player2: player2,
-      sets: setHistory,
+      sets: setHistory, // Contient maintenant exchanges et duration
       player1_sets_won: player1Wins,
       player2_sets_won: player2Wins,
       sets_to_win: numberOfGames,
@@ -792,9 +871,9 @@ async function sendScore() {
       tournament: tournament,
       is_tournament_match: isTournamentMatch,
       winner: winner,
-      mode: mode, 
+      mode: mode,
     }),
-  })
+  })   
     .then((response) => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -851,3 +930,45 @@ export function stopGameProcess(isGameFinished = false) {
   currentGame = 0;
   setHistory = [];
 }
+
+
+function initSetStats() {
+  exchangesPerSet = 0; // Réinitialiser le compteur d'échanges
+  setStartTime = Date.now(); // Enregistrer le temps de début en millisecondes
+}
+
+function recordSetStats() {
+  const setDuration = setStartTime ? (Date.now() - setStartTime) / 1000 : 0; // Par défaut à 0 si null
+  console.log(`Set ${currentGame + 1} duration: ${setDuration.toFixed(1)}s`); // Log pour debug
+  return {
+    set_number: currentGame + 1,
+    player1_score: player.score,
+    player2_score: opponent.score,
+    exchanges: exchangesPerSet,
+    duration: setDuration
+  };
+}
+
+function saveSetResult() {
+  setHistory.push(recordSetStats());
+}
+
+function initFirstSetStats() {
+  if (currentGame === 0 && player.score === 0 && opponent.score === 0) {
+    exchangesPerSet = 0;
+    setStartTime = Date.now();
+    console.log("First set timer started");
+  }
+}
+
+// function resetBall() {
+//   ball.x = canvas.width / 2;
+//   ball.y = canvas.height / 2;
+//   ball.speed = 5;
+//   ball.velocityX = -ball.velocityX;
+//   collisionActive = false;
+//   setTimeout(() => {
+//     collisionActive = true;
+//   }, 2000);
+//   // Pas de réinitialisation ici pour garder les stats par set
+// }
