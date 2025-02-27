@@ -83,18 +83,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4. Plan the refreshing interval for the authentication Token
   console.log('Setting up token refresh interval');
   setInterval(async () => {
-    console.log('Refreshing token via interval...');
-    const refreshed = await refreshToken();
-    if (!refreshed) {
+  console.log('Refreshing token via interval...');
+  const refreshed = await refreshToken();
+  if (!refreshed) {
       console.warn('Interval refresh failed, consider re-authenticating.');
       showModal(
         'Warning',
-        'Your session may have expired. Please log in again.',
+        'Your session may have expired or the token is blacklisted. Please log in again.',
         'OK',
         () => navigateTo('login')
       );
     }
-  }, 10 * 60 * 1000); // Rafraîchir toutes les 10 minutes
+  }, 4 * 60 * 1000); // Rafraîchir toutes les 4 minutes
 
   // 5. Listener for history changes
   window.addEventListener("popstate", function (event) {

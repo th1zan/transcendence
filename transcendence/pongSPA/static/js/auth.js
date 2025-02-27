@@ -71,26 +71,32 @@ export function showModalConfirmation(message, title = "Confirmation") {
 export async function refreshToken() {
   try {
     console.log("Attempting to refresh token...");
-    console.log('Cookies before refresh (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
+    console.log('Cookies before refresh (HTTP-only, checking via API):', 'Simulating cookie inclusion with credentials: include');
     let response = await fetch("/api/auth/refresh/", {
       method: "POST",
       credentials: "include",
       headers: { 
         "Content-Type": "application/json",
-        // Si nécessaire, ajouter un en-tête pour le refresh_token (mais récupérer depuis cookies via API si possible)
-        // "Authorization": `Bearer ${/* refresh_token depuis cookies */}`
       },
     });
 
     console.log("Refresh response status:", response.status);
+    console.log("Refresh response headers:", response.headers); // Pour vérifier les cookies mis à jour
     let data = await response.json();
     console.log("🔄 Refresh response:", data);
 
     if (response.ok && (data.message === "Token refreshed successfully" || data.access)) {
       console.log("✅ Access token refreshed successfully (stored in cookies by server)");
+      if (data.refresh) {
+        console.log("New refresh token detected in response, but not stored (handled by cookies):", data.refresh);
+      }
       return true;
     } else if (response.status === 401 || response.status === 403) {
-      console.warn("Refresh token invalid or expired, clearing tokens.");
+      const errorData = await response.json();
+      console.warn("Refresh token invalid or expired:", errorData);
+      if (errorData.detail && errorData.detail.includes('blacklisted')) {
+        console.warn('Token blacklisted detected:', errorData);
+      }
       localStorage.removeItem('username');
       return false;
     }

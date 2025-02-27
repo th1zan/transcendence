@@ -13,6 +13,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
+
 # from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
@@ -30,17 +31,30 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.token_blacklist.models import (BlacklistedToken,
-                                                             OutstandingToken)
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import (CustomUser, FriendRequest, Notification, Player,
-                     PongMatch, PongSet, Tournament, TournamentPlayer)
-from .serializers import (PongMatchSerializer, PongSetSerializer,
-                          TournamentPlayerSerializer, TournamentSerializer,
-                          UserRegisterSerializer)
+from .models import (
+    CustomUser,
+    FriendRequest,
+    Notification,
+    Player,
+    PongMatch,
+    PongSet,
+    Tournament,
+    TournamentPlayer,
+)
+from .serializers import (
+    PongMatchSerializer,
+    PongSetSerializer,
+    TournamentPlayerSerializer,
+    TournamentSerializer,
+    UserRegisterSerializer,
+)
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
 
@@ -275,190 +289,6 @@ class PongScoreView(APIView):
             return Response(match_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class PongScoreView(APIView):
-#     permission_classes = [IsAuthenticated]
-#
-#     def get(self, request, pk):
-#         try:
-#             match = PongMatch.objects.get(pk=pk)
-#
-#             winner = match.winner
-#             player1 = match.player1
-#             player2 = match.player2
-#             sets = match.sets.all()
-#
-#             match_serializer = PongMatchSerializer(match)
-#             sets_serializer = PongSetSerializer(sets, many=True)
-#
-#             response_data = match_serializer.data
-#             response_data["sets"] = [set_data for set_data in sets_serializer.data]
-#
-#             return Response(response_data)
-#
-#         except PongMatch.DoesNotExist:
-#
-#             return Response(
-#                 {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
-#             )
-#
-#     def post(self, request):
-#         match_data = request.data
-#         logger.debug("Received match data: %s", match_data)
-#         sets_data = match_data.pop("sets", [])
-#         logger.debug("Extracted sets data: %s", sets_data)
-#         mode = match_data.get("mode", "solo")
-#         print(f"Mode: {mode}")
-#
-#         user1 = request.user
-#         player1_name = match_data["player1"]
-#         player1, created = Player.objects.get_or_create(
-#             player=player1_name,
-#             defaults={"user": user1 if user1.username == player1_name else None},
-#         )
-#
-#         player2_name = match_data["player2"]
-#         player2, created = Player.objects.get_or_create(player=player2_name)
-#
-#         print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
-#         # Vérification de l'authentification de player2 si le contexte est multiplayer
-#         if mode != "solo" and player2.user:
-#             print(f"Player2: {player2.user}, authenticated: {player2.authenticated}")
-#             if not player2.authenticated:
-#                 return Response(
-#                     {
-#                         "error": "Player2 must be authenticated i(or guest) for multiplayer matches."
-#                     },
-#                     status=status.HTTP_403_FORBIDDEN,
-#                 )
-#             match_data["user2"] = player2.user.id
-#         else:
-#             match_data["user2"] = None
-#             if mode != "solo":
-#                 match_data["player2_sets_won"] = 0
-#                 match_data["player1_sets_won"] = 0
-#
-#         match_data["player1"] = player1.id
-#         match_data["player2"] = player2.id
-#
-#         match_serializer = PongMatchSerializer(data=match_data)
-#         if match_serializer.is_valid():
-#             match = match_serializer.save()
-#
-#             for set_data in sets_data:
-#                 set_data["match"] = match.id
-#                 set_serializer = PongSetSerializer(data=set_data)
-#                 if set_serializer.is_valid():
-#                     set_serializer.save()
-#                 else:
-#                     return Response(
-#                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-#                     )
-#
-#             if match_data.get("winner"):
-#                 try:
-#                     winner_player = Player.objects.get(player=match_data["winner"])
-#                     match.winner = winner_player
-#                 except Player.DoesNotExist:
-#                     match.winner = None
-#             else:
-#                 match.winner = None
-#
-#             match.save()
-#
-#             # Reset authenticated status for player2 if it's a multiplayer match
-#             if mode != "solo" and player2.user:
-#                 print(
-#                     f"Player2: {player2.user}, Status before: {player2.authenticated}"
-#                 )
-#                 player2.authenticated = False
-#                 player2.save()
-#                 print(f"Player2: {player2.user}, Status after: {player2.authenticated}")
-#
-#             return Response(match_serializer.data, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#     def put(self, request, pk):
-#         try:
-#             match = PongMatch.objects.get(pk=pk)
-#         except PongMatch.DoesNotExist:
-#             return Response(
-#                 {"error": "Match not found."}, status=status.HTTP_404_NOT_FOUND
-#             )
-#
-#         match_data = request.data
-#         sets_data = match_data.pop("sets", [])
-#
-#         user1 = request.user
-#
-#         player1_name = match_data["player1"]
-#         player1, created = Player.objects.get_or_create(
-#             player=player1_name,
-#             defaults={"user": user1 if user1.username == player1_name else None},
-#         )
-#
-#         player2_name = match_data["player2"]
-#         player2, created = Player.objects.get_or_create(player=player2_name)
-#
-#         if player2.user and player2.authenticated:
-#             match_data["user2"] = player2.user.id
-#         else:
-#             match_data["user2"] = None
-#
-#         match_data["player1"] = player1.id
-#         match_data["player2"] = player2.id
-#
-#         match_serializer = PongMatchSerializer(match, data=match_data, partial=True)
-#         if match_serializer.is_valid():
-#             match = match_serializer.save()
-#
-#             for set_data in sets_data:
-#                 set_id = set_data.get("id")
-#                 if set_id:
-#                     try:
-#                         pong_set = PongSet.objects.get(pk=set_id, match=match)
-#                         set_serializer = PongSetSerializer(
-#                             pong_set, data=set_data, partial=True
-#                         )
-#                     except PongSet.DoesNotExist:
-#                         return Response(
-#                             {"error": "Set not found."},
-#                             status=status.HTTP_404_NOT_FOUND,
-#                         )
-#                 else:
-#                     set_data["match"] = match.id
-#                     set_serializer = PongSetSerializer(data=set_data)
-#
-#                 if set_serializer.is_valid():
-#                     set_serializer.save()
-#                 else:
-#                     return Response(
-#                         set_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-#                     )
-#
-#             if match_data.get("winner"):
-#                 try:
-#                     winner_player = Player.objects.get(player=match_data["winner"])
-#                     print(f"1. winner is:  {winner_player}")
-#                     match.winner = winner_player
-#                 except Player.DoesNotExist:
-#                     match.winner = (
-#                         None  # Si le joueur n'est pas trouvé, on met le gagnant à None
-#                     )
-#             else:
-#                 print(f"2. no winner.")
-#                 match.winner = (
-#                     None  # Si aucun gagnant n'est spécifié, on met aussi à None
-#                 )
-#
-#             match.save()
-#
-#             return Response(match_serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response(match_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -834,9 +664,7 @@ class UserRegisterView(APIView):
             # This would catch unique constraint errors
             logger.error("Integrity error creating user or player: %s", str(e))
             return Response(
-                {
-                    "error": "Could not create user or player. Email might be already in use."
-                },
+                {"error": "Could not create user. Identifier might be already in use."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
@@ -844,6 +672,58 @@ class UserRegisterView(APIView):
             return Response(
                 {"error": "Could not create user or player."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class CustomTokenValidateView(APIView):
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        # Extraire le token du cookie
+        token = request.COOKIES.get("access_token")
+        if not token:
+            logger.warning("No access token found in cookies.")
+            return Response(
+                {"detail": "Access token not provided."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Ajouter le token à l'en-tête d'autorisation manuellement si nécessaire
+        # Cela pourrait être fait dans un middleware ou avant d'appeler cette vue
+        request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+
+        try:
+            # La validation est déjà effectuée par JWTAuthentication, donc si on est ici,
+            # cela signifie que le token est valide. Cependant, on peut ajouter plus de vérifications si nécessaire.
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+            # Vérifier si le token n'a pas expiré
+            if payload.get("exp") <= int(time.time()):
+                logger.warning("Token has expired.")
+                return Response(
+                    {"detail": "Token has expired."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+            # Si nous sommes ici, le token est valide
+            logger.info("Token validation successful.")
+            return Response(
+                {"detail": "Token is valid.", "valid": True}, status=status.HTTP_200_OK
+            )
+
+        except jwt.ExpiredSignatureError:
+            logger.warning("Expired signature error.")
+            return Response(
+                {"detail": "Signature has expired."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except jwt.InvalidTokenError:
+            logger.warning("Invalid token error.")
+            return Response(
+                {"detail": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED
             )
 
 
@@ -1060,7 +940,6 @@ class UploadAvatarView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
 
 
 class ListFriendsView(APIView):
@@ -1578,58 +1457,6 @@ def check_player_exists(request):
         )
     except Player.DoesNotExist:
         return Response({"exists": False}, status=status.HTTP_200_OK)
-
-
-class CustomTokenValidateView(APIView):
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
-    authentication_classes = [CookieJWTAuthentication]
-    permission_classes = [AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        # Extraire le token du cookie
-        token = request.COOKIES.get("access_token")
-        if not token:
-            logger.warning("No access token found in cookies.")
-            return Response(
-                {"detail": "Access token not provided."},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-        # Ajouter le token à l'en-tête d'autorisation manuellement si nécessaire
-        # Cela pourrait être fait dans un middleware ou avant d'appeler cette vue
-        request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
-
-        try:
-            # La validation est déjà effectuée par JWTAuthentication, donc si on est ici,
-            # cela signifie que le token est valide. Cependant, on peut ajouter plus de vérifications si nécessaire.
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-
-            # Vérifier si le token n'a pas expiré
-            if payload.get("exp") <= int(time.time()):
-                logger.warning("Token has expired.")
-                return Response(
-                    {"detail": "Token has expired."},
-                    status=status.HTTP_401_UNAUTHORIZED,
-                )
-
-            # Si nous sommes ici, le token est valide
-            logger.info("Token validation successful.")
-            return Response(
-                {"detail": "Token is valid.", "valid": True}, status=status.HTTP_200_OK
-            )
-
-        except jwt.ExpiredSignatureError:
-            logger.warning("Expired signature error.")
-            return Response(
-                {"detail": "Signature has expired."},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-        except jwt.InvalidTokenError:
-            logger.warning("Invalid token error.")
-            return Response(
-                {"detail": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED
-            )
 
 
 class TournamentPlayersView(APIView):
