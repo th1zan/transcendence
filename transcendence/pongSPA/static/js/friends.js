@@ -1,4 +1,4 @@
-import {showModal } from './app.js';
+import {showModal, navigateTo } from './app.js';
 import {showModalConfirmation } from './auth.js';
 
 // TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
@@ -59,7 +59,9 @@ export function sendFriendRequest(friendUsername) {
                     'Success',
                     `Friend request sent to ${friendUsername}.`,
                     'OK',
-                    () => {}
+                    () => {
+                      navigateTo('friends');
+                    }
                 );
                 // showModal(
                 // 	'Success',
@@ -117,6 +119,7 @@ export function respondToFriendRequest(friendUsername, action) {
             () => {
               fetchFriendRequests();
               fetchFriends();
+              navigateTo('friends');
             }
           );
         }
@@ -163,6 +166,7 @@ export function removeFriend(friendUsername) {
               'OK',
               () => {
                 fetchFriends();
+                navigateTo('friends');
               }
             );
           }
@@ -271,30 +275,30 @@ export function fetchFriends() {
 	.catch((error) => console.error("Error fetching friends:", error));
 }
 
-const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
+// const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
 
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
+// ws.onmessage = (event) => {
+//   const data = JSON.parse(event.data);
   
-  if (data.notification_type === "friend_request") {
-    showModal(
-      'Notification',
-      "🔔 Friend Request: " + data.message,
-      'OK',
-      () => {
-        fetchFriendRequests(); // Refresh friend requests dynamically
-      }
-    );
-  } else {
-    showModal(
-      'Notification',
-      "🔔 Notification: " + data.message,
-      'OK',
-      () => {}
-    );
-  }
-};
+//   if (data.notification_type === "friend_request") {
+//     showModal(
+//       'Notification',
+//       "🔔 Friend Request: " + data.message,
+//       'OK',
+//       () => {
+//         fetchFriendRequests(); // Refresh friend requests dynamically
+//       }
+//     );
+//   } else {
+//     showModal(
+//       'Notification',
+//       "🔔 Notification: " + data.message,
+//       'OK',
+//       () => {}
+//     );
+//   }
+// };
 
-ws.onerror = (error) => {
-  console.error("WebSocket error:", error);
-};
+// ws.onerror = (error) => {
+//   console.error("WebSocket error:", error);
+// };
