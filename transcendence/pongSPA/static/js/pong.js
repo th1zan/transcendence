@@ -19,16 +19,30 @@ let control2 = "wasd";
 let design = "retro";
 let difficulty = "easy";
 let collisionActive = false;
+let fps = 50;
+let step = 20;
 
 // Variable pour stocker l'historique des sets
 let setHistory = [];
 
+let wsOpenCallback = null;
+
 // Ouvrir une connexion websocket avec le serveur
-function connectWebSocket()
+function connectWebSocket(onOpenCallback = null)
 {
+  if (onOpenCallback) {
+    wsOpenCallback = onOpenCallback;
+  }
+
   ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
 
-  ws.onopen = () => console.log("WebSocket connecté");
+  ws.onopen = () => {
+    console.log("WebSocket connecté");
+    if (onOpenCallback && typeof onOpenCallback === 'function') {
+      onOpenCallback();
+    }
+  };
+
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle") {
@@ -41,6 +55,23 @@ function connectWebSocket()
     console.log("WebSocket déconnecté. Reconnexion...");
     setTimeout(connectWebSocket, 1000);
   };
+}
+
+function sendGameConfiguration() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    console.log("Envoi des données de jeu au serveur...");
+    ws.send(JSON.stringify({ 
+      type: "start", 
+      canvas_height: canvas.height, 
+      canvas_width: canvas.width, 
+      paddle_height: player.height, 
+      fps: fps, 
+      step: step, 
+      control: control1 
+    }));
+  } else {
+    console.error("WebSocket non connecté, impossible d'envoyer la configuration");
+  }
 }
 
 // Démarrer le jeu Pong
@@ -58,11 +89,17 @@ function startPongGame() {
   initGameObjects(canvas);
   resetScores();
   if (context != "multiplayer" )
-    connectWebSocket(); 
+  {
+    connectWebSocket(sendGameConfiguration);
+  }
 
-  clearInterval(gameInterval);
+  clearInterval(gameInterval) ;
 
-  const fps = 50;
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    console.log("Envoi des données de jeu au serveur...");
+    //ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
+  }
+
   gameInterval = setInterval(() => {
     update();
     render(context);
@@ -133,7 +170,6 @@ function update() {
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
-    ball.speed *= 1.02;
   }
 
   if (difficulty === "hard" && obstacle) {
@@ -145,22 +181,55 @@ function update() {
   }
 
   if (difficulty === "hard" && obstacle && collisionActive) {
-    if (
+    if 
+    (
       ball.x + ball.radius > obstacle.x &&
       ball.x - ball.radius < obstacle.x + obstacle.width &&
       ball.y + ball.radius > obstacle.y &&
       ball.y - ball.radius < obstacle.y + obstacle.height
-    ) {
-      ball.velocityX = -ball.velocityX;
-      ball.speed *= 1.05;
+    ) 
+    {
+      ball.velocityX = -ball.velocityX; // comme un mur 
     }
   }
 
   let playerPaddle = ball.x < canvas.width / 2 ? player : opponent;
 
-  if (collision(ball, playerPaddle)) {
-    ball.velocityX = -ball.velocityX;
-    ball.speed *= 1.05;
+  if (collision(ball, playerPaddle))
+  {      
+    let angle = -(playerPaddle.y + player.height/2 - ball.y) / (player.height / 2) * Math.PI / 4;
+    ball.velocityY = ball.speed * Math.sin(angle);
+
+    if (ball.x < canvas.width / 2)
+    {
+      ball.velocityX = ball.speed * Math.cos(angle);
+    }
+    else
+    {
+      ball.velocityX = -ball.speed * Math.cos(angle);
+    }
+    if (ball.speed <= 10)
+    {
+      if (difficulty === "easy")
+      {
+        ball.speed *= 1.01;
+        ball.velocityX *= 1.01;
+        ball.velocityY *= 1.01;
+      }
+      else if (difficulty === "medium")
+      {
+        ball.speed *= 1.02;
+        ball.velocityX *= 1.02;
+        ball.velocityY *= 1.02;
+        console.log("vitesse de la balle: ", ball.speed);
+      }
+      else if (difficulty === "hard")
+      {
+        ball.speed *= 1.03;
+        ball.velocityX *= 1.03;
+        ball.velocityY *= 1.03;
+      }
+    }
   }
 
   if (ball.x - ball.radius < 0) {
@@ -181,11 +250,14 @@ function update() {
     } else {
       resetBall();
     }
+    //if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
+    //  ws.send(JSON.stringify({ type: "game_state", score_ai: opponent.score, score_opponent: player.score }));
+    //}
   }
 
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "ball_position", x: ball.x, y: ball.y }));
-  }
+   ws.send(JSON.stringify({ type: "ball", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
+  }  
 }
 
 
@@ -196,6 +268,10 @@ function saveSetResult() {
     player1_score: player.score,
     player2_score: opponent.score,
   });
+
+  //if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
+   // ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
+  //}
 }
 
 function handleGameEnd(winner) {
@@ -258,7 +334,7 @@ function displayResults(finalWinner) {
   summaryDiv.innerHTML = summary;
 
   // Attacher un écouteur d'événement au bouton après l'insertion dans le DOM
-   const backButton = document.getElementById("backButton");
+  const backButton = document.getElementById("backButton");
   if (backButton) {
     backButton.addEventListener("click", () => {
       summaryDiv.innerHTML = ""; // Effacer le summary
@@ -284,11 +360,15 @@ function initGameObjects(gameCanvas) {
   const paddleWidth = 10;
   let paddleHeight = 100;
   let ballSpeed = 5;
+  let ballAngle = Math.random() * Math.PI/2 - Math.PI/4 + Math.round(Math.random())*Math.PI;
+
 
   if (difficulty === "medium" || difficulty === "hard") {
     paddleHeight = 80;
-    ballSpeed = 7;
+    ballSpeed = 8;
+  }
 
+  if (difficulty === "hard") {
     obstacle = {
       x: canvas.width / 2 - 5,
       y: canvas.height / 3,
@@ -322,9 +402,9 @@ function initGameObjects(gameCanvas) {
     x: canvas.width / 2,
     y: canvas.height / 2,
     radius: 10,
-    speed: 5,
-    velocityX: ballSpeed,
-    velocityY: ballSpeed,
+    speed: ballSpeed,
+    velocityX: ballSpeed*Math.cos(ballAngle),
+    velocityY: ballSpeed*Math.sin(ballAngle),
     color: "WHITE",
   };
 
@@ -339,15 +419,15 @@ function initGameObjects(gameCanvas) {
       event.preventDefault();
       if (control1 === "arrows") {
         if (event.key === "ArrowUp" && player.y > 0) {
-          player.y -= 20;
+          player.y -= step;
         } else if (event.key === "ArrowDown" && player.y < canvas.height - paddleHeight) {
-          player.y += 20;
+          player.y += step;
         }
       } else if (control1 === "wasd") {
         if (event.key === "w" && player.y > 0) {
-          player.y -= 20;
+          player.y -= step;
         } else if (event.key === "s" && player.y < canvas.height - paddleHeight) {
-          player.y += 20;
+          player.y += step;
         }
       }
     });
@@ -365,15 +445,15 @@ function initGameObjects(gameCanvas) {
         event.preventDefault();
         if (control2 === "arrows") {
           if (event.key === "ArrowUp" && opponent.y > 0) {
-            opponent.y -= 20;
+            opponent.y -= step;
           } else if (event.key === "ArrowDown" && opponent.y < canvas.height - paddleHeight) {
-            opponent.y += 20;
+            opponent.y += step;
           }
         } else if (control2 === "wasd") {
           if (event.key === "w" && opponent.y > 0) {
-            opponent.y -= 20;
+            opponent.y -= step;
           } else if (event.key === "s" && opponent.y < canvas.height - paddleHeight) {
-            opponent.y += 20;
+            opponent.y += step;
           }
         }
       });
@@ -480,11 +560,31 @@ function collision(b, p) {
 }
 
 // Réinitialiser la balle
-function resetBall() {
+function resetBall() 
+{
   ball.x = canvas.width / 2;
   ball.y = canvas.height / 2;
-  ball.speed = 5;
-  ball.velocityX = -ball.velocityX;
+  if (difficulty === "easy")
+  {
+    ball.speed = 5;
+  }
+  else
+  {
+    ball.speed = 8;
+  }
+
+  // Définir la direction alternée de la balle à chaque reset
+  //let directionX = Math.random() > 0.5 ? 1 : -1;
+  //let directionY = Math.random() > 0.5 ? 1 : -1;
+  let ballAngle =  Math.random() * Math.PI/2 - Math.PI/4 + Math.round(Math.random())*Math.PI;
+  // Appliquer la vitesse initiale correcte en fonction de la direction choisie
+  ball.velocityX = ball.speed * Math.cos(ballAngle); //* directionX;
+  ball.velocityY = ball.speed * Math.sin(ballAngle); //* directionY;
+  
+  if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "reset", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
+  }
+ 
 
   collisionActive = false;
 
