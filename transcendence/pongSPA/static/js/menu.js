@@ -25,7 +25,7 @@ export async function fetchAndStoreAvatarUrl() {
 
 export async function displayMenu() {
   const avatarPicture = await fetchAndStoreAvatarUrl();
-
+ 
   ;// Vider les conteneurs
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
   document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
