@@ -393,16 +393,3 @@ h6 {
 }
 
 
-/* const appMain = document.getElementById('app_main'); */
-/* appMain.innerHTML = ''; // Nettoyage */
-/* appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap */
-/* appMain.style.maxHeight = '100%'; // Ajoute max-height */
-/* appMain.style.minHeight = '0';    // Ajoute min-height */
-/**/
-/* const appTop = document.getElementById('app_top'); */
-/* appTop.innerHTML = ''; */
-/* appTop.className = 'semi-transparent-bg p-3 text-dark'; */
-/**/
-/* const appBottom = document.getElementById('app_bottom'); */
-/* appBottom.innerHTML = ''; */
-/* appBottom.className = 'semi-transparent-bg p-3 text-dark'; */

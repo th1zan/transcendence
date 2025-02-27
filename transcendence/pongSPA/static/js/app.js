@@ -880,630 +880,6 @@ export function displaySettings() {
 
 }
 
-function fetchStatsDashboard() {
-  const username = localStorage.getItem("username");
-  if (!username) {
-    showModal('Login Required', 'Please log in to view your statistics.', 'OK', () => {});
-    return;
-  }
-
-  // Utiliser la même API que fetchResultats
-  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      const statsCharts = document.getElementById("statsCharts");
-      statsCharts.innerHTML = ''; // Vider le conteneur des graphiques
-
-      // Calculer les statistiques à partir du JSON
-      const playedMatches = Array.isArray(data) ? data.filter(match => match.is_played === true) : [];
-      const normalizedUsername = username.toLowerCase();
-
-      let wins = 0;
-      let losses = 0;
-      let tournamentWins = 0;
-      let totalMatches = 0;
-
-      // Calculer les statistiques globales
-      playedMatches.forEach((match) => {
-        totalMatches++;
-        const isPlayer1 = match.player1_name.toLowerCase() === normalizedUsername;
-        const isPlayer2 = match.player2_name.toLowerCase() === normalizedUsername;
-        const winnerName = (match.winner_name || "").toLowerCase();
-
-        if (isPlayer1 || isPlayer2) {
-          if (winnerName === normalizedUsername) {
-            wins++;
-            if (match.is_tournament_match) tournamentWins++;
-          } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress") {
-            losses++;
-          }
-        }
-      });
-
-      // Préparer les données pour l'historique des sessions (victoires/défaites par date)
-      const gameSessions = playedMatches.map(match => ({
-        date: new Date(match.date_played).toLocaleDateString(),
-        outcome: match.winner_name.toLowerCase() === normalizedUsername ? 1 : 0, // 1 pour victoire, 0 pour défaite
-        isTournament: match.is_tournament_match
-      }));
-      const sessionDates = [...new Set(gameSessions.map(session => session.date))].sort(); // Dates uniques, triées
-      const sessionOutcomes = sessionDates.map(date => {
-        const session = gameSessions.find(s => s.date === date);
-        return session ? session.outcome : 0;
-      });
-      const tournamentSessions = sessionDates.map(date => {
-        const session = gameSessions.find(s => s.date === date);
-        return session ? session.isTournament : false;
-      });
-
-      // 1. Graphique des statistiques utilisateur (victoires/défaites, matchs de tournoi)
-      const userStatsChartDiv = document.createElement('div');
-      userStatsChartDiv.className = 'col-12 col-md-6';
-      userStatsChartDiv.innerHTML = `
-        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">User Performance</h5>
-        <canvas id="userStatsChart" style="max-height: 200px;"></canvas>
-      `;
-      statsCharts.appendChild(userStatsChartDiv);
-
-      // 2. Graphique de l'historique des sessions de jeu
-      const gameSessionsChartDiv = document.createElement('div');
-      gameSessionsChartDiv.className = 'col-12 col-md-6';
-      gameSessionsChartDiv.innerHTML = `
-        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">Game Sessions History</h5>
-        <canvas id="gameSessionsChart" style="max-height: 200px;"></canvas>
-      `;
-      statsCharts.appendChild(gameSessionsChartDiv);
-
-      // Initialiser les graphiques avec Chart.js
-      const userStatsCtx = document.getElementById('userStatsChart').getContext('2d');
-      new Chart(userStatsCtx, {
-        type: 'bar',
-        data: {
-          labels: ['Wins', 'Losses', 'Tournament Wins'],
-          datasets: [{
-            label: 'User Performance',
-            data: [wins, losses, tournamentWins],
-            backgroundColor: ['#28a745', '#dc3545', '#007bff'], // Vert pour victoires, rouge pour défaites, bleu pour tournois
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: { 
-            y: { 
-              beginAtZero: true,
-              max: Math.max(wins, losses, tournamentWins) + 1 // Limiter l'échelle
-            }
-          },
-          plugins: {
-            title: { display: true, text: `Stats for ${username}`, font: { family: 'Press Start 2P', size: 16 } },
-            legend: { position: 'top' }
-          },
-          maintainAspectRatio: false,
-          responsive: true,
-          maxHeight: 200 // Limiter la hauteur maximale du graphique
-        }
-      });
-
-      // Graphique de l'historique des sessions
-      const gameSessionsCtx = document.getElementById('gameSessionsChart').getContext('2d');
-      new Chart(gameSessionsCtx, {
-        type: 'line',
-        data: {
-          labels: sessionDates,
-          datasets: [{
-            label: 'Game Outcomes',
-            data: sessionOutcomes,
-            borderColor: '#007bff',
-            backgroundColor: 'rgba(0, 123, 255, 0.2)',
-            fill: true,
-            tension: 0.1,
-            pointBackgroundColor: sessionOutcomes.map(outcome => outcome === 1 ? '#28a745' : '#dc3545'), // Points verts pour victoires, rouges pour défaites
-            pointRadius: 5
-          }, {
-            label: 'Tournament Matches',
-            data: tournamentSessions.map(isTournament => isTournament ? 1 : 0),
-            borderColor: 'rgba(220, 53, 69, 0.5)', // Rouge semi-transparent pour les matchs de tournoi
-            borderDash: [5, 5], // Ligne pointillée pour différencier
-            fill: false,
-            tension: 0.1,
-            pointRadius: 0 // Pas de points visibles pour cette ligne
-          }]
-        },
-        options: {
-          scales: { 
-            y: { 
-              beginAtZero: true, 
-              ticks: { callback: value => value === 1 ? 'Win/Tournament' : 'Loss' },
-              max: 1.5 // Pour laisser de l'espace pour les étiquettes
-            }
-          },
-          plugins: {
-            title: { display: true, text: 'Match History Over Time', font: { family: 'Press Start 2P', size: 16 } },
-            legend: { position: 'top' }
-          },
-          maintainAspectRatio: false,
-          responsive: true,
-          maxHeight: 200 // Limiter la hauteur maximale du graphique
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Error fetching stats dashboard:", error);
-      const statsCharts = document.getElementById("statsCharts");
-      statsCharts.innerHTML = `
-        <div class="container mt-4">
-          <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-              <p class="text-danger text-center">Error loading statistics: ${error.message}</p>
-              <button id="retryStats" class="btn btn-primary mt-2 w-100" style="font-family: 'Press Start 2P', cursive;">Retry</button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.getElementById("retryStats")?.addEventListener("click", () => fetchStatsDashboard());
-    });
-}
-
-export function displayStats() {
-  const appMain = document.getElementById('app_main');
-  appMain.innerHTML = ''; // Nettoyage
-  appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap
-  appMain.style.maxHeight = '100%'; // Ajoute max-height
-  appMain.style.minHeight = '0';    // Ajoute min-height
-
-  const appTop = document.getElementById('app_top');
-  appTop.innerHTML = '';
-  appTop.className = 'semi-transparent-bg p-3 text-dark';
-
-  const appBottom = document.getElementById('app_bottom');
-  appBottom.innerHTML = '';
-  appBottom.className = 'semi-transparent-bg p-3 text-dark';
-
-
-  appTop.innerHTML = `
-    <div class="container mt-4">
-      <h3 class="text-center text-primary mb-4">Statistics</h3>
-      <div class="d-flex flex-md-row flex-column justify-content-center align-items-center gap-3">
-        <button id="viewResultsButton" class="btn btn-outline-success btn-lg shadow-sm">
-          My Results
-        </button>
-        <button id="viewPlayerResult" class="btn btn-outline-secondary btn-lg shadow-sm">
-          Search Player's Result
-        </button>
-        <button id="viewRankingButton" class="btn btn-outline-primary btn-lg shadow-sm">
-          Overall Ranking
-        </button>
-      </div>
-    </div>
-  `;
-
-  appMain.innerHTML = `
-    <div class="container mt-4">
-      <div class="card mb-4 shadow-sm bg-transparent">
-        <div class="card-body" id="statsDashboard">
-          <h4 class="card-title text-center mb-3">User and Game Stats Dashboard</h4>
-          <div id="statsCharts" class="row g-4" style="max-height: 500px; overflow-y: auto;"></div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Afficher les résultats utilisateur et initialiser le dashboard
-  fetchResultats();
-  // fetchStatsDashboard();
-
-  // Ajoute les nouveaux écouteurs
-  document.getElementById("viewResultsButton").addEventListener("click", () => fetchResultats());
-  document.getElementById("viewPlayerResult").addEventListener("click", fetchPlayerResult);
-  document.getElementById("viewRankingButton").addEventListener("click", fetchRanking);
-}
-
-// Fonction pour afficher le formulaire de recherche de résultats d'un joueur
-function fetchPlayerResult() {
-  const appMain = document.getElementById('app_main');
-  appMain.innerHTML = ''; // Nettoyage
-  appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap
-  appMain.style.maxHeight = '100%'; // Ajoute max-height
-  appMain.style.minHeight = '0';    // Ajoute min-height
-  
-  appMain.innerHTML = `
-    <div class="container mt-4">
-      <div class="card" style="width: 100%; max-width: 500px; margin: auto;">
-        <div class="card-body">
-          <h5 class="card-title text-center mb-3">Search Player Results</h5>
-          <div class="form-group mt-2">
-            <label for="playerName" class="form-label">Player Name</label>
-            <input type="text" id="playerName" class="form-control" required>
-            <button id="searchPlayerButton" class="btn btn-outline-success btn-lg shadow-sm mt-2 w-100">
-              Search Results
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Supprime les anciens écouteurs pour éviter les doublons
-  // removeEventListeners();
-
-  // Ajoute un écouteur pour le bouton de recherche
-  document.getElementById("searchPlayerButton").addEventListener("click", () => {
-    const playerName = document.getElementById("playerName").value.trim();
-    if (playerName) {
-      fetchResultats(playerName); // Passe le nom du joueur à fetchResultats
-    } else {
-      // Remplacer l'alert par oneButtonModal
-      showModal(
-        'Warning',
-        'Please enter a player name.',
-        'OK', // Texte du bouton
-        () => {} // Action vide, juste fermer la modale
-      );
-    }
-  });
-}
-
-// Fonction pour calculer et afficher les statistiques de synthèse
-function displaySummaryStats(data, playerName) {
-  if (!Array.isArray(data) || data.length === 0) {
-    return '<p class="text-muted">No summary statistics available.</p>';
-  }
-
-  const playedMatches = data.filter(match => match.is_played === true);
-  if (playedMatches.length === 0) {
-    return '<p class="text-muted">No played matches available for summary statistics.</p>';
-  }
-
-  let wins = 0;
-  let losses = 0;
-  let draws = 0;
-  let totalMatches = 0;
-  let totalSetsWon = 0;
-  let totalSetsLost = 0;
-  let totalPointsScored = 0;
-  let totalPointsConceded = 0;
-  let longestWinningStreak = 0;
-  let currentWinningStreak = 0;
-  let totalSetsPlayed = 0;
-  let tournamentWins = 0;
-
-  // Normaliser le nom du joueur pour la comparaison
-  const normalizedPlayerName = (playerName || "You").toLowerCase();
-
-  // Trier les matchs par date pour la série de victoires
-  playedMatches.sort((a, b) => new Date(a.date_played) - new Date(b.date_played));
-
-  playedMatches.forEach((match) => {
-    totalMatches++;
-
-    // Vérifier si le joueur est player1 ou player2
-    const isPlayer1 = match.player1_name.toLowerCase() === normalizedPlayerName;
-    const isPlayer2 = match.player2_name.toLowerCase() === normalizedPlayerName;
-    const winnerName = (match.winner_name || "").toLowerCase();
-
-    // Si le joueur n'est ni player1 ni player2, ignorer ce match pour ses stats
-    if (!isPlayer1 && !isPlayer2) return;
-
-    // Calcul des sets et points en fonction du rôle du joueur
-    const playerSetsWon = isPlayer1 ? match.player1_sets_won : match.player2_sets_won;
-    const playerSetsLost = isPlayer1 ? match.player2_sets_won : match.player1_sets_won;
-    const playerPointsScored = isPlayer1 ? match.player1_total_points : match.player2_total_points;
-    const playerPointsConceded = isPlayer1 ? match.player2_total_points : match.player1_total_points;
-
-    totalSetsWon += playerSetsWon || 0;
-    totalSetsLost += playerSetsLost || 0;
-    totalPointsScored += playerPointsScored || 0;
-    totalPointsConceded += playerPointsConceded || 0;
-    totalSetsPlayed += match.sets && Array.isArray(match.sets) ? match.sets.length : 0;
-
-    // Déterminer victoire, défaite ou nul
-    if (winnerName === normalizedPlayerName) {
-      wins++;
-      currentWinningStreak++;
-      longestWinningStreak = Math.max(longestWinningStreak, currentWinningStreak);
-      if (match.is_tournament_match) tournamentWins++;
-    } else if (winnerName && winnerName !== "no winner" && winnerName !== "in progress" && winnerName !== "") {
-      losses++;
-      currentWinningStreak = 0;
-    } else {
-      draws++;
-      currentWinningStreak = 0;
-    }
-  });
-
-  // Calculs des ratios et pourcentages
-  const avgPointsPerSet = totalSetsPlayed > 0 ? (totalPointsScored / totalSetsPlayed).toFixed(1) : 0;
-  const winLossRatio = losses > 0 ? (wins / losses).toFixed(2) : wins > 0 ? "∞" : "0.00";
-  const setsRatio = totalSetsLost > 0 ? (totalSetsWon / totalSetsLost).toFixed(2) : totalSetsWon > 0 ? "∞" : "0.00";
-  const pointsRatio = totalPointsConceded > 0 ? (totalPointsScored / totalPointsConceded).toFixed(2) : totalPointsScored > 0 ? "∞" : "0.00";
-  const winPercentage = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
-  const lossPercentage = totalMatches > 0 ? ((losses / totalMatches) * 100).toFixed(1) : 0;
-  const drawPercentage = totalMatches > 0 ? ((draws / totalMatches) * 100).toFixed(1) : 0;
-  const tournamentWinPercentage = totalMatches > 0 ? ((tournamentWins / totalMatches) * 100).toFixed(1) : 0;
-
-  // Vérification des pourcentages
-  const totalPercentage = parseFloat(winPercentage) + parseFloat(lossPercentage) + parseFloat(drawPercentage);
-  if (Math.abs(totalPercentage - 100) > 0.1 && totalMatches > 0) {
-    console.warn(`Percentages do not add up to 100%: ${totalPercentage}%`);
-  }
-
-  return `
-    <div class="card mb-4 shadow-sm bg-transparent">
-      <div class="card-body">
-        <h4 class="card-title">Summary Statistics for ${playerName || "You"}</h4>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item bg-transparent"><strong>Total Matches Played:</strong> ${totalMatches}</li>
-          <li class="list-group-item bg-transparent"><strong>Wins:</strong> ${wins} (${winPercentage}%)</li>
-          <li class="list-group-item bg-transparent"><strong>Losses:</strong> ${losses} (${lossPercentage}%)</li>
-          <li class="list-group-item bg-transparent"><strong>Draws:</strong> ${draws} (${drawPercentage}%)</li>
-          <li class="list-group-item bg-transparent"><strong>Win/Loss Ratio:</strong> ${winLossRatio}:1</li>
-          <li class="list-group-item bg-transparent"><strong>Sets Won/Lost Ratio:</strong> ${setsRatio}:1</li>
-          <li class="list-group-item bg-transparent"><strong>Points Scored/Conceded Ratio:</strong> ${pointsRatio}:1</li>
-          <li class="list-group-item bg-transparent"><strong>Longest Winning Streak:</strong> ${longestWinningStreak} matches</li>
-          <li class="list-group-item bg-transparent"><strong>Average Points per Match:</strong> ${totalMatches > 0 ? (totalPointsScored / totalMatches).toFixed(1) : 0}</li>
-          <li class="list-group-item bg-transparent"><strong>Total Sets Played:</strong> ${totalSetsPlayed}</li>
-          <li class="list-group-item bg-transparent"><strong>Average Points per Set:</strong> ${avgPointsPerSet}</li>
-          <li class="list-group-item bg-transparent"><strong>Tournament Wins:</strong> ${tournamentWins} (${tournamentWinPercentage}% of matches)</li>
-        </ul>
-      </div>
-    </div>
-  `;
-}
-
-// Fonction modifiée pour inclure les statistiques de synthèse et filtrer les matchs non joués
-function fetchResultats(player = null) {
-  const username = player || localStorage.getItem("username");
-
-  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      console.log("Fetched results:", data);
-
-      const appMain = document.getElementById('app_main');
-      appMain.innerHTML = ''; // Nettoyage
-      appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto'; // Réapplique les classes Bootstrap
-      appMain.style.maxHeight = '100%'; // Ajoute max-height
-      appMain.style.minHeight = '0';    // Ajoute min-height
-
-
-      appMain.innerHTML = `
-        ${displaySummaryStats(data, player || "You")}
-        <div class="container mt-4">
-          <div class="card mb-4 shadow-sm bg-transparent">
-            <div class="card-body">
-              <h4 class="card-title">Match History</h4>
-              <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-striped table-hover bg-transparent">
-                  <thead class="thead-dark bg-transparent">
-                    <tr>
-                      <th scope="col" data-priority="1">Date</th>
-                      <th scope="col" data-priority="1">Players</th>
-                      <th scope="col" data-priority="2">Score (Sets)</th>
-                      <th scope="col" data-priority="3">Points</th>
-                      <th scope="col" data-priority="2">Winner</th>
-                      <th scope="col" data-priority="4">Tournament</th>
-                    </tr>
-                  </thead>
-                  <tbody id="results" class="bg-transparent"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      const resultatsDiv = document.getElementById("results");
-
-      if (Array.isArray(data) && data.length > 0) {
-        // Filtrer les matchs joués
-        const playedMatches = data.filter(match => match.is_played === true);
-        const sortedData = playedMatches.sort((a, b) => {
-          const dateA = a.date_played ? new Date(a.date_played) : new Date(0);
-          const dateB = b.date_played ? new Date(b.date_played) : new Date(0);
-          return dateB - dateA; // Trie du plus récent au plus ancien
-        });
-
-        if (sortedData.length > 0) {
-          sortedData.forEach((match) => {
-            const dateObj = match.date_played ? new Date(match.date_played) : null;
-            const dateStr = dateObj ? dateObj.toLocaleDateString() : "Unknown Date";
-            const timeStr = dateObj ? dateObj.toLocaleTimeString() : "Unknown Time";
-            const player1 = match.player1_name || "Unknown Player 1";
-            const player2 = match.player2_name || "Unknown Player 2";
-            const winner = match.winner_name || "In Progress";
-            const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
-            const points = `${match.player1_total_points || 0} - ${match.player2_total_points || 0}`;
-            const tournament = match.tournament_name || "-";
-
-            // Détails des sets
-            let setsDetails = "";
-            if (match.sets && Array.isArray(match.sets)) {
-              setsDetails = match.sets
-                .map((set) => `Set ${set.set_number}: ${set.player1_score}-${set.player2_score}`)
-                .join("<br>");
-            }
-
-            resultatsDiv.innerHTML += `
-              <tr>
-                <td>
-                  ${dateStr}
-                  <br>
-                  <small class="text-muted">${timeStr}</small>
-                </td>
-                <td>${player1} vs ${player2}</td>
-                <td>
-                  ${setScore}
-                  ${setsDetails ? `<br><small class="text-muted">${setsDetails}</small>` : ""}
-                </td>
-                <td>${points}</td>
-                <td>${winner}</td>
-                <td>${tournament}</td>
-              </tr>
-            `;
-          });
-        } else {
-          resultatsDiv.innerHTML = `
-            <tr>
-              <td colspan="6" class="text-center">No played results found for ${player || "you"}.</td>
-            </tr>
-          `;
-        }
-      } else {
-        resultatsDiv.innerHTML = `
-          <tr>
-            <td colspan="6" class="text-center">No results found for ${player || "you"}.</td>
-          </tr>
-        `;
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching results:", error);
-      const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `
-        <div class="container mt-4">
-          <div class "card mb-4 shadow-sm">
-            <div class="card-body">
-              <p class="text-danger text-center">Error loading results: ${error.message}</p>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-}
-
-
-// function displayRanking(data) {
-//   //empty all the containers
-//   // document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   const appMain = document.getElementById("app_main");
-//   appMain.innerHTML = `
-//     <h3>Player Ranking:</h3>
-//     <div id="ranking"></div>
-//   `;
-//
-//   const rankingDiv = document.getElementById("ranking");
-//   if (Array.isArray(data) && data.length > 0) {
-//     data.forEach((player) => {
-//       const playerName = player.name || "Unknown Name";
-//       const totalWins = player.total_wins || 0;
-//       rankingDiv.innerHTML += `
-//           <p>
-//               ${playerName} - Total Wins: ${totalWins}
-//           </p>`;
-//     });
-//   } else {
-//     rankingDiv.innerHTML += "<p>No ranking found for this user.</p>";
-//   }
-//
-// }
-
-
-function fetchRanking() {
-  fetch("/api/ranking/", {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data);
-
-      const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `
-        <div class="card mb-4 shadow-sm">
-          <div class="card-body">
-            <h4 class="card-title">Ranking Overview</h4>
-            <div class="table-responsive">
-              <table class="table table-striped table-hover">
-                <thead class="thead-dark">
-                  <tr>
-                    <th scope="col" data-priority="1">Rank</th>
-                    <th scope="col" data-priority="1">Player</th>
-                    <th scope="col" data-priority="2">Wins</th>
-                    <th scope="col" data-priority="2">Losses</th>
-                    <th scope="col" data-priority="3">Draws</th>
-                    <th scope="col" data-priority="3">Sets Won</th>
-                    <th scope="col" data-priority="3">Sets Lost</th>
-                    <th scope="col" data-priority="4">Points Scored</th>
-                    <th scope="col" data-priority="4">Points Conceded</th>
-                  </tr>
-                </thead>
-                <tbody id="ranking"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      `;
-      const rankingDiv = document.getElementById("ranking");
-
-      if (Array.isArray(data) && data.length > 0) {
-        // Les données sont déjà triées par le backend
-        data.forEach((player, index) => {
-          const rank = index + 1; // Rang commence à 1
-          const playerName = player.name || "Unknown Name";
-          const totalWins = player.total_wins || 0;
-          const totalLosses = player.total_losses || 0;
-          const totalDraws = player.total_draws || 0;
-          const setsWon = player.sets_won || 0;
-          const setsLost = player.sets_lost || 0;
-          const pointsScored = player.points_scored || 0;
-          const pointsConceded = player.points_conceded || 0;
-
-          rankingDiv.innerHTML += `
-            <tr>
-              <td>${rank}</td>
-              <td>${playerName}</td>
-              <td>${totalWins}</td>
-              <td>${totalLosses}</td>
-              <td>${totalDraws}</td>
-              <td>${setsWon}</td>
-              <td>${setsLost}</td>
-              <td>${pointsScored}</td>
-              <td>${pointsConceded}</td>
-            </tr>
-          `;
-        });
-      } else {
-        rankingDiv.innerHTML = `
-          <tr>
-            <td colspan="9" class="text-center">No ranking found.</td>
-          </tr>
-        `;
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching ranking:", error);
-      const appDiv = document.getElementById("app_main");
-      appDiv.innerHTML = `<p class="text-danger">Error loading ranking.</p>`;
-    });
-}
 
 export function displayGameForm() {
   // Vide tous les conteneurs
@@ -1867,282 +1243,6 @@ export function displayGameForm() {
   });
 }
 
-// === THIS displayGameForm function is NOT refactored ===
-// export function displayGameForm() {
-//
-//   //empty all the containers
-//   document.getElementById('app_top').innerHTML = '';
-//   document.getElementById('app_main').innerHTML = '';
-//   document.getElementById('app_bottom').innerHTML = '';
-//
-//   localStorage.setItem("isTournamentMatch", false);
-//   const formContainer = document.getElementById("app_main");
-//   const username = localStorage.getItem("username")
-//
-//
-//   let gameSettings = {
-//     mode: "solo",
-//     difficulty: "easy",
-//     design: "retro",
-//     numberOfGames: 1, //entre 1 et 5
-//     setsPerGame: 3, //entre 1 et 5
-//     player1: localStorage.getItem("username"),
-//     player2: "Bot-AI",
-//     control1: "arrows",
-//     control2: "wasd",
-//     isTournamentMatch: false
-//   };
-//
-//   formContainer.innerHTML = `
-//     <form id="gameForm" class="container">
-//       <div class="row">
-//           <div class="col-12 col-md-6">
-//               <h3>Game Settings</h3>
-//               <div class="mb-3">
-//                   <label class="form-label">Game Mode:</label>
-//                   <div class="btn-group" role="group" aria-label="Game Mode">
-//                       <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-//                       <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
-//                   </div>
-//               </div>
-//               <div class="mb-3">
-//                   <label class="form-label">Difficulty:</label>
-//                   <div class="btn-group" role="group" aria-label="Difficulty">
-//                       <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-//                       <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-//                       <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
-//                   </div>
-//               </div>
-//               <div class="mb-3">
-//                   <label class="form-label">Design:</label>
-//                   <div class="btn-group" role="group" aria-label="Design">
-//                       <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-//                       <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
-//                   </div>
-//               </div>
-//           </div>
-//           <div class="col-12 col-md-6">
-//               <h3>Match Settings</h3>
-//               <div class="mb-3">
-//                   <label for="numberOfGames" class="form-label">Number of Games:</label>
-//                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control" style="width: 60px;">
-//               </div>
-//               <div class="mb-3">
-//                   <label for="setsPerGame" class="form-label">Sets per Game:</label>
-//                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control" style="width: 60px;">
-//               </div>
-//           </div>
-//       </div>
-//
-//       <div class="row mt-4">
-//           <div class="col-12 col-md-6">
-//               <h3>Player 1</h3>
-//               <div class="mb-3">
-//                   <label for="player1" class="form-label">Name:</label>
-//                   <input type="text" id="player1" value="${gameSettings.player1}" class="form-control" disabled>
-//               </div>
-//               <div class="mb-3">
-//                   <label for="control1" class="form-label">Control:</label>
-//                   <select id="control1" class="form-select">
-//                       <option value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-//                       <option value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-//                       <option value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
-//                   </select>
-//               </div>
-//           </div>
-//           <div class="col-12 col-md-6" id="player2Container">
-//               <h3>Player 2</h3>
-//               <div class="mb-3">
-//                   <label for="player2" class="form-label">Name:</label>
-//                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control" ${gameSettings.mode === "solo" ? "disabled" : ""}>
-//                   <!-- <input type="text" id="player2" value="${gameSettings.player2}" class="form-control"> -->
-//               </div>
-//               <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-//                   <label for="control2" class="form-label">Control:</label>
-//                   <select id="control2" class="form-select">
-//                       <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-//                       <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-//                       <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
-//                   </select>
-//               </div>
-//           </div>
-//       </div>
-//       <div class="text-center mt-4">
-//         <button id="startGameButton" class="btn btn-primary" type="button">Start Game</button>
-//       </div>
-//     </form>
-//
-//     <div id="result" style="display: none;">
-//       <h2>Game Results</h2>
-//       <p id="summary"></p>
-//     </div>
-//     <!-- <canvas id="pong" width="800" height="400" class="mt-4" style="display: block;"></canvas>   -->
-//   `;
-//
-//   function toggleActiveButton(group, selectedId) {
-//       document.querySelectorAll(group).forEach(button => {
-//           button.classList.remove('btn-primary');
-//           button.classList.add('btn-outline-primary');
-//       });
-//       document.getElementById(selectedId).classList.remove('btn-outline-primary');
-//       document.getElementById(selectedId).classList.add('btn-primary');
-//   }
-//
-//   document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
-//       button.addEventListener("click", function() {
-//           toggleActiveButton(`.${this.classList[0]}`, this.id);
-//       });
-//   });
-//
-//   let isTwoPlayerMode = false;
-//   document.getElementById("onePlayer").addEventListener("click", function() {
-//     document.getElementById("player2Container").style.display = "block";
-//     document.getElementById("player2").value = "Bot-AI";
-//     gameSettings.player2 = "Bot-AI";
-//     document.getElementById("player2").disabled = true;
-//     document.getElementById("control2Container").style.display = "none";
-//
-//     document.getElementById("control1").value = "arrows";
-//     document.getElementById("control2").value = "wasd";
-//
-//     document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
-//     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
-//
-//     isTwoPlayerMode = false;
-//     gameSettings.mode = "solo";
-//   });
-//
-//   document.getElementById("twoPlayers").addEventListener("click", function() {
-//     document.getElementById("player2Container").style.display = "block";
-//     document.getElementById("player2").value = ""; // Laissez vide pour permettre à l'utilisateur de saisir
-//     gameSettings.player2 = ""; // Réinitialisez également dans gameSettings
-//     document.getElementById("player2").disabled = false; // Assurez-vous qu'il est activable
-//     document.getElementById("control2Container").style.display = "block";
-//
-//     document.getElementById("control1").value = "arrows";
-//     document.getElementById("control2").value = "wasd";
-//
-//     document.getElementById("control1").querySelectorAll("option").forEach(opt => opt.disabled = false);
-//     document.getElementById("control2").querySelectorAll("option").forEach(opt => opt.disabled = false);
-//
-//     document.getElementById("control1").querySelector("option[value='wasd']").disabled = true;
-//     document.getElementById("control2").querySelector("option[value='arrows']").disabled = true;
-//
-//     isTwoPlayerMode = true;
-//     gameSettings.mode = "multiplayer";
-//   });
-//
-//   document.getElementById("numberOfGames").addEventListener("input", function() {
-//     gameSettings.numberOfGames = parseInt(this.value);
-//   });
-//
-//   document.getElementById("setsPerGame").addEventListener("input", function() {
-//     gameSettings.setsPerGame = parseInt(this.value);
-//   });
-//
-//   document.getElementById("player2").addEventListener("input", function() {
-//     gameSettings.player2 = this.value;
-//   });
-//
-//   document.getElementById("control1").addEventListener("change", function () {
-//     const selected = this.value;
-//     gameSettings.control1 = this.value;
-//     const control2 = document.getElementById("control2");
-//
-//     control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
-//     control2.querySelector(`option[value="${selected}"]`).disabled = true;
-//   });
-//
-//   document.getElementById("control2").addEventListener("change", function () {
-//     const selected = this.value;
-//     gameSettings.control2 = this.value;
-//     const control1 = document.getElementById("control1");
-//
-//     control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
-//     control1.querySelector(`option[value="${selected}"]`).disabled = true;
-//   });
-//
-//   document.querySelectorAll(".difficulty-button").forEach(button => {
-//     button.addEventListener("click", function() {
-//       gameSettings.difficulty = this.id;
-//     });
-//   });
-//
-//   document.querySelectorAll(".design-button").forEach(button => {
-//     button.addEventListener("click", function() {
-//       gameSettings.design = this.id;
-//     });
-//   });
-//
-//   let alertShown = false;
-//   let lastCheckedPlayer2 = "";
-//   let needAuth = false;
-//
-// document.getElementById("startGameButton").addEventListener("click", async () => {
-//     const player1 = username;
-//     let player2 = document.getElementById("player2").value.trim();
-//     const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
-//     const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
-//
-//     console.log("Start button clicked");
-//
-//     if (!alertShown || player2 !== lastCheckedPlayer2) {
-//         alertShown = false;
-//         needAuth = false;
-//         if (isTwoPlayerMode) {
-//             try {
-//                 const playerData = await checkPlayerExists(player2);
-//
-//                 if (playerData.exists && !playerData.is_guest) {
-//                     // Si player2 est un utilisateur enregistré, on affiche l'alerte
-//                     alert(`Player 2 exists as a registered user. Play with this username or change it. Authentication will be needed.`);
-//                     alertShown = true;
-//                     lastCheckedPlayer2 = player2;
-//                     needAuth = true;
-//                     // On ne lance pas l'authentification ici, on attend le deuxième clic
-//                     return; // Sortir de la fonction pour attendre le deuxième clic
-//                 } else if (playerData.exists) {
-//                     // Pour un joueur invité existant, on affiche l'alerte
-//                     alert(`Player 2 exists as an existing guest player. Play with this username or change it.`);
-//                     alertShown = true;
-//                     lastCheckedPlayer2 = player2;
-//                     // On ne lance pas le jeu ici, on attend le deuxième clic
-//                     return; // Sortir de la fonction pour attendre le deuxième clic
-//                 } else {
-//                     startGameSetup(gameSettings);
-//                     return; // Sortir de la fonction après avoir lancé le jeu
-//                 }
-//             } catch (error) {
-//                 console.error("Error checking player existence:", error);
-//                 alert("There was an error checking player existence. Please try again.");
-//                 return; // Sortir de la fonction en cas d'erreur
-//             }
-//         } else {
-//             // Si player2 est "Bot-AI", on peut commencer immédiatement
-//             startGameSetup(gameSettings);
-//             return; // Sortir de la fonction après avoir lancé le jeu
-//         }
-//     }
-//
-//     // Vérification de l'authentification après les alertes pour les utilisateurs enregistrés
-//     // et lancement du jeu pour les joueurs invités existants après le deuxième clic
-//     if (needAuth) {
-//         // Ici, c'est le deuxième clic qui déclenche l'authentification
-//         const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
-//         if (authResult) {
-//             startGameSetup(gameSettings);
-//         }
-//     } else if (player2 !== lastCheckedPlayer2) {
-//         // Si player2 a changé, on lance le jeu directement
-//         startGameSetup(gameSettings);
-//     } else {
-//         // Si c'est le deuxième clic pour un joueur invité existant, on lance le jeu
-//         startGameSetup(gameSettings);
-//     }
-//
-//     console.log("Starting game with settings:", gameSettings);
-//   });
-// }
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
   return new Promise((resolve, reject) => {
@@ -2219,4 +1319,659 @@ async function authenticatePlayer(username, password, playerName) {
   });
 
   return await response.json();
+}
+
+
+
+
+
+
+// Fonction principale pour afficher les statistiques
+export function displayStats() {
+  const appTop = document.getElementById('app_top');
+  const appMain = document.getElementById('app_main');
+  const appBottom = document.getElementById('app_bottom');
+
+  // Initialisation des conteneurs
+  appTop.innerHTML = '';
+  appTop.className = 'semi-transparent-bg p-3 text-dark';
+  appMain.innerHTML = '';
+  appMain.className = 'semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto';
+  appBottom.innerHTML = '';
+  appBottom.className = 'semi-transparent-bg p-3 text-dark';
+
+  // Menu avec barre de recherche et onglets dans #app_top
+  appTop.innerHTML = `
+    <div class="container mt-3">
+      <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive;">Statistics Dashboard</h3>
+      <div class="input-group w-50 mx-auto mb-3">
+        <input id="globalSearch" class="form-control" placeholder="Enter username" style="font-family: 'Press Start 2P', cursive;">
+        <button id="globalSearchBtn" class="btn btn-primary" style="font-family: 'Press Start 2P', cursive;">Search</button>
+      </div>
+      <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+        <button id="tabPlayer" class="btn btn-outline-primary shadow-sm" style="font-family: 'Press Start 2P', cursive;">Player</button>
+        <button id="tabTournament" class="btn btn-outline-primary shadow-sm" style="font-family: 'Press Start 2P', cursive;">Tournament</button>
+        <button id="tabGame" class="btn btn-outline-primary shadow-sm" style="font-family: 'Press Start 2P', cursive;">Game</button>
+        <button id="tabRanking" class="btn btn-outline-primary shadow-sm" style="font-family: 'Press Start 2P', cursive;">General Ranking</button>
+      </div>
+      <div id="searchArea" class="d-flex justify-content-center"></div>
+    </div>
+  `;
+
+  // Gestion des clics sur les onglets
+  document.getElementById('tabPlayer').addEventListener('click', () => showTab('player'));
+  document.getElementById('tabTournament').addEventListener('click', () => showTab('tournament'));
+  document.getElementById('tabGame').addEventListener('click', () => showTab('game'));
+  document.getElementById('tabRanking').addEventListener('click', () => showTab('ranking'));
+
+  // Gestion de la recherche globale
+  document.getElementById('globalSearchBtn').addEventListener('click', () => {
+    const currentTab = document.querySelector('.btn-outline-primary.active')?.id || 'tabPlayer';
+    showTab(currentTab.replace('tab', '').toLowerCase());
+  });
+
+  // Pré-remplir avec le username par défaut et afficher l'onglet "Player"
+  const defaultUsername = localStorage.getItem('username');
+  if (defaultUsername) {
+    document.getElementById('globalSearch').value = defaultUsername;
+  }
+  showTab('player');
+}
+
+// Afficher le contenu d’un onglet
+function showTab(tab) {
+  const searchArea = document.getElementById('searchArea');
+  const appMain = document.getElementById('app_main');
+  const username = document.getElementById('globalSearch').value.trim() || localStorage.getItem('username') || '';
+  searchArea.innerHTML = ''; // Vider la zone de recherche secondaire
+  appMain.innerHTML = ''; // Vider le contenu principal
+
+  // Ajouter la classe "active" à l'onglet sélectionné
+  document.querySelectorAll('#app_top button').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+
+  switch (tab) {
+    case 'player':
+      fetchAndDisplayPlayerStats(username);
+      break;
+    case 'tournament':
+      displayLastUserTournaments(searchArea, username);
+      break;
+    case 'game':
+      displayUserGames(username);
+      break;
+    case 'ranking':
+      fetchAndDisplayRankingStats();
+      break;
+  }
+}
+
+
+// Afficher la liste des matchs d’un utilisateur
+// Afficher la liste des matchs d’un utilisateur avec un menu déroulant stylisé
+function displayUserGames(username) {
+  if (!username) {
+    document.getElementById('searchArea').innerHTML = `<p class="text-danger" style="font-family: 'Press Start 2P', cursive;">Please enter a username.</p>`;
+    return;
+  }
+
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const searchArea = document.getElementById('searchArea');
+      const playedMatches = data.filter(m => m.is_played);
+      if (playedMatches.length === 0) {
+        searchArea.innerHTML = `<p class="text-muted" style="font-family: 'Press Start 2P', cursive;">No games found for ${username}.</p>`;
+        return;
+      }
+
+      // Trier les matchs par date décroissante
+      const sortedMatches = playedMatches.sort((a, b) => new Date(b.date_played) - new Date(a.date_played));
+
+      searchArea.innerHTML = `
+        <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
+          <div class="card-body p-2">
+            <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">Games for ${username}</h5>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 60%;">Opponent & Date</th>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 40%;">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedMatches.map(m => {
+                  const opponent = m.player1_name.toLowerCase() === username.toLowerCase() ? m.player2_name : m.player1_name;
+                  const date = new Date(m.date_played).toLocaleDateString();
+                  const result = `${m.player1_sets_won} - ${m.player2_sets_won}`;
+
+                  // Vérifier les matchs nuls en utilisant winner et winner_name
+                  const isDraw = (m.winner === null || m.winner_name === 'No winner');
+                  const winLoss = isDraw ? 'Draw' : 
+                                 m.winner_name && m.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 'Loss';
+                  const colorClass = winLoss === 'Win' ? 'text-success' : winLoss === 'Loss' ? 'text-danger' : 'text-warning';
+
+                  return `
+                    <tr>
+                      <td style="font-family: 'Press Start 2P', cursive; cursor: pointer;" class="selectGameLink" data-id="${m.id}">
+                        ${opponent}<br><small style="font-size: 0.8em; color: #666;">${date}</small>
+                      </td>
+                      <td style="font-family: 'Press Start 2P', cursive;"><span class="${colorClass}">${result} (${winLoss})</span></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      // Connecter les clics sur les liens cliquables
+      searchArea.querySelectorAll('.selectGameLink').forEach(link => {
+        link.addEventListener('click', () => {
+          const matchId = link.dataset.id;
+          fetchAndDisplayGameStats(matchId, username);
+        });
+      });
+    })
+    .catch(error => {
+      searchArea.innerHTML = `<p class="text-danger" style="font-family: 'Press Start 2P', cursive;">Error loading games: ${error.message}</p>`;
+    });
+}
+
+
+
+
+// Nouvelle fonction pour afficher les 3 derniers tournois de l'utilisateur
+function displayLastUserTournaments(searchArea, username) {
+  if (!username) {
+    searchArea.innerHTML = `<p class="text-danger" style="font-family: 'Press Start 2P', cursive;">Please enter a username.</p>`;
+    return;
+  }
+
+  fetch(`/api/user/tournaments/?username=${username}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const tournaments = Array.isArray(data) ? data.slice(-3).reverse() : [];
+      if (tournaments.length === 0) {
+        searchArea.innerHTML = `<p class="text-muted" style="font-family: 'Press Start 2P', cursive;">No tournaments found.</p>`;
+        return;
+      }
+
+      searchArea.innerHTML = `
+        <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
+          <div class="card-body p-2">
+            <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">Recent Tournaments for ${username}</h5>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 60%;">Tournament & Date</th>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 40%;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tournaments.map(t => {
+                  const tournamentName = `${t.tournament_name} ${t.is_finished ? '✅' : '🏓'}`;
+                  const date = new Date(t.date).toLocaleDateString();
+                  const status = t.is_finished 
+                    ? '<span class="badge bg-success">Finished</span>' 
+                    : '<span class="badge bg-info text-dark">Ongoing</span>';
+                  return `
+                    <tr>
+                      <td style="font-family: 'Press Start 2P', cursive; cursor: pointer;" class="selectTournamentLink" data-id="${t.id}">
+                        ${tournamentName}<br><small style="font-size: 0.8em; color: #666;">${date}</small>
+                      </td>
+                      <td style="font-family: 'Press Start 2P', cursive;">${status}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      // Connecter les clics sur les liens cliquables
+      searchArea.querySelectorAll('.selectTournamentLink').forEach(link => {
+        link.addEventListener('click', () => {
+          const tournamentId = link.dataset.id;
+          fetchAndDisplayTournamentStats(tournamentId);
+        });
+      });
+    })
+    .catch(error => {
+      searchArea.innerHTML = `<p class="text-danger" style="font-family: 'Press Start 2P', cursive;">Error loading tournaments: ${error.message}</p>`;
+    });
+}
+
+
+
+// Générer un tableau "Summary"
+function generateSummaryCard(title, stats) {
+  return `
+    <div class="card mb-4 shadow-sm bg-transparent">
+      <div class="card-body">
+        <h4 class="card-title text-center mb-3" style="font-family: 'Press Start 2P', cursive;">${title}</h4>
+        <ul class="list-group list-group-flush">
+          ${Object.entries(stats).map(([key, value]) => `
+            <li class="list-group-item bg-transparent"><strong>${key}:</strong> ${value}</li>
+          `).join('')}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// Générer un graphique et le retourner comme élément DOM
+function generateChart(type, id, data, options) {
+  const canvas = document.createElement('canvas');
+  canvas.id = id;
+  canvas.style.maxHeight = '200px';
+  new Chart(canvas, { type, data, options });
+  return canvas;
+}
+
+// Afficher un graphique dans une carte
+function displayChartInCard(chart, title) {
+  const div = document.createElement('div');
+  div.className = 'col-12 col-md-4';
+  div.innerHTML = `
+    <div class="card mb-4 shadow-sm bg-transparent">
+      <div class="card-body">
+        <h5 class="text-center mb-3" style="font-family: 'Press Start 2P', cursive;">${title}</h5>
+      </div>
+    </div>
+  `;
+  div.querySelector('.card-body').appendChild(chart);
+  return div;
+}
+
+// Récupérer et afficher les stats d’un joueur
+// Récupérer et afficher les stats d’un joueur (modifié pour accepter un paramètre par défaut)
+function fetchAndDisplayPlayerStats(username) {
+  if (!username) return;
+
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const appMain = document.getElementById('app_main');
+      appMain.innerHTML = '';
+
+      const playedMatches = data.filter(m => m.is_played);
+      if (playedMatches.length === 0) {
+        appMain.innerHTML = `<p class="text-muted" style="font-family: 'Press Start 2P', cursive;">No played matches found for ${username}.</p>`;
+        return;
+      }
+
+      // Calculs précis des stats avec gestion des nuls
+      const stats = {
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        setsWon: 0,
+        setsLost: 0,
+        pointsScored: 0,
+        pointsConceded: 0,
+        totalMatches: playedMatches.length
+      };
+
+      playedMatches.forEach(match => {
+        const isPlayer1 = match.player1_name.toLowerCase() === username.toLowerCase();
+        const playerSetsWon = isPlayer1 ? match.player1_sets_won : match.player2_sets_won;
+        const playerSetsLost = isPlayer1 ? match.player2_sets_won : match.player1_sets_won;
+        const playerPointsScored = isPlayer1 ? match.player1_total_points : match.player2_total_points;
+        const playerPointsConceded = isPlayer1 ? match.player2_total_points : match.player1_total_points;
+
+        stats.setsWon += playerSetsWon || 0;
+        stats.setsLost += playerSetsLost || 0;
+        stats.pointsScored += playerPointsScored || 0;
+        stats.pointsConceded += playerPointsConceded || 0;
+
+        // Appliquer la logique fournie
+        const isDraw = (match.winner === null || match.winner_name === 'No winner');
+        const winLoss = match.winner_name && match.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 
+                       match.winner_name && match.winner_name.toLowerCase() !== username.toLowerCase() ? 'Loss' : 'Draw';
+
+        if (winLoss === 'Win') stats.wins++;
+        else if (winLoss === 'Loss') stats.losses++;
+        else stats.draws++;
+      });
+
+      // Summary
+      const summary = generateSummaryCard('Player Summary', {
+        'Name': username,
+        'Matches Played': stats.totalMatches,
+        'Win Rate': `${((stats.wins / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+        'Draw Rate': `${((stats.draws / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+        'Loss Rate': `${((stats.losses / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+        'Sets Won': stats.setsWon,
+        'Total Points': stats.pointsScored,
+      });
+      appMain.innerHTML += summary;
+
+      // Showroom (graphiques)
+      const chartsContainer = document.createElement('div');
+      chartsContainer.className = 'row g-4';
+      appMain.appendChild(chartsContainer);
+
+      // 1. Barres : Sets gagnés/perdus/nuls par match
+      const setsData = playedMatches.map(match => ({
+        date: match.date_played.split('T')[0],
+        setsWon: match.player1_name.toLowerCase() === username.toLowerCase() ? match.player1_sets_won : match.player2_sets_won,
+        setsLost: match.player1_name.toLowerCase() === username.toLowerCase() ? match.player2_sets_won : match.player1_sets_won,
+        isDraw: (match.winner === null || match.winner_name === 'No winner')
+      }));
+      const barChart = generateChart('bar', 'playerBar', {
+        labels: setsData.map(d => d.date),
+        datasets: [
+          { label: 'Sets Won', data: setsData.map(d => d.isDraw ? 0 : d.setsWon), backgroundColor: '#28a745' },
+          { label: 'Sets Lost', data: setsData.map(d => d.isDraw ? 0 : d.setsLost), backgroundColor: '#dc3545' },
+          { label: 'Draws', data: setsData.map(d => d.isDraw ? (d.setsWon + d.setsLost) : 0), backgroundColor: '#ffc107' }
+        ]
+      }, { 
+        scales: { 
+          y: { beginAtZero: true, title: { display: true, text: 'Sets' } },
+          x: { stacked: true } // Empiler les barres pour mieux visualiser les nuls
+        },
+        plugins: { legend: { position: 'bottom' } }
+      });
+      chartsContainer.appendChild(displayChartInCard(barChart, 'Sets Won/Lost/Draws per Match'));
+
+      // 2. Donut : Répartition victoires/défaites/nuls
+      const donutChart = generateChart('doughnut', 'playerDonut', {
+        labels: ['Wins', 'Losses', 'Draws'],
+        datasets: [{ data: [stats.wins, stats.losses, stats.draws], backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
+      }, { plugins: { legend: { position: 'bottom' } } });
+      chartsContainer.appendChild(displayChartInCard(donutChart, 'Wins vs Losses vs Draws'));
+
+      // 3. Courbe : Points marqués par match
+      const lineChart = generateChart('line', 'playerLine', {
+        labels: playedMatches.map(m => m.date_played.split('T')[0]),
+        datasets: [{
+          label: 'Points Scored',
+          data: playedMatches.map(m => m.player1_name.toLowerCase() === username.toLowerCase() ? m.player1_total_points : m.player2_total_points),
+          borderColor: '#007bff',
+          fill: false,
+          tension: 0.1
+        }]
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
+      chartsContainer.appendChild(displayChartInCard(lineChart, 'Points Over Time'));
+    })
+    .catch(error => {
+      document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+    });
+}
+
+// Récupérer et afficher les stats d’un tournoi
+function fetchAndDisplayTournamentStats(tournamentId) {
+  fetch(`/api/tournament/matches/?tournament_id=${tournamentId}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const appMain = document.getElementById('app_main');
+      appMain.innerHTML = '';
+
+      // Calcul des stats
+      const playedMatches = data.filter(m => m.is_played);
+      const winners = playedMatches.map(m => m.winner_name).filter(w => w && w !== 'No winner');
+      const draws = playedMatches.filter(m => m.winner === null || m.winner_name === 'No winner').length;
+      const topWinner = winners.length ? winners.sort((a, b) => winners.filter(w => w === b).length - winners.filter(w => w === a).length)[0] : 'None';
+      const avgSets = (playedMatches.reduce((sum, m) => sum + m.player1_sets_won + m.player2_sets_won, 0) / playedMatches.length || 0).toFixed(1);
+      const totalPoints = playedMatches.reduce((sum, m) => sum + m.player1_total_points + m.player2_total_points, 0);
+
+      // Summary
+      const summary = generateSummaryCard('Tournament Summary', {
+        'Name': data[0]?.tournament_name || 'Unknown',
+        'Matches Played': playedMatches.length,
+        'Top Winner': topWinner,
+        'Draw Matches': draws,
+        'Avg Sets per Match': avgSets,
+        'Total Points': totalPoints,
+      });
+      appMain.innerHTML += summary;
+
+      // Showroom
+      const chartsContainer = document.createElement('div');
+      chartsContainer.className = 'row g-4';
+      appMain.appendChild(chartsContainer);
+
+      // 1. Barres : Victoires par joueur (avec nuls)
+      const winnersCount = {};
+      winners.forEach(w => winnersCount[w] = (winnersCount[w] || 0) + 1);
+      const barChart = generateChart('bar', 'tourneyBar', {
+        labels: [...Object.keys(winnersCount), 'Draws'],
+        datasets: [{ 
+          label: 'Match Outcomes', 
+          data: [...Object.values(winnersCount), draws], 
+          backgroundColor: ['#007bff', '#ffc107'] // Bleu pour victoires, jaune pour nuls
+        }]
+      }, { 
+        scales: { y: { beginAtZero: true, title: { display: true, text: 'Matches' } } },
+        plugins: { legend: { position: 'bottom' } }
+      });
+      chartsContainer.appendChild(displayChartInCard(barChart, 'Match Outcomes per Player'));
+
+      // 2. Aires : Points par match
+      const areaChart = generateChart('line', 'tourneyArea', {
+        labels: playedMatches.map(m => `Match ${m.id}`),
+        datasets: [{ 
+          label: 'Points', 
+          data: playedMatches.map(m => m.player1_total_points + m.player2_total_points), 
+          borderColor: '#28a745', 
+          fill: true, 
+          tension: 0.1 
+        }]
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
+      chartsContainer.appendChild(displayChartInCard(areaChart, 'Points per Match'));
+
+      // 3. Barres horizontales : Répartition des sets gagnés (avec nuls)
+      const playerStats = {};
+      playedMatches.forEach(match => {
+        [match.player1_name, match.player2_name].forEach(player => {
+          if (!playerStats[player]) playerStats[player] = { setsWon: 0 };
+          if (player === match.player1_name) playerStats[player].setsWon += match.player1_sets_won || 0;
+          if (player === match.player2_name) playerStats[player].setsWon += match.player2_sets_won || 0;
+        });
+      });
+      const hBarChart = generateChart('bar', 'tourneyHBar', {
+        labels: Object.keys(playerStats),
+        datasets: [{ label: 'Sets Won', data: Object.values(playerStats).map(p => p.setsWon), backgroundColor: '#dc3545', borderWidth: 1 }]
+      }, { 
+        indexAxis: 'y', 
+        scales: { 
+          x: { beginAtZero: true, title: { display: true, text: 'Sets' } },
+          y: { title: { display: true, text: 'Players' } }
+        },
+        plugins: { legend: { position: 'right' } }
+      });
+      chartsContainer.appendChild(displayChartInCard(hBarChart, 'Sets Won by Player'));
+    })
+    .catch(error => {
+      document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+    });
+}
+
+// Récupérer et afficher les stats d’un match
+function fetchAndDisplayGameStats(matchId, username) {
+  if (!username) {
+    document.getElementById('app_main').innerHTML = `<p class="text-danger">Please enter a username.</p>`;
+    return;
+  }
+
+  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const match = data.find(m => m.id == matchId && m.is_played);
+      if (!match) throw new Error('Match not found or not played');
+
+      const appMain = document.getElementById('app_main');
+      appMain.innerHTML = '';
+
+      // Calculs précis des stats
+      const totalDuration = match.sets.reduce((sum, s) => sum + (s.duration || 0), 0);
+      const totalExchanges = match.sets.reduce((sum, s) => sum + (s.exchanges || 0), 0);
+      const isDraw = (match.winner === null || match.winner_name === 'No winner');
+
+      // Summary
+      const summary = generateSummaryCard('Game Summary', {
+        'Players': `${match.player1_name} vs ${match.player2_name}`,
+        'Winner': isDraw ? 'Draw' : match.winner_name || 'None',
+        'Score': `${match.player1_sets_won} - ${match.player2_sets_won}`,
+        'Duration': `${totalDuration.toFixed(2)}s`,
+        'Exchanges': totalExchanges,
+      });
+      appMain.innerHTML += summary;
+
+      // Showroom (graphiques)
+      const chartsContainer = document.createElement('div');
+      chartsContainer.className = 'row g-4';
+      appMain.appendChild(chartsContainer);
+
+      // 1. Barres empilées : Score par set
+      const barChart = generateChart('bar', 'gameBar', {
+        labels: match.sets.map(s => `Set ${s.set_number}`),
+        datasets: [
+          { label: match.player1_name, data: match.sets.map(s => s.player1_score), backgroundColor: '#28a745', stack: 'combined' },
+          { label: match.player2_name, data: match.sets.map(s => s.player2_score), backgroundColor: '#dc3545', stack: 'combined' }
+        ]
+      }, { 
+        scales: { 
+          y: { beginAtZero: true, title: { display: true, text: 'Score' } }, 
+          x: { stacked: true } 
+        },
+        plugins: { 
+          title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
+        }
+      });
+      chartsContainer.appendChild(displayChartInCard(barChart, 'Score per Set'));
+
+      // 2. Anneau : Répartition des points
+      const donutChart = generateChart('doughnut', 'gameDonut', {
+        labels: [match.player1_name, match.player2_name],
+        datasets: [{ 
+          data: [match.player1_total_points, match.player2_total_points], 
+          backgroundColor: ['#28a745', '#dc3545'] 
+        }]
+      }, { 
+        plugins: { 
+          legend: { position: 'bottom' },
+          title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
+        }
+      });
+      chartsContainer.appendChild(displayChartInCard(donutChart, 'Points Distribution'));
+
+      // 3. Barres horizontales : Comparaison joueurs
+      const hBarChart = generateChart('bar', 'gameHBar', {
+        labels: ['Sets Won', 'Points'],
+        datasets: [
+          { label: match.player1_name, data: [match.player1_sets_won, match.player1_total_points], backgroundColor: '#28a745' },
+          { label: match.player2_name, data: [match.player2_sets_won, match.player2_total_points], backgroundColor: '#dc3545' }
+        ]
+      }, { 
+        indexAxis: 'y', 
+        scales: { 
+          x: { beginAtZero: true, title: { display: true, text: 'Value' } },
+          y: { title: { display: true, text: 'Players' } }
+        },
+        plugins: { 
+          legend: { position: 'right' },
+          title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
+        }
+      });
+      chartsContainer.appendChild(displayChartInCard(hBarChart, 'Player Comparison'));
+    })
+    .catch(error => {
+      document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+    });
+}
+
+// Récupérer et afficher le classement général
+function fetchAndDisplayRankingStats() {
+  fetch('/api/ranking/', {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => response.json())
+    .then(data => {
+      const appMain = document.getElementById('app_main');
+      appMain.innerHTML = '';
+
+      if (!Array.isArray(data) || data.length === 0) {
+        appMain.innerHTML = `<p class="text-muted" style="font-family: 'Press Start 2P', cursive;">No ranking data available.</p>`;
+        return;
+      }
+
+      // Summary
+      appMain.innerHTML = `
+        <div class="card mb-4 shadow-sm bg-transparent">
+          <div class="card-body">
+            <h4 class="card-title text-center mb-3" style="font-family: 'Press Start 2P', cursive;">Ranking Summary</h4>
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead><tr>${['Rank', 'Player', 'Wins', 'Draws', 'Losses', 'Points Scored'].map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <tbody>${data.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.total_wins || 0}</td><td>${p.total_draws || 0}</td><td>${p.total_losses || 0}</td><td>${p.points_scored || 0}</td></tr>`).join('')}</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Showroom (graphiques)
+      const chartsContainer = document.createElement('div');
+      chartsContainer.className = 'row g-4';
+      appMain.appendChild(chartsContainer);
+
+      // 1. Barres : Top 5 joueurs par victoires
+      const top5 = data.slice(0, 5);
+      const barChart = generateChart('bar', 'rankBar', {
+        labels: top5.map(p => p.name),
+        datasets: [{ label: 'Wins', data: top5.map(p => p.total_wins), backgroundColor: '#007bff' }]
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Wins' } } } });
+      chartsContainer.appendChild(displayChartInCard(barChart, 'Top 5 Wins'));
+
+      // 2. Donut : Répartition globale wins/draws/losses
+      const totalWins = data.reduce((sum, p) => sum + (p.total_wins || 0), 0);
+      const totalDraws = data.reduce((sum, p) => sum + (p.total_draws || 0), 0);
+      const totalLosses = data.reduce((sum, p) => sum + (p.total_losses || 0), 0);
+      const donutChart = generateChart('doughnut', 'rankDonut', {
+        labels: ['Wins', 'Draws', 'Losses'],
+        datasets: [{ data: [totalWins, totalDraws, totalLosses], backgroundColor: ['#28a745', '#ffc107', '#dc3545'] }]
+      }, { plugins: { legend: { position: 'bottom' } } });
+      chartsContainer.appendChild(displayChartInCard(donutChart, 'Global Wins vs Draws vs Losses'));
+
+      // 3. Courbe : Points par joueur
+      const lineChart = generateChart('line', 'rankLine', {
+        labels: data.map(p => p.name),
+        datasets: [{
+          label: 'Points Scored',
+          data: data.map(p => p.points_scored || 0),
+          borderColor: '#007bff',
+          fill: false,
+          tension: 0.1
+        }]
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
+      chartsContainer.appendChild(displayChartInCard(lineChart, 'Points per Player'));
+    })
+    .catch(error => {
+      document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+    });
 }
