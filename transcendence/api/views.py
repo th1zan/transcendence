@@ -593,12 +593,16 @@ class AuthenticateTournamentPlayerView(APIView):
             )
 
 
+logger = logging.getLogger(__name__)
+
+
 class CustomTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
+            logger.warning("No refresh token provided in cookies")
             return Response(
                 {"detail": "Refresh token not provided."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -608,15 +612,54 @@ class CustomTokenRefreshView(TokenRefreshView):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             tokens = response.data
+            logger.info("Token refreshed successfully: %s", tokens)
             response = JsonResponse({"message": "Token refreshed successfully"})
+            # Mettre à jour le cookie access_token
             response.set_cookie(
                 key="access_token",
                 value=tokens["access"],
                 httponly=True,
-                secure=False,  # Set to True in production
+                secure=False,  # À passer à True en production
                 samesite="Lax",
             )
+            # Mettre à jour le cookie refresh_token avec le nouveau refresh_token
+            response.set_cookie(
+                key="refresh_token",
+                value=tokens["refresh"],
+                httponly=True,
+                secure=False,  # À passer à True en production
+                samesite="Lax",
+            )
+        else:
+            logger.error("Token refresh failed: %s", response.data)
         return response
+
+
+# OLD version from janetta
+# class CustomTokenRefreshView(TokenRefreshView):
+#     permission_classes = [AllowAny]
+#
+#     def post(self, request, *args, **kwargs):
+#         refresh_token = request.COOKIES.get("refresh_token")
+#         if not refresh_token:
+#             return Response(
+#                 {"detail": "Refresh token not provided."},
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
+#         request.data["refresh"] = refresh_token
+#
+#         response = super().post(request, *args, **kwargs)
+#         if response.status_code == 200:
+#             tokens = response.data
+#             response = JsonResponse({"message": "Token refreshed successfully"})
+#             response.set_cookie(
+#                 key="access_token",
+#                 value=tokens["access"],
+#                 httponly=True,
+#                 secure=False,  # Set to True in production
+#                 samesite="Lax",
+#             )
+#         return response
 
 
 logger = logging.getLogger(__name__)

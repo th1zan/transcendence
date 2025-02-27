@@ -404,6 +404,16 @@ function updateResults() {
   const resultDiv = document.getElementById("app_bottom");
   if (resultDiv) {
     resultDiv.style.display = "block";
+
+    // Vérifier si l'élément summary existe, sinon le créer
+    let summaryElement = document.getElementById("summary");
+    if (!summaryElement) {
+      summaryElement = document.createElement("div"); // Créer une nouvelle div
+      summaryElement.id = "summary"; // Lui assigner l'ID "summary"
+      resultDiv.appendChild(summaryElement); // L'ajouter à resultDiv
+    }
+
+    // Générer le contenu du summary
     let summary = `
       <h3 class="mb-3">Set History:</h3>
       <table class="table table-striped">
@@ -432,7 +442,8 @@ function updateResults() {
       </table>
     `;
 
-    document.getElementById("summary").innerHTML = summary;
+    // Mettre à jour le contenu de l'élément summary
+    summaryElement.innerHTML = summary;
   }
 }
 
