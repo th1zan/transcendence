@@ -174,4 +174,4 @@ yarn-error.log
 */static_files/
 
 # user uploaded files
-transcendence/media/avatars/user_*.png
+transcendence/media/avatars/user_*.*
