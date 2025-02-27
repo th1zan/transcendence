@@ -612,7 +612,7 @@ export function uploadAvatar() {
         'Error',
         'Error: ' + error.message,
         'OK',
-        () => {}
+        () => {navigateTo('settings')}
       );
     });
 }
