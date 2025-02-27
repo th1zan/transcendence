@@ -67,45 +67,79 @@ export function showModalConfirmation(message, title = "Confirmation") {
   });
 }
 
+export function getToken(username, password) {
+  const csrftoken = getCookie("csrftoken");
 
-export async function refreshToken() {
-  try {
-    console.log("Attempting to refresh token...");
-    console.log('Cookies before refresh (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
-    let response = await fetch("/api/auth/refresh/", {
-      method: "POST",
-      credentials: "include",
-      headers: { 
-        "Content-Type": "application/json",
-        // Si nécessaire, ajouter un en-tête pour le refresh_token (mais récupérer depuis cookies via API si possible)
-        // "Authorization": `Bearer ${/* refresh_token depuis cookies */}`
-      },
+  fetch("/api/auth/login/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrftoken,
+    },
+    body: JSON.stringify({ username, password }),
+  })
+    .then(response => {
+      console.log("Response Status:", response.status, response.statusText);
+      return response.json().then(data => {
+        console.log("Server Response Data:", data);
+        return { ok: response.ok, status: response.status, data };
+      });
+    })
+    .then(({ ok, status, data }) => {
+      console.log("Processing response...", { ok, status, data });
+
+      // Check for 2FA requirement
+      if (data.detail === "2FA verification required. Please verify OTP.") {
+        console.log("2FA required! Switching to OTP input field...");
+
+        const otpSection = document.getElementById("otpSection");
+        const otpInput = document.getElementById("otpInput");
+        const loginForm = document.getElementById("loginForm");
+
+        console.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
+
+        if (!otpSection || !otpInput || !loginForm) {
+          console.error("OTP section/input or login form not found in DOM!");
+          showModal(
+            'Error',
+            'Something went wrong. Please refresh the page and try again.',
+            'OK',
+            () => {}
+          );
+          return;
+        }
+
+        loginForm.style.display = "none";
+        otpSection.style.display = "block";
+        otpInput.focus();
+
+        console.log("UI switched to OTP section");
+        sessionStorage.setItem("2fa_pending_user", username);
+        return;
+      }
+
+      // Handle successful login
+      if (ok && data.message === "Login successful") {
+        console.log("Login successful!");
+        localStorage.setItem("username", username);
+        displayMenu();
+        navigateTo("welcome");
+      } else {
+        // Throw error for unexpected cases
+        throw new Error(data.detail || `Unexpected response (status: ${status})`);
+      }
+    })
+    .catch(error => {
+      console.error("Login failed:", error);
+      showModal(
+        'Error',
+        `Login failed: ${error.message}`,
+        'OK',
+        () => {}
+      );
     });
-
-    console.log("Refresh response status:", response.status);
-    let data = await response.json();
-    console.log("🔄 Refresh response:", data);
-
-    if (response.ok && (data.message === "Token refreshed successfully" || data.access)) {
-      console.log("✅ Access token refreshed successfully (stored in cookies by server)");
-      return true;
-    } else if (response.status === 401 || response.status === 403) {
-      console.warn("Refresh token invalid or expired, clearing tokens.");
-      localStorage.removeItem('username');
-      return false;
-    }
-
-    console.warn("❌ Failed to refresh access token. Response:", data);
-    return false;
-
-  } catch (error) {
-    console.error("⚠️ Error refreshing token:", error.message, error.stack);
-    localStorage.removeItem('username');
-    return false;
-  }
 }
-
-// Fonction helper pour vérifier l'expiration (exemple pour JWT)
 
 export function getCookie(name) {
   let cookieValue = null;
@@ -148,6 +182,35 @@ export function getCookie(name) {
 //     });
 // }
 
+export async function refreshToken() {
+  try {
+    console.log("Attempting to refresh token...");
+    let response = await fetch("/api/auth/refresh/", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("Refresh response status:", response.status);
+    let data = await response.json();
+    console.log("🔄 Refresh response:", data);
+
+    if (response.ok && data.access) {
+      // Stocker le nouveau token
+      localStorage.setItem('access_token', data.access);
+      if (data.refresh) localStorage.setItem('refresh_token', data.refresh); // Mettre à jour le refresh token si renvoyé
+      console.log("✅ Access token refreshed successfully");
+      return true;
+    }
+
+    console.warn("❌ Failed to refresh access token. Response:", data);
+    return false;
+
+  } catch (error) {
+    console.error("⚠️ Error refreshing token:", error.message, error.stack);
+    return false;
+  }
+}
 
 export function toggle2FA() {
   fetch("/api/auth/toggle-2fa/", {
@@ -632,196 +695,44 @@ export function updateProfile() {
 }
 
 
-// export function validateToken() {
-//   // Vérifie si le username est dans le localStorage
-//   const username = localStorage.getItem('username');
-//   if (!username) {
-//     console.log('No username found in localStorage, token validation skipped.');
-//     return Promise.resolve(false); // Retourne une promesse résolue avec false si le username n'est pas trouvé
-//   }
-//
-//   // Si le username est présent, on demande au serveur de vérifier le token
-//   return fetch("/api/auth/validate/", {
-//     method: "POST",
-//     credentials: "include",
-//     headers: {
-//       "Content-Type": "application/json",
-//     }
-//   })
-//   .then(response => {
-//     if (!response.ok) {
-//       throw new Error(`HTTP error! status: ${response.status}`);
-//     }
-//     return response.json();
-//   })
-//   .then(data => {
-//     if (data.valid) {
-//       console.log('Token is valid');
-//       return true;
-//     } else {
-//       console.log('Token validation failed');
-//       return false;
-//     }
-//   })
-//   .catch(error => {
-//     console.error('Error validating token:', error);
-//     return false;
-//   });
-// }
-//
-//
-//
+export function validateToken() {
+  // Vérifie si le username est dans le localStorage
+  const username = localStorage.getItem('username');
+  if (!username) {
+    console.log('No username found in localStorage, token validation skipped.');
+    return Promise.resolve(false); // Retourne une promesse résolue avec false si le username n'est pas trouvé
+  }
 
-
-
-export function getToken(username, password) {
-  const csrftoken = getCookie("csrftoken");
-
-  fetch("/api/auth/login/", {
+  // Si le username est présent, on demande au serveur de vérifier le token
+  return fetch("/api/auth/validate/", {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRFToken": csrftoken,
-    },
-    body: JSON.stringify({ username, password }),
-  })
-    .then(response => {
-      console.log("Response Status:", response.status, response.statusText);
-      return response.json().then(data => {
-        console.log("Server Response Data:", data);
-        return { ok: response.ok, status: response.status, data };
-      });
-    })
-    .then(({ ok, status, data }) => {
-      console.log("Processing response...", { ok, status, data });
-
-      // Check for 2FA requirement
-      if (data.detail === "2FA verification required. Please verify OTP.") {
-        console.log("2FA required! Switching to OTP input field...");
-        const otpSection = document.getElementById("otpSection");
-        const otpInput = document.getElementById("otpInput");
-        const loginForm = document.getElementById("loginForm");
-
-        console.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
-
-        if (!otpSection || !otpInput || !loginForm) {
-          console.error("OTP section/input or login form not found in DOM!");
-          showModal(
-            'Error',
-            'Something went wrong. Please refresh the page and try again.',
-            'OK',
-            () => {}
-          );
-          return;
-        }
-
-        loginForm.style.display = "none";
-        otpSection.style.display = "block";
-        otpInput.focus();
-
-        console.log("UI switched to OTP section");
-        sessionStorage.setItem("2fa_pending_user", username);
-        return;
-      }
-
-      // Handle successful login
-      if (ok && data.message === "Login successful") {
-        console.log("Login successful!");
-        localStorage.setItem("username", username); // Stocke uniquement le username
-        displayMenu();
-        navigateTo("welcome");
-      } else {
-        throw new Error(data.detail || `Unexpected response (status: ${status})`);
-      }
-    })
-    .catch(error => {
-      console.error("Login failed:", error);
-      showModal(
-        'Error',
-        `Login failed: ${error.message}`,
-        'OK',
-        () => {}
-      );
-    });
-}
-
-export async function validateToken() {
-  const username = localStorage.getItem('username');
-
-  if (!username) {
-    console.log('No username found in localStorage, token validation skipped.');
-    return Promise.resolve(false);
-  }
-
-  console.log('Cookies at validation (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
-
-  try {
-    const response = await fetch("/api/auth/validate/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-
-    console.log('Validate response status:', response.status);
-    if (!response.ok) {
-      console.warn(`HTTP error validating token! Status: ${response.status}`);
-      const errorData = await response.json();
-      console.log('Error details:', errorData);
-
-      if (response.status === 401 || response.status === 403) {
-        console.log('Token invalid or expired, attempting refresh...');
-        const refreshed = await refreshToken();
-        if (!refreshed) {
-          console.warn('Failed to refresh token after validation failure, clearing tokens.');
-          localStorage.removeItem('username');
-          return false;
-        }
-        return true;
-      }
-      throw new Error(`Validation failed with status: ${response.status}`);
     }
-
-    const data = await response.json();
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
     if (data.valid) {
       console.log('Token is valid');
       return true;
     } else {
-      console.log('Token validation failed, data:', data);
-      const refreshed = await refreshToken();
-      if (!refreshed) {
-        console.warn('Failed to refresh token after validation failure, clearing tokens.');
-        localStorage.removeItem('username');
-        return false;
-      }
-      return true;
-    }
-  } catch (error) {
-    console.error('Error validating token:', error.message, error.stack);
-    const refreshed = await refreshToken();
-    if (!refreshed) {
-      console.warn('Failed to refresh token after catch, clearing tokens.');
-      localStorage.removeItem('username');
+      console.log('Token validation failed');
       return false;
     }
-    return true;
-  }
+  })
+  .catch(error => {
+    console.error('Error validating token:', error);
+    return false;
+  });
 }
 
-// Supprimer checkTokenExpiration, car les tokens sont gérés dans les cookies HTTP-only
-// function checkTokenExpiration(token) { ... } // Supprimer cette fonction
 
 
-// Fonction helper pour vérifier l'expiration (exemple pour JWT)
-function checkTokenExpiration(token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const exp = payload.exp * 1000; // Convertir en millisecondes
-    return Date.now() >= exp;
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    return true; // Considérer comme expiré si décodage échoue
-  }
-}
+
+

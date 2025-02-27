@@ -26,6 +26,9 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 let isUserLoggedIn = false; //false for connection formular
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  console.log('Cookies at DOM load:', document.cookie);
+
   //when the DOM is loaded, this event is triggered and it will:
 
   //  0. Clear all cookies
@@ -47,12 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Variable globale pour l'état de connexion
   let isUserLoggedIn = false;
 
-  // 2. Check if the user is logged in.V
-    validateToken().then((isTokenValid) => {
+  // 2. Check if the user is logged in
+  validateToken().then((isTokenValid) => {
     console.log('validateToken resolved with:', isTokenValid);
     isUserLoggedIn = isTokenValid;
     if (isUserLoggedIn) {
-      console.log('User is logged in based on access token in cookies');
+      console.log('User is logged in based on cookies');
     } else {
       console.log('User is not logged in');
     }
@@ -79,7 +82,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 4. Plan the refreshing interval for the authentication Token
   console.log('Setting up token refresh interval');
-  setInterval(refreshToken, 15 * 60 * 1000); // 15 minutes
+  setInterval(async () => {
+    console.log('Refreshing token via interval...');
+    const refreshed = await refreshToken();
+    if (!refreshed) {
+      console.warn('Interval refresh failed, consider re-authenticating.');
+      showModal(
+        'Warning',
+        'Your session may have expired. Please log in again.',
+        'OK',
+        () => navigateTo('login')
+      );
+    }
+  }, 10 * 60 * 1000); // Rafraîchir toutes les 10 minutes
 
   // 5. Listener for history changes
   window.addEventListener("popstate", function (event) {
@@ -88,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.state) {
       route = event.state.page;
     } else {
-      // Si event.state est null, on utilise l'URL hash
       route = window.location.hash.replace('#', '') || 'welcome';
     }
     console.log('Navigating to route:', route);
@@ -96,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
     handleRouteChange(route);
   });
 });
-
 
 // Variable pour stocker l'historique des routes
 let customHistory = [];
@@ -134,9 +147,23 @@ function updateUI(routeFunction) {
   routeFunction();
 }
 
+let redirectAttempts = 0;
+const MAX_REDIRECT_ATTEMPTS = 3;
+
 function handleRouteChange(route) {
   console.log('handleRouteChange called with route:', route);
   addToCustomHistory(route);
+
+  if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
+    console.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
+    showModal(
+      'Error',
+      'An authentication error occurred. Please refresh the page or log in again.',
+      'OK',
+      () => navigateTo('login')
+    );
+    return;
+  }
 
   validateToken().then((isTokenValid) => {
     console.log('Token validation in handleRouteChange:', isTokenValid);
@@ -144,14 +171,15 @@ function handleRouteChange(route) {
 
     const publicRoutes = ['login', 'register'];
 
-    if (publicRoutes.includes(route) || (isUserLoggedIn)) {
+    if (publicRoutes.includes(route) || isUserLoggedIn) {
       console.log('Route is public or user is logged in');
+      redirectAttempts = 0; // Réinitialiser le compteur si la validation réussit
       switch (route) {
         case 'login':
           if (!isUserLoggedIn) {
             displayConnectionFormular();
           } else {
-            navigateTo('welcome');
+            navigateTo('welcome'); // Rediriger vers /welcome pour rester cohérent
           }
           break;
         case 'register':
@@ -186,19 +214,46 @@ function handleRouteChange(route) {
           if (!isUserLoggedIn) {
             navigateTo('login');
           } else {
-            updateUI(displayWelcomePage);
+            navigateTo('welcome'); // Rediriger vers /welcome par défaut
           }
       }
     } else {
-      console.log('User not logged in, redirecting to login');
-      navigateTo('login');
+      console.log('User not logged in, attempting to refresh token before redirect');
+      refreshToken().then(refreshed => {
+        if (refreshed) {
+          console.log('Token refreshed successfully, retrying route change');
+          redirectAttempts = 0; // Réinitialiser après succès
+          handleRouteChange(route); // Réessayer une seule fois
+        } else {
+          console.log('Refresh failed, redirecting to login');
+          redirectAttempts++;
+          navigateTo('login');
+        }
+      }).catch(error => {
+        console.error('Error refreshing token during redirect:', error);
+        redirectAttempts++;
+        navigateTo('login');
+      });
     }
   }).catch((error) => {
-    console.error('error validating token during route change:', error);
-    navigateTo('login');
+    console.error('Error validating token during route change:', error);
+    refreshToken().then(refreshed => {
+      if (refreshed) {
+        console.log('Token refreshed successfully after validation error, retrying route change');
+        redirectAttempts = 0;
+        handleRouteChange(route); // Réessayer une seule fois
+      } else {
+        console.log('Refresh failed after validation error, redirecting to login');
+        redirectAttempts++;
+        navigateTo('login');
+      }
+    }).catch(error => {
+      console.error('Error refreshing token after validation failure:', error);
+      redirectAttempts++;
+      navigateTo('login');
+    });
   });
 }
-
 
 export function showModal(title, message, actionText, actionCallback) {
   const modalId = 'oneButtonModal';
@@ -912,28 +967,64 @@ export function displayGameForm() {
   <form id="gameForm" class="container w-100">
 
     <ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active border border-primary rounded-0 bg-transparent" id="pills-player-settings-tab"
-        data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
-        aria-controls="pills-player-settings" aria-selected="true">Player Settings</button>
-    </li>
-
-        <li class="nav-item" role="presentation">
-    <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-match-settings-tab"
-    data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
-    aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
-        </li>
-
-    <li class="nav-item" role="presentation">
-      <button class="nav-link border border-primary  rounded-0 bg-transparent" id="pills-game-settings-tab"
-      data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
-      aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+    
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active border border-primary rounded-0 bg-transparent" id="pills-game-settings-tab"
+        data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
+        aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
       </li>
+
+      <li class="nav-item" role="presentation">
+        <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-player-settings-tab"
+        data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
+        aria-controls="pills-player-settings" aria-selected="false">Player Settings</button>
+      </li>
+
+      <li class="nav-item" role="presentation">
+        <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-match-settings-tab"
+        data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
+        aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
+      </li>
+
+   
   </ul>
 
 
   <div class="tab-content" id="pills-tabContent">
-  <div class="tab-pane fade show active" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
+  <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
+    <div class="d-flex justify-content-center mt-3">
+      <div class="col p-3 d-flex flex-column">
+        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
+        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
+          <div class="mb-3">
+            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
+            <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
+              <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
+              <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
+            <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
+              <button class="difficult-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+              <button class="difficult-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+              <button class="difficult-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
+            <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
+              <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
+              <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
     <div class="d-flex justify-content-between align-items-stretch mt-3">
       <div class="col p-3 d-flex flex-column">
         <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
@@ -970,7 +1061,7 @@ export function displayGameForm() {
             <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent"
               style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
           </div>
-          <div id="control2Container" class="mb-3" style="${gameSettings.mode === " solo"? "display:none;" : "display:block;"}">
+          <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
             <label for="control2" class="form-label">Control:</label>
             <select id="control2" class="form-select bg-transparent">
               <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
@@ -985,7 +1076,6 @@ export function displayGameForm() {
     </div>
   </div>
 
-
   <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
     <div class="d-flex justify-content-center mt-3">
       <!-- Match Settings Container -->
@@ -999,38 +1089,6 @@ export function displayGameForm() {
           <div class="mb-3">
             <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
             <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="tab-pane fade" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
-    <div class="d-flex justify-content-center mt-3">
-      <div class="col p-3 d-flex flex-column">
-        <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
-        <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
-          <div class="mb-3">
-            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
-            <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
-              <button id="onePlayer" class="mode-button btn ${gameSettings.mode === " solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-              <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === " multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
-            <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-              <button class="difficulty-button btn ${gameSettings.difficulty === " easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-              <button class="difficulty-button btn ${gameSettings.difficulty === " medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-              <button class="difficulty-button btn ${gameSettings.difficulty === " hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
-            <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
-              <button class="design-button btn ${gameSettings.design === " retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-              <button class="design-button btn ${gameSettings.design === " neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
-            </div>
           </div>
         </div>
       </div>
