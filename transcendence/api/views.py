@@ -990,8 +990,16 @@ class ListFriendsView(APIView):
 
     def get(self, request):
         user = request.user
-        friends = user.friends.all().values("username")
-        return Response({"friends": list(friends)})
+        friends = user.friends.all()
+        friends_data = [
+            {
+                "username": friend.username,
+                "avatar": request.build_absolute_uri(friend.avatar.url)
+                if friend.avatar else request.build_absolute_uri("/media/avatars/avatar1.png"),
+            }
+            for friend in friends
+        ]
+        return Response({"friends": friends_data})
 
 
 class RemoveFriendView(APIView):
@@ -1114,7 +1122,15 @@ class ViewFriendRequestsView(APIView):
         friend_requests = FriendRequest.objects.filter(
             receiver=request.user, status="pending"
         )
-        requests_data = [{"sender": fr.sender.username} for fr in friend_requests]
+        requests_data = [
+            {
+                "sender": fr.sender.username,
+                "avatar": request.build_absolute_uri(fr.sender.avatar.url)
+                if fr.sender.avatar else request.build_absolute_uri("/media/avatars/avatar1.png"),
+                
+            } 
+            for fr in friend_requests
+        ]
 
         return Response({"requests": requests_data}, status=200)
 

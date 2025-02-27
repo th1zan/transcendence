@@ -31,7 +31,9 @@ export function sendFriendRequest(friendUsername) {
                 'Warning',
                 `You are already friends with ${friendUsername}.`,
                 'OK',
-                () => {}
+                () => {
+                  navigateTo('friends');
+                }
             );
             return;
         }
@@ -52,7 +54,9 @@ export function sendFriendRequest(friendUsername) {
                     'Error',
                     'Error: ' + data.error,
                     'OK',
-                    () => {}
+                    () => {
+                      navigateTo('friends');
+                    }
                 );
             } else {
                 showModal(
@@ -77,7 +81,9 @@ export function sendFriendRequest(friendUsername) {
                 'Error',
                 'An error occurred.',
                 'OK',
-                () => {}
+                () => {
+                  navigateTo('friends');
+                }
             );
         });
     })
@@ -87,7 +93,9 @@ export function sendFriendRequest(friendUsername) {
             'Error',
             'An error occurred while checking friend status.',
             'OK',
-            () => {}
+            () => {
+              navigateTo('friends');
+            }
         );
     });
 }
@@ -109,7 +117,9 @@ export function respondToFriendRequest(friendUsername, action) {
             'Error',
             'Error: ' + data.error,
             'OK',
-            () => {}
+            () => {
+              navigateTo('friends');
+            }
           );
         } else {
           showModal(
@@ -130,7 +140,9 @@ export function respondToFriendRequest(friendUsername, action) {
             'Error',
             'An error occurred.',
             'OK',
-            () => {}
+            () => {
+              navigateTo('friends');
+            }
         );
       });
 }
@@ -157,7 +169,9 @@ export function removeFriend(friendUsername) {
               'Error',
               'Error: ' + data.error,
               'OK',
-              () => {}
+              () => {
+                navigateTo('friends');
+              }
             );
           } else {
             showModal(
@@ -177,7 +191,9 @@ export function removeFriend(friendUsername) {
             'Error',
             'An error occurred.',
             'OK',
-            () => {}
+            () => {
+              navigateTo('friends');
+            }
           );
         });
     });
@@ -194,10 +210,15 @@ export function fetchFriendRequests() {
 		requestList.innerHTML = "";
   
 		requestsData.requests.forEach(request => {
+      const avatarUrl = request.avatar;
 		  const listItem = document.createElement("li");
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
-			<span>${request.sender}</span>
+      <div class="d-flex align-items-center">
+            <img src="${avatarUrl}" alt="${request.sender}'s avatar" class="friend-avatar" 
+              style="width:50px; height:50px; border-radius:50%; margin-right:12px;">
+            <span style="font-weight: bold; font-size: 16px;">${request.sender}</span>
+          </div>
 			<div>
 			  <button class="btn btn-success btn-sm accept-request" data-username="${request.sender}">Accept</button>
 			  <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">Decline</button>
@@ -254,10 +275,19 @@ export function fetchFriends() {
 				? `<span >🟢 Online</span>`
 				: `<span >🔘 Offline (last seen: ${lastSeen})</span>`;
 
+        const avatarUrl = friend.avatar;
+
 		  const listItem = document.createElement("li");
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
-			<span>${friend.username} ${statusBadge}</span>
+        <div class="d-flex align-items-center">
+          <img src="${avatarUrl}" alt="${friend.username}'s avatar" class="friend-avatar" 
+            style="width:50px; height:50px; border-radius:50%; margin-right:12px;">
+            <div class="d-flex flex-column">
+			        <span style="font-weight: bold; font-size: 16px;">${friend.username}</span>
+              <span style="font-size: 14px; ">${statusBadge}</span>
+            </div>
+        </div>
 			<button class="btn btn-danger btn-sm remove-friend" data-username="${friend.username}">Remove</button>
 		  `;
 		  friendList.appendChild(listItem);
