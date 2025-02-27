@@ -116,8 +116,15 @@ body {
         width: 16.666667%; /* Équivalent à col-md-2 (2/12) */
         flex: 0 0 16.666667%; /* Force la largeur fixe */
         max-width: 16.666667%; /* Limite la largeur */
-        height: 100%; 
+        height: auto; 
     }
+    
+    /*target specifiquement une div qui a au moins la classe container-fluid dedans dans
+    le descendant direct de l'id menu*/
+    #menu > div.container-fluid {
+        height: 100%;
+    }
+
     .navbar-collapse {
         display: block !important; /* Force le menu à rester déplié */
     }
