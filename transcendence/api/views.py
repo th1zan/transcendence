@@ -1050,7 +1050,7 @@ class FriendsOnlineStatusView(APIView):
                 "username": friend.username,
                 "is_online": friend.is_online,
                 "last_seen": (
-                    friend.last_seen.strftime("%Y-%m-%d %H:%M:%S")
+                    friend.last_seen.strftime("%Y-%m-%d %H:%M")
                     if friend.last_seen
                     else "Never"
                 ),
