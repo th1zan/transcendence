@@ -173,3 +173,5 @@ yarn-error.log
 # static files generated
 */static_files/
 
+# user uploaded files
+transcendence/media/avatars/user_*.png
