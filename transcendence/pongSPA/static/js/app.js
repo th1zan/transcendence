@@ -1006,9 +1006,9 @@ export function displayGameForm() {
           <div class="mb-3">
             <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
             <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-              <button class="difficult-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-              <button class="difficult-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-              <button class="difficult-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+              <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
+              <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
+              <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
             </div>
           </div>
           <div class="mb-3">
@@ -1211,13 +1211,15 @@ export function displayGameForm() {
 
   document.querySelectorAll(".difficulty-button").forEach(button => {
     button.addEventListener("click", function () {
-      gameSettings.difficulty = this.id;
+      gameSettings.difficulty = this.id; // Mise à jour du paramètre
+      toggleActiveButton(".difficulty-button", this.id); // Mise à jour visuelle
     });
   });
 
   document.querySelectorAll(".design-button").forEach(button => {
     button.addEventListener("click", function () {
-      gameSettings.design = this.id;
+      gameSettings.design = this.id; // Mise à jour du paramètre
+      toggleActiveButton(".design-button", this.id); // Mise à jour visuelle
     });
   });
 
@@ -1233,6 +1235,7 @@ export function displayGameForm() {
     const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
 
     console.log("Start button clicked");
+    console.log("Game settings at start:", gameSettings); // Ajouté pour déboguer
 
     if (!alertShown || player2 !== lastCheckedPlayer2) {
       alertShown = false;
