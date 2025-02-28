@@ -229,12 +229,12 @@ function displayLastUserTournaments(searchArea, username) {
 // Générer un tableau "Summary"
 function generateSummaryCard(title, stats) {
   return `
-    <div class="card mb-4 shadow-sm bg-transparent">
+    <div class="card mb-4 shadow-sm">
       <div class="card-body">
         <h4 class="card-title text-center mb-3" >${title}</h4>
         <ul class="list-group list-group-flush">
           ${Object.entries(stats).map(([key, value]) => `
-            <li class="list-group-item bg-transparent"><strong>${key}:</strong> ${value}</li>
+            <li class="list-group-item"><strong>${key}:</strong> ${value}</li>
           `).join('')}
         </ul>
       </div>
@@ -256,7 +256,7 @@ function displayChartInCard(chart, title) {
   const div = document.createElement('div');
   div.className = 'col-12 col-md-4';
   div.innerHTML = `
-    <div class="card mb-4 shadow-sm bg-transparent">
+    <div class="card mb-4 shadow-">
       <div class="card-body">
         <h5 class="text-center mb-3" >${title}</h5>
       </div>
@@ -363,7 +363,7 @@ function fetchAndDisplayPlayerStats(username) {
       const durationCard = document.createElement('div');
       durationCard.className = 'col-12 col-md-4 col-sm-6';
       durationCard.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h5 class="text-center mb-3" >Match Durations</h5>
             <ul class="list-group list-group-flush">
@@ -385,7 +385,7 @@ function fetchAndDisplayPlayerStats(username) {
       const setCard = document.createElement('div');
       setCard.className = 'col-12 col-md-4 col-sm-6';
       setCard.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h5 class="text-center mb-3" >Set Durations & Exchanges</h5>
             <ul class="list-group list-group-flush">
@@ -543,7 +543,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const durationCard = document.createElement('div');
       durationCard.className = 'col-12 col-md-4 col-sm-6';
       durationCard.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h5 class="text-center mb-3" >Tournament Durations</h5>
             <ul class="list-group list-group-flush">
@@ -565,7 +565,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const setCard = document.createElement('div');
       setCard.className = 'col-12 col-md-4 col-sm-6';
       setCard.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h5 class="text-center mb-3" >Set Statistics</h5>
             <ul class="list-group list-group-flush">
@@ -740,7 +740,7 @@ function fetchAndDisplayGameStats(matchId, username) {
       const durationCard = document.createElement('div');
       durationCard.className = 'col-12 col-md-4 col-sm-6';
       durationCard.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h5 class="text-center mb-3" >Match Duration</h5>
             <ul class="list-group list-group-flush">
@@ -762,7 +762,7 @@ function fetchAndDisplayGameStats(matchId, username) {
       const setCard = document.createElement('div');
       setCard.className = 'col-12 col-md-4 col-sm-6';
       setCard.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h5 class="text-center mb-3">Set Details</h5>
             <table class="table table-sm table-hover">
@@ -906,11 +906,11 @@ function fetchAndDisplayRankingStats() {
 
       // Summary
       appMain.innerHTML = `
-        <div class="card mb-4 shadow-sm bg-transparent">
+        <div class="card mb-4 shadow-">
           <div class="card-body">
             <h4 class="card-title text-center mb-3" >Ranking Summary</h4>
             <div class="table-responsive">
-              <table class="table table-striped table-hover">
+              <table class="table table-striped table-hover bg-transparent ">
                 <thead><tr>${['Rank', 'Player', 'Wins', 'Draws', 'Losses', 'Points Scored'].map(h => `<th>${h}</th>`).join('')}</tr></thead>
                 <tbody>${data.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.total_wins || 0}</td><td>${p.total_draws || 0}</td><td>${p.total_losses || 0}</td><td>${p.points_scored || 0}</td></tr>`).join('')}</tbody>
               </table>

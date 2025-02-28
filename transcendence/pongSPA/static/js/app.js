@@ -426,7 +426,7 @@ function displayQuickStats(data, playerName) {
   }
 
   return `
-    <div class="card mb-4 shadow-sm h-100 bg-transparent" style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+    <div class="card mb-4 shadow-sm h-100  style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
         <h4 class="card-title">Quick Stats for ${playerName || "You"}</h4>
         <ul class="list-group list-group-flush mb-3">
