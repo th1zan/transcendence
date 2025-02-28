@@ -39,6 +39,32 @@ let handleOpponentKeyDown = null;
 let handlePlayerMouseMove = null;
 let handleOpponentMouseMove = null;
 
+// Export d'une fonction pour supprimer les écouteurs
+export function removeGameListeners() {
+  if (handlePlayerKeyDown) {
+    document.removeEventListener("keydown", handlePlayerKeyDown);
+    handlePlayerKeyDown = null;
+    console.log("Écouteur handlePlayerKeyDown supprimé");
+  }
+  if (handleOpponentKeyDown && mode === "multiplayer") {
+    document.removeEventListener("keydown", handleOpponentKeyDown);
+    handleOpponentKeyDown = null;
+    console.log("Écouteur handleOpponentKeyDown supprimé");
+  }
+  if (canvas) {
+    if (handlePlayerMouseMove) {
+      canvas.removeEventListener("mousemove", handlePlayerMouseMove);
+      handlePlayerMouseMove = null;
+      console.log("Écouteur handlePlayerMouseMove supprimé");
+    }
+    if (handleOpponentMouseMove && mode === "multiplayer") {
+      canvas.removeEventListener("mousemove", handleOpponentMouseMove);
+      handleOpponentMouseMove = null;
+      console.log("Écouteur handleOpponentMouseMove supprimé");
+    }
+  }
+}
+
 function connectWebSocket(onOpenCallback = null) {
   if (onOpenCallback) wsOpenCallback = onOpenCallback;
 
@@ -483,7 +509,6 @@ function initGameObjects(gameCanvas) {
     document.addEventListener("keydown", handlePlayerKeyDown);
   }
 
-  // Ajouter les écouteurs pour opponent uniquement en mode multiplayer
   if (mode === "multiplayer") {
     handleOpponentKeyDown = (event) => {
       event.preventDefault();
@@ -507,6 +532,38 @@ function initGameObjects(gameCanvas) {
       document.addEventListener("keydown", handleOpponentKeyDown);
     }
   }
+}
+
+// Mettre à jour stopGameProcess pour utiliser removeGameListeners
+export function stopGameProcess(isGameFinished = false) {
+  if (gameInterval) {
+    clearInterval(gameInterval);
+    gameInterval = null;
+  }
+  shouldReconnect = false;
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.close();
+    console.log("WebSocket disconnected.");
+  }
+  if (isGameFinished || !isTournamentMatch) {
+    document.getElementById("app_top").innerHTML = "";
+    document.getElementById("app_main").innerHTML = "";
+    document.getElementById("app_bottom").innerHTML = "";
+  } else {
+    console.log("Preserving DOM in tournament mode during set transition.");
+    const appMain = document.getElementById("app_main");
+    if (!appMain.querySelector("#pong")) appMain.innerHTML = `
+      <div class="card text-center" style="background-color: rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; border-radius: 10px; padding: 10px; margin: 0 auto; width: fit-content;">
+        <canvas id="pong" width="800" height="400"></canvas>
+      </div>
+    `;
+  }
+  // Utiliser la fonction centralisée pour supprimer les écouteurs
+  removeGameListeners();
+  player1Wins = 0;
+  player2Wins = 0;
+  currentGame = 0;
+  setHistory = [];
 }
 
 function drawRect(x, y, w, h, color, ctx) {
@@ -650,43 +707,6 @@ async function sendScore() {
     });
 }
 
-export function stopGameProcess(isGameFinished = false) {
-  if (gameInterval) {
-    clearInterval(gameInterval);
-    gameInterval = null;
-  }
-  shouldReconnect = false;
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.close();
-    console.log("WebSocket disconnected.");
-  }
-  if (isGameFinished || !isTournamentMatch) {
-    document.getElementById("app_top").innerHTML = "";
-    document.getElementById("app_main").innerHTML = "";
-    document.getElementById("app_bottom").innerHTML = "";
-  } else {
-    console.log("Preserving DOM in tournament mode during set transition.");
-    const appMain = document.getElementById("app_main");
-    if (!appMain.querySelector("#pong")) appMain.innerHTML = `
-      <div class="card text-center" style="background-color: rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; border-radius: 10px; padding: 10px; margin: 0 auto; width: fit-content;">
-        <canvas id="pong" width="800" height="400"></canvas>
-      </div>
-    `;
-  }
-  // Supprimer tous les écouteurs
-  if (handlePlayerKeyDown) document.removeEventListener("keydown", handlePlayerKeyDown);
-  if (handlePlayerMouseMove && canvas) canvas.removeEventListener("mousemove", handlePlayerMouseMove);
-  if (handleOpponentKeyDown && mode === "multiplayer") document.removeEventListener("keydown", handleOpponentKeyDown);
-  if (handleOpponentMouseMove && mode === "multiplayer" && canvas) canvas.removeEventListener("mousemove", handleOpponentMouseMove);
-  handlePlayerKeyDown = null;
-  handlePlayerMouseMove = null;
-  handleOpponentKeyDown = null;
-  handleOpponentMouseMove = null;
-  player1Wins = 0;
-  player2Wins = 0;
-  currentGame = 0;
-  setHistory = [];
-}
 
 function initSetStats() {
   exchangesPerSet = 0;

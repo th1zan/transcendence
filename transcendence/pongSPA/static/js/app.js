@@ -1,4 +1,4 @@
-import { startGameSetup, gameInterval, stopGameProcess } from "./pong.js";
+import { startGameSetup, gameInterval, stopGameProcess, removeGameListeners } from "./pong.js";
 import { displayStats } from "./stats.js";
 import { validateToken } from "./auth.js";
 import { createTournamentForm, validateSearch, displayUserTournaments, checkUserExists, checkPlayerExists } from "./tournament.js";
@@ -132,20 +132,21 @@ export function navigateTo(route) {
     stopGameProcess(false); // Ne pas marquer comme terminé, juste arrêter
   }
 
+  // Supprimer les écouteurs du jeu
+  removeGameListeners();
+
   history.pushState({ page: route }, '', `#${route}`);
   console.log('pushstate: ', history.state);
   addToCustomHistory(route);
   handleRouteChange(route);
+
+  // Retirer le focus par défaut
+  setTimeout(() => {
+    document.activeElement.blur();
+    console.log("Focus retiré après navigation vers:", route);
+  }, 50);
 }
 
-// Fonction pour mettre à jour l'interface complète
-function updateUI(routeFunction) {
-  // Chargement du menu
-  displayMenu();
-
-  // Puis, mettez à jour la partie principale en fonction de la route
-  routeFunction();
-}
 
 let redirectAttempts = 0;
 const MAX_REDIRECT_ATTEMPTS = 3;
@@ -179,7 +180,7 @@ function handleRouteChange(route) {
           if (!isUserLoggedIn) {
             displayConnectionFormular();
           } else {
-            navigateTo('welcome'); // Rediriger vers /welcome pour rester cohérent
+            navigateTo('welcome');
           }
           break;
         case 'register':
@@ -214,7 +215,7 @@ function handleRouteChange(route) {
           if (!isUserLoggedIn) {
             navigateTo('login');
           } else {
-            navigateTo('welcome'); // Rediriger vers /welcome par défaut
+            navigateTo('welcome');
           }
       }
     } else {
@@ -222,8 +223,8 @@ function handleRouteChange(route) {
       refreshToken().then(refreshed => {
         if (refreshed) {
           console.log('Token refreshed successfully, retrying route change');
-          redirectAttempts = 0; // Réinitialiser après succès
-          handleRouteChange(route); // Réessayer une seule fois
+          redirectAttempts = 0;
+          handleRouteChange(route);
         } else {
           console.log('Refresh failed, redirecting to login');
           redirectAttempts++;
@@ -241,7 +242,7 @@ function handleRouteChange(route) {
       if (refreshed) {
         console.log('Token refreshed successfully after validation error, retrying route change');
         redirectAttempts = 0;
-        handleRouteChange(route); // Réessayer une seule fois
+        handleRouteChange(route);
       } else {
         console.log('Refresh failed after validation error, redirecting to login');
         redirectAttempts++;
@@ -254,6 +255,16 @@ function handleRouteChange(route) {
     });
   });
 }
+
+// Fonction pour mettre à jour l'interface complète
+function updateUI(routeFunction) {
+  // Chargement du menu
+  displayMenu();
+
+  // Puis, mettez à jour la partie principale en fonction de la route
+  routeFunction();
+}
+
 
 export function showModal(title, message, actionText, actionCallback, focusElementId = null) {
   const modalId = 'oneButtonModal';
@@ -287,8 +298,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   // Mise à jour du bouton d'action
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
-    actionButton.textContent = actionText || 'Close'; // Valeur par défaut
-    // Nettoyer l’ancien gestionnaire pour éviter les doublons
+    actionButton.textContent = actionText || 'Close';
     actionButton.removeEventListener('click', actionButton.handler);
     actionButton.addEventListener('click', function handler() {
       if (actionCallback) {
@@ -297,28 +307,27 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
       modal.hide(); // Fermer la modale
 
       // Logique de gestion du focus après fermeture
-      let focusTarget = null;
+      setTimeout(() => {
+        let focusTarget = null;
 
-      // 1. Essayer l’élément spécifié (focusElementId)
-      if (focusElementId) {
-        focusTarget = document.getElementById(focusElementId);
-        if (focusTarget) {
-          setTimeout(() => focusTarget.focus(), 50); // Focus sur l’élément spécifié
-          return;
+        // 1. Essayer l’élément spécifié (focusElementId), si fourni
+        if (focusElementId) {
+          focusTarget = document.getElementById(focusElementId);
+          if (focusTarget) {
+            focusTarget.focus(); // Focus sur l’élément spécifié
+            console.log(`Focus restauré sur ${focusElementId}`);
+            return;
+          } else {
+            console.warn(`Élément spécifié ${focusElementId} non trouvé pour le focus`);
+          }
         }
-      }
 
-      // 2. Si focusElementId n’existe pas ou n’est pas fourni, essayer #welcomeButton
-      focusTarget = document.getElementById("welcomeButton");
-      if (focusTarget) {
-        setTimeout(() => focusTarget.focus(), 50); // Focus sur le bouton du menu
-        return;
-      }
-
-      // 3. Si aucun des deux n’existe, log une alerte
-      console.warn("No suitable element found to restore focus after modal closure. Tried:", focusElementId, "#welcomeButton");
+        // 2. Par défaut, retirer le focus
+        document.activeElement.blur();
+        console.log("Focus retiré après fermeture de la modale");
+      }, 50); // Délai pour attendre la fermeture complète
     });
-    actionButton.handler = actionButton.onclick; // Stocker le gestionnaire
+    actionButton.handler = actionButton.onclick;
   } else {
     console.error(`Action button for ${modalId}Action not found`);
   }
