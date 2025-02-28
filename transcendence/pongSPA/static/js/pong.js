@@ -377,7 +377,7 @@ function handleGameEnd(winner) {
             "OK",
             () => {
               stopGameProcess();
-              navigateTo("welcome");
+              navigateTo("game");
             }
           );
         }
@@ -396,7 +396,10 @@ function handleGameEnd(winner) {
           "Error",
           "An error occurred while processing the game end: " + error.message,
           "OK",
-          () => navigateTo("tournament")
+          () => {
+            stopGameProcess();
+            navigateTo("game")
+          }
         );
       });
   }
