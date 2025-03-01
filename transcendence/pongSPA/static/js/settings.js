@@ -1,4 +1,4 @@
-import { update2FAStatus, toggle2FA, verifyOTP} from "./auth.js";
+import { update2FAStatus, toggle2FA, verifyOTP, showModalConfirmation} from "./auth.js";
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 
@@ -377,101 +377,109 @@ export function updateWelcomePageAvatar(avatarUrl) {
 //   }
 // }
 
-export function deleteAvatar() {
+export async function deleteAvatar() {
   // First disable the button to prevent multiple clicks
   const deleteButton = document.getElementById("deleteAvatarButton");
   if (deleteButton) {
     deleteButton.disabled = true;
   }
   
-  showModal(
-    "Confirm Deletion",
+  const confirmed = await showModalConfirmation(
     "Are you sure you want to delete your avatar? This action cannot be undone.",
-    "Delete",
-    () => {
-      fetch("/api/auth/delete-avatar/", {
-        method: "DELETE",
-        credentials: "include",
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          // Update localStorage
-          localStorage.setItem("avatarUrl", data.avatar_url);
-          
-          // Update UI without showing another modal
-          const profilePic = document.getElementById("profilePic");
-          if (profilePic && data.avatar_url) {
-            profilePic.src = data.avatar_url + "?t=" + new Date().getTime();
-          }
-          
-          // Keep the delete button disabled
-          if (deleteButton) {
-            deleteButton.disabled = true;
-            deleteButton.classList.add("disabled");
-          }
-          
-          // Force recreate the file input with event listeners
-          const fileContainer = document.getElementById("avatarInputContainer"); // Use a container with this ID
-          if (fileContainer) {
-            // Remove old input completely
-            fileContainer.innerHTML = '';
-            
-            // Create new input with all needed attributes
-            const newInput = document.createElement("input");
-            newInput.type = "file";
-            newInput.id = "avatarInput";
-            newInput.accept = "image/*";
-            newInput.className = "form-control";
-            
-            // Add it back to DOM
-            fileContainer.appendChild(newInput);
-            
-            // Reattach any necessary event listeners
-            newInput.addEventListener("change", function() {
-              // Enable upload button when file selected
-              const uploadBtn = document.getElementById("uploadAvatarButton");
-              if (uploadBtn) {
-                uploadBtn.disabled = false;
-              }
-            });
-          }
-          
-          // Update all UI elements
-          displayMenu(data.avatar_url);
-          updateWelcomePageAvatar(data.avatar_url);
-          
-          // Optional: Provide feedback without modal
-          console.log("Avatar deleted successfully");
-          
-          // Wait briefly before re-rendering settings to ensure DOM stability
-          setTimeout(() => {
-            displaySettings();
-          }, 300);
-        })
-        .catch((error) => {
-          console.error("Error deleting avatar:", error);
-          
-          // Re-enable delete button in case of error
-          if (deleteButton) {
-            deleteButton.disabled = false;
-          }
-          
-          // Show error once without callbacks
-          showModal(
-            "Error",
-            `An error occurred: ${error.message}`,
-            "OK",
-            () => {} // Empty callback to prevent recursion
-          );
-        });
-    },
-    // Enable the button if user cancels
-    () => {
+    "Confirm Deletion"
+  );
+  
+  // Re-enable the button if user cancels
+  if (!confirmed) {
+    if (deleteButton) {
+      deleteButton.disabled = false;
+    }
+    return; // Exit the function if not confirmed
+  }
+  
+  // User confirmed, proceed with deletion,
+  fetch("/api/auth/delete-avatar/", {
+    method: "DELETE",
+    credentials: "include",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      // Update localStorage
+      localStorage.setItem("avatarUrl", data.avatar_url);
+      
+      // Update UI without showing another modal
+      const profilePic = document.getElementById("profilePic");
+      if (profilePic && data.avatar_url) {
+        profilePic.src = data.avatar_url + "?t=" + new Date().getTime();
+      }
+      
+      // Keep the delete button disabled
+      if (deleteButton) {
+        deleteButton.disabled = true;
+        //deleteButton.classList.add("disabled");
+      }
+      
+      // // Force recreate the file input with event listeners
+      // const fileContainer = document.getElementById("avatarInputContainer"); // Use a container with this ID
+      // if (fileContainer) {
+      //   // Remove old input completely
+      //   fileContainer.innerHTML = '';
+        
+      //   // Create new input with all needed attributes
+      //   const newInput = document.createElement("input");
+      //   newInput.type = "file";
+      //   newInput.id = "avatarInput";
+      //   newInput.accept = "image/*";
+      //   newInput.className = "form-control";
+        
+      //   // Add it back to DOM
+      //   fileContainer.appendChild(newInput);
+        
+      //   // Reattach any necessary event listeners
+      //   newInput.addEventListener("change", function() {
+      //     // Enable upload button when file selected
+      //     const uploadBtn = document.getElementById("uploadAvatarButton");
+      //     if (uploadBtn) {
+      //       uploadBtn.disabled = false;
+      //     }
+      //   });
+      // }
+      
+      // Update all UI elements
+      displayMenu(data.avatar_url);
+      updateWelcomePageAvatar(data.avatar_url);
+      
+      // // Optional: Provide feedback without modal
+      // console.log("Avatar deleted successfully");
+      
+      // Wait briefly before re-rendering settings to ensure DOM stability
+      setTimeout(() => {
+        displaySettings();
+      }, 300);
+    })
+    .catch((error) => {
+      console.error("Error deleting avatar:", error);
+      
+      // Re-enable delete button in case of error
       if (deleteButton) {
         deleteButton.disabled = false;
       }
-    }
-  );
+      
+      // Show error once without callbacks
+      showModal(
+        "Error",
+        `An error occurred: ${error.message}`,
+        "OK",
+        () => {} // Empty callback to prevent recursion
+      );
+    });
+  
+    // // Enable the button if user cancels
+    // () => {
+    //   if (deleteButton) {
+    //     deleteButton.disabled = false;
+    //   }
+    // }
 }
 
 
