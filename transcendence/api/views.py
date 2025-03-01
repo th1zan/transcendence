@@ -480,8 +480,16 @@ class Toggle2FAView(APIView):
             user.save()
 
             send_mail(
-                "Your Two-Factor Authentication Code",
-                f"Your OTP code is: {otp_code_generated}",
+                "Your One-Time Code – Let’s Keep It Secure!",
+                f"Hey {user.username},\n\n"
+                "Here’s your one-time code:\n\n"
+                f" {otp_code_generated} \n\n"
+                "Use it to log in or enable Two-Factor Authentication (2FA) for extra security.\n\n"
+                "Just enter it on the official site, and you’re all set.\n\n"
+                "This code is just for you—don’t share it with anyone!\n\n"
+                "See you on the leaderboard!\n\n"
+                "The Pong Team\n"
+                "42 Lausanne",
                 "pong42lausanne@gmail.com",
                 [user.email],
                 fail_silently=False,

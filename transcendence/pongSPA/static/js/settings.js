@@ -16,7 +16,8 @@ function displayHTMLforSettings(user) {
   appTop.innerHTML = `
   <div class="container mt-4">
     <h3 class="text-center">Account Management</h3>
-
+  
+    <!-- Update Profile Picture -->
     <div class="card shadow-sm p-4 mt-3">
       <h4 class="text-center">Update Profile Picture</h4>
       <div class="d-flex flex-column align-items-center">
@@ -46,15 +47,17 @@ function displayHTMLforSettings(user) {
 
       <div class="form-group mt-2">
         <label>Email:</label>
-        <input type="email" id="emailInput" class="form-control" value="${user.email || ''}">
-        <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
-      </div>
+        <div class="input-group">
+          <input type="email" id="emailInput" class="form-control" value="${user.email || ''}">
+          <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
+        </div>
 
       <div class="form-group mt-2">
         <label>Phone Number:</label>
-        <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
-        <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
-      </div>
+        <div class="input-group">
+          <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+          <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
+        </div>
 
       <div class="d-flex justify-content-center mt-3">
         <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
@@ -166,7 +169,7 @@ export function displaySettings() {
         <div class="form-group mt-2">
           <label>Email:</label>
           <div class="input-group">
-            <input type="email" id="emailInput" class="form-control" required>
+            <input type="email" id="emailInput" class="form-control">
             <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
           </div>
           <div class="invalid-feedback">
@@ -516,8 +519,8 @@ export function updateProfile() {
     },
     body: JSON.stringify({
       username: username,
-      email: emailValue,
-      phone_number: phoneNumber
+      email: emailValue || null,
+      phone_number: phoneNumber || null
     }),
   })
     .then(response => {
@@ -534,19 +537,23 @@ export function updateProfile() {
           // Add cache-busting parameter if avatar was updated
           profilePic.src = profilePic.src.split('?')[0] + '?t=' + new Date().getTime();
         }
+           // Update localStorage with new username
+        localStorage.setItem("username", username);
         setTimeout(() => {
           showModal(
             'Success',
             'Profile updated successfully!',
             'OK',
-            () => {}
+            () => {
+              navigateTo("settings");
+            }
           );
 
           // Re-enable save button
           if (saveButton) {
             saveButton.disabled = false;
           }
-        }, 300);
+        }, 500);
     })
     .catch(error => {
       logger.error("Error updating profile:", error);
