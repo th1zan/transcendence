@@ -3,6 +3,68 @@ import { startGameSetup } from "./pong.js";
 import {showModal, logger} from "./app.js";
 
 
+export function displayTournament() {
+  logger.log('Tournament');
+  const appTop = document.getElementById("app_top");
+  appTop.innerHTML = `
+    <div class="container py-4">
+      <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            My Tournaments
+          </button>
+        </li><li class="nav-item" role="presentation">
+          <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            New Tournament
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <div class="d-flex align-items-center gap-2" id="searchTournament">
+            <input 
+              type="text" 
+              id="tournamentNameInput" 
+              class="form-control rounded-pill bg-transparent" 
+              placeholder="Tournament Name" 
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
+            >
+            <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+              Search
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  `;
+
+  displayUserTournaments();
+  // let resultDiv = document.getElementById("app_main");
+  //   resultDiv.style.display = "block";
+
+  document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      console.error("The element 'tournamentNameInput'  is not available.");
+      return;
+    }
+
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      showModal(
+        'Warning',
+        'Please enter a tournament name.',
+        'OK',
+        () => {} // Action vide, juste fermer la modale
+      );
+      return;
+    }
+
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
+}
 
 function authenticateNow(playerName, tournamentId) {
 // Create a Bootstrap modal for login

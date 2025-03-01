@@ -1,6 +1,6 @@
-import { displayGameForm, displayWelcomePage, navigateTo, showModal, logger } from "./app.js";
+import { navigateTo, showModal, logger } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
-import { displayMenu } from "./menu.js";
+import { displayGameForm } from "./gameForm.js";
 
 export let gameInterval;
 
@@ -41,27 +41,27 @@ let handleOpponentMouseMove = null;
 
 // Export d'une fonction pour supprimer les écouteurs
 export function removeGameListeners() {
-  console.log("removeGameListeners appelé");
+  logger.log("removeGameListeners appelé");
   if (handlePlayerKeyDown) {
     document.removeEventListener("keydown", handlePlayerKeyDown);
     handlePlayerKeyDown = null;
-    console.log("Écouteur handlePlayerKeyDown supprimé");
+    logger.log("Écouteur handlePlayerKeyDown supprimé");
   }
   if (handleOpponentKeyDown && mode === "multiplayer") {
     document.removeEventListener("keydown", handleOpponentKeyDown);
     handleOpponentKeyDown = null;
-    console.log("Écouteur handleOpponentKeyDown supprimé");
+    logger.log("Écouteur handleOpponentKeyDown supprimé");
   }
   if (canvas) {
     if (handlePlayerMouseMove) {
       canvas.removeEventListener("mousemove", handlePlayerMouseMove);
       handlePlayerMouseMove = null;
-      console.log("Écouteur handlePlayerMouseMove supprimé");
+      logger.log("Écouteur handlePlayerMouseMove supprimé");
     }
     if (handleOpponentMouseMove && mode === "multiplayer") {
       canvas.removeEventListener("mousemove", handleOpponentMouseMove);
       handleOpponentMouseMove = null;
-      console.log("Écouteur handleOpponentMouseMove supprimé");
+      logger.log("Écouteur handleOpponentMouseMove supprimé");
     }
   }
 }
@@ -74,15 +74,15 @@ function connectWebSocket(onOpenCallback = null) {
   ws = new WebSocket(ws_path);
 
   ws.onopen = () => {
-    console.log("WebSocket connected");
+    logger.log("WebSocket connected");
     if (wsOpenCallback && typeof wsOpenCallback === "function") wsOpenCallback();
   };
 
   ws.onmessage = (event) => {
-    console.log("Message received:", event.data);
+    logger.log("Message received:", event.data);
     const data = JSON.parse(event.data);
     if (data.type === "update_paddle" && mode === "solo") { // Limiter l'IA au mode solo
-      console.log("Updating paddle position (IA in solo mode):", data.y);
+      logger.log("Updating paddle position (IA in solo mode):", data.y);
       opponent.y = data.y;
     }
   };
@@ -90,9 +90,9 @@ function connectWebSocket(onOpenCallback = null) {
   ws.onerror = (error) => console.error("WebSocket error:", error);
 
   ws.onclose = (event) => {
-    console.log("WebSocket disconnected, code:", event.code, "reason:", event.reason);
+    logger.log("WebSocket disconnected, code:", event.code, "reason:", event.reason);
     if (shouldReconnect) {
-      console.log("Reconnecting in 1 second...");
+      logger.log("Reconnecting in 1 second...");
       setTimeout(connectWebSocket, 1000);
     }
   };
@@ -100,7 +100,7 @@ function connectWebSocket(onOpenCallback = null) {
 
 function sendGameConfiguration() {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    console.log("Envoi des données de jeu au serveur...");
+    logger.log("Envoi des données de jeu au serveur...");
     ws.send(
       JSON.stringify({
         type: "start",
@@ -121,7 +121,7 @@ let retryCount = 0;
 const MAX_RETRIES = 10;
 
 function startPongGame() {
-  console.log("Starting game, initGameObjects called");
+  logger.log("Starting game, initGameObjects called");
   const canvas = document.getElementById("pong");
 
   if (!canvas) {
@@ -148,19 +148,19 @@ function startPongGame() {
   retryCount = 0;
 
   const cnv_context = canvas.getContext("2d");
-  console.log("Canvas context obtained:", cnv_context !== null);
+  logger.log("Canvas context obtained:", cnv_context !== null);
 
   initGameObjects(canvas);
-  console.log("Game objects initialized");
+  logger.log("Game objects initialized");
   resetScores();
-  console.log("Scores reset");
+  logger.log("Scores reset");
 
-  console.log("Mode multiplayer or solo:", mode);
+  logger.log("Mode multiplayer or solo:", mode);
   if (mode !== "multiplayer") {
-    console.log("Mode:", mode, ", let's connect to WebSocket.");
+    logger.log("Mode:", mode, ", let's connect to WebSocket.");
     connectWebSocket(sendGameConfiguration);
   }
-  console.log("WebSocket connection attempted");
+  logger.log("WebSocket connection attempted");
 
   clearInterval(gameInterval);
 
@@ -186,7 +186,7 @@ function updateGamePanel() {
       quitButton.classList = "btn btn-danger";
       quitButton.onclick = () => {
         stopGameProcess(true);
-        console.log("Back to updateGamePanel: AFTER stopGameProcess");
+        logger.log("Back to updateGamePanel: AFTER stopGameProcess");
         if (isTournamentMatch) navigateTo("tournament");
         else navigateTo("welcome");
       };
@@ -194,7 +194,7 @@ function updateGamePanel() {
     }
   }
 
-  console.log("Call to updateGamePanel");
+  logger.log("Call to updateGamePanel");
 }
 
 export function startGameSetup(gameSettings) {
@@ -213,8 +213,8 @@ export function startGameSetup(gameSettings) {
   difficulty = gameSettings.difficulty;
   isTournamentMatch = gameSettings.isTournamentMatch;
 
-  console.log("StartGameSetup: Game settings isTournamentMatch:", gameSettings.isTournamentMatch);
-  console.log("StartGameSetup: isTournamentMatch:", isTournamentMatch);
+  logger.log("StartGameSetup: Game settings isTournamentMatch:", gameSettings.isTournamentMatch);
+  logger.log("StartGameSetup: isTournamentMatch:", isTournamentMatch);
 
   document.getElementById("app_top").innerHTML = "";
   document.getElementById("app_main").innerHTML = "";
@@ -242,9 +242,9 @@ export function startGameSetup(gameSettings) {
   }
 
   if (isTournamentMatch) {
-    console.log("StartGameSetup: Tournament mode");
+    logger.log("StartGameSetup: Tournament mode");
   } else {
-    console.log("StartGameSetup: NOT tournament mode");
+    logger.log("StartGameSetup: NOT tournament mode");
     const gameForm = document.getElementById("gameForm");
     if (gameForm) gameForm.style.display = "none";
   }
@@ -303,7 +303,7 @@ function update() {
       ball.speed *= factor;
       ball.velocityX *= factor;
       ball.velocityY *= factor;
-      if (difficulty === "medium") console.log("vitesse de la balle:", ball.speed);
+      if (difficulty === "medium") logger.log("vitesse de la balle:", ball.speed);
     }
     exchangesPerSet++;
   }
@@ -405,7 +405,7 @@ function handleGameEnd(winner) {
   }
 }
 function displayResults(matchID) {
-  console.log("displayResults:: isTournamentMatch:", isTournamentMatch);
+  logger.log("displayResults:: isTournamentMatch:", isTournamentMatch);
   document.getElementById("app_top").innerHTML = "";
   document.getElementById("app_main").innerHTML = "";
   document.getElementById("app_bottom").innerHTML = "";
@@ -422,9 +422,9 @@ function displayResults(matchID) {
       return response.json();
     })
     .then((data) => {
-      console.log("displayResults .then:: isTournamentMatch:", isTournamentMatch);
+      logger.log("displayResults .then:: isTournamentMatch:", isTournamentMatch);
       const buttonText = isTournamentMatch ? "Back to Tournament" : "New Game";
-      console.log("displayResults::.then buttonText:", buttonText);
+      logger.log("displayResults::.then buttonText:", buttonText);
 
       let summary = `
         <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
@@ -494,7 +494,7 @@ function initGameObjects(gameCanvas) {
   // Définir les écouteurs avec des fonctions nommées
   handlePlayerKeyDown = (event) => {
     event.preventDefault();
-    console.log("step: ", step, " player.y: ", player.y);
+    logger.log("step: ", step, " player.y: ", player.y);
     if (control1 === "arrows") {
       if (event.key === "ArrowUp" && player.y > 0) player.y -= step;
       else if (event.key === "ArrowDown" && player.y < canvas.height - player.height) player.y += step;
@@ -518,7 +518,7 @@ function initGameObjects(gameCanvas) {
   if (mode === "multiplayer") {
     handleOpponentKeyDown = (event) => {
       event.preventDefault();
-      console.log("step: ", step, " opponent.y: ", opponent.y);
+      logger.log("step: ", step, " opponent.y: ", opponent.y);
       if (control2 === "arrows") {
         if (event.key === "ArrowUp" && opponent.y > 0) opponent.y -= step;
         else if (event.key === "ArrowDown" && opponent.y < canvas.height - opponent.height) opponent.y += step;
@@ -549,14 +549,14 @@ export function stopGameProcess(isGameFinished = false) {
   shouldReconnect = false;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.close();
-    console.log("WebSocket disconnected.");
+    logger.log("WebSocket disconnected.");
   }
   if (isGameFinished || !isTournamentMatch) {
     document.getElementById("app_top").innerHTML = "";
     document.getElementById("app_main").innerHTML = "";
     document.getElementById("app_bottom").innerHTML = "";
   } else {
-    console.log("Preserving DOM in tournament mode during set transition.");
+    logger.log("Preserving DOM in tournament mode during set transition.");
     const appMain = document.getElementById("app_main");
     if (!appMain.querySelector("#pong")) appMain.innerHTML = `
       <div class="card text-center" style="background-color: rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; border-radius: 10px; padding: 10px; margin: 0 auto; width: fit-content;">
@@ -655,23 +655,23 @@ function resetBall() {
 async function sendScore() {
   let tournament = null;
   let matchID = localStorage.getItem("matchID");
-  console.log("sendScore: isTournamentMatch:", isTournamentMatch);
+  logger.log("sendScore: isTournamentMatch:", isTournamentMatch);
   if (isTournamentMatch) {
     const tournamentID = localStorage.getItem("tournamentId");
     if (tournamentID) tournament = tournamentID;
   } else matchID = "";
 
-  console.log("Value of player1 before sending:", player1);
-  console.log("setHistory before sending:", setHistory);
-  console.log("isTournamentMatch:", isTournamentMatch);
-  console.log("matchID before sending:", matchID);
+  logger.log("Value of player1 before sending:", player1);
+  logger.log("setHistory before sending:", setHistory);
+  logger.log("isTournamentMatch:", isTournamentMatch);
+  logger.log("matchID before sending:", matchID);
 
   let winner = player1Wins > player2Wins ? player1 : player2Wins > player1Wins ? player2 : null;
 
   const method = matchID ? "PUT" : "POST";
   const url = matchID ? `/api/scores/${matchID}/` : "/api/scores/";
 
-  console.log("methode:", method, "et match ID:", matchID);
+  logger.log("methode:", method, "et match ID:", matchID);
 
   return fetch(url, {
     method,
@@ -698,13 +698,13 @@ async function sendScore() {
       return response.json();
     })
     .then((data) => {
-      console.log("Score submitted:", data);
+      logger.log("Score submitted:", data);
       if (method === "POST") {
         localStorage.setItem("matchID", data.id);
-        console.log("matchID after creation:", data.id);
+        logger.log("matchID after creation:", data.id);
         return data.id;
       }
-      console.log("matchID after update:", matchID);
+      logger.log("matchID after update:", matchID);
       return matchID;
     })
     .catch((error) => {
@@ -721,7 +721,7 @@ function initSetStats() {
 
 function recordSetStats() {
   const setDuration = setStartTime ? (Date.now() - setStartTime) / 1000 : 0;
-  console.log(`Set ${currentGame + 1} duration: ${setDuration.toFixed(1)}s`);
+  logger.log(`Set ${currentGame + 1} duration: ${setDuration.toFixed(1)}s`);
   return { set_number: currentGame + 1, player1_score: player.score, player2_score: opponent.score, exchanges: exchangesPerSet, duration: setDuration };
 }
 
@@ -733,6 +733,6 @@ function initFirstSetStats() {
   if (currentGame === 0 && player.score === 0 && opponent.score === 0) {
     exchangesPerSet = 0;
     setStartTime = Date.now();
-    console.log("First set timer started");
+    logger.log("First set timer started");
   }
 }

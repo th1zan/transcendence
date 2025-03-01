@@ -1,4 +1,4 @@
-import { displayWelcomePage, navigateTo, showModal, logger } from "./app.js";
+import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
 
@@ -816,18 +816,3 @@ export async function validateToken() {
   }
 }
 
-// Supprimer checkTokenExpiration, car les tokens sont gérés dans les cookies HTTP-only
-// function checkTokenExpiration(token) { ... } // Supprimer cette fonction
-
-
-// Fonction helper pour vérifier l'expiration (exemple pour JWT)
-function checkTokenExpiration(token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const exp = payload.exp * 1000; // Convertir en millisecondes
-    return Date.now() >= exp;
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    return true; // Considérer comme expiré si décodage échoue
-  }
-}

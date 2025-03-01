@@ -1,5 +1,5 @@
 import {showModal, logger } from './app.js';
-import { getToken, createAccount, toggle2FA, verify2FALogin } from './auth.js';
+import { getToken, createAccount, verify2FALogin } from './auth.js';
 
 
 // login

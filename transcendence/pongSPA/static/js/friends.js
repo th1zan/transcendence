@@ -4,6 +4,81 @@ import {showModalConfirmation } from './auth.js';
 // TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
 // prevent sending friend request to the user himself
 
+
+export function displayFriends() {
+  // Vide tous les conteneurs
+  document.getElementById('app_top').innerHTML = '';
+  document.getElementById('app_main').innerHTML = '';
+  document.getElementById('app_bottom').innerHTML = '';
+
+  const appTop = document.getElementById("app_main");
+  appTop.innerHTML = `
+    <div class="container mt-4">
+      <div class="row g-4">
+        <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
+        <div class="col-12 col-md-4">
+          <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
+            <div class="card-body text-center">
+              <h5 class="card-title mb-3" >Send Friend Request</h5>
+              <div class="form-group mt-2">
+                <label for="friendUsername" class="form-label" >Username</label>
+                <input type="text" id="friendUsername" placeholder="Username" class="form-control bg-transparent" required >
+                <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
+                  Send Friend Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Colonne 2 : 3 cartes pour les demandes et amis -->
+        <div class="col-12 col-md-6">
+          <div class="row g-4">
+            <!-- Carte pour les demandes d'amis en attente -->
+            <div class="col-12">
+              <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
+                <div class="card-body text-center">
+                  <h4 class="card-title mb-3" >Pending Friend Requests</h4>
+                  <ul id="friendRequests" class="list-group list-group-flush"></ul>
+                </div>
+              </div>
+            </div>
+            <!-- Carte pour la liste des amis -->
+            <div class="col-12">
+              <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
+                <div class="card-body text-center">
+                  <h4 class="card-title mb-3" >My Friends</h4>
+                  <ul id="friendList" class="list-group list-group-flush"></ul>
+                </div>
+              </div>
+            </div>
+            <!-- Carte vide pour équilibrer la mise en page (facultatif, peut être retirée si le contenu est dynamique) -->
+            <div class="col-12 d-md-none d-lg-block" style="height: 0;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
+    const friendUsername = document.getElementById("friendUsername").value.trim();
+    if (friendUsername) {
+      sendFriendRequest(friendUsername);
+    } else {
+      // Remplacer une éventuelle alert par oneButtonModal
+      showModal(
+        'Warning',
+        'Please enter a username.',
+        'OK', // Texte du bouton
+        () => {} // Action vide, juste fermer la modale
+      );
+    }
+  });
+
+  fetchFriendRequests();
+  fetchFriends();
+}
+
+
 export function sendFriendRequest(friendUsername) {
     const loggedInUsername = localStorage.getItem("username");
 
