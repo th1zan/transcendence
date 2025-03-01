@@ -175,7 +175,7 @@ export function displaySettings() {
     update2FAStatus();
   })
   .catch(error => {
-    console.error("Error loading user data:", error);
+    logger.error("Error loading user data:", error);
     });
 
 }

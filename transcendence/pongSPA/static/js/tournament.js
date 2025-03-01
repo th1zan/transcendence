@@ -46,7 +46,7 @@ export function displayTournament() {
   document.getElementById("tournamentSearchButton").addEventListener("click", () => {
     const tournamentNameInput = document.getElementById("tournamentNameInput");
     if (!tournamentNameInput) {
-      console.error("The element 'tournamentNameInput'  is not available.");
+      logger.error("The element 'tournamentNameInput'  is not available.");
       return;
     }
 
@@ -118,7 +118,7 @@ document.getElementById('submitLogin').addEventListener('click', function() {
       // Remove modal from DOM after use
       loginModal.remove();
     })
-    .catch(error => console.error("Error during authentication:", error));
+    .catch(error => logger.error("Error during authentication:", error));
 });
 }
 
@@ -341,7 +341,7 @@ function displayTournamentGameList(data) {
             localStorage.setItem("matchID", matchID);
             startGameSetup(gameSettings);
           } catch (error) {
-            console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+            logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
             showModal(
               'Error',
               'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
@@ -365,7 +365,7 @@ function displayTournamentGameList(data) {
     }
   })
   .catch((error) => {
-    console.error("Error retrieving players:", error);
+    logger.error("Error retrieving players:", error);
     tournamentMatchesDiv.innerHTML = `
       <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${tournamentName}</h2>
       <div class="alert alert-danger text-center" role="alert">Error loading player information.</div>
@@ -461,7 +461,7 @@ export function DisplayTournamentGame() {
 
   logger.log("Tournament name: ", tournamentName);
   if (!tournamentId) {
-    console.error("No tournament ID found. Please create a tournament first.");
+    logger.error("No tournament ID found. Please create a tournament first.");
     return;
   } else {
     logger.log("Tournament ID is: ", tournamentId);
@@ -488,7 +488,7 @@ export function DisplayTournamentGame() {
       displayTournamentGameList(data);
     })
     .catch((error) => {
-      console.error("Error retrieving tournament matches:", error);
+      logger.error("Error retrieving tournament matches:", error);
     });
 }
 
@@ -819,7 +819,7 @@ function setupSubmitHandlers() {
   const savePlayersButton = document.getElementById('savePlayers');
 
   if (!validateButton || !submitButton || !savePlayersButton) {
-    console.error('One or more buttons not found in DOM');
+    logger.error('One or more buttons not found in DOM');
     return;
   }
 
@@ -852,7 +852,7 @@ function setupSubmitHandlers() {
       }
     })
     .catch(error => {
-      console.error("Error validating tournament name:", error);
+      logger.error("Error validating tournament name:", error);
       showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
     });
   };
@@ -917,14 +917,14 @@ function setupSubmitHandlers() {
       }
     })
     .catch(error => {
-      console.error("Error finalizing tournament:", error);
+      logger.error("Error finalizing tournament:", error);
       showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
     });
   };
 }
 
 function handleError(error, message) {
-  console.error(message, error);
+  logger.error(message, error);
   showModal(
     'Error',
     message,
@@ -956,7 +956,7 @@ fetch("/api/tournament/new/", {
   DisplayTournamentGame();
 })
 .catch((error) => {
-  console.error("Error creating tournament:", error);
+  logger.error("Error creating tournament:", error);
 });
 }
 
@@ -1069,7 +1069,7 @@ export function validateSearch() {
       }
     })
     .catch((error) => {
-      console.error("Error while searching for tournaments:", error);
+      logger.error("Error while searching for tournaments:", error);
       const tournamentBody = document.getElementById("tournamentBody");
       tournamentBody.innerHTML = `
         <tr>
@@ -1201,7 +1201,7 @@ export function displayUserTournaments() {
       }
     })
     .catch((error) => {
-      console.error("Error retrieving user's tournaments:", error);
+      logger.error("Error retrieving user's tournaments:", error);
       userTournamentListDiv.innerHTML = `
         <div class="alert alert-danger text-center" role="alert" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
           Error loading tournament information.

@@ -12,7 +12,7 @@ import { displayMenu } from "./menu.js";
 import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
 //'true' to display logs, 'false' for production
-const DEBUG = false;
+const DEBUG = true;
 
 export const logger = {
   log: (...args) => {
@@ -22,11 +22,11 @@ export const logger = {
   },
   warn: (...args) => {
     if (DEBUG) {
-      console.warn(...args);
+      logger.warn(...args);
     }
   },
   error: (...args) => {
-    console.error(...args);
+    logger.error(...args);
   }
 };
 
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logger.log('Calling handleRouteChange with route:', initialRoute);
     handleRouteChange(initialRoute);
   }).catch((error) => {
-    console.error('Error checking user login status:', error);
+    logger.error('Error checking user login status:', error);
     logger.log('User is not logged in due to an error');
     handleRouteChange('login');
   });
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
   logger.log('Refreshing token via interval...');
   const refreshed = await refreshToken();
   if (!refreshed) {
-      console.warn('Interval refresh failed, consider re-authenticating.');
+      logger.warn('Interval refresh failed, consider re-authenticating.');
       showModal(
         'Warning',
         'Your session may have expired or the token is blacklisted. Please log in again.',
@@ -163,7 +163,7 @@ function handleRouteChange(route) {
   addToCustomHistory(route);
 
   if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
-    console.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
+    logger.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
     showModal(
       'Error',
       'An authentication error occurred. Please refresh the page or log in again.',
@@ -238,13 +238,13 @@ function handleRouteChange(route) {
           navigateTo('login');
         }
       }).catch(error => {
-        console.error('Error refreshing token during redirect:', error);
+        logger.error('Error refreshing token during redirect:', error);
         redirectAttempts++;
         navigateTo('login');
       });
     }
   }).catch((error) => {
-    console.error('Error validating token during route change:', error);
+    logger.error('Error validating token during route change:', error);
     refreshToken().then(refreshed => {
       if (refreshed) {
         logger.log('Token refreshed successfully after validation error, retrying route change');
@@ -256,7 +256,7 @@ function handleRouteChange(route) {
         navigateTo('login');
       }
     }).catch(error => {
-      console.error('Error refreshing token after validation failure:', error);
+      logger.error('Error refreshing token after validation failure:', error);
       redirectAttempts++;
       navigateTo('login');
     });
@@ -275,7 +275,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   const modalId = 'oneButtonModal';
   const modalElement = document.getElementById(modalId);
   if (!modalElement) {
-    console.error(`Modal element with ID ${modalId} not found`);
+    logger.error(`Modal element with ID ${modalId} not found`);
     return;
   }
 
@@ -289,7 +289,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   if (titleElement) {
     titleElement.textContent = title;
   } else {
-    console.error(`Title element for ${modalId}Label not found`);
+    logger.error(`Title element for ${modalId}Label not found`);
   }
 
   // message
@@ -297,7 +297,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   if (bodyElement) {
     bodyElement.textContent = message;
   } else {
-    console.error(`Modal body element not found for ${modalId}`);
+    logger.error(`Modal body element not found for ${modalId}`);
   }
 
   //actionCallback linked to the modal's button 
@@ -323,7 +323,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
             logger.log(`Focus restauré sur ${focusElementId}`);
             return;
           } else {
-            console.warn(`Élément spécifié ${focusElementId} non trouvé pour le focus`);
+            logger.warn(`Élément spécifié ${focusElementId} non trouvé pour le focus`);
           }
         }
 
@@ -334,7 +334,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     });
     actionButton.handler = actionButton.onclick;
   } else {
-    console.error(`Action button for ${modalId}Action not found`);
+    logger.error(`Action button for ${modalId}Action not found`);
   }
 
   // display modal and focus on action button

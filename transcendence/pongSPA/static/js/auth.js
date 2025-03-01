@@ -7,7 +7,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
   return new Promise((resolve) => {
     const modalElement = document.getElementById('confirmationModal');
     if (!modalElement) {
-      console.error('Confirmation modal not found in DOM');
+      logger.error('Confirmation modal not found in DOM');
       resolve(false); // Résout avec false en cas d’erreur
       return;
     }
@@ -21,7 +21,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
     if (titleElement) {
       titleElement.textContent = title;
     } else {
-      console.error('Confirmation modal title element not found');
+      logger.error('Confirmation modal title element not found');
     }
 
     // Mise à jour du message
@@ -29,7 +29,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
     if (bodyElement) {
       bodyElement.textContent = message;
     } else {
-      console.error('Confirmation modal body element not found');
+      logger.error('Confirmation modal body element not found');
     }
 
     // Gestion des boutons
@@ -54,7 +54,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
       });
       noButton.handler = noButton.onclick;
     } else {
-      console.error('Confirmation modal buttons not found');
+      logger.error('Confirmation modal buttons not found');
     }
 
     // Afficher la modale
@@ -93,19 +93,19 @@ export async function refreshToken() {
       return true;
     } else if (response.status === 401 || response.status === 403) {
       const errorData = await response.json();
-      console.warn("Refresh token invalid or expired:", errorData);
+      logger.warn("Refresh token invalid or expired:", errorData);
       if (errorData.detail && errorData.detail.includes('blacklisted')) {
-        console.warn('Token blacklisted detected:', errorData);
+        logger.warn('Token blacklisted detected:', errorData);
       }
       localStorage.removeItem('username');
       return false;
     }
 
-    console.warn("❌ Failed to refresh access token. Response:", data);
+    logger.warn("❌ Failed to refresh access token. Response:", data);
     return false;
 
   } catch (error) {
-    console.error("⚠️ Error refreshing token:", error.message, error.stack);
+    logger.error("⚠️ Error refreshing token:", error.message, error.stack);
     localStorage.removeItem('username');
     return false;
   }
@@ -150,7 +150,7 @@ export function getCookie(name) {
 //       }
 //     })
 //     .catch((error) => {
-//       console.error("Error during token refresh.", error);
+//       logger.error("Error during token refresh.", error);
 //     });
 // }
 
@@ -171,7 +171,7 @@ export function toggle2FA() {
         update2FAStatus();
       }
     })
-    .catch(error => console.error("Error toggling 2FA:", error));
+    .catch(error => logger.error("Error toggling 2FA:", error));
 }
 
 
@@ -226,7 +226,7 @@ export function verifyOTP() {
       }
     })
     .catch(error => {
-      console.error("Error verifying OTP for 2FA:", error);
+      logger.error("Error verifying OTP for 2FA:", error);
       showModal(
         'Error',
         'Error verifying OTP: ' + error.message,
@@ -284,7 +284,7 @@ export function verify2FALogin() {
         );
       }
     })
-    .catch(error => console.error("❌ Error verifying OTP during login:", error));
+    .catch(error => logger.error("❌ Error verifying OTP during login:", error));
 }
 
 
@@ -302,7 +302,7 @@ export function update2FAStatus() {
       const toggleButton = document.getElementById("toggle2FAButton");
 
       if (!statusElement || !toggleButton) { 
-        console.error("❌ 2FA elements not found in the DOM.");
+        logger.error("❌ 2FA elements not found in the DOM.");
         return;
       }
 
@@ -319,7 +319,7 @@ export function update2FAStatus() {
       }
     })
     .catch(error => {
-      console.error("❌ Error fetching 2FA status:", error);
+      logger.error("❌ Error fetching 2FA status:", error);
     });
 }
 
@@ -349,7 +349,7 @@ export async function logout() {
       }
     );
   } catch (error) {
-    console.error("Logout failed:", error);
+    logger.error("Logout failed:", error);
     showModal(
       'Error',
       'An error occurred during logout: ' + error.message,
@@ -396,7 +396,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
       }
     })
     .catch((error) => {
-      console.error("Error creating account:", error);
+      logger.error("Error creating account:", error);
       // Construct a detailed error message from the JSON error object
       let errorMessage = "Registration error:\n";
       for (const field in error) {
@@ -450,7 +450,7 @@ export async function deleteAccount() {
     .catch((error) => {
       if (error.name !== "AbortError") {
         // Prevent errors due to reload interruption
-        console.error("Error deleting account:", error);
+        logger.error("Error deleting account:", error);
         showModal(
           'Error',
           'An error occurred:' + error.message,
@@ -495,7 +495,7 @@ export async function anonymizeAccount() {
       );
     })
     .catch((error) => {
-      console.error("Error anonymizing account:", error);
+      logger.error("Error anonymizing account:", error);
       showModal(
         'Error',
         'An error occurred: ' + error.message,
@@ -550,7 +550,7 @@ export function uploadAvatar() {
       );
     })
     .catch(error => {
-      console.error("Error uploading profile picture:", error);
+      logger.error("Error uploading profile picture:", error);
       showModal(
         'Error',
         'Error: ' + error.message,
@@ -626,7 +626,7 @@ export function updateProfile() {
       );
     })
     .catch(error => {
-      console.error("Error updating profile:", error);
+      logger.error("Error updating profile:", error);
       showModal(
         'Error',
         'An error occurred: ' + error.message,
@@ -670,7 +670,7 @@ export function updateProfile() {
 //     }
 //   })
 //   .catch(error => {
-//     console.error('Error validating token:', error);
+//     logger.error('Error validating token:', error);
 //     return false;
 //   });
 // }
@@ -712,7 +712,7 @@ export function getToken(username, password) {
         logger.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
 
         if (!otpSection || !otpInput || !loginForm) {
-          console.error("OTP section/input or login form not found in DOM!");
+          logger.error("OTP section/input or login form not found in DOM!");
           showModal(
             'Error',
             'Something went wrong. Please refresh the page and try again.',
@@ -742,7 +742,7 @@ export function getToken(username, password) {
       }
     })
     .catch(error => {
-      console.error("Login failed:", error);
+      logger.error("Login failed:", error);
       showModal(
         'Error',
         `Login failed: ${error.message}`,
@@ -773,7 +773,7 @@ export async function validateToken() {
 
     logger.log('Validate response status:', response.status);
     if (!response.ok) {
-      console.warn(`HTTP error validating token! Status: ${response.status}`);
+      logger.warn(`HTTP error validating token! Status: ${response.status}`);
       const errorData = await response.json();
       logger.log('Error details:', errorData);
 
@@ -781,7 +781,7 @@ export async function validateToken() {
         logger.log('Token invalid or expired, attempting refresh...');
         const refreshed = await refreshToken();
         if (!refreshed) {
-          console.warn('Failed to refresh token after validation failure, clearing tokens.');
+          logger.warn('Failed to refresh token after validation failure, clearing tokens.');
           localStorage.removeItem('username');
           return false;
         }
@@ -798,17 +798,17 @@ export async function validateToken() {
       logger.log('Token validation failed, data:', data);
       const refreshed = await refreshToken();
       if (!refreshed) {
-        console.warn('Failed to refresh token after validation failure, clearing tokens.');
+        logger.warn('Failed to refresh token after validation failure, clearing tokens.');
         localStorage.removeItem('username');
         return false;
       }
       return true;
     }
   } catch (error) {
-    console.error('Error validating token:', error.message, error.stack);
+    logger.error('Error validating token:', error.message, error.stack);
     const refreshed = await refreshToken();
     if (!refreshed) {
-      console.warn('Failed to refresh token after catch, clearing tokens.');
+      logger.warn('Failed to refresh token after catch, clearing tokens.');
       localStorage.removeItem('username');
       return false;
     }

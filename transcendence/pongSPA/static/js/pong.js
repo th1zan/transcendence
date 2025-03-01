@@ -87,7 +87,7 @@ function connectWebSocket(onOpenCallback = null) {
     }
   };
 
-  ws.onerror = (error) => console.error("WebSocket error:", error);
+  ws.onerror = (error) => logger.error("WebSocket error:", error);
 
   ws.onclose = (event) => {
     logger.log("WebSocket disconnected, code:", event.code, "reason:", event.reason);
@@ -113,7 +113,7 @@ function sendGameConfiguration() {
       })
     );
   } else {
-    console.error("WebSocket non connecté, impossible d'envoyer la configuration");
+    logger.error("WebSocket non connecté, impossible d'envoyer la configuration");
   }
 }
 
@@ -126,12 +126,12 @@ function startPongGame() {
 
   if (!canvas) {
     if (retryCount < MAX_RETRIES) {
-      console.warn(`Canvas not found. Retry ${retryCount + 1}/${MAX_RETRIES} in 100 ms.`);
+      logger.warn(`Canvas not found. Retry ${retryCount + 1}/${MAX_RETRIES} in 100 ms.`);
       retryCount++;
       setTimeout(startPongGame, 100);
       return;
     } else {
-      console.error("Failed to find canvas after maximum retries. Please check the DOM.");
+      logger.error("Failed to find canvas after maximum retries. Please check the DOM.");
       showModal(
         "Error",
         "Failed to start the game. The game canvas could not be found. Please refresh the page and try again.",
@@ -229,7 +229,7 @@ export function startGameSetup(gameSettings) {
 
   const canvas = document.getElementById("pong");
   if (!canvas) {
-    console.error("Canvas creation failed. Cannot start the game.");
+    logger.error("Canvas creation failed. Cannot start the game.");
     showModal(
       "Error",
       "Failed to create the game canvas. Please refresh the page and try again.",
@@ -363,14 +363,14 @@ function handleGameEnd(winner) {
         updateResults();
         let canvas = document.getElementById("pong");
         if (!canvas) {
-          console.warn("Canvas not found after modal closure. Recreating canvas.");
+          logger.warn("Canvas not found after modal closure. Recreating canvas.");
           const appMain = document.getElementById("app_main");
           if (!appMain.querySelector("#pong")) appMain.innerHTML = `<canvas id="pong" width="800" height="400"></canvas>`;
           canvas = document.getElementById("pong");
         }
         if (canvas) requestAnimationFrame(() => startPongGame());
         else {
-          console.error("Failed to initialize canvas for next set.");
+          logger.error("Failed to initialize canvas for next set.");
           showModal(
             "Error",
             "Failed to start the next set. The game canvas could not be initialized.",
@@ -390,7 +390,7 @@ function handleGameEnd(winner) {
         displayResults(matchID);
       })
       .catch((error) => {
-        console.error("Error in game end processing:", error);
+        logger.error("Error in game end processing:", error);
         stopGameProcess(true); // Appelé même en cas d’erreur
         showModal(
           "Error",
@@ -462,7 +462,7 @@ function displayResults(matchID) {
         });
       }
     })
-    .catch((error) => console.error("Error retrieving match results:", error));
+    .catch((error) => logger.error("Error retrieving match results:", error));
 }
 
 let canvas, player, opponent, ball, obstacle;
@@ -708,7 +708,7 @@ async function sendScore() {
       return matchID;
     })
     .catch((error) => {
-      console.error("Error sending score:", error);
+      logger.error("Error sending score:", error);
       throw error;
     });
 }

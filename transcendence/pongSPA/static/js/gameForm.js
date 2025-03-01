@@ -312,7 +312,7 @@ export function displayGameForm() {
             return;
           }
         } catch (error) {
-          console.error("Error checking player existence:", error);
+          logger.error("Error checking player existence:", error);
           showModal(
             'Utilisateur introuvable',
             'There was an error checking player existence. Please try again.',

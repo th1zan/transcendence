@@ -151,7 +151,7 @@ export function sendFriendRequest(friendUsername) {
             }
         })
         .catch((error) => {
-            console.error("Error sending friend request:", error);
+            logger.error("Error sending friend request:", error);
             showModal(
                 'Error',
                 'An error occurred.',
@@ -163,7 +163,7 @@ export function sendFriendRequest(friendUsername) {
         });
     })
     .catch((error) => {
-        console.error("Error fetching friend list:", error);
+        logger.error("Error fetching friend list:", error);
         showModal(
             'Error',
             'An error occurred while checking friend status.',
@@ -210,7 +210,7 @@ export function respondToFriendRequest(friendUsername, action) {
         }
       })
       .catch((error) => {
-        console.error("Error responding to friend request:", error);
+        logger.error("Error responding to friend request:", error);
         showModal(
             'Error',
             'An error occurred.',
@@ -261,7 +261,7 @@ export function removeFriend(friendUsername) {
           }
         })
         .catch((error) => {
-          console.error("Error removing friend:", error);
+          logger.error("Error removing friend:", error);
           showModal(
             'Error',
             'An error occurred.',
@@ -317,7 +317,7 @@ export function fetchFriendRequests() {
 		  });
 		});
 	  })
-	  .catch(error => console.error("Error fetching friend requests:", error));
+	  .catch(error => logger.error("Error fetching friend requests:", error));
 }
 
 export function fetchFriends() {
@@ -375,9 +375,9 @@ export function fetchFriends() {
 			});
 		});
 	  })
-	  .catch((error) => console.error("Error fetching friend statuses:", error));
+	  .catch((error) => logger.error("Error fetching friend statuses:", error));
     })
-	.catch((error) => console.error("Error fetching friends:", error));
+	.catch((error) => logger.error("Error fetching friends:", error));
 }
 
 // const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
@@ -405,5 +405,5 @@ export function fetchFriends() {
 // };
 
 // ws.onerror = (error) => {
-//   console.error("WebSocket error:", error);
+//   logger.error("WebSocket error:", error);
 // };

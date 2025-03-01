@@ -80,7 +80,7 @@ export async function displayWelcomePage() {
       quickStatsContainer.innerHTML = displayQuickStats(data, username);
     })
     .catch(error => {
-      console.error("Error fetching quick stats:", error);
+      logger.error("Error fetching quick stats:", error);
       const quickStatsContainer = document.getElementById("quickStatsContainer");
       quickStatsContainer.innerHTML = `<p class="text-danger">Error loading quick stats: ${error.message}</p>`;
     });
@@ -123,7 +123,7 @@ function fetchPendingTournamentAuthentications() {
       }
     })
     .catch(error => {
-      console.error("Error fetching pending tournament authentications:", error);
+      logger.error("Error fetching pending tournament authentications:", error);
       const authList = document.getElementById("pendingTournamentAuthentications");
       authList.innerHTML = `<li class="list-group-item text-center text-danger" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">Error loading tournament authentications.</li>`;
     });
@@ -155,7 +155,7 @@ function confirmTournamentParticipation(tournamentId, playerName) {
     }
   })
   .catch(error => {
-    console.error("Error confirming participation:", error);
+    logger.error("Error confirming participation:", error);
     showModal('Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
   });
 }
@@ -205,7 +205,7 @@ export function fetchPendingFriendRequests() {
       }
     })
     .catch(error => {
-      console.error("Error fetching friend requests:", error);
+      logger.error("Error fetching friend requests:", error);
       const requestList = document.getElementById("pendingFriendRequests");
       requestList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading friend requests.</li>`;
     });
