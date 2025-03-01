@@ -88,8 +88,7 @@ export async function displayMenu(avatarUrl = null) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Re-render the menu when the page loads
-    displayMenu();
+
     const menu = document.getElementById('menu');
     const navbarToggler = menu.querySelector('.navbar-toggler');
     const navbarCollapse = menu.querySelector('.navbar-collapse');

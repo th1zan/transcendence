@@ -832,14 +832,21 @@ class AnonymizeAccountView(APIView):
                 user.last_name = "User"
             if hasattr(user, "phone_number"):
                 user.phone_number = None
-            if hasattr(user, "profile_picture"):
-                user.profile_picture = None
             if hasattr(user, "friend_list"):
                 user.friend_list.clear()
             if hasattr(user, "is_online"):
                 user.is_online = False
             if hasattr(user, "last_seen"):
                 user.last_seen = None
+            if hasattr(user, "avatar") and user.avatar:
+                try:
+                    # If there's a custom avatar file, delete it
+                    if user.avatar.name and user.avatar.name != "avatars/default.png" and os.path.exists(user.avatar.path):
+                        os.remove(user.avatar.path)
+                except Exception as e:
+                    print(f"Error deleting avatar file: {e}")
+                # Reset to default avatar
+                user.avatar.name = "avatars/default.png"
             user.is_active = False  # Deactivate the account
             user.date_joined = None
             user.set_unusable_password()
