@@ -805,13 +805,13 @@ class LogoutView(APIView):
 
 
 class AnonymizeAccountView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is logged in
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
         if user.is_authenticated:
             # Generate a random pseudonym for the deleted user
-            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:12]}"
+            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:5]}"
 
             # Update winner field if this user was a winner
             # PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
