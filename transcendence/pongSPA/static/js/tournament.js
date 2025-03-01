@@ -1,8 +1,70 @@
 
 import { startGameSetup } from "./pong.js";
-import {showModal} from "./app.js";
+import {showModal, logger} from "./app.js";
 
 
+export function displayTournament() {
+  logger.log('Tournament');
+  const appTop = document.getElementById("app_top");
+  appTop.innerHTML = `
+    <div class="container py-4">
+      <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            My Tournaments
+          </button>
+        </li><li class="nav-item" role="presentation">
+          <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+            New Tournament
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <div class="d-flex align-items-center gap-2" id="searchTournament">
+            <input 
+              type="text" 
+              id="tournamentNameInput" 
+              class="form-control rounded-pill bg-transparent" 
+              placeholder="Tournament Name" 
+              style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
+            >
+            <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
+              Search
+            </button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  `;
+
+  displayUserTournaments();
+  // let resultDiv = document.getElementById("app_main");
+  //   resultDiv.style.display = "block";
+
+  document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
+  document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
+
+  document.getElementById("tournamentSearchButton").addEventListener("click", () => {
+    const tournamentNameInput = document.getElementById("tournamentNameInput");
+    if (!tournamentNameInput) {
+      logger.error("The element 'tournamentNameInput'  is not available.");
+      return;
+    }
+
+    const tournamentName = tournamentNameInput.value;
+    if (!tournamentName) {
+      showModal(
+        'Warning',
+        'Please enter a tournament name.',
+        'OK',
+        () => {} // Action vide, juste fermer la modale
+      );
+      return;
+    }
+
+    localStorage.setItem("tournamentName", tournamentName);
+    validateSearch();
+  });
+}
 
 function authenticateNow(playerName, tournamentId) {
 // Create a Bootstrap modal for login
@@ -56,7 +118,7 @@ document.getElementById('submitLogin').addEventListener('click', function() {
       // Remove modal from DOM after use
       loginModal.remove();
     })
-    .catch(error => console.error("Error during authentication:", error));
+    .catch(error => logger.error("Error during authentication:", error));
 });
 }
 
@@ -231,7 +293,7 @@ function displayTournamentGameList(data) {
           const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
           const matchID = parseInt(event.target.getAttribute('data-match-id'));
 
-          console.log("get player with tournament ID: ", tournamentId);
+          logger.log("get player with tournament ID: ", tournamentId);
           try {
             const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
               method: "GET",
@@ -279,7 +341,7 @@ function displayTournamentGameList(data) {
             localStorage.setItem("matchID", matchID);
             startGameSetup(gameSettings);
           } catch (error) {
-            console.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+            logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
             showModal(
               'Error',
               'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
@@ -303,7 +365,7 @@ function displayTournamentGameList(data) {
     }
   })
   .catch((error) => {
-    console.error("Error retrieving players:", error);
+    logger.error("Error retrieving players:", error);
     tournamentMatchesDiv.innerHTML = `
       <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${tournamentName}</h2>
       <div class="alert alert-danger text-center" role="alert">Error loading player information.</div>
@@ -397,12 +459,12 @@ export function DisplayTournamentGame() {
   const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
 
-  console.log("Tournament name: ", tournamentName);
+  logger.log("Tournament name: ", tournamentName);
   if (!tournamentId) {
-    console.error("No tournament ID found. Please create a tournament first.");
+    logger.error("No tournament ID found. Please create a tournament first.");
     return;
   } else {
-    console.log("Tournament ID is: ", tournamentId);
+    logger.log("Tournament ID is: ", tournamentId);
   }
 
   const appMain = document.getElementById("app_main");
@@ -426,7 +488,7 @@ export function DisplayTournamentGame() {
       displayTournamentGameList(data);
     })
     .catch((error) => {
-      console.error("Error retrieving tournament matches:", error);
+      logger.error("Error retrieving tournament matches:", error);
     });
 }
 
@@ -642,7 +704,7 @@ playerContainer.addEventListener('click', (event) => {
     const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
     players.delete(playerName);
     playerDiv.remove();
-    console.log(`Removed player: ${playerName}`);
+    logger.log(`Removed player: ${playerName}`);
     cleanupPlayersMap(players);
   }
 });
@@ -651,7 +713,7 @@ playerContainer.addEventListener('click', (event) => {
 addButton.addEventListener('click', () => {
   const newPlayerDiv = addPlayer(playerContainer, playerCount++, '', false);
   players.set('', { validated: false, div: newPlayerDiv });
-  console.log("New player line added");
+  logger.log("New player line added");
 });
 
 // Updated addPlayer function
@@ -757,7 +819,7 @@ function setupSubmitHandlers() {
   const savePlayersButton = document.getElementById('savePlayers');
 
   if (!validateButton || !submitButton || !savePlayersButton) {
-    console.error('One or more buttons not found in DOM');
+    logger.error('One or more buttons not found in DOM');
     return;
   }
 
@@ -790,7 +852,7 @@ function setupSubmitHandlers() {
       }
     })
     .catch(error => {
-      console.error("Error validating tournament name:", error);
+      logger.error("Error validating tournament name:", error);
       showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
     });
   };
@@ -846,7 +908,7 @@ function setupSubmitHandlers() {
     .then(response => response.json())
     .then(data => {
       if (data.message) {
-        console.log("Tournament finalized:", data);
+        logger.log("Tournament finalized:", data);
         showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
           DisplayTournamentGame(); // Assuming this function shows the tournament game page
         });
@@ -855,14 +917,14 @@ function setupSubmitHandlers() {
       }
     })
     .catch(error => {
-      console.error("Error finalizing tournament:", error);
+      logger.error("Error finalizing tournament:", error);
       showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
     });
   };
 }
 
 function handleError(error, message) {
-  console.error(message, error);
+  logger.error(message, error);
   showModal(
     'Error',
     message,
@@ -889,12 +951,12 @@ fetch("/api/tournament/new/", {
   return response.json();
 })
 .then((data) => {
-  console.log("Tournament created:", data);
+  logger.log("Tournament created:", data);
   localStorage.setItem("tournamentId", data.tournament_id);
   DisplayTournamentGame();
 })
 .catch((error) => {
-  console.error("Error creating tournament:", error);
+  logger.error("Error creating tournament:", error);
 });
 }
 
@@ -1007,7 +1069,7 @@ export function validateSearch() {
       }
     })
     .catch((error) => {
-      console.error("Error while searching for tournaments:", error);
+      logger.error("Error while searching for tournaments:", error);
       const tournamentBody = document.getElementById("tournamentBody");
       tournamentBody.innerHTML = `
         <tr>
@@ -1139,7 +1201,7 @@ export function displayUserTournaments() {
       }
     })
     .catch((error) => {
-      console.error("Error retrieving user's tournaments:", error);
+      logger.error("Error retrieving user's tournaments:", error);
       userTournamentListDiv.innerHTML = `
         <div class="alert alert-danger text-center" role="alert" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
           Error loading tournament information.

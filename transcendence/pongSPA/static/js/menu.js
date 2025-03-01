@@ -1,5 +1,5 @@
 import { logout } from './auth.js';
-import { navigateTo } from "./app.js";
+import { navigateTo, logger } from "./app.js";
 
 
 export async function fetchAndStoreAvatarUrl() {
@@ -16,7 +16,7 @@ export async function fetchAndStoreAvatarUrl() {
     localStorage.setItem("avatarUrl", avatarUrl);
     return avatarUrl; // Retourne l'URL pour un usage éventuel
   } catch (error) {
-    console.error("Error fetching avatar URL:", error);
+    logger.error("Error fetching avatar URL:", error);
     const defaultUrl = "/media/avatars/avatar1.png";
     localStorage.setItem("avatarUrl", defaultUrl);
     return defaultUrl;

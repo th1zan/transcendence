@@ -1,5 +1,5 @@
-import {showModal } from './app.js';
-import { getToken, createAccount, toggle2FA, verify2FALogin } from './auth.js';
+import {showModal, logger } from './app.js';
+import { getToken, createAccount, verify2FALogin } from './auth.js';
 
 
 // login
@@ -149,13 +149,13 @@ export function displayRegistrationForm() {
     .getElementById("signupForm")
     .addEventListener("submit", function (event) {
       event.preventDefault();
-      console.log('Formulaire soumis, vérification de privacyPolicyAccepted...');
+      logger.log('Formulaire soumis, vérification de privacyPolicyAccepted...');
       const newUsername = document.getElementById("newUsername").value;
       const newPassword = document.getElementById("newPassword").value;
       const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
 
       if (!privacyPolicyAccepted) {
-      console.log('Tentative d’affichage de la modale...');
+      logger.log('Tentative d’affichage de la modale...');
       showModal(
         'Privacy Policy Required',
         'You must accept the Privacy Policy to register.',

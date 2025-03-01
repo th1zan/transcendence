@@ -1,13 +1,13 @@
-import { displayWelcomePage, displaySettings, navigateTo, showModal } from "./app.js";
+import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
-
+import { displaySettings } from "./settings.js";
 
 export function showModalConfirmation(message, title = "Confirmation") {
   return new Promise((resolve) => {
     const modalElement = document.getElementById('confirmationModal');
     if (!modalElement) {
-      console.error('Confirmation modal not found in DOM');
+      logger.error('Confirmation modal not found in DOM');
       resolve(false); // Résout avec false en cas d’erreur
       return;
     }
@@ -21,7 +21,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
     if (titleElement) {
       titleElement.textContent = title;
     } else {
-      console.error('Confirmation modal title element not found');
+      logger.error('Confirmation modal title element not found');
     }
 
     // Mise à jour du message
@@ -29,7 +29,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
     if (bodyElement) {
       bodyElement.textContent = message;
     } else {
-      console.error('Confirmation modal body element not found');
+      logger.error('Confirmation modal body element not found');
     }
 
     // Gestion des boutons
@@ -54,7 +54,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
       });
       noButton.handler = noButton.onclick;
     } else {
-      console.error('Confirmation modal buttons not found');
+      logger.error('Confirmation modal buttons not found');
     }
 
     // Afficher la modale
@@ -70,8 +70,8 @@ export function showModalConfirmation(message, title = "Confirmation") {
 
 export async function refreshToken() {
   try {
-    console.log("Attempting to refresh token...");
-    console.log('Cookies before refresh (HTTP-only, checking via API):', 'Simulating cookie inclusion with credentials: include');
+    logger.log("Attempting to refresh token...");
+    logger.log('Cookies before refresh (HTTP-only, checking via API):', 'Simulating cookie inclusion with credentials: include');
     let response = await fetch("/api/auth/refresh/", {
       method: "POST",
       credentials: "include",
@@ -80,32 +80,32 @@ export async function refreshToken() {
       },
     });
 
-    console.log("Refresh response status:", response.status);
-    console.log("Refresh response headers:", response.headers); // Pour vérifier les cookies mis à jour
+    logger.log("Refresh response status:", response.status);
+    logger.log("Refresh response headers:", response.headers); // Pour vérifier les cookies mis à jour
     let data = await response.json();
-    console.log("🔄 Refresh response:", data);
+    logger.log("🔄 Refresh response:", data);
 
     if (response.ok && (data.message === "Token refreshed successfully" || data.access)) {
-      console.log("✅ Access token refreshed successfully (stored in cookies by server)");
+      logger.log("✅ Access token refreshed successfully (stored in cookies by server)");
       if (data.refresh) {
-        console.log("New refresh token detected in response, but not stored (handled by cookies):", data.refresh);
+        logger.log("New refresh token detected in response, but not stored (handled by cookies):", data.refresh);
       }
       return true;
     } else if (response.status === 401 || response.status === 403) {
       const errorData = await response.json();
-      console.warn("Refresh token invalid or expired:", errorData);
+      logger.warn("Refresh token invalid or expired:", errorData);
       if (errorData.detail && errorData.detail.includes('blacklisted')) {
-        console.warn('Token blacklisted detected:', errorData);
+        logger.warn('Token blacklisted detected:', errorData);
       }
       localStorage.removeItem('username');
       return false;
     }
 
-    console.warn("❌ Failed to refresh access token. Response:", data);
+    logger.warn("❌ Failed to refresh access token. Response:", data);
     return false;
 
   } catch (error) {
-    console.error("⚠️ Error refreshing token:", error.message, error.stack);
+    logger.error("⚠️ Error refreshing token:", error.message, error.stack);
     localStorage.removeItem('username');
     return false;
   }
@@ -144,13 +144,13 @@ export function getCookie(name) {
 //     })
 //     .then((data) => {
 //       if (data.message === "Token refreshed successfully") {
-//         console.log("Token refreshed successfully");
+//         logger.log("Token refreshed successfully");
 //       } else {
 //         alert("Token refresh error. Please retry.");
 //       }
 //     })
 //     .catch((error) => {
-//       console.error("Error during token refresh.", error);
+//       logger.error("Error during token refresh.", error);
 //     });
 // }
 
@@ -163,7 +163,7 @@ export function toggle2FA() {
   })
     .then(response => response.json())
     .then(data => {
-      console.log("Toggle 2FA response:", data);
+      logger.log("Toggle 2FA response:", data);
       
       if (data.otp_required) {
         document.getElementById("otpSection").style.display = "block"; // Show OTP field
@@ -171,7 +171,7 @@ export function toggle2FA() {
         update2FAStatus();
       }
     })
-    .catch(error => console.error("Error toggling 2FA:", error));
+    .catch(error => logger.error("Error toggling 2FA:", error));
 }
 
 
@@ -196,7 +196,7 @@ export function verifyOTP() {
   })
     .then(response => response.json())
     .then(data => {
-      console.log("Verify OTP (toggle2FA) response:", data);
+      logger.log("Verify OTP (toggle2FA) response:", data);
 
       if (data.message === "2FA successfully enabled.") {
         showModal(
@@ -226,7 +226,7 @@ export function verifyOTP() {
       }
     })
     .catch(error => {
-      console.error("Error verifying OTP for 2FA:", error);
+      logger.error("Error verifying OTP for 2FA:", error);
       showModal(
         'Error',
         'Error verifying OTP: ' + error.message,
@@ -240,7 +240,7 @@ export function verifyOTP() {
 export function verify2FALogin() {
   const otp_code = document.getElementById("otpInput").value;
   const username = sessionStorage.getItem("2fa_pending_user");
-  console.log("Verifying OTP for username:", username, "OTP entered:", otp_code);
+  logger.log("Verifying OTP for username:", username, "OTP entered:", otp_code);
 
   if (!otp_code) {
     showModal(
@@ -260,7 +260,7 @@ export function verify2FALogin() {
   })
     .then(response => response.json())
     .then(data => {
-      console.log("🔹 Verify 2FA Login response:", data);
+      logger.log("🔹 Verify 2FA Login response:", data);
       if (data.success) {
         showModal(
           'Success',
@@ -284,7 +284,7 @@ export function verify2FALogin() {
         );
       }
     })
-    .catch(error => console.error("❌ Error verifying OTP during login:", error));
+    .catch(error => logger.error("❌ Error verifying OTP during login:", error));
 }
 
 
@@ -296,13 +296,13 @@ export function update2FAStatus() {
   })
     .then(response => response.json())
     .then(user => {
-      console.log("2FA Status Response:", user);
+      logger.log("2FA Status Response:", user);
 
       const statusElement = document.getElementById("2fa_status");
       const toggleButton = document.getElementById("toggle2FAButton");
 
       if (!statusElement || !toggleButton) { 
-        console.error("❌ 2FA elements not found in the DOM.");
+        logger.error("❌ 2FA elements not found in the DOM.");
         return;
       }
 
@@ -319,7 +319,7 @@ export function update2FAStatus() {
       }
     })
     .catch(error => {
-      console.error("❌ Error fetching 2FA status:", error);
+      logger.error("❌ Error fetching 2FA status:", error);
     });
 }
 
@@ -338,7 +338,7 @@ export async function logout() {
       const errorData = await response.json();
       throw new Error(errorData.error || "Logout request failed.");
     }
-    console.log("✅ Logout successful!");
+    logger.log("✅ Logout successful!");
     showModal(
       'Success',
       'Logout successful!',
@@ -349,7 +349,7 @@ export async function logout() {
       }
     );
   } catch (error) {
-    console.error("Logout failed:", error);
+    logger.error("Logout failed:", error);
     showModal(
       'Error',
       'An error occurred during logout: ' + error.message,
@@ -396,7 +396,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
       }
     })
     .catch((error) => {
-      console.error("Error creating account:", error);
+      logger.error("Error creating account:", error);
       // Construct a detailed error message from the JSON error object
       let errorMessage = "Registration error:\n";
       for (const field in error) {
@@ -450,7 +450,7 @@ export async function deleteAccount() {
     .catch((error) => {
       if (error.name !== "AbortError") {
         // Prevent errors due to reload interruption
-        console.error("Error deleting account:", error);
+        logger.error("Error deleting account:", error);
         showModal(
           'Error',
           'An error occurred:' + error.message,
@@ -495,7 +495,7 @@ export async function anonymizeAccount() {
       );
     })
     .catch((error) => {
-      console.error("Error anonymizing account:", error);
+      logger.error("Error anonymizing account:", error);
       showModal(
         'Error',
         'An error occurred: ' + error.message,
@@ -563,7 +563,7 @@ export function uploadAvatar() {
       );
     })
     .catch(error => {
-      console.error("Error uploading profile picture:", error);
+      logger.error("Error uploading profile picture:", error);
       showModal(
         'Error',
         'Error: ' + error.message,
@@ -751,7 +751,7 @@ export function updateProfile() {
       );
     })
     .catch(error => {
-      console.error("Error updating profile:", error);
+      logger.error("Error updating profile:", error);
       showModal(
         'Error',
         'An error occurred: ' + error.message,
@@ -767,7 +767,7 @@ export function updateProfile() {
 //   // Vérifie si le username est dans le localStorage
 //   const username = localStorage.getItem('username');
 //   if (!username) {
-//     console.log('No username found in localStorage, token validation skipped.');
+//     logger.log('No username found in localStorage, token validation skipped.');
 //     return Promise.resolve(false); // Retourne une promesse résolue avec false si le username n'est pas trouvé
 //   }
 //
@@ -787,15 +787,15 @@ export function updateProfile() {
 //   })
 //   .then(data => {
 //     if (data.valid) {
-//       console.log('Token is valid');
+//       logger.log('Token is valid');
 //       return true;
 //     } else {
-//       console.log('Token validation failed');
+//       logger.log('Token validation failed');
 //       return false;
 //     }
 //   })
 //   .catch(error => {
-//     console.error('Error validating token:', error);
+//     logger.error('Error validating token:', error);
 //     return false;
 //   });
 // }
@@ -818,26 +818,26 @@ export function getToken(username, password) {
     body: JSON.stringify({ username, password }),
   })
     .then(response => {
-      console.log("Response Status:", response.status, response.statusText);
+      logger.log("Response Status:", response.status, response.statusText);
       return response.json().then(data => {
-        console.log("Server Response Data:", data);
+        logger.log("Server Response Data:", data);
         return { ok: response.ok, status: response.status, data };
       });
     })
     .then(({ ok, status, data }) => {
-      console.log("Processing response...", { ok, status, data });
+      logger.log("Processing response...", { ok, status, data });
 
       // Check for 2FA requirement
       if (data.detail === "2FA verification required. Please verify OTP.") {
-        console.log("2FA required! Switching to OTP input field...");
+        logger.log("2FA required! Switching to OTP input field...");
         const otpSection = document.getElementById("otpSection");
         const otpInput = document.getElementById("otpInput");
         const loginForm = document.getElementById("loginForm");
 
-        console.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
+        logger.log("🔍 DOM Check - otpSection:", otpSection, "otpInput:", otpInput, "loginForm:", loginForm);
 
         if (!otpSection || !otpInput || !loginForm) {
-          console.error("OTP section/input or login form not found in DOM!");
+          logger.error("OTP section/input or login form not found in DOM!");
           showModal(
             'Error',
             'Something went wrong. Please refresh the page and try again.',
@@ -851,14 +851,14 @@ export function getToken(username, password) {
         otpSection.style.display = "block";
         otpInput.focus();
 
-        console.log("UI switched to OTP section");
+        logger.log("UI switched to OTP section");
         sessionStorage.setItem("2fa_pending_user", username);
         return;
       }
 
       // Handle successful login
       if (ok && data.message === "Login successful") {
-        console.log("Login successful!");
+        logger.log("Login successful!");
         localStorage.setItem("username", username); // Stocke uniquement le username
         displayMenu();
         navigateTo("welcome");
@@ -867,7 +867,7 @@ export function getToken(username, password) {
       }
     })
     .catch(error => {
-      console.error("Login failed:", error);
+      logger.error("Login failed:", error);
       showModal(
         'Error',
         `Login failed: ${error.message}`,
@@ -881,11 +881,11 @@ export async function validateToken() {
   const username = localStorage.getItem('username');
 
   if (!username) {
-    console.log('No username found in localStorage, token validation skipped.');
+    logger.log('No username found in localStorage, token validation skipped.');
     return Promise.resolve(false);
   }
 
-  console.log('Cookies at validation (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
+  logger.log('Cookies at validation (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
 
   try {
     const response = await fetch("/api/auth/validate/", {
@@ -896,17 +896,17 @@ export async function validateToken() {
       }
     });
 
-    console.log('Validate response status:', response.status);
+    logger.log('Validate response status:', response.status);
     if (!response.ok) {
-      console.warn(`HTTP error validating token! Status: ${response.status}`);
+      logger.warn(`HTTP error validating token! Status: ${response.status}`);
       const errorData = await response.json();
-      console.log('Error details:', errorData);
+      logger.log('Error details:', errorData);
 
       if (response.status === 401 || response.status === 403) {
-        console.log('Token invalid or expired, attempting refresh...');
+        logger.log('Token invalid or expired, attempting refresh...');
         const refreshed = await refreshToken();
         if (!refreshed) {
-          console.warn('Failed to refresh token after validation failure, clearing tokens.');
+          logger.warn('Failed to refresh token after validation failure, clearing tokens.');
           localStorage.removeItem('username');
           return false;
         }
@@ -917,23 +917,23 @@ export async function validateToken() {
 
     const data = await response.json();
     if (data.valid) {
-      console.log('Token is valid');
+      logger.log('Token is valid');
       return true;
     } else {
-      console.log('Token validation failed, data:', data);
+      logger.log('Token validation failed, data:', data);
       const refreshed = await refreshToken();
       if (!refreshed) {
-        console.warn('Failed to refresh token after validation failure, clearing tokens.');
+        logger.warn('Failed to refresh token after validation failure, clearing tokens.');
         localStorage.removeItem('username');
         return false;
       }
       return true;
     }
   } catch (error) {
-    console.error('Error validating token:', error.message, error.stack);
+    logger.error('Error validating token:', error.message, error.stack);
     const refreshed = await refreshToken();
     if (!refreshed) {
-      console.warn('Failed to refresh token after catch, clearing tokens.');
+      logger.warn('Failed to refresh token after catch, clearing tokens.');
       localStorage.removeItem('username');
       return false;
     }
@@ -941,18 +941,3 @@ export async function validateToken() {
   }
 }
 
-// Supprimer checkTokenExpiration, car les tokens sont gérés dans les cookies HTTP-only
-// function checkTokenExpiration(token) { ... } // Supprimer cette fonction
-
-
-// Fonction helper pour vérifier l'expiration (exemple pour JWT)
-function checkTokenExpiration(token) {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const exp = payload.exp * 1000; // Convertir en millisecondes
-    return Date.now() >= exp;
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    return true; // Considérer comme expiré si décodage échoue
-  }
-}
