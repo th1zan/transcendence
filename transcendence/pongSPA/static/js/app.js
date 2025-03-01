@@ -22,11 +22,11 @@ export const logger = {
   },
   warn: (...args) => {
     if (DEBUG) {
-      logger.warn(...args);
+      console.warn(...args);
     }
   },
   error: (...args) => {
-    logger.error(...args);
+    console.error(...args);
   }
 };
 

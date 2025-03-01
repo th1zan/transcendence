@@ -1,4 +1,4 @@
-import { update2FAStatus, toggle2FA, verifyOTP, showModalConfirmation} from "./auth.js";
+import { update2FAStatus, toggle2FA, verifyOTP, showModalConfirmation, getCookie, refreshToken} from "./auth.js";
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 
@@ -43,14 +43,19 @@ function displayHTMLforSettings(user) {
         <label>Username:</label>
         <input type="text" id="usernameInput" class="form-control" value="${user.username}">
       </div>
+
       <div class="form-group mt-2">
         <label>Email:</label>
-        <input type="email" id="emailInput" class="form-control" value="${user.email}">
+        <input type="email" id="emailInput" class="form-control" value="${user.email || ''}">
+        <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
       </div>
+
       <div class="form-group mt-2">
         <label>Phone Number:</label>
         <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+        <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
       </div>
+
       <div class="d-flex justify-content-center mt-3">
         <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
       </div>
@@ -87,6 +92,12 @@ function displayHTMLforSettings(user) {
   document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
   document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
   update2FAStatus();
+  document.getElementById("clearEmailBtn").addEventListener("click", () => {
+    document.getElementById("emailInput").value = "";
+  });
+  document.getElementById("clearPhoneBtn").addEventListener("click", () => {
+    document.getElementById("phoneInput").value = "";
+  });
 }
 
 export function displaySettings() {
@@ -151,17 +162,26 @@ export function displaySettings() {
           <label>Username:</label>
           <input type="text" id="usernameInput" class="form-control" value="${username}">
         </div>
+
         <div class="form-group mt-2">
           <label>Email:</label>
-          <input type="email" id="emailInput" class="form-control" required>
+          <div class="input-group">
+            <input type="email" id="emailInput" class="form-control" required>
+            <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
+          </div>
           <div class="invalid-feedback">
             Please enter a valid email address with "@" and a domain (e.g., user@example.com).
           </div>
         </div>
+
         <div class="form-group mt-2">
           <label>Phone Number:</label>
-          <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+          <div class="input-group">
+            <input type="text" id="phoneInput" class="form-control" value="">
+            <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
+          </div>
         </div>
+
         <div class="d-flex justify-content-center mt-3">
           <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
         </div>
@@ -194,10 +214,15 @@ export function displaySettings() {
     document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
     document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
     //document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
-    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
     document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
     document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
     update2FAStatus();
+    document.getElementById("clearEmailBtn").addEventListener("click", () => {
+      document.getElementById("emailInput").value = "";
+    });
+    document.getElementById("clearPhoneBtn").addEventListener("click", () => {
+      document.getElementById("phoneInput").value = "";
+    });
   })
   .catch(error => {
     logger.error("Error loading user data:", error);
@@ -348,7 +373,7 @@ export function uploadAvatar() {
           displayMenu(data.avatar_url);
           updateWelcomePageAvatar(data.avatar_url);
           // Re-render the settings page to ensure everything is in sync
-          displaySettings();
+          //displaySettings();
         }
       );
     })
@@ -365,17 +390,14 @@ export function uploadAvatar() {
 
 export function updateWelcomePageAvatar(avatarUrl) {
   const welcomeAvatar = document.getElementById("welcomeAvatar");
-  if (welcomeAvatar) {
+  if (welcomeAvatar && avatarUrl) { // Add check for avatarUrl
     welcomeAvatar.src = avatarUrl + "?t=" + new Date().getTime();
+  } else if (welcomeAvatar) {
+    // Use default avatar
+    welcomeAvatar.src = "/media/avatars/default.png" + "?t=" + new Date().getTime();
   }
 }
 
-// export function updateMenuAvatar(avatarUrl) {
-//   const menuAvatar = document.getElementById("menuAvatar");
-//   if (menuAvatar) {
-//     menuAvatar.src = avatarUrl + "?t=" + new Date().getTime();
-//   }
-// }
 
 export async function deleteAvatar() {
   // First disable the button to prevent multiple clicks
@@ -397,7 +419,7 @@ export async function deleteAvatar() {
     return; // Exit the function if not confirmed
   }
   
-  // User confirmed, proceed with deletion,
+  // User confirmed, proceed with deletion
   fetch("/api/auth/delete-avatar/", {
     method: "DELETE",
     credentials: "include",
@@ -419,47 +441,25 @@ export async function deleteAvatar() {
         //deleteButton.classList.add("disabled");
       }
       
-      // // Force recreate the file input with event listeners
-      // const fileContainer = document.getElementById("avatarInputContainer"); // Use a container with this ID
-      // if (fileContainer) {
-      //   // Remove old input completely
-      //   fileContainer.innerHTML = '';
-        
-      //   // Create new input with all needed attributes
-      //   const newInput = document.createElement("input");
-      //   newInput.type = "file";
-      //   newInput.id = "avatarInput";
-      //   newInput.accept = "image/*";
-      //   newInput.className = "form-control";
-        
-      //   // Add it back to DOM
-      //   fileContainer.appendChild(newInput);
-        
-      //   // Reattach any necessary event listeners
-      //   newInput.addEventListener("change", function() {
-      //     // Enable upload button when file selected
-      //     const uploadBtn = document.getElementById("uploadAvatarButton");
-      //     if (uploadBtn) {
-      //       uploadBtn.disabled = false;
-      //     }
-      //   });
-      // }
-      
       // Update all UI elements
       displayMenu(data.avatar_url);
       updateWelcomePageAvatar(data.avatar_url);
       
-      // // Optional: Provide feedback without modal
-      // console.log("Avatar deleted successfully");
-      
-      // Wait briefly before re-rendering settings to ensure DOM stability
-      setTimeout(() => {
-        displaySettings();
-      }, 300);
+      showModal(
+        "Success",
+        "Avatar has been deleted successfully",
+        "OK",
+        () => {}
+      );
+      // // Wait briefly before re-rendering settings to ensure DOM stability
+      // setTimeout(() => {
+      //   displaySettings();
+      // }, 300);
     })
     .catch((error) => {
-      console.error("Error deleting avatar:", error);
-      
+      //console.error("Error deleting avatar:", error);
+      logger.error("Error deleting avatar:", error);
+
       // Re-enable delete button in case of error
       if (deleteButton) {
         deleteButton.disabled = false;
@@ -474,12 +474,6 @@ export async function deleteAvatar() {
       );
     });
   
-    // // Enable the button if user cancels
-    // () => {
-    //   if (deleteButton) {
-    //     deleteButton.disabled = false;
-    //   }
-    // }
 }
 
 
@@ -492,9 +486,8 @@ export function updateProfile() {
   // Regular Expression to validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  let hasError = false; // Flag to track errors
-
-  if (!emailRegex.test(emailValue)) {
+  // Validate email if not empty
+  if (emailValue !== "" && !emailRegex.test(emailValue)) {
     emailInput.classList.add("is-invalid"); // Bootstrap will show a validation error
     emailInput.classList.remove("is-valid");
     showModal(
@@ -509,15 +502,10 @@ export function updateProfile() {
     emailInput.classList.add("is-valid");
   }
 
-  // Stop execution if there is an error
-  if (hasError) {
-    showModal(
-      'Error',
-      'Please enter a valid email before saving changes.',
-      'OK',
-      () => {}
-    );
-    return;
+  // Disable the save button to prevent double submissions
+  const saveButton = document.getElementById("saveProfileButton");
+  if (saveButton) {
+    saveButton.disabled = true;
   }
 
   fetch("/api/auth/user/", {
@@ -539,17 +527,35 @@ export function updateProfile() {
       return response.json();
     })
     .then(data => {
-      showModal(
-        'Success',
-        'Profile updated successfully!',
-        'OK',
-        () => {
-        navigateTo('settings');
+        // The backend already issued new tokens
+        // Update UI elements directly instead of reloading
+        const profilePic = document.getElementById("profilePic");
+        if (profilePic) {
+          // Add cache-busting parameter if avatar was updated
+          profilePic.src = profilePic.src.split('?')[0] + '?t=' + new Date().getTime();
         }
-      );
+        setTimeout(() => {
+          showModal(
+            'Success',
+            'Profile updated successfully!',
+            'OK',
+            () => {}
+          );
+
+          // Re-enable save button
+          if (saveButton) {
+            saveButton.disabled = false;
+          }
+        }, 300);
     })
     .catch(error => {
       logger.error("Error updating profile:", error);
+
+      // Re-enable save button
+      if (saveButton) {
+        saveButton.disabled = false;
+      }
+
       showModal(
         'Error',
         'An error occurred: ' + error.message,
@@ -557,5 +563,4 @@ export function updateProfile() {
         () => {}
       );
     });
-  navigateTo('settings');
 }

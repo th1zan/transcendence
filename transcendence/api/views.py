@@ -951,19 +951,15 @@ class UserDetailView(APIView):
             else:
                 user.phone_number = None  # Allow phone number removal
    
-        # Update fields
+
         if "username" in data:
             user.username = data["username"]
-        # if "email" in data:
-        #     user.email = data["email"]
-        # if "phone_number" in data:
-        #     user.phone_number = data["phone_number"]
         try:
             user.save()
             refresh = RefreshToken.for_user(user)
             response = Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
-            response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=False, samesite="Lax")
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Lax")
+            response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=False, samesite="Lax", max_age=3600)  # 1 hour
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Lax", max_age=86400)  # 24 hours
             return response
         except IntegrityError:
             return Response(
