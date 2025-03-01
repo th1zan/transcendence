@@ -11,11 +11,13 @@ import {
   refreshToken,
   updateProfile,
   uploadAvatar,
+  deleteAvatar,
   getCookie,
   toggle2FA,
   update2FAStatus,
   verifyOTP,
   verify2FALogin,
+  updateWelcomePageAvatar,
 } from "./auth.js";
 import { sendFriendRequest, respondToFriendRequest, fetchFriends, fetchFriendRequests, removeFriend } from "./friends.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
@@ -444,7 +446,7 @@ function displayQuickStats(data, playerName) {
 
 export async function displayWelcomePage() {
   // Attendre l'URL de l'avatar
-  const avatarPicture = localStorage.getItem("avatarUrl"); // Fallback pour username
+  const avatarPicture = localStorage.getItem("avatarUrl") || "/media/avatars/default.png"; // Fallback pour username
   const username = localStorage.getItem("username") || "Guest"; // Fallback pour username
 
   // Vider tous les conteneurs
@@ -465,7 +467,7 @@ export async function displayWelcomePage() {
                   <div class="card shadow-sm welcome-card">
                       <div class="card-body d-flex align-items-center">
                           <div class="rounded-circle overflow-hidden me-3">
-                              <img src="${avatarPicture}" class="object-fit-cover" alt="Profile picture" />
+                              <img id="welcomeAvatar" src="${avatarPicture}" class="object-fit-cover" alt="Profile picture" />
                           </div>
                           <h3 class="card-title mb-0">Welcome ${username}</h3>
                       </div>
@@ -797,7 +799,9 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
+  const avatarUrl = user.avatar_url || "/media/avatars/default.png";
+  const isDefaultAvatar = avatarUrl.includes("default.png");
+
   const appTop = document.getElementById("app_main");
 
   appTop.innerHTML = `
@@ -808,6 +812,11 @@ function displayHTMLforSettings(user) {
       <h4 class="text-center">Update Profile Picture</h4>
       <div class="d-flex flex-column align-items-center">
         <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+
+        <!-- Disable delete button if the avatar is default -->
+          <button id="deleteAvatarButton" class="btn btn-danger mt-2" ${isDefaultAvatar ? "disabled" : ""}>
+            Delete Avatar
+          </button>
 
         <div class="mt-3 w-75">
           <label class="form-label">Choose a new profile picture:</label>
@@ -860,9 +869,29 @@ function displayHTMLforSettings(user) {
     </div>
   `;
 
+  // Clear existing event listeners by cloning buttons
+  const buttons = [
+    "deleteAccountButton",
+    "anonymizeAccountButton",
+    "uploadAvatarButton",
+    "deleteAvatarButton",
+    "saveProfileButton",
+    "toggle2FAButton",
+    "verifyOTPButton"
+  ];
+
+  buttons.forEach(buttonId => {
+    const button = document.getElementById(buttonId);
+    if (button) {
+      // Clone the button to remove all existing listeners, then replace it
+      const newButton = button.cloneNode(true);
+      button.replaceWith(newButton);
+    }
+  });
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
   document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
   document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+  document.getElementById("deleteAvatarButton").addEventListener("click", deleteAvatar);
   document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
   document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
   document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
@@ -890,7 +919,8 @@ export function displaySettings() {
       displayHTMLforSettings(user);
     })
     .catch(error => {
-    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
+      const avatarUrl = user.avatar_url || "/media/avatars/default.png";
+      const isDefaultAvatar = avatarUrl.includes("default.png");
 
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
@@ -901,6 +931,11 @@ export function displaySettings() {
         <h4 class="text-center">Update Profile Picture</h4>
         <div class="d-flex flex-column align-items-center">
           <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+
+          <!-- Disable delete button if the avatar is default -->
+          <button id="deleteAvatarButton" class="btn btn-danger mt-2" ${isDefaultAvatar ? "disabled" : ""}>
+            Delete Avatar
+          </button>
 
           <div class="mt-3 w-75">
             <label class="form-label">Choose a new profile picture:</label>
@@ -955,10 +990,31 @@ export function displaySettings() {
       <button id="anonymizeAccountButton" class="btn btn-warning">Anonymize Account</button>
        </div>
     `;
+    
+    // Clear existing event listeners by cloning buttons
+    const buttons = [
+      "deleteAccountButton",
+      "anonymizeAccountButton",
+      "uploadAvatarButton",
+      "deleteAvatarButton",
+      "saveProfileButton",
+      "toggle2FAButton",
+      "verifyOTPButton"
+    ];
 
+    buttons.forEach(buttonId => {
+      const button = document.getElementById(buttonId);
+      if (button) {
+        // Clone the button to remove all existing listeners, then replace it
+        const newButton = button.cloneNode(true);
+        button.replaceWith(newButton);
+      }
+    });
+    
     document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
     document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
     document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+    document.getElementById("deleteAvatarButton").addEventListener("click", deleteAvatar);
     document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
     document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
     document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);

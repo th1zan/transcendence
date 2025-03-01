@@ -12,7 +12,7 @@ export async function fetchAndStoreAvatarUrl() {
       throw new Error("Failed to fetch user data.");
     }
     const user = await response.json();
-    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
+    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
     localStorage.setItem("avatarUrl", avatarUrl);
     return avatarUrl; // Retourne l'URL pour un usage éventuel
   } catch (error) {
@@ -23,8 +23,8 @@ export async function fetchAndStoreAvatarUrl() {
   }
 }
 
-export async function displayMenu() {
-  const avatarPicture = await fetchAndStoreAvatarUrl();
+export async function displayMenu(avatarUrl = null) {
+  const avatarPicture = avatarUrl || await fetchAndStoreAvatarUrl();
  
   ;// Vider les conteneurs
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
@@ -88,6 +88,8 @@ export async function displayMenu() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Re-render the menu when the page loads
+    displayMenu();
     const menu = document.getElementById('menu');
     const navbarToggler = menu.querySelector('.navbar-toggler');
     const navbarCollapse = menu.querySelector('.navbar-collapse');

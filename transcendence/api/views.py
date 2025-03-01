@@ -984,6 +984,28 @@ class UploadAvatarView(APIView):
             status=status.HTTP_200_OK,
         )
 
+class DeleteAvatarView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+
+        # Check if the user has a custom avatar (not the default one)
+        if hasattr(user, 'avatar') and user.avatar and user.avatar.name != "avatars/default.png":
+            avatar_path = os.path.join(settings.MEDIA_ROOT, user.avatar.name)
+            
+            # Remove the file if it exists
+            if os.path.exists(avatar_path):
+                os.remove(avatar_path)
+
+            # Reset the avatar to the default
+            user.avatar.name = "avatars/default.png"
+            user.save(update_fields=["avatar"])
+
+            return Response({"message": "Avatar deleted successfully.", "avatar_url": "/media/avatars/default.png"}, status=status.HTTP_200_OK)
+        else:
+            # If the avatar is already the default, return a message
+            return Response({"message": "No custom avatar to delete.", "avatar_url": "/media/avatars/default.png"}, status=status.HTTP_200_OK)
 
 class ListFriendsView(APIView):
     permission_classes = [IsAuthenticated]

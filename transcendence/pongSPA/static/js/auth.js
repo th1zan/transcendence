@@ -1,4 +1,4 @@
-import { displayWelcomePage, navigateTo, showModal } from "./app.js";
+import { displayWelcomePage, displaySettings, navigateTo, showModal } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
 
@@ -541,11 +541,24 @@ export function uploadAvatar() {
         'Profile picture updated successfully!',
         'OK',
         () => {
+          localStorage.setItem("avatarUrl", data.avatar_url);
           const profilePic = document.getElementById("profilePic");
 
           if (profilePic && data.avatar_url) {
             profilePic.src = data.avatar_url + "?t=" + new Date().getTime(); // Prevents caching issues
           }
+          // Enable the delete button (if it was disabled)
+          const deleteButton = document.getElementById("deleteAvatarButton");
+          if (deleteButton) {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove("disabled");
+          }
+
+          // Update the menu avatar
+          displayMenu(data.avatar_url);
+          updateWelcomePageAvatar(data.avatar_url);
+          // Re-render the settings page to ensure everything is in sync
+          displaySettings();
         }
       );
     })
@@ -559,6 +572,118 @@ export function uploadAvatar() {
       );
     });
 }
+
+export function updateWelcomePageAvatar(avatarUrl) {
+  const welcomeAvatar = document.getElementById("welcomeAvatar");
+  if (welcomeAvatar) {
+    welcomeAvatar.src = avatarUrl + "?t=" + new Date().getTime();
+  }
+}
+
+// export function updateMenuAvatar(avatarUrl) {
+//   const menuAvatar = document.getElementById("menuAvatar");
+//   if (menuAvatar) {
+//     menuAvatar.src = avatarUrl + "?t=" + new Date().getTime();
+//   }
+// }
+
+export function deleteAvatar() {
+  // First disable the button to prevent multiple clicks
+  const deleteButton = document.getElementById("deleteAvatarButton");
+  if (deleteButton) {
+    deleteButton.disabled = true;
+  }
+  
+  showModal(
+    "Confirm Deletion",
+    "Are you sure you want to delete your avatar? This action cannot be undone.",
+    "Delete",
+    () => {
+      fetch("/api/auth/delete-avatar/", {
+        method: "DELETE",
+        credentials: "include",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // Update localStorage
+          localStorage.setItem("avatarUrl", data.avatar_url);
+          
+          // Update UI without showing another modal
+          const profilePic = document.getElementById("profilePic");
+          if (profilePic && data.avatar_url) {
+            profilePic.src = data.avatar_url + "?t=" + new Date().getTime();
+          }
+          
+          // Keep the delete button disabled
+          if (deleteButton) {
+            deleteButton.disabled = true;
+            deleteButton.classList.add("disabled");
+          }
+          
+          // Force recreate the file input with event listeners
+          const fileContainer = document.getElementById("avatarInputContainer"); // Use a container with this ID
+          if (fileContainer) {
+            // Remove old input completely
+            fileContainer.innerHTML = '';
+            
+            // Create new input with all needed attributes
+            const newInput = document.createElement("input");
+            newInput.type = "file";
+            newInput.id = "avatarInput";
+            newInput.accept = "image/*";
+            newInput.className = "form-control";
+            
+            // Add it back to DOM
+            fileContainer.appendChild(newInput);
+            
+            // Reattach any necessary event listeners
+            newInput.addEventListener("change", function() {
+              // Enable upload button when file selected
+              const uploadBtn = document.getElementById("uploadAvatarButton");
+              if (uploadBtn) {
+                uploadBtn.disabled = false;
+              }
+            });
+          }
+          
+          // Update all UI elements
+          displayMenu(data.avatar_url);
+          updateWelcomePageAvatar(data.avatar_url);
+          
+          // Optional: Provide feedback without modal
+          console.log("Avatar deleted successfully");
+          
+          // Wait briefly before re-rendering settings to ensure DOM stability
+          setTimeout(() => {
+            displaySettings();
+          }, 300);
+        })
+        .catch((error) => {
+          console.error("Error deleting avatar:", error);
+          
+          // Re-enable delete button in case of error
+          if (deleteButton) {
+            deleteButton.disabled = false;
+          }
+          
+          // Show error once without callbacks
+          showModal(
+            "Error",
+            `An error occurred: ${error.message}`,
+            "OK",
+            () => {} // Empty callback to prevent recursion
+          );
+        });
+    },
+    // Enable the button if user cancels
+    () => {
+      if (deleteButton) {
+        deleteButton.disabled = false;
+      }
+    }
+  );
+}
+
 
 export function updateProfile() {
   const username = document.getElementById("usernameInput").value;

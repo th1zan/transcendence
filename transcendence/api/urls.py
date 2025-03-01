@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import path
 
 from . import views
 from .views import (
@@ -30,6 +30,7 @@ from .views import (
     TournamentPlayersView,
     TournamentSearchView,
     UploadAvatarView,
+	DeleteAvatarView,
     UserDetailView,
     UserRegisterView,
     UserTournamentsView,
@@ -46,22 +47,15 @@ urlpatterns = [
     path("results/<int:pk>/", PongMatchDetail.as_view(), name="pongmatch-detail"),
     path("scores/", PongScoreView.as_view(), name="pong-score"),
     path("scores/<int:pk>/", PongScoreView.as_view(), name="pong-score-detail"),
-	# path("api/auth/", include("api.auth.urls")),
     path("auth/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+	path("auth/validate/", CustomTokenValidateView.as_view(), name="token_validate"),
     path("auth/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
 	path("auth/toggle-2fa/", Toggle2FAView.as_view(), name="toggle-2fa"),
-    # path("auth/verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
-	# path("auth/enable-2fa/", Enable2FAView.as_view(), name="enable-2fa"),
     path("auth/verify-2fa-login/", Verify2FALoginView.as_view(), name="verify-2fa-login"),
 	path("auth/session-2fa/", Session2FAView.as_view(), name="session-2fa"),
     path("auth/register/", UserRegisterView.as_view(), name="user_register"),
-    path("auth/validate/", CustomTokenValidateView.as_view(), name="token_validate"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
-    path(
-        "auth/anonymize-account/",
-        AnonymizeAccountView.as_view(),
-        name="anonymize-account",
-    ),
+    path("auth/anonymize-account/", AnonymizeAccountView.as_view(), name="anonymize-account"),
     path("auth/delete-account/", DeleteAccountView.as_view(), name="delete_account"),
     path(
         "auth/match-player/",
@@ -75,6 +69,7 @@ urlpatterns = [
     ),
     path("auth/user/", UserDetailView.as_view(), name="user-detail"),
     path("auth/upload-avatar/", UploadAvatarView.as_view(), name="upload_avatar"),
+	path("auth/delete-avatar/", DeleteAvatarView.as_view(), name="delete-avatar"),
     path("friends/list/", ListFriendsView.as_view(), name="list_friends"),
     path("friends/remove/", RemoveFriendView.as_view(), name="remove_friend"),
     path("friends/status/", FriendsOnlineStatusView.as_view(), name="friends_status"),
