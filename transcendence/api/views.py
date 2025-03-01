@@ -918,8 +918,9 @@ class UserDetailView(APIView):
 
         # Check if email already exists (excluding the current user's email)
         if "email" in data:
+            email=data["email"]
             existing_user = (
-                CustomUser.objects.filter(email=data["email"])
+                CustomUser.objects.filter(email=email)
                 .exclude(id=user.id)
                 .first()
             )
@@ -928,20 +929,47 @@ class UserDetailView(APIView):
                     {"error": "This email is already in use."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            user.email = email
+        else:
+            user.email = None  # Allow email removal
 
+        # Handle phone number: Allow None, Check Uniqueness
+        if "phone_number" in data:
+            phone_number = data["phone_number"]
+            if phone_number:  # Only check if phone number is provided
+                existing_user = (
+                    CustomUser.objects.filter(phone_number=phone_number)
+                    .exclude(id=user.id)
+                    .first()
+                )
+                if existing_user:
+                    return Response(
+                        {"error": "This phone number is already in use."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user.phone_number = phone_number
+            else:
+                user.phone_number = None  # Allow phone number removal
+   
         # Update fields
         if "username" in data:
             user.username = data["username"]
-        if "email" in data:
-            user.email = data["email"]
-        if "phone_number" in data:
-            user.phone_number = data["phone_number"]
-
-        user.save()
-
-        return Response(
-            {"message": "Profile updated successfully!"}, status=status.HTTP_200_OK
-        )
+        # if "email" in data:
+        #     user.email = data["email"]
+        # if "phone_number" in data:
+        #     user.phone_number = data["phone_number"]
+        try:
+            user.save()
+            refresh = RefreshToken.for_user(user)
+            response = Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
+            response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=False, samesite="Lax")
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Lax")
+            return response
+        except IntegrityError:
+            return Response(
+                {"error": "Database error: unique constraint failed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class UploadAvatarView(APIView):

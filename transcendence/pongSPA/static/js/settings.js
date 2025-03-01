@@ -1,4 +1,4 @@
-import { update2FAStatus, deleteAccount, anonymizeAccount, uploadAvatar, updateProfile, toggle2FA,verifyOTP} from "./auth.js";
+import { update2FAStatus, deleteAccount, anonymizeAccount, uploadAvatar, deleteAvatar, updateProfile, toggle2FA,verifyOTP} from "./auth.js";
 
 function displayHTMLforSettings(user) {
 
@@ -7,7 +7,8 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
+  const avatarUrl = user.avatar_url || "/media/avatars/default.png";
+  const isDefaultAvatar = avatarUrl.includes("default.png");
   const appTop = document.getElementById("app_main");
 
   appTop.innerHTML = `
@@ -18,6 +19,11 @@ function displayHTMLforSettings(user) {
       <h4 class="text-center">Update Profile Picture</h4>
       <div class="d-flex flex-column align-items-center">
         <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+
+        <!-- Disable delete button if the avatar is default -->
+          <button id="deleteAvatarButton" class="btn btn-danger mt-2" ${isDefaultAvatar ? "disabled" : ""}>
+            Delete Avatar
+          </button>
 
         <div class="mt-3 w-75">
           <label class="form-label">Choose a new profile picture:</label>
@@ -72,7 +78,9 @@ function displayHTMLforSettings(user) {
 
   document.getElementById("deleteAccountButton").addEventListener("click", deleteAccount);
   document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
+  document.getElementById("deleteAvatarButton").addEventListener("click", deleteAvatar);
   document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
+  //document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
   document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
   document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
   document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
@@ -83,6 +91,7 @@ export function displaySettings() {
 
 
   const user = localStorage.getItem("username");
+  const storedAvatarUrl = localStorage.getItem("avatarUrl");
 
   // 1. fetch the user's settings
   fetch("/api/auth/user/", {
@@ -96,12 +105,19 @@ export function displaySettings() {
       return response.json();
     })
     .then(user => {
+      // Store the avatar URL in localStorage for consistent use
+      if (user.avatar_url) {
+        localStorage.setItem("avatarUrl", user.avatar_url);
+      }
       //2. display the settings
       displayHTMLforSettings(user);
     })
     .catch(error => {
-    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/avatar1.png";
+      const username = localStorage.getItem("username") || "User"; 
 
+      const avatarUrl = storedAvatarUrl || "/media/avatars/default.png";
+      const isDefaultAvatar = avatarUrl.includes("default.png");
+      
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
     <div class="container mt-4">
@@ -111,6 +127,11 @@ export function displaySettings() {
         <h4 class="text-center">Update Profile Picture</h4>
         <div class="d-flex flex-column align-items-center">
           <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+
+          <!-- Disable delete button if the avatar is default -->
+          <button id="deleteAvatarButton" class="btn btn-danger mt-2" ${isDefaultAvatar ? "disabled" : ""}>
+            Delete Avatar
+          </button>
 
           <div class="mt-3 w-75">
             <label class="form-label">Choose a new profile picture:</label>
@@ -126,7 +147,7 @@ export function displaySettings() {
         <h4 class="text-center">Edit Profile Information</h4>
         <div class="form-group mt-2">
           <label>Username:</label>
-          <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+          <input type="text" id="usernameInput" class="form-control" value="${username}">
         </div>
         <div class="form-group mt-2">
           <label>Email:</label>
@@ -149,7 +170,7 @@ export function displaySettings() {
         <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
         <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? "2FA is Enabled ✅" : "2FA is Disabled ❌"}</p>
         <div class="d-flex justify-content-center">
-          <button id="enable2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
+          <button id="toggle2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
             ${user.is_2fa_enabled ? "Disable 2FA" : "Enable 2FA"}
           </button>
         </div>
@@ -170,6 +191,8 @@ export function displaySettings() {
     document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
     document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
     document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
+    //document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
+    document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
     document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
     document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
     update2FAStatus();
