@@ -1,3 +1,4 @@
+import { logger } from "./app.js";
 
 // Fonction principale pour afficher les statistiques
 export function displayStats() {

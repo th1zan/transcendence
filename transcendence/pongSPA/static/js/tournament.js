@@ -1,6 +1,6 @@
 
 import { startGameSetup } from "./pong.js";
-import {showModal} from "./app.js";
+import {showModal, logger} from "./app.js";
 
 
 
@@ -231,7 +231,7 @@ function displayTournamentGameList(data) {
           const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
           const matchID = parseInt(event.target.getAttribute('data-match-id'));
 
-          console.log("get player with tournament ID: ", tournamentId);
+          logger.log("get player with tournament ID: ", tournamentId);
           try {
             const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
               method: "GET",
@@ -397,12 +397,12 @@ export function DisplayTournamentGame() {
   const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
 
-  console.log("Tournament name: ", tournamentName);
+  logger.log("Tournament name: ", tournamentName);
   if (!tournamentId) {
     console.error("No tournament ID found. Please create a tournament first.");
     return;
   } else {
-    console.log("Tournament ID is: ", tournamentId);
+    logger.log("Tournament ID is: ", tournamentId);
   }
 
   const appMain = document.getElementById("app_main");
@@ -642,7 +642,7 @@ playerContainer.addEventListener('click', (event) => {
     const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
     players.delete(playerName);
     playerDiv.remove();
-    console.log(`Removed player: ${playerName}`);
+    logger.log(`Removed player: ${playerName}`);
     cleanupPlayersMap(players);
   }
 });
@@ -651,7 +651,7 @@ playerContainer.addEventListener('click', (event) => {
 addButton.addEventListener('click', () => {
   const newPlayerDiv = addPlayer(playerContainer, playerCount++, '', false);
   players.set('', { validated: false, div: newPlayerDiv });
-  console.log("New player line added");
+  logger.log("New player line added");
 });
 
 // Updated addPlayer function
@@ -846,7 +846,7 @@ function setupSubmitHandlers() {
     .then(response => response.json())
     .then(data => {
       if (data.message) {
-        console.log("Tournament finalized:", data);
+        logger.log("Tournament finalized:", data);
         showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
           DisplayTournamentGame(); // Assuming this function shows the tournament game page
         });
@@ -889,7 +889,7 @@ fetch("/api/tournament/new/", {
   return response.json();
 })
 .then((data) => {
-  console.log("Tournament created:", data);
+  logger.log("Tournament created:", data);
   localStorage.setItem("tournamentId", data.tournament_id);
   DisplayTournamentGame();
 })

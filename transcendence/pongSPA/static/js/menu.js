@@ -1,5 +1,5 @@
 import { logout } from './auth.js';
-import { navigateTo } from "./app.js";
+import { navigateTo, logger } from "./app.js";
 
 
 export async function fetchAndStoreAvatarUrl() {

@@ -25,9 +25,29 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
 let isUserLoggedIn = false; //false for connection formular
 
+
+const DEBUG = true; // Change à false pour désactiver les logs
+
+export const logger = {
+  log: (...args) => {
+    if (DEBUG) {
+      console.log(...args); // Ligne 34:14 selon l’erreur
+    }
+  },
+  warn: (...args) => {
+    if (DEBUG) {
+      console.warn(...args);
+    }
+  },
+  error: (...args) => {
+    console.error(...args);
+  }
+};
+
+
 document.addEventListener("DOMContentLoaded", () => {
 
-  console.log('Cookies at DOM load:', document.cookie);
+  logger.log('Cookies at DOM load:', document.cookie);
 
   //when the DOM is loaded, this event is triggered and it will:
 
@@ -35,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   //
   //  COMMENTED FOR DEBUGIN
   // document.cookie.split(";").forEach((c) => {
-  //   console.log('clear the cookies');
+  //   logger.log('clear the cookies');
   //   document.cookie = c
   //     .replace(/^ +/, "")
   //     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
@@ -45,45 +65,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 1. Determine the initial route based on the URL hash
   let initialRoute = window.location.hash.replace('#', '') || 'login';
-  console.log('Initial route determined:', initialRoute);
+  logger.log('Initial route determined:', initialRoute);
 
   // Variable globale pour l'état de connexion
   let isUserLoggedIn = false;
 
   // 2. Check if the user is logged in
   validateToken().then((isTokenValid) => {
-    console.log('validateToken resolved with:', isTokenValid);
+    logger.log('validateToken resolved with:', isTokenValid);
     isUserLoggedIn = isTokenValid;
     if (isUserLoggedIn) {
-      console.log('User is logged in based on cookies');
+      logger.log('User is logged in based on cookies');
     } else {
-      console.log('User is not logged in');
+      logger.log('User is not logged in');
     }
 
     // 3. Set initial state based on login status and initial route
     if (isUserLoggedIn && initialRoute === 'login') {
-      console.log('User logged in but on login page, redirecting to welcome');
+      logger.log('User logged in but on login page, redirecting to welcome');
       initialRoute = 'welcome';
       history.replaceState({ page: 'welcome' }, ' ', '#welcome');
     } else if (!isUserLoggedIn && initialRoute !== 'login') {
-      console.log('User not logged in but not on login page, redirecting to login');
+      logger.log('User not logged in but not on login page, redirecting to login');
       initialRoute = 'login';
       history.replaceState({ page: 'login' }, 'Login', '#login');
     }
 
     // Handle the initial route
-    console.log('Calling handleRouteChange with route:', initialRoute);
+    logger.log('Calling handleRouteChange with route:', initialRoute);
     handleRouteChange(initialRoute);
   }).catch((error) => {
     console.error('Error checking user login status:', error);
-    console.log('User is not logged in due to an error');
+    logger.log('User is not logged in due to an error');
     handleRouteChange('login');
   });
 
   // 4. Plan the refreshing interval for the authentication Token
-  console.log('Setting up token refresh interval');
+  logger.log('Setting up token refresh interval');
   setInterval(async () => {
-  console.log('Refreshing token via interval...');
+  logger.log('Refreshing token via interval...');
   const refreshed = await refreshToken();
   if (!refreshed) {
       console.warn('Interval refresh failed, consider re-authenticating.');
@@ -98,15 +118,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 5. Listener for history changes
   window.addEventListener("popstate", function (event) {
-    console.log('Popstate event triggered. Current state:', event.state);
+    logger.log('Popstate event triggered. Current state:', event.state);
     let route;
     if (event.state) {
       route = event.state.page;
     } else {
       route = window.location.hash.replace('#', '') || 'welcome';
     }
-    console.log('Navigating to route:', route);
-    console.log('Custom History:', customHistory);
+    logger.log('Navigating to route:', route);
+    logger.log('Custom History:', customHistory);
     handleRouteChange(route);
   });
 });
@@ -119,16 +139,16 @@ function addToCustomHistory(route) {
   if (customHistory[customHistory.length - 1] !== route) {
     customHistory.push(route);
   }
-  console.log('Custom History updated:', customHistory);
+  logger.log('Custom History updated:', customHistory);
 }
 
 // Fonction pour naviguer et mettre à jour l'UI
 export function navigateTo(route) {
-  console.log('Navigating to:', route);
+  logger.log('Navigating to:', route);
 
   // Vérifier si le jeu Pong est en cours et l'arrêter
   if (gameInterval) {
-    console.log("Game is running. Stopping game before navigation...");
+    logger.log("Game is running. Stopping game before navigation...");
     stopGameProcess(false); // Ne pas marquer comme terminé, juste arrêter
   }
 
@@ -136,14 +156,14 @@ export function navigateTo(route) {
   removeGameListeners();
 
   history.pushState({ page: route }, '', `#${route}`);
-  console.log('pushstate: ', history.state);
+  logger.log('pushstate: ', history.state);
   addToCustomHistory(route);
   handleRouteChange(route);
 
   // Retirer le focus par défaut
   setTimeout(() => {
     document.activeElement.blur();
-    console.log("Focus retiré après navigation vers:", route);
+    logger.log("Focus retiré après navigation vers:", route);
   }, 50);
 }
 
@@ -152,7 +172,7 @@ let redirectAttempts = 0;
 const MAX_REDIRECT_ATTEMPTS = 3;
 
 function handleRouteChange(route) {
-  console.log('handleRouteChange called with route:', route);
+  logger.log('handleRouteChange called with route:', route);
   addToCustomHistory(route);
 
   if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
@@ -167,13 +187,13 @@ function handleRouteChange(route) {
   }
 
   validateToken().then((isTokenValid) => {
-    console.log('Token validation in handleRouteChange:', isTokenValid);
+    logger.log('Token validation in handleRouteChange:', isTokenValid);
     isUserLoggedIn = isTokenValid;
 
     const publicRoutes = ['login', 'register'];
 
     if (publicRoutes.includes(route) || isUserLoggedIn) {
-      console.log('Route is public or user is logged in');
+      logger.log('Route is public or user is logged in');
       redirectAttempts = 0; // Réinitialiser le compteur si la validation réussit
       switch (route) {
         case 'login':
@@ -211,7 +231,7 @@ function handleRouteChange(route) {
           updateUI(displaySettings);
           break;
         default:
-          console.log('Unknown route:', route);
+          logger.log('Unknown route:', route);
           if (!isUserLoggedIn) {
             navigateTo('login');
           } else {
@@ -219,14 +239,14 @@ function handleRouteChange(route) {
           }
       }
     } else {
-      console.log('User not logged in, attempting to refresh token before redirect');
+      logger.log('User not logged in, attempting to refresh token before redirect');
       refreshToken().then(refreshed => {
         if (refreshed) {
-          console.log('Token refreshed successfully, retrying route change');
+          logger.log('Token refreshed successfully, retrying route change');
           redirectAttempts = 0;
           handleRouteChange(route);
         } else {
-          console.log('Refresh failed, redirecting to login');
+          logger.log('Refresh failed, redirecting to login');
           redirectAttempts++;
           navigateTo('login');
         }
@@ -240,11 +260,11 @@ function handleRouteChange(route) {
     console.error('Error validating token during route change:', error);
     refreshToken().then(refreshed => {
       if (refreshed) {
-        console.log('Token refreshed successfully after validation error, retrying route change');
+        logger.log('Token refreshed successfully after validation error, retrying route change');
         redirectAttempts = 0;
         handleRouteChange(route);
       } else {
-        console.log('Refresh failed after validation error, redirecting to login');
+        logger.log('Refresh failed after validation error, redirecting to login');
         redirectAttempts++;
         navigateTo('login');
       }
@@ -315,7 +335,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
           focusTarget = document.getElementById(focusElementId);
           if (focusTarget) {
             focusTarget.focus(); // Focus sur l’élément spécifié
-            console.log(`Focus restauré sur ${focusElementId}`);
+            logger.log(`Focus restauré sur ${focusElementId}`);
             return;
           } else {
             console.warn(`Élément spécifié ${focusElementId} non trouvé pour le focus`);
@@ -324,7 +344,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
 
         // 2. Par défaut, retirer le focus
         document.activeElement.blur();
-        console.log("Focus retiré après fermeture de la modale");
+        logger.log("Focus retiré après fermeture de la modale");
       }, 50); // Délai pour attendre la fermeture complète
     });
     actionButton.handler = actionButton.onclick;
@@ -586,7 +606,7 @@ function confirmTournamentParticipation(tournamentId, playerName) {
   })
   .then(data => {
     if (data.message === "Player authenticated successfully") {
-      console.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
+      logger.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
       showModal('Success', 'Participation confirmed successfully!', 'OK', () => {
         fetchPendingTournamentAuthentications(); // Rafraîchir la liste
       });
@@ -652,7 +672,7 @@ export function fetchPendingFriendRequests() {
 }
 
 export function displayTournament() {
-  console.log('Tournament');
+  logger.log('Tournament');
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <div class="container py-4">
@@ -1241,8 +1261,8 @@ export function displayGameForm() {
     const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
     const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
 
-    console.log("Start button clicked");
-    console.log("Game settings at start:", gameSettings);
+    logger.log("Start button clicked");
+    logger.log("Game settings at start:", gameSettings);
 
     if (!alertShown || player2 !== lastCheckedPlayer2) {
       alertShown = false;
@@ -1309,7 +1329,7 @@ export function displayGameForm() {
       startGameSetup(gameSettings);
     }
 
-    console.log("Starting game with settings:", gameSettings);
+    logger.log("Starting game with settings:", gameSettings);
   });
 }
 

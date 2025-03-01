@@ -1,4 +1,4 @@
-import { displayGameForm, displayWelcomePage, navigateTo, showModal } from "./app.js";
+import { displayGameForm, displayWelcomePage, navigateTo, showModal, logger } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 import { displayMenu } from "./menu.js";
 
