@@ -41,6 +41,7 @@ let handleOpponentMouseMove = null;
 
 // Export d'une fonction pour supprimer les écouteurs
 export function removeGameListeners() {
+  console.log("removeGameListeners appelé");
   if (handlePlayerKeyDown) {
     document.removeEventListener("keydown", handlePlayerKeyDown);
     handlePlayerKeyDown = null;
@@ -376,31 +377,33 @@ function handleGameEnd(winner) {
             "OK",
             () => {
               stopGameProcess();
-              navigateTo("welcome");
+              navigateTo("game");
             }
           );
         }
       }
     );
   } else {
-    sendScore().then((matchID) => {
-      stopGameProcess(true);
-      displayResults(matchID);
-    }).catch((error) => {
-      console.error("Error in game end processing:", error);
-      showModal(
-        "Error",
-        "An error occurred while processing the game end: " + error.message,
-        "OK",
-        () => {
-          stopGameProcess(true);
-          navigateTo("tournament");
-        }
-      );
-    });
+    sendScore()
+      .then((matchID) => {
+        stopGameProcess(true); // Toujours appelé
+        displayResults(matchID);
+      })
+      .catch((error) => {
+        console.error("Error in game end processing:", error);
+        stopGameProcess(true); // Appelé même en cas d’erreur
+        showModal(
+          "Error",
+          "An error occurred while processing the game end: " + error.message,
+          "OK",
+          () => {
+            stopGameProcess();
+            navigateTo("game")
+          }
+        );
+      });
   }
 }
-
 function displayResults(matchID) {
   console.log("displayResults:: isTournamentMatch:", isTournamentMatch);
   document.getElementById("app_top").innerHTML = "";
@@ -466,6 +469,9 @@ let canvas, player, opponent, ball, obstacle;
 
 function initGameObjects(gameCanvas) {
   canvas = gameCanvas;
+  // Suppression des écouteurs existants avant d’en ajouter de nouveaux
+  removeGameListeners();
+
 
   const paddleWidth = 10;
   let paddleHeight = 100;
