@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let initialRoute = window.location.hash.replace('#', '') || 'login';
   logger.log('Initial route determined:', initialRoute);
 
-  //Global variable for the "logged" status 
+  //Global variable for the "logged" status
   let isUserLoggedIn = false;
 
   // 2. Check if the user is logged in
@@ -129,7 +129,7 @@ function addToCustomHistory(route) {
   logger.log('Custom History updated:', customHistory);
 }
 
-// !!!! Function to navigate. Use this to go on a page 
+// !!!! Function to navigate. Use this to go on a page
 export function navigateTo(route) {
   logger.log('Navigating to:', route);
 
@@ -280,7 +280,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   }
 
   const modal = new bootstrap.Modal(modalElement, {
-    backdrop: 'static', // stop closing if clicking outside the modal  
+    backdrop: 'static', // stop closing if clicking outside the modal
     keyboard: false     // stop closing with escape
   });
 
@@ -300,16 +300,16 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     logger.error(`Modal body element not found for ${modalId}`);
   }
 
-  //actionCallback linked to the modal's button 
+  //actionCallback linked to the modal's button
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
     actionButton.textContent = actionText || 'Close';
     actionButton.removeEventListener('click', actionButton.handler);
     actionButton.addEventListener('click', function handler() {
       if (actionCallback) {
-        actionCallback(); 
+        actionCallback();
       }
-      modal.hide(); 
+      modal.hide();
 
       // handling focus after closing (cause some bug sometimes)
       setTimeout(() => {
@@ -319,7 +319,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
         if (focusElementId) {
           focusTarget = document.getElementById(focusElementId);
           if (focusTarget) {
-            focusTarget.focus(); 
+            focusTarget.focus();
             logger.log(`Focus restauré sur ${focusElementId}`);
             return;
           } else {
@@ -330,7 +330,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
         // 2. blur (delete) the  focus
         document.activeElement.blur();
         logger.log("Focus retiré après fermeture de la modale");
-      }, 50); 
+      }, 50);
     });
     actionButton.handler = actionButton.onclick;
   } else {
@@ -343,8 +343,3 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     actionButton.focus();
   }
 }
-
-
-
-
-
