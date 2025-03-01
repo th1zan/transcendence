@@ -2,9 +2,12 @@
 import { startGameSetup } from "./pong.js";
 import {showModal, logger} from "./app.js";
 
-
+//menu to display the tournament feature 
 export function displayTournament() {
+  
   logger.log('Tournament');
+ 
+  //Tounament menu on the top (in app_top) 
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <div class="container py-4">
@@ -35,11 +38,9 @@ export function displayTournament() {
       </ul>
     </div>
   `;
+  
 
-  displayUserTournaments();
-  // let resultDiv = document.getElementById("app_main");
-  //   resultDiv.style.display = "block";
-
+  //events linked to the new tournament formular
   document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
@@ -56,119 +57,123 @@ export function displayTournament() {
         'Warning',
         'Please enter a tournament name.',
         'OK',
-        () => {} // Action vide, juste fermer la modale
+        () => {
+        // any action for this modal
+        } 
       );
       return;
     }
-
     localStorage.setItem("tournamentName", tournamentName);
     validateSearch();
   });
+
+
+  //display the tournaments linked to the user in the main content (app_main)
+  displayUserTournaments();
 }
 
+//To authenticate a registred user in a tournament
 function authenticateNow(playerName, tournamentId) {
-// Create a Bootstrap modal for login
-const modalHTML = `
-  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="loginForm">
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
-            </div>
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+  // Create a Bootstrap modal for login
+  const modalHTML = `
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-`;
+  `;
 
-// Append modal to body
-document.body.insertAdjacentHTML('beforeend', modalHTML);
+  // Append modal to body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-// Show modal using Bootstrap's vanilla JS
-const loginModal = document.getElementById('loginModal');
-const modalBootstrap = new bootstrap.Modal(loginModal);
-modalBootstrap.show();
+  // Show modal using Bootstrap
+  const loginModal = document.getElementById('loginModal');
+  const modalBootstrap = new bootstrap.Modal(loginModal);
+  modalBootstrap.show();
 
-// Handle form submission
-document.getElementById('submitLogin').addEventListener('click', function() {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+  // Handle form submission
+  document.getElementById('submitLogin').addEventListener('click', function() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-  authenticatePlayer(username, password, playerName, tournamentId)
-    .then(() => {
-      updatePlayerStatusUI(playerName);
-      // Hide modal manually since we're not using jQuery
-      modalBootstrap.hide();
-      // Remove modal from DOM after use
-      loginModal.remove();
-    })
-    .catch(error => logger.error("Error during authentication:", error));
-});
+    authenticatePlayer(username, password, playerName, tournamentId)
+      .then(() => {
+        updatePlayerStatusUI(playerName);
+        // Hide modal manually 
+        modalBootstrap.hide();
+        // Remove modal from DOM
+        loginModal.remove();
+      })
+      .catch(error => logger.error("Error during authentication:", error));
+  });
 }
 
-function authenticatePlayer(username, password, playerName, tournamentId) {
-return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
-  method: "POST",
-  credentials: "include",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    username: username,
-    password: password,
-    player_name: playerName
-  }),
-})
-.then(response => {
-  if (!response.ok) throw new Error("Authentication error:" + response.status);
-  return response.json();
-})
-.then(data => {
-  if (data.message !== "Player authenticated successfully") {
-    throw new Error("Authentication failed");
-  }
-  return data;
-});
+async function authenticatePlayer(username, password, playerName, tournamentId) {
+  return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      player_name: playerName
+    }),
+  })
+  .then(response => {
+    if (!response.ok) throw new Error("Authentication error:" + response.status);
+    return response.json();
+  })
+  .then(data => {
+    if (data.message !== "Player authenticated successfully") {
+      throw new Error("Authentication failed");
+    }
+    return data;
+  });
 }
 
+//update the status of a player/user after authenticating for a tournament
 function updatePlayerStatusUI(playerName) {
-  // Cible les lignes <tr> du tableau des joueurs dans displayTournamentGameList
   const playerRows = document.querySelectorAll('#app_main table tbody tr');
   playerRows.forEach(row => {
-    const nameCell = row.querySelector('td:first-child'); // Première colonne (nom)
-    const statusCell = row.querySelector('td:nth-child(2)'); // Deuxième colonne (statut)
-    const actionCell = row.querySelector('td:nth-child(3)'); // Troisième colonne (action)
+    const nameCell = row.querySelector('td:first-child');
+    const statusCell = row.querySelector('td:nth-child(2)');
+    const actionCell = row.querySelector('td:nth-child(3)');
 
     if (nameCell && nameCell.textContent === playerName) {
-      // Met à jour le statut
+      // update status
       statusCell.innerHTML = '<span class="badge bg-success">✔️ Authenticated</span>';
-      // Supprime le bouton d’authentification
+      // delete authentification button
       if (actionCell) {
-        actionCell.innerHTML = ''; // Vide la cellule contenant le bouton
+        actionCell.innerHTML = '';
       }
     }
   });
 }
 
-
-
-
+//when a Tournament is selected, display the games linked to the tournament and other stuff
 function displayTournamentGameList(data) {
   // Empty all containers
   document.getElementById('app_main').innerHTML = '';
