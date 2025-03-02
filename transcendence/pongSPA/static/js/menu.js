@@ -1,7 +1,6 @@
 import { logout } from './auth.js';
 import { navigateTo, logger } from "./app.js";
 
-
 export async function fetchAndStoreAvatarUrl() {
   try {
     const response = await fetch("/api/auth/user/", {
@@ -14,7 +13,7 @@ export async function fetchAndStoreAvatarUrl() {
     const user = await response.json();
     const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
     localStorage.setItem("avatarUrl", avatarUrl);
-    return avatarUrl; // Retourne l'URL pour un usage éventuel
+    return avatarUrl;
   } catch (error) {
     logger.error("Error fetching avatar URL:", error);
     const defaultUrl = "/media/avatars/avatar1.png";
@@ -26,13 +25,15 @@ export async function fetchAndStoreAvatarUrl() {
 export async function displayMenu(avatarUrl = null) {
   const avatarPicture = avatarUrl || await fetchAndStoreAvatarUrl();
 
-  ;// Vider les conteneurs
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
   document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
   document.getElementById('app_bottom').className = 'semi-transparent-bg p-3 text-dark';
 
-  // Class et CSS pour le conteneur du menu
   const menuDiv = document.getElementById("menu");
+  if (!menuDiv) {
+    logger.error("Élément #menu non trouvé dans le DOM");
+    return;
+  }
 
   menuDiv.innerHTML = `
       <div class="container-fluid">
@@ -41,10 +42,9 @@ export async function displayMenu(avatarUrl = null) {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
               <div class="menu-container d-flex flex-column h-100 w-100">
-                  <img src="${avatarPicture}"  class="rounded-circle object-fit-cover align-self-center my-4" alt="Profile picture"  />
-
+                  <img src="${avatarPicture}" class="rounded-circle object-fit-cover align-self-center my-4" alt="Profile picture" />
                   <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
-                  <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2" role="button">Play a game</button>
+                  <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Play a game</button>
                   <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
                   <button id="statsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Statistics</button>
                   <button id="friendsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Friends</button>
@@ -56,34 +56,14 @@ export async function displayMenu(avatarUrl = null) {
       </div>
   `;
 
-  // Ajouter les écouteurs d'événements après avoir inséré le HTML
-  document.getElementById("welcomeButton").addEventListener("click", function() {
-      navigateTo('welcome');
-  });
-
-  document.getElementById("playButton").addEventListener("click", function() {
-      navigateTo('game');
-  });
-
-  document.getElementById("tournamentButton").addEventListener("click", function() {
-      navigateTo('tournament');
-  });
-
-  document.getElementById("statsButton").addEventListener("click", function() {
-      navigateTo('stats');
-  });
-
-  document.getElementById("friendsButton").addEventListener("click", function() {
-      navigateTo('friends');
-  });
-
-  document.getElementById("settingsButton").addEventListener("click", function() {
-      navigateTo('settings');
-  });
-
-  document.getElementById("logoutButton").addEventListener("click", function() {
-      logout();
-  });
+  // Ajouter les écouteurs d'événements
+  document.getElementById("welcomeButton").addEventListener("click", () => navigateTo('welcome'));
+  document.getElementById("playButton").addEventListener("click", () => navigateTo('game'));
+  document.getElementById("tournamentButton").addEventListener("click", () => navigateTo('tournament'));
+  document.getElementById("statsButton").addEventListener("click", () => navigateTo('stats'));
+  document.getElementById("friendsButton").addEventListener("click", () => navigateTo('friends'));
+  document.getElementById("settingsButton").addEventListener("click", () => navigateTo('settings'));
+  document.getElementById("logoutButton").addEventListener("click", logout);
 
   const menu = document.getElementById('menu');
   const navbarCollapse = menu.querySelector('.navbar-collapse');
@@ -103,4 +83,3 @@ export async function displayMenu(avatarUrl = null) {
   // Initialiser l’état au chargement
   hideMenuIfScroll();
 }
-
