@@ -40,6 +40,7 @@ function displayHTMLforSettings(user) {
     <!-- Profile Information Update -->
     <div class="card shadow-sm p-4 mt-3">
       <h4 class="text-center">Edit Profile Information</h4>
+
       <div class="form-group mt-2">
         <label>Username:</label>
         <input type="text" id="usernameInput" class="form-control" value="${user.username}">
@@ -58,11 +59,39 @@ function displayHTMLforSettings(user) {
           <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
           <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
         </div>
+      </div>
 
       <div class="d-flex justify-content-center mt-3">
         <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
       </div>
     </div>
+  
+
+      <!-- Change Password Section -->
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">Change Password</h4>
+        <div class="form-group mt-2">
+          <label>Current Password:</label>
+          <input type="password" id="currentPasswordInput" class="form-control">
+        </div>
+        <div class="form-group mt-2">
+          <label>New Password:</label>
+          <input type="password" id="newPasswordInput" class="form-control">
+          <div class="invalid-feedback">
+            Password must be at least 3 characters.
+          </div>
+        </div>
+        <div class="form-group mt-2">
+          <label>Confirm New Password:</label>
+          <input type="password" id="confirmPasswordInput" class="form-control">
+          <div class="invalid-feedback">
+            Passwords do not match.
+          </div>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <button id="changePasswordBtn" class="btn btn-success px-4">Change Password</button>
+        </div>
+      </div>
 
     <!-- ✅ 2FA Section -->
     <div class="card shadow-sm p-4 mt-3">
@@ -90,7 +119,7 @@ function displayHTMLforSettings(user) {
   document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
   document.getElementById("deleteAvatarButton").addEventListener("click", deleteAvatar);
   document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
-  //document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
+  document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
   document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
   document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
   document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
@@ -158,9 +187,12 @@ export function displaySettings() {
           </div>
         </div>
       </div>
+
       <!-- Profile Information Update -->
+      
       <div class="card shadow-sm p-4 mt-3">
         <h4 class="text-center">Edit Profile Information</h4>
+
         <div class="form-group mt-2">
           <label>Username:</label>
           <input type="text" id="usernameInput" class="form-control" value="${username}">
@@ -188,9 +220,34 @@ export function displaySettings() {
         <div class="d-flex justify-content-center mt-3">
           <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
         </div>
+
+        <!-- Change Password Section -->
+        <div class="card shadow-sm p-4 mt-3">
+        <h5 class="text-center">Change Password</h5>
+        <div class="form-group mt-2">
+          <label>Current Password:</label>
+          <input type="password" id="currentPasswordInput" class="form-control">
+        </div>
+        <div class="form-group mt-2">
+          <label>New Password:</label>
+          <input type="password" id="newPasswordInput" class="form-control">
+          <div class="invalid-feedback">
+            Password must be at least 3 characters.
+          </div>
+        </div>
+        <div class="form-group mt-2">
+          <label>Confirm New Password:</label>
+          <input type="password" id="confirmPasswordInput" class="form-control">
+          <div class="invalid-feedback">
+            Passwords do not match.
+          </div>
+        </div>
+        <div class="d-flex justify-content-center mt-3">
+          <button id="changePasswordBtn" class="btn btn-success px-4">Change Password</button>
+        </div>
       </div>
 
-      <!-- ✅ 2FA Section -->
+      <!-- 2FA Section -->
       <div class="card shadow-sm p-4 mt-3">
         <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
         <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? "2FA is Enabled ✅" : "2FA is Disabled ❌"}</p>
@@ -216,7 +273,7 @@ export function displaySettings() {
     document.getElementById("anonymizeAccountButton").addEventListener("click", anonymizeAccount);
     document.getElementById("uploadAvatarButton").addEventListener("click", uploadAvatar);
     document.getElementById("saveProfileButton").addEventListener("click", updateProfile);
-    //document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
+    document.getElementById('changePasswordBtn').addEventListener('click', changePassword);
     document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
     document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
     update2FAStatus();
@@ -566,6 +623,94 @@ export function updateProfile() {
       showModal(
         'Error',
         'An error occurred: ' + error.message,
+        'OK',
+        () => {}
+      );
+    });
+}
+
+
+
+export function changePassword() {
+  const currentPassword = document.getElementById("currentPasswordInput").value;
+  const newPassword = document.getElementById("newPasswordInput").value;
+  const confirmPassword = document.getElementById("confirmPasswordInput").value;
+  
+  // Clear previous validation states
+  document.getElementById("newPasswordInput").classList.remove("is-invalid");
+  document.getElementById("confirmPasswordInput").classList.remove("is-invalid");
+  
+  // Validate inputs
+  if (newPassword.length < 3) {
+    document.getElementById("newPasswordInput").classList.add("is-invalid");
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    document.getElementById("confirmPasswordInput").classList.add("is-invalid");
+    return;
+  }
+  
+  // Disable the button to prevent double submissions
+  const changeBtn = document.getElementById("changePasswordBtn");
+  if (changeBtn) {
+    changeBtn.disabled = true;
+  }
+  
+  fetch("/api/auth/change-password/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword
+    }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.current_password || data.new_password || "Failed to change password.");
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Clear form fields
+      document.getElementById("currentPasswordInput").value = "";
+      document.getElementById("newPasswordInput").value = "";
+      document.getElementById("confirmPasswordInput").value = "";
+      
+      // Wait for cookies to process
+      setTimeout(() => {
+        showModal(
+          'Success',
+          'Password changed successfully!',
+          'OK',
+          () => {
+            // Navigate back to settings with fresh tokens
+            navigateTo("settings");
+          }
+        );
+        
+        // Re-enable button
+        if (changeBtn) {
+          changeBtn.disabled = false;
+        }
+      }, 500);
+    })
+    .catch(error => {
+      logger.error("Error changing password:", error);
+      
+      // Re-enable button
+      if (changeBtn) {
+        changeBtn.disabled = false;
+      }
+      
+      showModal(
+        'Error',
+        'Error: ' + error.message,
         'OK',
         () => {}
       );

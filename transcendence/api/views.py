@@ -54,6 +54,7 @@ from .serializers import (
     TournamentPlayerSerializer,
     TournamentSerializer,
     UserRegisterSerializer,
+    ChangePasswordSerializer,
 )
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
@@ -901,6 +902,45 @@ class DeleteAccountView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            
+            # Generating new tokens
+            refresh = RefreshToken.for_user(user)
+            
+            response = Response({
+                'message': 'Password changed successfully'
+            }, status=status.HTTP_200_OK)
+            
+            # Setting new tokens as cookies
+            response.set_cookie(
+                "access_token",
+                str(refresh.access_token),
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+                max_age=600  # 10 minutes
+            )
+            response.set_cookie(
+                "refresh_token",
+                str(refresh),
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+                max_age=86400  # 24 hours
+            )
+            
+            return response
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
