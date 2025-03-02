@@ -107,9 +107,11 @@ function sendGameConfiguration() {
         canvas_height: canvas.height,
         canvas_width: canvas.width,
         paddle_height: player.height,
+        paddle_width: player.width, // Ajouté selon le commit
         fps: fps,
         step: step,
         control: control1,
+        difficulty: difficulty
       })
     );
   } else {
@@ -166,6 +168,12 @@ function startPongGame() {
 
   initSetStats();
 
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    logger.log("Envoi des données de jeu au serveur...");
+    // Ancienne ligne : //ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
+    ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
+  }
+
   gameInterval = setInterval(() => {
     update();
     render(cnv_context);
@@ -197,6 +205,33 @@ function updateGamePanel() {
   logger.log("Call to updateGamePanel");
 }
 
+function startCountdown(canvas, callback) {
+  const ctx = canvas.getContext("2d");
+  let countdown = 3;
+
+  function drawCountdown() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "60px 'Press Start 2P'"; // Police pixelisée
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
+  }
+
+  drawCountdown(); // Affiche "3" immédiatement
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      drawCountdown(); // Met à jour "2", "1"
+    } else {
+      clearInterval(countdownInterval);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      callback();
+    }
+  }, 1000);
+}
+
+// Fonction startGameSetup allégée
 export function startGameSetup(gameSettings) {
   shouldReconnect = true;
 
@@ -225,7 +260,7 @@ export function startGameSetup(gameSettings) {
     <div class="card text-center" style="background-color: rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; border-radius: 10px; padding: 10px; margin: 0 auto; width: fit-content;">
       <canvas id="pong" width="800" height="400"></canvas>
     </div>
-  `; // Canevas centré dans une carte avec fond transparent
+  `;
 
   const canvas = document.getElementById("pong");
   if (!canvas) {
@@ -255,12 +290,15 @@ export function startGameSetup(gameSettings) {
   setHistory = [];
 
   updateGamePanel();
-  requestAnimationFrame(() => startPongGame());
+  startCountdown(canvas, () => requestAnimationFrame(() => startPongGame()));
 }
 
 function resetScores() {
   player.score = 0;
   opponent.score = 0;
+  if (mode !== "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
+  }
 }
 
 let obstacleVelocityY = 5;
@@ -298,8 +336,11 @@ function update() {
     const angle = -(playerPaddle.y + player.height / 2 - ball.y) / (player.height / 2) * Math.PI / 4;
     ball.velocityY = ball.speed * Math.sin(angle);
     ball.velocityX = ball.x < canvas.width / 2 ? ball.speed * Math.cos(angle) : -ball.speed * Math.cos(angle);
+    if (mode !== "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "hit" }));
+    }
     if (ball.speed <= 10) {
-      const factor = difficulty === "easy" ? 1.01 : difficulty === "medium" ? 1.02 : 1.03;
+      const factor = difficulty === "easy" ? 1.012 : difficulty === "medium" ? 1.022 : 1.032;
       ball.speed *= factor;
       ball.velocityX *= factor;
       ball.velocityY *= factor;
@@ -365,7 +406,11 @@ function handleGameEnd(winner) {
         if (!canvas) {
           logger.warn("Canvas not found after modal closure. Recreating canvas.");
           const appMain = document.getElementById("app_main");
-          if (!appMain.querySelector("#pong")) appMain.innerHTML = `<canvas id="pong" width="800" height="400"></canvas>`;
+          if (!appMain.querySelector("#pong")) appMain.innerHTML = `
+              <div class="card text-center" style="background-color: rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; border-radius: 10px; padding: 10px; margin: 0 auto; width: fit-content;">
+                <canvas id="pong" width="800" height="400"></canvas>
+              </div>
+          `;
           canvas = document.getElementById("pong");
         }
         if (canvas) requestAnimationFrame(() => startPongGame());
@@ -404,6 +449,7 @@ function handleGameEnd(winner) {
       });
   }
 }
+
 function displayResults(matchID) {
   logger.log("displayResults:: isTournamentMatch:", isTournamentMatch);
   document.getElementById("app_top").innerHTML = "";
@@ -472,7 +518,6 @@ function initGameObjects(gameCanvas) {
   // Suppression des écouteurs existants avant d’en ajouter de nouveaux
   removeGameListeners();
 
-
   const paddleWidth = 10;
   let paddleHeight = 100;
   let ballSpeed = 5;
@@ -484,7 +529,8 @@ function initGameObjects(gameCanvas) {
   }
 
   if (difficulty === "hard") {
-    obstacle = { x: canvas.width / 2 - 5, y: canvas.height / 3, width: 20, height: paddleHeight, color: "GRAY" };
+    // Ancienne ligne : // obstacle = { x: canvas.width / 2 - 5, y: canvas.height / 3, width: 20, height: paddleHeight, color: "GRAY" };
+    obstacle = { x: canvas.width / 2 - 5, y: canvas.height / 3, width: paddleWidth, height: paddleHeight, color: "GRAY" };
   } else obstacle = null;
 
   player = { x: 0, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, color: "WHITE", score: 0 };
@@ -587,7 +633,7 @@ function drawCircle(x, y, r, color, ctx) {
 
 function drawText(text, x, y, color, ctx) {
   ctx.fillStyle = color;
-  ctx.font = "45px fantasy";
+  ctx.font = "45px 'Press Start 2P'"; // Police pixelisée pour les scores
   ctx.fillText(text, x, y);
 }
 
@@ -647,6 +693,7 @@ function resetBall() {
   ball.velocityY = ball.speed * Math.sin(ballAngle);
   if (mode !== "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "reset", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
+    ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
   }
   collisionActive = false;
   setTimeout(() => (collisionActive = true), 2000);
@@ -712,7 +759,6 @@ async function sendScore() {
       throw error;
     });
 }
-
 
 function initSetStats() {
   exchangesPerSet = 0;
