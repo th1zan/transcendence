@@ -21,6 +21,30 @@ class PongAIConsumer(AsyncWebsocketConsumer):
         # pass
         logger.info(f"WebSocket déconnecté avec code: {close_code}")
 
+    # class NotificationConsumer(AsyncJsonWebsocketConsumer):
+    #     async def connect(self):
+    #         if self.scope["user"].is_anonymous:
+    #             await self.close()
+    #         else:
+    #             self.user = self.scope["user"]
+    #             self.group_name = f"notifications_{self.user.id}"
+    #             await self.channel_layer.group_add(self.group_name, self.channel_name)
+    #             await self.accept()
+
+    #     async def disconnect(self, close_code):
+    #         await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    #     # This method is called when a notification needs to be sent
+    #     async def send_notification(self, event):
+    #         await self.send_json(
+    #             {
+    #                 "message": event["content"]["message"],
+    #                 "notification_type": event["content"][
+    #                     "notification_type"
+    #                 ],  # Ensure WebSocket forwards this
+    #             }
+    #         )
+
     async def receive(self, text_data):  # toutes les 1 sec
         data = json.loads(text_data)
 
@@ -56,28 +80,3 @@ class PongAIConsumer(AsyncWebsocketConsumer):
             await self.send(
                 text_data=json.dumps({"type": "update_paddle", "y": self.paddle_y})
             )
-
-
-# class NotificationConsumer(AsyncJsonWebsocketConsumer):
-#     async def connect(self):
-#         if self.scope["user"].is_anonymous:
-#             await self.close()
-#         else:
-#             self.user = self.scope["user"]
-#             self.group_name = f"notifications_{self.user.id}"
-#             await self.channel_layer.group_add(self.group_name, self.channel_name)
-#             await self.accept()
-
-#     async def disconnect(self, close_code):
-#         await self.channel_layer.group_discard(self.group_name, self.channel_name)
-
-#     # This method is called when a notification needs to be sent
-#     async def send_notification(self, event):
-#         await self.send_json(
-#             {
-#                 "message": event["content"]["message"],
-#                 "notification_type": event["content"][
-#                     "notification_type"
-#                 ],  # Ensure WebSocket forwards this
-#             }
-#         )
