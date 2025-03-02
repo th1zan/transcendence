@@ -292,74 +292,82 @@ function displayTournamentGameList(data) {
 
       // event listeners for starting games
       document.querySelectorAll('.startGameButton').forEach(button => {
-        button.addEventListener('click', async event => {
-          const player1 = event.target.getAttribute('data-player1');
-          const player2 = event.target.getAttribute('data-player2');
-          const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-          const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-          const matchID = parseInt(event.target.getAttribute('data-match-id'));
+  button.addEventListener('click', async event => {
+    const player1 = event.target.getAttribute('data-player1');
+    const player2 = event.target.getAttribute('data-player2');
+    const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+    const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+    const matchID = parseInt(event.target.getAttribute('data-match-id'));
 
-          logger.log("get player with tournament ID: ", tournamentId);
-          try {
-            const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-
-           
-            //verifiy in the db if player are authenicated for a tournamen before launching a game
-            const playersData = await response.json();
-            let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
-            if (!player1Authenticated) {
-              showModal(
-                'Authentication Required',
-                `Authentification requise pour ${player1}`,
-                'OK',
-                () => {}
-              );
-              return;
-            }
-
-            let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
-            if (!player2Authenticated) {
-              showModal(
-                'Authentication Required',
-                `Authentification requise pour ${player2}`,
-                'OK',
-                () => {}
-              );
-              return;
-            }
-            
-
-            //send the game parameters
-            let gameSettings = {
-              mode: "multiplayer",
-              difficulty: "medium",
-              design: "retro",
-              numberOfGames: setsToWin,
-              setsPerGame: pointsPerSet,
-              player1: player1,
-              player2: player2,
-              control1: "wasd",
-              control2: "arrows",
-              isTournamentMatch: true,
-            };
-            localStorage.setItem("matchID", matchID);
-            startGameSetup(gameSettings);
-          } catch (error) {
-            logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
-            showModal(
-              'Error',
-              'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
-              'OK',
-              () => {}
-            );
-          }
-        });
+    logger.log("get player with tournament ID: ", tournamentId);
+    try {
+      const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+
+      const playersData = await response.json();
+
+      // Vérifie l’authentification des joueurs
+      let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
+      let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
+
+      // Si un joueur n’est pas authentifié, affiche la modale et bloque la suite
+      if (!player1Authenticated) {
+        showModal(
+          'Authentication Required',
+          `Authentification requise pour ${player1}`,
+          'OK',
+          () => {
+            // Ne rien faire après la modale, rester sur la page
+          }
+        );
+        return; // Stoppe l’exécution ici
+      }
+
+      if (!player2Authenticated) {
+        showModal(
+          'Authentication Required',
+          `Authentification requise pour ${player2}`,
+          'OK',
+          () => {
+            // Ne rien faire après la modale, rester sur la page
+          }
+        );
+        return; // Stoppe l’exécution ici
+      }
+
+      // Si les deux joueurs sont authentifiés, lancer le match
+      let gameSettings = {
+        mode: "multiplayer",
+        difficulty: "medium",
+        design: "retro",
+        numberOfGames: setsToWin,
+        setsPerGame: pointsPerSet,
+        player1: player1,
+        player2: player2,
+        control1: "wasd",
+        control2: "arrows",
+        isTournamentMatch: true,
+      };
+      localStorage.setItem("matchID", matchID);
+      startGameSetup(gameSettings);
+
+    } catch (error) {
+      logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+      showModal(
+        'Error',
+        'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
+        'OK',
+        () => {
+          // Ne rien faire, reste sur la page
+        }
+      );
+    }
+  });
+});
 
       // Add ranking for the tournament in app_bottom
       displayTournamentRanking(data);
