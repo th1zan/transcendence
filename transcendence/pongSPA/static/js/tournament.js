@@ -68,13 +68,13 @@ export function displayTournament() {
   });
 
 
-  //display the tournaments linked to the user in the main content (app_main)
+  //display all the tournaments linked to the user in the main content (app_main)
   displayUserTournaments();
 }
 
-//To authenticate a registred user in a tournament
+//authenticate a registred user in a tournament
 function authenticateNow(playerName, tournamentId) {
-  // Create a Bootstrap modal for login
+  // Bootstrap modal for login
   const modalHTML = `
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -104,15 +104,15 @@ function authenticateNow(playerName, tournamentId) {
     </div>
   `;
 
-  // Append modal to body
+  //append modal to body
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-  // Show modal using Bootstrap
+  // show modal using Bootstrap
   const loginModal = document.getElementById('loginModal');
   const modalBootstrap = new bootstrap.Modal(loginModal);
   modalBootstrap.show();
 
-  // Handle form submission
+  //formular for authentificaton
   document.getElementById('submitLogin').addEventListener('click', function() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
@@ -129,6 +129,7 @@ function authenticateNow(playerName, tournamentId) {
   });
 }
 
+//ask the API
 async function authenticatePlayer(username, password, playerName, tournamentId) {
   return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
     method: "POST",
@@ -194,7 +195,7 @@ function displayTournamentGameList(data) {
   })
   .then(response => response.json())
   .then(playersData => {
-    // Players list with simple styling
+    // players list
     let playersHTML = `
       <div class="card border-primary border-1 mb-4">
         <div class="card-body">
@@ -225,7 +226,7 @@ function displayTournamentGameList(data) {
 
     playersHTML += '</tbody></table></div></div>';
 
-    // Matches list with simple styling
+    // matches list
     let matchesHTML = `
       <div class="card border-primary border-1 mb-4">
         <div class="card-body">
@@ -274,14 +275,14 @@ function displayTournamentGameList(data) {
 
       matchesHTML += '</tbody></table></div></div>';
 
-      // Combine players and matches HTML
+      // For a tournament: display players and matches 
       tournamentMatchesDiv.innerHTML = `
         <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Tournament: ${tournamentName}</h2>
         ${playersHTML}
         ${matchesHTML}
       `;
 
-      // Adding event listeners for authentication buttons
+      //event listeners for authentication buttons
       document.querySelectorAll('.auth-button').forEach(button => {
         button.addEventListener('click', function() {
           const playerName = this.getAttribute('data-player');
@@ -289,7 +290,7 @@ function displayTournamentGameList(data) {
         });
       });
 
-      // Adding event listeners for starting games
+      // event listeners for starting games
       document.querySelectorAll('.startGameButton').forEach(button => {
         button.addEventListener('click', async event => {
           const player1 = event.target.getAttribute('data-player1');
@@ -307,8 +308,9 @@ function displayTournamentGameList(data) {
               },
             });
 
+           
+            //verifiy in the db if player are authenicated for a tournamen before launching a game
             const playersData = await response.json();
-
             let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
             if (!player1Authenticated) {
               showModal(
@@ -330,7 +332,9 @@ function displayTournamentGameList(data) {
               );
               return;
             }
+            
 
+            //send the game parameters
             let gameSettings = {
               mode: "multiplayer",
               difficulty: "medium",
@@ -357,8 +361,8 @@ function displayTournamentGameList(data) {
         });
       });
 
-      // Add standings to app_bottom
-      displayTournamentStandings(data);
+      // Add ranking for the tournament in app_bottom
+      displayTournamentRanking(data);
     } else {
       tournamentMatchesDiv.innerHTML += `
         <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${tournamentName}</h2>
@@ -378,16 +382,16 @@ function displayTournamentGameList(data) {
   });
 }
 
-function displayTournamentStandings(data) {
+function displayTournamentRanking(data) {
   const appBottom = document.getElementById("app_bottom");
 
-  // Calculer les standings à partir des données des matchs
-  const standings = calculateStandings(data);
+  // Calculer les ranking à partir des données des matchs
+  const ranking = calculateStandings(data);
 
-  // Trier les standings par points marqués en ordre décroissant
-  const sortedStandings = standings.sort((a, b) => b.points_scored - a.points_scored);
+  // Trier les ranking par points marqués en ordre décroissant
+  const sortedStandings = ranking.sort((a, b) => b.points_scored - a.points_scored);
 
-  let standingsHTML = `
+  let rankingHTML = `
     <div class="card border-primary border-1 mb-4">
       <div class="card-body">
         <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Standings</h3>
@@ -407,7 +411,7 @@ function displayTournamentStandings(data) {
     const isFirst = index === 0;
     const rowClass = isFirst ? 'table-success' : ''; // Vert pour le leader
 
-    standingsHTML += `
+    rankingHTML += `
       <tr class="${rowClass}">
         <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${player.name}</td>
         <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${player.wins}</td>
@@ -417,45 +421,45 @@ function displayTournamentStandings(data) {
     `;
   });
 
-  standingsHTML += `
+  rankingHTML += `
           </tbody>
         </table>
       </div>
     </div>
   `;
 
-  appBottom.innerHTML = standingsHTML;
+  appBottom.innerHTML = rankingHTML;
 }
 
 
 function calculateStandings(matches) {
-  let standings = {};
+  let ranking = {};
   matches.forEach(match => {
     const players = [match.player1_name, match.player2_name];
     players.forEach(player => {
-      if (!standings[player]) {
-        standings[player] = { name: player, wins: 0, points_scored: 0, points_conceded: 0 };
+      if (!ranking[player]) {
+        ranking[player] = { name: player, wins: 0, points_scored: 0, points_conceded: 0 };
       }
     });
 
     if (match.sets && match.sets.length > 0) {
       match.sets.forEach(set => {
-        standings[match.player1_name].points_scored += set.player1_score;
-        standings[match.player1_name].points_conceded += set.player2_score;
-        standings[match.player2_name].points_scored += set.player2_score;
-        standings[match.player2_name].points_conceded += set.player1_score;
+        ranking[match.player1_name].points_scored += set.player1_score;
+        ranking[match.player1_name].points_conceded += set.player2_score;
+        ranking[match.player2_name].points_scored += set.player2_score;
+        ranking[match.player2_name].points_conceded += set.player1_score;
       });
 
       if (match.winner) {
-        standings[match.winner].wins += 1;
+        ranking[match.winner].wins += 1;
       }
     }
   });
-  return Object.values(standings);
+  return Object.values(ranking);
 }
 
 
-
+//display a list of Tournament's Games for a Tournament research based on Tournament ID
 export function DisplayTournamentGame() {
   // Empty all containers
   document.getElementById('app_main').innerHTML = '';
@@ -465,6 +469,7 @@ export function DisplayTournamentGame() {
   const tournamentId = localStorage.getItem("tournamentId");
 
   logger.log("Tournament name: ", tournamentName);
+
   if (!tournamentId) {
     logger.error("No tournament ID found. Please create a tournament first.");
     return;
@@ -497,10 +502,9 @@ export function DisplayTournamentGame() {
     });
 }
 
-
+//create a Tournament form
 export function createTournamentForm() {
   //empty all the containers
-  // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -509,7 +513,7 @@ export function createTournamentForm() {
 
   appMain.innerHTML = getTournamentFormHTML();
 
-  // Attendre que le DOM soit mis à jour avant d'appeler initializePlayerManagement et setupSubmitHandlers
+  // Wait for the complete update of the DOM before calling initializePlayerManagement et setupSubmitHandlers
   requestAnimationFrame(() => {
     initializePlayerManagement();
     setupSubmitHandlers();
@@ -620,6 +624,8 @@ function getTournamentFormHTML() {
   `;
 }
 
+
+//Handling the adding of player (check if existing playerName, or existing re)
 async function initializePlayerManagement() {
 const playerContainer = document.getElementById('playerContainer');
 const addButton = document.getElementById('addPlayerButton');
@@ -758,7 +764,7 @@ function cleanupPlayersMap(playersMap) {
 }
 
 
-
+//check if registred user exist (and will need authentification)
 export async function checkUserExists(username) {
 const response = await fetch(`/api/user/exists/?username=${encodeURIComponent(username)}`, {
   method: 'GET',
@@ -767,6 +773,7 @@ const response = await fetch(`/api/user/exists/?username=${encodeURIComponent(us
 return await response.json();
 }
 
+//check if the player (pseudo) exists. Not a problem, but needs a confimation
 export async function checkPlayerExists(playerName) {
 const response = await fetch(`/api/player/exists/?player_name=${encodeURIComponent(playerName)}`, {
   method: 'GET',
@@ -776,15 +783,14 @@ return await response.json();
 }
 
 function updatePlayerStatus(playerDiv, userData) {
-// Check if there's already a status span
-let statusSpan = playerDiv.querySelector('.status-text'); // Utiliser la classe existante
+// Check if there's already a status for this player
+let statusSpan = playerDiv.querySelector('.status-text'); 
 if (!statusSpan) {
-  // Si inexistant, créer avec la classe appropriée
+  // if not, create a status
   statusSpan = document.createElement('span');
   statusSpan.className = 'status-text me-2';
-  playerDiv.insertBefore(statusSpan, playerDiv.querySelector('.remove-player') || null); // Avant le bouton de suppression si présent
+  playerDiv.insertBefore(statusSpan, playerDiv.querySelector('.remove-player') || null);
 } else {
-  // Si existant, vider le contenu
   statusSpan.textContent = '';
 }
 
@@ -817,7 +823,7 @@ if (playerDiv.classList.contains('additional-player')) {
 }
 
 
-
+//big function to handle the creation of a Tournament with the tournament form
 function setupSubmitHandlers() {
   const validateButton = document.getElementById('validateTournamentName');
   const submitButton = document.getElementById('submitButton');
@@ -915,7 +921,7 @@ function setupSubmitHandlers() {
       if (data.message) {
         logger.log("Tournament finalized:", data);
         showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
-          DisplayTournamentGame(); // Assuming this function shows the tournament game page
+          DisplayTournamentGame(); 
         });
       } else {
         showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
@@ -938,32 +944,32 @@ function handleError(error, message) {
   );
 }
 
-function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
-fetch("/api/tournament/new/", {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    tournament_name: tournamentName,
-    players: players,
-    number_of_games: numberOfGames,
-    points_to_win: pointsToWin
-  }),
-})
-.then((response) => {
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-  return response.json();
-})
-.then((data) => {
-  logger.log("Tournament created:", data);
-  localStorage.setItem("tournamentId", data.tournament_id);
-  DisplayTournamentGame();
-})
-.catch((error) => {
-  logger.error("Error creating tournament:", error);
-});
-}
+// function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
+//   fetch("/api/tournament/new/", {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({
+//       tournament_name: tournamentName,
+//       players: players,
+//       number_of_games: numberOfGames,
+//       points_to_win: pointsToWin
+//     }),
+//   })
+//   .then((response) => {
+//     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+//     return response.json();
+//   })
+//   .then((data) => {
+//     logger.log("Tournament created:", data);
+//     localStorage.setItem("tournamentId", data.tournament_id);
+//     DisplayTournamentGame();
+//   })
+//   .catch((error) => {
+//     logger.error("Error creating tournament:", error);
+//   });
+// }
 
 export function selectTournament(tournamentId, tournamentName) {
 localStorage.setItem("tournamentId", tournamentId);
@@ -971,15 +977,13 @@ localStorage.setItem("tournamentName", tournamentName);
 DisplayTournamentGame();
 }
 
-
 export function validateSearch() {
   
-
   document.getElementById('app_bottom').innerHTML = '';
 
   let tournamentName;
 
-  // Vérifiez si le nom du tournoi est déjà dans le stockage local
+  //check the local storage first 
   tournamentName = localStorage.getItem("tournamentName");
 
   if (!tournamentName) {
@@ -1057,7 +1061,7 @@ export function validateSearch() {
           tournamentBody.appendChild(row);
         });
 
-        // Relier le bouton "Select" pour naviguer vers la page du tournoi
+        // Select button
         document.querySelectorAll('.selectTournamentButton').forEach(button => {
           button.addEventListener('click', event => {
             const tournamentId = event.target.getAttribute('data-id');
