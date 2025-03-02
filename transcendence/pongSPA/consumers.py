@@ -53,6 +53,7 @@ class PongAIConsumer(AsyncWebsocketConsumer):
                 data["canvas_height"],
                 data["canvas_width"],
                 data["paddle_height"],
+                data["paddle_width"],
                 data["fps"],
                 data["step"],
                 data["control"],
@@ -80,3 +81,9 @@ class PongAIConsumer(AsyncWebsocketConsumer):
             await self.send(
                 text_data=json.dumps({"type": "update_paddle", "y": self.paddle_y})
             )
+
+        if data["type"] == "hit":
+            self.AI.register_hit()
+
+        if data["type"] == "score":
+            self.AI.update_score(data["player_score"], data["ai_score"])
