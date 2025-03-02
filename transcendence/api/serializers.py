@@ -189,3 +189,37 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             # email=validated_data["email"],
         )
         return user
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_current_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value
+        
+    def validate_new_password(self, value):
+        # for dev phase, remove later
+        # if len(value) < 3:
+        #     raise serializers.ValidationError(
+        #         "The password must contain at least 3 characters."
+        #     )
+        # Check for minimum length
+        if len(value) < 8:
+            raise serializers.ValidationError("The password must contain at least 8 characters.")
+        # Check for at least one digit
+        if not re.search(r"\d", value):
+            raise serializers.ValidationError("The password must contain at least one digit.")
+        # Check for at least one uppercase letter
+        if not re.search(r"[A-Z]", value):
+            raise serializers.ValidationError("The password must contain at least one uppercase letter.")
+        # Check for at least one lowercase letter
+        if not re.search(r"[a-z]", value):
+            raise serializers.ValidationError("The password must contain at least one lowercase letter.")
+        # Check for at least one special character
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
+            raise serializers.ValidationError("The password must contain at least one special character.")
+        return value
