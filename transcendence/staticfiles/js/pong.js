@@ -33,7 +33,7 @@ function connectWebSocket(onOpenCallback = null)
   if (onOpenCallback) {
     wsOpenCallback = onOpenCallback;
   }
-  
+
   ws = new WebSocket("ws://localhost:8000/ws/pong_ai/");
 
   ws.onopen = () => {
@@ -64,7 +64,8 @@ function sendGameConfiguration() {
       type: "start", 
       canvas_height: canvas.height, 
       canvas_width: canvas.width, 
-      paddle_height: player.height, 
+      paddle_height: player.height,
+      paddle_width: player.width, 
       fps: fps, 
       step: step, 
       control: control1 
@@ -97,7 +98,7 @@ function startPongGame() {
 
   if (ws && ws.readyState === WebSocket.OPEN) {
     console.log("Envoi des données de jeu au serveur...");
-    //ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
+    ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
   }
 
   gameInterval = setInterval(() => {
@@ -159,6 +160,11 @@ export function startGameSetup(gameSettings) {
 function resetScores() {
   player.score = 0;
   opponent.score = 0;
+
+  if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN)
+  {
+    ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
+  }
 }
 
 let obstacleVelocityY = 5;
@@ -170,7 +176,6 @@ function update() {
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
-    ball.speed *= 1.02;
   }
 
   if (difficulty === "hard" && obstacle) {
@@ -208,25 +213,33 @@ function update() {
     else
     {
       ball.velocityX = -ball.speed * Math.cos(angle);
-    }
 
-    if (difficulty === "easy")
-    {
-      ball.speed *= 1.01;
-      ball.velocityX *= 1.01;
-      ball.velocityY *= 1.01;
+      if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN)
+      {
+        ws.send(JSON.stringify({ type: "hit" }));
+      }
     }
-    else if (difficulty === "medium")
+    if (ball.speed <= 10)
     {
-      ball.speed *= 1.02;
-      ball.velocityX *= 1.02;
-      ball.velocityY *= 1.02;
-    }
-    else if (difficulty === "hard")
-    {
-      ball.speed *= 1.03;
-      ball.velocityX *= 1.03;
-      ball.velocityY *= 1.03;
+      if (difficulty === "easy")
+      {
+        ball.speed *= 1.01;
+        ball.velocityX *= 1.01;
+        ball.velocityY *= 1.01;
+      }
+      else if (difficulty === "medium")
+      {
+        ball.speed *= 1.02;
+        ball.velocityX *= 1.02;
+        ball.velocityY *= 1.02;
+        console.log("vitesse de la balle: ", ball.speed);
+      }
+      else if (difficulty === "hard")
+      {
+        ball.speed *= 1.03;
+        ball.velocityX *= 1.03;
+        ball.velocityY *= 1.03;
+      }
     }
   }
 
@@ -248,9 +261,6 @@ function update() {
     } else {
       resetBall();
     }
-    //if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
-    //  ws.send(JSON.stringify({ type: "game_state", score_ai: opponent.score, score_opponent: player.score }));
-    //}
   }
 
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
@@ -266,10 +276,6 @@ function saveSetResult() {
     player1_score: player.score,
     player2_score: opponent.score,
   });
-
-  //if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
-   // ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
-  //}
 }
 
 function handleGameEnd(winner) {
@@ -370,7 +376,7 @@ function initGameObjects(gameCanvas) {
     obstacle = {
       x: canvas.width / 2 - 5,
       y: canvas.height / 3,
-      width: 20,
+      width: paddleWidth,
       height: paddleHeight,
       color: "GRAY"
     };
@@ -581,8 +587,8 @@ function resetBall()
   
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "reset", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
+    ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
   }
- 
 
   collisionActive = false;
 

@@ -64,7 +64,8 @@ function sendGameConfiguration() {
       type: "start", 
       canvas_height: canvas.height, 
       canvas_width: canvas.width, 
-      paddle_height: player.height, 
+      paddle_height: player.height,
+      paddle_width: player.width, 
       fps: fps, 
       step: step, 
       control: control1 
@@ -97,7 +98,7 @@ function startPongGame() {
 
   if (ws && ws.readyState === WebSocket.OPEN) {
     console.log("Envoi des données de jeu au serveur...");
-    //ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
+    ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
   }
 
   gameInterval = setInterval(() => {
@@ -159,6 +160,11 @@ export function startGameSetup(gameSettings) {
 function resetScores() {
   player.score = 0;
   opponent.score = 0;
+
+  if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN)
+  {
+    ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
+  }
 }
 
 let obstacleVelocityY = 5;
@@ -207,6 +213,11 @@ function update() {
     else
     {
       ball.velocityX = -ball.speed * Math.cos(angle);
+
+      if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN)
+      {
+        ws.send(JSON.stringify({ type: "hit" }));
+      }
     }
     if (ball.speed <= 10)
     {
@@ -250,9 +261,6 @@ function update() {
     } else {
       resetBall();
     }
-    //if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
-    //  ws.send(JSON.stringify({ type: "game_state", score_ai: opponent.score, score_opponent: player.score }));
-    //}
   }
 
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
@@ -268,10 +276,6 @@ function saveSetResult() {
     player1_score: player.score,
     player2_score: opponent.score,
   });
-
-  //if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
-   // ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
-  //}
 }
 
 function handleGameEnd(winner) {
@@ -372,7 +376,7 @@ function initGameObjects(gameCanvas) {
     obstacle = {
       x: canvas.width / 2 - 5,
       y: canvas.height / 3,
-      width: 20,
+      width: paddleWidth,
       height: paddleHeight,
       color: "GRAY"
     };
@@ -583,8 +587,8 @@ function resetBall()
   
   if (context != "multiplayer" && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "reset", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
+    ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
   }
- 
 
   collisionActive = false;
 

@@ -17,7 +17,7 @@ class PongAIConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
 
         if data["type"] == "start":
-            self.AI.start(data["canvas_height"], data["canvas_width"], data["paddle_height"], data["fps"], data["step"], data["control"])
+            self.AI.start(data["canvas_height"], data["canvas_width"], data["paddle_height"], data["paddle_width"], data["fps"], data["step"], data["control"])
         
         if data["type"] == "ball":
 
@@ -41,4 +41,9 @@ class PongAIConsumer(AsyncWebsocketConsumer):
                 "type": "update_paddle",
                 "y": self.paddle_y
             }))
-    
+        
+        if data["type"] == "hit":
+            self.AI.register_hit()
+        
+        if data["type"] == "score":
+            self.AI.update_score(data["player_score"], data["ai_score"])
