@@ -474,13 +474,13 @@ function displayResults(matchID) {
         <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
         <h3 class="mt-3">Game Summary:</h3>
         <table class="table table-sm"><tbody>
-          <tr><td><strong>Game</strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
-          <tr><td><strong>Score (sets)</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
-          <tr><td><strong>Winner</strong></td><td>${data.winner_name}</td></tr>
+          <tr><td><strong>Players: </strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
+          <tr><td><strong>Final Score (sets)</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
+          <tr><td><strong>Game Winner</strong></td><td>${data.winner_name}</td></tr>
         </tbody></table>
-        <h3 class="mt-3">Set Details:</h3>
+        <h3 class="mt-3">Set Results:</h3>
         <table class="table table-striped"><thead class="thead-dark">
-          <tr><th scope="col">Set n°</th><th scope="col">Score</th><th scope="col">Exchanges</th><th scope="col">Duration (s)</th></tr>
+          <tr><th scope="col">Set number</th><th scope="col">Set Score</th><th scope="col">Exchanges</th><th scope="col">Duration (s)</th></tr>
         </thead><tbody>
       `;
       if (data.sets && Array.isArray(data.sets)) {

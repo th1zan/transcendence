@@ -125,11 +125,11 @@ export function displayGameForm() {
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
-                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2 bg-transparent" style="width: 60px;">
                 </div>
                 <div class="mb-3">
-                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win a Set:</label>
                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
                 </div>
               </div>
@@ -284,8 +284,8 @@ export function displayGameForm() {
 
           if (playerData.exists && !playerData.is_guest) {
             showModal(
-              'Utilisateur enregistré',
-              'Cet utilisateur est enregistré. Une authentification est requise.',
+              'Registred user',
+              'This user is registered. Authentication is required.',
               'OK',
               () => {
                 alertShown = true;
@@ -297,8 +297,8 @@ export function displayGameForm() {
             return;
           } else if (playerData.exists) {
             showModal(
-              'Joueur invité',
-              'Cet utilisateur est un invité. Voulez-vous continuer ?',
+              'Guest player',
+              'This player already exists as a guest. Press -Start Game- again to play with this player, or enter a new player name.',
               'OK',
               () => {
                 alertShown = true;

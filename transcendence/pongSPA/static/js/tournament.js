@@ -359,7 +359,7 @@ function displayTournamentGameList(data) {
       logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
       showModal(
         'Error',
-        'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
+        'An error occurred during the authentication verification. Please try again.',
         'OK',
         () => {
           // Ne rien faire, reste sur la page
@@ -595,7 +595,7 @@ function getTournamentFormHTML() {
             <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Step 3: Finalize Tournament</h3>
             <div class="d-flex flex-column align-items-center gap-3">
               <div class="form-group w-50">
-                <label for="numberOfGames" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+                <label for="numberOfGames" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
                 <input 
                   type="number" 
                   id="numberOfGames" 
@@ -606,7 +606,7 @@ function getTournamentFormHTML() {
                 >
               </div>
               <div class="form-group w-50">
-                <label for="pointsToWin" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win:</label>
+                <label for="pointsToWin" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win a Set:</label>
                 <input 
                   type="number" 
                   id="pointsToWin" 
