@@ -10,7 +10,7 @@ let user2 = "default_user2";
 let player1 = "default_player1";
 let player2 = "default_player2";
 let numberOfGames = 1;
-let pointsToWin = 1;
+let pointsToWin = 3;
 let currentGame = 0;
 let player1Wins = 0;
 let player2Wins = 0;
@@ -310,7 +310,6 @@ function update() {
 
   if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
     ball.velocityY = -ball.velocityY;
-    ball.speed *= 1.02;
   }
 
   if (difficulty === "hard" && obstacle) {
@@ -326,7 +325,6 @@ function update() {
       ball.y - ball.radius < obstacle.y + obstacle.height
     ) {
       ball.velocityX = -ball.velocityX;
-      ball.speed *= 1.05;
       exchangesPerSet++;
     }
   }

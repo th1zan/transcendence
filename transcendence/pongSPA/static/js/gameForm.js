@@ -16,8 +16,8 @@ export function displayGameForm() {
     mode: "solo", // Mode par défaut
     difficulty: "easy",
     design: "retro",
-    numberOfGames: 2, // entre 1 et 5
-    setsPerGame: 1, // entre 1 et 5
+    numberOfGames: 1, // entre 1 et 5
+    setsPerGame: 3, // entre 1 et 5
     player1: username || "Player1", // Sécurité si username est null
     player2: "Bot-AI", // Valeur initiale pour mode solo
     control1: "arrows",
