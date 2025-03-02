@@ -32,7 +32,7 @@ export function loadPrivacyPolicyModal() {
 				<li>Erasure: Request deletion of your account and associated data.</li>
 			  </ul>
   
-			  <p>If you have questions, contact us at: pong42@gmail.com</p>
+			  <p>If you have questions, contact us at: pong42lausanne@gmail.com</p>
 			</div>
 			<div class="modal-footer">
 			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

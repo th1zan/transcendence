@@ -54,6 +54,7 @@ from .serializers import (
     TournamentPlayerSerializer,
     TournamentSerializer,
     UserRegisterSerializer,
+    ChangePasswordSerializer,
 )
 
 CustomUser = get_user_model()  # Utilisé quand nécessaire
@@ -480,8 +481,16 @@ class Toggle2FAView(APIView):
             user.save()
 
             send_mail(
-                "Your Two-Factor Authentication Code",
-                f"Your OTP code is: {otp_code_generated}",
+                "Your One-Time Code – Let’s Keep It Secure!",
+                f"Hey {user.username},\n\n"
+                "Here’s your one-time code:\n\n"
+                f" {otp_code_generated} \n\n"
+                "Use it to log in or enable Two-Factor Authentication (2FA) for extra security.\n\n"
+                "Just enter it on the official site, and you’re all set.\n\n"
+                "This code is just for you—don’t share it with anyone!\n\n"
+                "See you on the leaderboard!\n\n"
+                "The Pong Team\n"
+                "42 Lausanne",
                 "pong42lausanne@gmail.com",
                 [user.email],
                 fail_silently=False,
@@ -805,13 +814,13 @@ class LogoutView(APIView):
 
 
 class AnonymizeAccountView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is logged in
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
         if user.is_authenticated:
             # Generate a random pseudonym for the deleted user
-            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:12]}"
+            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:5]}"
 
             # Update winner field if this user was a winner
             # PongMatch.objects.filter(winner=user.username).update(winner=anonymous_name)
@@ -832,14 +841,21 @@ class AnonymizeAccountView(APIView):
                 user.last_name = "User"
             if hasattr(user, "phone_number"):
                 user.phone_number = None
-            if hasattr(user, "profile_picture"):
-                user.profile_picture = None
             if hasattr(user, "friend_list"):
                 user.friend_list.clear()
             if hasattr(user, "is_online"):
                 user.is_online = False
             if hasattr(user, "last_seen"):
                 user.last_seen = None
+            if hasattr(user, "avatar") and user.avatar:
+                try:
+                    # If there's a custom avatar file, delete it
+                    if user.avatar.name and user.avatar.name != "avatars/default.png" and os.path.exists(user.avatar.path):
+                        os.remove(user.avatar.path)
+                except Exception as e:
+                    print(f"Error deleting avatar file: {e}")
+                # Reset to default avatar
+                user.avatar.name = "avatars/default.png"
             user.is_active = False  # Deactivate the account
             user.date_joined = None
             user.set_unusable_password()
@@ -887,6 +903,45 @@ class DeleteAccountView(APIView):
         )
 
 
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            
+            # Generating new tokens
+            refresh = RefreshToken.for_user(user)
+            
+            response = Response({
+                'message': 'Password changed successfully'
+            }, status=status.HTTP_200_OK)
+            
+            # Setting new tokens as cookies
+            response.set_cookie(
+                "access_token",
+                str(refresh.access_token),
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+                max_age=600  # 10 minutes
+            )
+            response.set_cookie(
+                "refresh_token",
+                str(refresh),
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+                max_age=86400  # 24 hours
+            )
+            
+            return response
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -911,8 +966,9 @@ class UserDetailView(APIView):
 
         # Check if email already exists (excluding the current user's email)
         if "email" in data:
+            email=data["email"]
             existing_user = (
-                CustomUser.objects.filter(email=data["email"])
+                CustomUser.objects.filter(email=email)
                 .exclude(id=user.id)
                 .first()
             )
@@ -921,20 +977,43 @@ class UserDetailView(APIView):
                     {"error": "This email is already in use."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+            user.email = email
+        else:
+            user.email = None  # Allow email removal
 
-        # Update fields
+        # Handle phone number: Allow None, Check Uniqueness
+        if "phone_number" in data:
+            phone_number = data["phone_number"]
+            if phone_number:  # Only check if phone number is provided
+                existing_user = (
+                    CustomUser.objects.filter(phone_number=phone_number)
+                    .exclude(id=user.id)
+                    .first()
+                )
+                if existing_user:
+                    return Response(
+                        {"error": "This phone number is already in use."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user.phone_number = phone_number
+            else:
+                user.phone_number = None  # Allow phone number removal
+   
+
         if "username" in data:
             user.username = data["username"]
-        if "email" in data:
-            user.email = data["email"]
-        if "phone_number" in data:
-            user.phone_number = data["phone_number"]
-
-        user.save()
-
-        return Response(
-            {"message": "Profile updated successfully!"}, status=status.HTTP_200_OK
-        )
+        try:
+            user.save()
+            refresh = RefreshToken.for_user(user)
+            response = Response({"message": "Profile updated successfully!"}, status=status.HTTP_200_OK)
+            response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=False, samesite="Lax", max_age=3600)  # 1 hour
+            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=False, samesite="Lax", max_age=86400)  # 24 hours
+            return response
+        except IntegrityError:
+            return Response(
+                {"error": "Database error: unique constraint failed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class UploadAvatarView(APIView):
@@ -984,6 +1063,28 @@ class UploadAvatarView(APIView):
             status=status.HTTP_200_OK,
         )
 
+class DeleteAvatarView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+
+        # Check if the user has a custom avatar (not the default one)
+        if hasattr(user, 'avatar') and user.avatar and user.avatar.name != "avatars/default.png":
+            avatar_path = os.path.join(settings.MEDIA_ROOT, user.avatar.name)
+            
+            # Remove the file if it exists
+            if os.path.exists(avatar_path):
+                os.remove(avatar_path)
+
+            # Reset the avatar to the default
+            user.avatar.name = "avatars/default.png"
+            user.save(update_fields=["avatar"])
+
+            return Response({"message": "Avatar deleted successfully.", "avatar_url": "/media/avatars/default.png"}, status=status.HTTP_200_OK)
+        else:
+            # If the avatar is already the default, return a message
+            return Response({"message": "No custom avatar to delete.", "avatar_url": "/media/avatars/default.png"}, status=status.HTTP_200_OK)
 
 class ListFriendsView(APIView):
     permission_classes = [IsAuthenticated]
