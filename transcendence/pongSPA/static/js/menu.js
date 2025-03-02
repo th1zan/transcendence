@@ -25,7 +25,7 @@ export async function fetchAndStoreAvatarUrl() {
 
 export async function displayMenu(avatarUrl = null) {
   const avatarPicture = avatarUrl || await fetchAndStoreAvatarUrl();
- 
+
   ;// Vider les conteneurs
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
   document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
@@ -42,7 +42,7 @@ export async function displayMenu(avatarUrl = null) {
           <div class="collapse navbar-collapse" id="navbarNav">
               <div class="menu-container d-flex flex-column h-100 w-100">
                   <img src="${avatarPicture}"  class="rounded-circle object-fit-cover align-self-center my-4" alt="Profile picture"  />
-                  
+
                   <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
                   <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2" role="button">Play a game</button>
                   <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
@@ -99,16 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (scrollPosition > scrollThreshold) {
             // Passer en mode burger
-            menu.classList.remove('col-md-2');
-            menu.classList.add('col-12');
-            navbarToggler.style.display = 'block'; // Montre le bouton hamburger
+            //menu.classList.remove('col-md-2');
+            //menu.classList.add('col-12');
+            //navbarToggler.style.display = 'block'; // Montre le bouton hamburger
             navbarCollapse.classList.remove('show'); // Ferme le menu si ouvert
             navbarCollapse.classList.add('collapse'); // Assure que le menu est collapsé
         } else {
             // Retourner en mode menu latéral
-            menu.classList.remove('col-12');
-            menu.classList.add('col-md-2');
-            navbarToggler.style.display = 'none'; // Cache le bouton hamburger sur grands écrans
+            //menu.classList.remove('col-12');
+            //menu.classList.add('col-md-2');
+            //navbarToggler.style.display = 'none'; // Cache le bouton hamburger sur grands écrans
             navbarCollapse.classList.remove('collapse'); // Assure que le menu est visible
             navbarCollapse.classList.add('show'); // Ouvre le menu sur grands écrans
         }
