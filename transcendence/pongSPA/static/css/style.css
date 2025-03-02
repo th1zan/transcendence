@@ -40,12 +40,12 @@ body {
     --bs-table-color: initial;
     --bs-table-bg: initial;
     --bs-table-border-color: transparent;
-} 
+}
 
 .form-control {
     background-color:rgba(255, 255, 255, 0.5) ;
     --bs-border-width: 2px
-    --bs-border-color: #007bff; 
+    --bs-border-color: #007bff;
 }
 
 
@@ -85,9 +85,9 @@ body {
 }
 
 /* .list-group { */
-/*     background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité */ 
+/*     background: rgba(255, 255, 255, 0.4); /* Fond blanc avec 40% d'opacité */
 /*     border-radius: 15px; /* Coins arrondis pour correspondre aux cartes */
-/*     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */ 
+/*     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère comme les cartes */
 /* } */
 
 /* Style pour les items de la liste pour assurer la cohérence */
@@ -107,7 +107,7 @@ body {
     top: 0;                /* Colle au haut */
     overflow-x: hidden;    /* Pas de débordement horizontal */
     overflow-y: auto;      /* Défilement interne si contenu trop long */
-    min-height: 0;  
+    min-height: 0;
     z-index: 1;
 }
 
@@ -131,13 +131,19 @@ body {
 }
 
 @media (min-width: 768px) {
-    #menu {
-        width: 16.666667%; /* Équivalent à col-md-2 (2/12) */
-        flex: 0 0 16.666667%; /* Force la largeur fixe */
-        max-width: 16.666667%; /* Limite la largeur */
-        height: auto; 
+    #main > div {
+        flex-wrap: nowrap;
+        flex-direction: unset;
     }
-    
+
+    #menu {
+        /*width: 16.666667%; PAS METTRE DE TAILLE MENU COMENTEE*/
+        /*flex: 0 0 16.666667%; Force la largeur fixe*/
+        max-width: 16.666667%; /* Limite la largeur */
+        height: auto;
+        width: auto ;
+    }
+
     /*target specifiquement une div qui a au moins la classe container-fluid dedans dans
     le descendant direct de l'id menu*/
     #menu > div.container-fluid {

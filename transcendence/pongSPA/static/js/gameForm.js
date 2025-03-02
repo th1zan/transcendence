@@ -16,8 +16,8 @@ export function displayGameForm() {
     mode: "solo", // Mode par défaut
     difficulty: "easy",
     design: "retro",
-    numberOfGames: 2, // entre 1 et 5
-    setsPerGame: 1, // entre 1 et 5
+    numberOfGames: 1, // entre 1 et 5
+    setsPerGame: 3, // entre 1 et 5
     player1: username || "Player1", // Sécurité si username est null
     player2: "Bot-AI", // Valeur initiale pour mode solo
     control1: "arrows",
@@ -107,7 +107,7 @@ export function displayGameForm() {
                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" ${gameSettings.mode === "solo" ? "disabled" : ""}>
                 </div>
                 <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-                  <label for="control2" class="form-label">Control:</label>
+                  <label for="control2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
                   <select id="control2" class="form-select bg-transparent">
                     <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
                     <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
