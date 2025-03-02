@@ -111,6 +111,25 @@ body {
     z-index: 1;
 }
 
+
+.navbar-toggler-icon {
+  display: inline-block !important; /* Force l’affichage de l’icône */
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: middle;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e"); /* Icône par défaut Bootstrap */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100%;
+}
+
+/* Surcharge pour petits écrans */
+@media (max-width: 767.98px) {
+  .navbar-toggler {
+    display: block !important; /* Force l’affichage du bouton burger */
+  }
+}
+
 @media (min-width: 768px) {
     #menu {
         width: 16.666667%; /* Équivalent à col-md-2 (2/12) */
@@ -131,6 +150,18 @@ body {
     .navbar-toggler {
         display: none !important; /* Cache le bouton burger */
     }
+}
+
+/* Dans style.css, à la fin pour priorité */
+.navbar-toggler {
+  margin-bottom: 10px; /* Espace vertical entre le burger et le menu */
+}
+
+/* Optionnel : Ajuster pour petits écrans uniquement */
+@media (max-width: 767.98px) {
+  .navbar-toggler {
+    margin-bottom: 10px; /* Espace uniquement en mode burger */
+  }
 }
 
 .navbar-collapse {
