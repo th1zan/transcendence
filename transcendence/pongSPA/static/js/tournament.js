@@ -2,9 +2,12 @@
 import { startGameSetup } from "./pong.js";
 import {showModal, logger} from "./app.js";
 
-
+//menu to display the tournament feature 
 export function displayTournament() {
+  
   logger.log('Tournament');
+ 
+  //Tounament menu on the top (in app_top) 
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
     <div class="container py-4">
@@ -35,11 +38,9 @@ export function displayTournament() {
       </ul>
     </div>
   `;
+  
 
-  displayUserTournaments();
-  // let resultDiv = document.getElementById("app_main");
-  //   resultDiv.style.display = "block";
-
+  //events linked to the new tournament formular
   document.getElementById("myTournamentButton").addEventListener("click", displayTournament);
   document.getElementById("newTournamentButton").addEventListener("click", createTournamentForm);
 
@@ -56,119 +57,124 @@ export function displayTournament() {
         'Warning',
         'Please enter a tournament name.',
         'OK',
-        () => {} // Action vide, juste fermer la modale
+        () => {
+        // any action for this modal
+        } 
       );
       return;
     }
-
     localStorage.setItem("tournamentName", tournamentName);
     validateSearch();
   });
+
+
+  //display all the tournaments linked to the user in the main content (app_main)
+  displayUserTournaments();
 }
 
+//authenticate a registred user in a tournament
 function authenticateNow(playerName, tournamentId) {
-// Create a Bootstrap modal for login
-const modalHTML = `
-  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="loginForm">
-            <div class="form-group">
-              <label for="username">Username</label>
-              <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
-            </div>
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+  // Bootstrap modal for login
+  const modalHTML = `
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-`;
+  `;
 
-// Append modal to body
-document.body.insertAdjacentHTML('beforeend', modalHTML);
+  //append modal to body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-// Show modal using Bootstrap's vanilla JS
-const loginModal = document.getElementById('loginModal');
-const modalBootstrap = new bootstrap.Modal(loginModal);
-modalBootstrap.show();
+  // show modal using Bootstrap
+  const loginModal = document.getElementById('loginModal');
+  const modalBootstrap = new bootstrap.Modal(loginModal);
+  modalBootstrap.show();
 
-// Handle form submission
-document.getElementById('submitLogin').addEventListener('click', function() {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+  //formular for authentificaton
+  document.getElementById('submitLogin').addEventListener('click', function() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-  authenticatePlayer(username, password, playerName, tournamentId)
-    .then(() => {
-      updatePlayerStatusUI(playerName);
-      // Hide modal manually since we're not using jQuery
-      modalBootstrap.hide();
-      // Remove modal from DOM after use
-      loginModal.remove();
-    })
-    .catch(error => logger.error("Error during authentication:", error));
-});
+    authenticatePlayer(username, password, playerName, tournamentId)
+      .then(() => {
+        updatePlayerStatusUI(playerName);
+        // Hide modal manually 
+        modalBootstrap.hide();
+        // Remove modal from DOM
+        loginModal.remove();
+      })
+      .catch(error => logger.error("Error during authentication:", error));
+  });
 }
 
-function authenticatePlayer(username, password, playerName, tournamentId) {
-return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
-  method: "POST",
-  credentials: "include",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    username: username,
-    password: password,
-    player_name: playerName
-  }),
-})
-.then(response => {
-  if (!response.ok) throw new Error("Authentication error:" + response.status);
-  return response.json();
-})
-.then(data => {
-  if (data.message !== "Player authenticated successfully") {
-    throw new Error("Authentication failed");
-  }
-  return data;
-});
+//ask the API
+async function authenticatePlayer(username, password, playerName, tournamentId) {
+  return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password,
+      player_name: playerName
+    }),
+  })
+  .then(response => {
+    if (!response.ok) throw new Error("Authentication error:" + response.status);
+    return response.json();
+  })
+  .then(data => {
+    if (data.message !== "Player authenticated successfully") {
+      throw new Error("Authentication failed");
+    }
+    return data;
+  });
 }
 
+//update the status of a player/user after authenticating for a tournament
 function updatePlayerStatusUI(playerName) {
-  // Cible les lignes <tr> du tableau des joueurs dans displayTournamentGameList
   const playerRows = document.querySelectorAll('#app_main table tbody tr');
   playerRows.forEach(row => {
-    const nameCell = row.querySelector('td:first-child'); // Première colonne (nom)
-    const statusCell = row.querySelector('td:nth-child(2)'); // Deuxième colonne (statut)
-    const actionCell = row.querySelector('td:nth-child(3)'); // Troisième colonne (action)
+    const nameCell = row.querySelector('td:first-child');
+    const statusCell = row.querySelector('td:nth-child(2)');
+    const actionCell = row.querySelector('td:nth-child(3)');
 
     if (nameCell && nameCell.textContent === playerName) {
-      // Met à jour le statut
+      // update status
       statusCell.innerHTML = '<span class="badge bg-success">✔️ Authenticated</span>';
-      // Supprime le bouton d’authentification
+      // delete authentification button
       if (actionCell) {
-        actionCell.innerHTML = ''; // Vide la cellule contenant le bouton
+        actionCell.innerHTML = '';
       }
     }
   });
 }
 
-
-
-
+//when a Tournament is selected, display the games linked to the tournament and other stuff
 function displayTournamentGameList(data) {
   // Empty all containers
   document.getElementById('app_main').innerHTML = '';
@@ -189,7 +195,7 @@ function displayTournamentGameList(data) {
   })
   .then(response => response.json())
   .then(playersData => {
-    // Players list with simple styling
+    // players list
     let playersHTML = `
       <div class="card border-primary border-1 mb-4">
         <div class="card-body">
@@ -220,7 +226,7 @@ function displayTournamentGameList(data) {
 
     playersHTML += '</tbody></table></div></div>';
 
-    // Matches list with simple styling
+    // matches list
     let matchesHTML = `
       <div class="card border-primary border-1 mb-4">
         <div class="card-body">
@@ -269,14 +275,14 @@ function displayTournamentGameList(data) {
 
       matchesHTML += '</tbody></table></div></div>';
 
-      // Combine players and matches HTML
+      // For a tournament: display players and matches 
       tournamentMatchesDiv.innerHTML = `
         <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Tournament: ${tournamentName}</h2>
         ${playersHTML}
         ${matchesHTML}
       `;
 
-      // Adding event listeners for authentication buttons
+      //event listeners for authentication buttons
       document.querySelectorAll('.auth-button').forEach(button => {
         button.addEventListener('click', function() {
           const playerName = this.getAttribute('data-player');
@@ -284,76 +290,87 @@ function displayTournamentGameList(data) {
         });
       });
 
-      // Adding event listeners for starting games
+      // event listeners for starting games
       document.querySelectorAll('.startGameButton').forEach(button => {
-        button.addEventListener('click', async event => {
-          const player1 = event.target.getAttribute('data-player1');
-          const player2 = event.target.getAttribute('data-player2');
-          const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-          const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-          const matchID = parseInt(event.target.getAttribute('data-match-id'));
+  button.addEventListener('click', async event => {
+    const player1 = event.target.getAttribute('data-player1');
+    const player2 = event.target.getAttribute('data-player2');
+    const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+    const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+    const matchID = parseInt(event.target.getAttribute('data-match-id'));
 
-          logger.log("get player with tournament ID: ", tournamentId);
-          try {
-            const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-
-            const playersData = await response.json();
-
-            let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
-            if (!player1Authenticated) {
-              showModal(
-                'Authentication Required',
-                `Authentification requise pour ${player1}`,
-                'OK',
-                () => {}
-              );
-              return;
-            }
-
-            let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
-            if (!player2Authenticated) {
-              showModal(
-                'Authentication Required',
-                `Authentification requise pour ${player2}`,
-                'OK',
-                () => {}
-              );
-              return;
-            }
-
-            let gameSettings = {
-              mode: "multiplayer",
-              difficulty: "medium",
-              design: "retro",
-              numberOfGames: setsToWin,
-              setsPerGame: pointsPerSet,
-              player1: player1,
-              player2: player2,
-              control1: "wasd",
-              control2: "arrows",
-              isTournamentMatch: true,
-            };
-            localStorage.setItem("matchID", matchID);
-            startGameSetup(gameSettings);
-          } catch (error) {
-            logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
-            showModal(
-              'Error',
-              'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
-              'OK',
-              () => {}
-            );
-          }
-        });
+    logger.log("get player with tournament ID: ", tournamentId);
+    try {
+      const response = await fetch(`/api/tournament/players/${tournamentId}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      // Add standings to app_bottom
-      displayTournamentStandings(data);
+      const playersData = await response.json();
+
+      // Vérifie l’authentification des joueurs
+      let player1Authenticated = playersData.some(player => (player.name === player1) && (player.authenticated || player.guest));
+      let player2Authenticated = playersData.some(player => (player.name === player2) && (player.authenticated || player.guest));
+
+      // Si un joueur n’est pas authentifié, affiche la modale et bloque la suite
+      if (!player1Authenticated) {
+        showModal(
+          'Authentication Required',
+          `Authentification requise pour ${player1}`,
+          'OK',
+          () => {
+            // Ne rien faire après la modale, rester sur la page
+          }
+        );
+        return; // Stoppe l’exécution ici
+      }
+
+      if (!player2Authenticated) {
+        showModal(
+          'Authentication Required',
+          `Authentification requise pour ${player2}`,
+          'OK',
+          () => {
+            // Ne rien faire après la modale, rester sur la page
+          }
+        );
+        return; // Stoppe l’exécution ici
+      }
+
+      // Si les deux joueurs sont authentifiés, lancer le match
+      let gameSettings = {
+        mode: "multiplayer",
+        difficulty: "medium",
+        design: "retro",
+        numberOfGames: setsToWin,
+        setsPerGame: pointsPerSet,
+        player1: player1,
+        player2: player2,
+        control1: "wasd",
+        control2: "arrows",
+        isTournamentMatch: true,
+      };
+      localStorage.setItem("matchID", matchID);
+      startGameSetup(gameSettings);
+
+    } catch (error) {
+      logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
+      showModal(
+        'Error',
+        'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
+        'OK',
+        () => {
+          // Ne rien faire, reste sur la page
+        }
+      );
+    }
+  });
+});
+
+      // Add ranking for the tournament in app_bottom
+      displayTournamentRanking(data);
     } else {
       tournamentMatchesDiv.innerHTML += `
         <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${tournamentName}</h2>
@@ -373,16 +390,16 @@ function displayTournamentGameList(data) {
   });
 }
 
-function displayTournamentStandings(data) {
+function displayTournamentRanking(data) {
   const appBottom = document.getElementById("app_bottom");
 
-  // Calculer les standings à partir des données des matchs
-  const standings = calculateStandings(data);
+  // Calculer les ranking à partir des données des matchs
+  const ranking = calculateStandings(data);
 
-  // Trier les standings par points marqués en ordre décroissant
-  const sortedStandings = standings.sort((a, b) => b.points_scored - a.points_scored);
+  // Trier les ranking par points marqués en ordre décroissant
+  const sortedStandings = ranking.sort((a, b) => b.points_scored - a.points_scored);
 
-  let standingsHTML = `
+  let rankingHTML = `
     <div class="card border-primary border-1 mb-4">
       <div class="card-body">
         <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Standings</h3>
@@ -402,7 +419,7 @@ function displayTournamentStandings(data) {
     const isFirst = index === 0;
     const rowClass = isFirst ? 'table-success' : ''; // Vert pour le leader
 
-    standingsHTML += `
+    rankingHTML += `
       <tr class="${rowClass}">
         <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${player.name}</td>
         <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${player.wins}</td>
@@ -412,45 +429,45 @@ function displayTournamentStandings(data) {
     `;
   });
 
-  standingsHTML += `
+  rankingHTML += `
           </tbody>
         </table>
       </div>
     </div>
   `;
 
-  appBottom.innerHTML = standingsHTML;
+  appBottom.innerHTML = rankingHTML;
 }
 
 
 function calculateStandings(matches) {
-  let standings = {};
+  let ranking = {};
   matches.forEach(match => {
     const players = [match.player1_name, match.player2_name];
     players.forEach(player => {
-      if (!standings[player]) {
-        standings[player] = { name: player, wins: 0, points_scored: 0, points_conceded: 0 };
+      if (!ranking[player]) {
+        ranking[player] = { name: player, wins: 0, points_scored: 0, points_conceded: 0 };
       }
     });
 
     if (match.sets && match.sets.length > 0) {
       match.sets.forEach(set => {
-        standings[match.player1_name].points_scored += set.player1_score;
-        standings[match.player1_name].points_conceded += set.player2_score;
-        standings[match.player2_name].points_scored += set.player2_score;
-        standings[match.player2_name].points_conceded += set.player1_score;
+        ranking[match.player1_name].points_scored += set.player1_score;
+        ranking[match.player1_name].points_conceded += set.player2_score;
+        ranking[match.player2_name].points_scored += set.player2_score;
+        ranking[match.player2_name].points_conceded += set.player1_score;
       });
 
       if (match.winner) {
-        standings[match.winner].wins += 1;
+        ranking[match.winner].wins += 1;
       }
     }
   });
-  return Object.values(standings);
+  return Object.values(ranking);
 }
 
 
-
+//display a list of Tournament's Games for a Tournament research based on Tournament ID
 export function DisplayTournamentGame() {
   // Empty all containers
   document.getElementById('app_main').innerHTML = '';
@@ -460,6 +477,7 @@ export function DisplayTournamentGame() {
   const tournamentId = localStorage.getItem("tournamentId");
 
   logger.log("Tournament name: ", tournamentName);
+
   if (!tournamentId) {
     logger.error("No tournament ID found. Please create a tournament first.");
     return;
@@ -492,10 +510,9 @@ export function DisplayTournamentGame() {
     });
 }
 
-
+//create a Tournament form
 export function createTournamentForm() {
   //empty all the containers
-  // document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -504,7 +521,7 @@ export function createTournamentForm() {
 
   appMain.innerHTML = getTournamentFormHTML();
 
-  // Attendre que le DOM soit mis à jour avant d'appeler initializePlayerManagement et setupSubmitHandlers
+  // Wait for the complete update of the DOM before calling initializePlayerManagement et setupSubmitHandlers
   requestAnimationFrame(() => {
     initializePlayerManagement();
     setupSubmitHandlers();
@@ -615,6 +632,8 @@ function getTournamentFormHTML() {
   `;
 }
 
+
+//Handling the adding of player (check if existing playerName, or existing re)
 async function initializePlayerManagement() {
 const playerContainer = document.getElementById('playerContainer');
 const addButton = document.getElementById('addPlayerButton');
@@ -753,7 +772,7 @@ function cleanupPlayersMap(playersMap) {
 }
 
 
-
+//check if registred user exist (and will need authentification)
 export async function checkUserExists(username) {
 const response = await fetch(`/api/user/exists/?username=${encodeURIComponent(username)}`, {
   method: 'GET',
@@ -762,6 +781,7 @@ const response = await fetch(`/api/user/exists/?username=${encodeURIComponent(us
 return await response.json();
 }
 
+//check if the player (pseudo) exists. Not a problem, but needs a confimation
 export async function checkPlayerExists(playerName) {
 const response = await fetch(`/api/player/exists/?player_name=${encodeURIComponent(playerName)}`, {
   method: 'GET',
@@ -771,15 +791,14 @@ return await response.json();
 }
 
 function updatePlayerStatus(playerDiv, userData) {
-// Check if there's already a status span
-let statusSpan = playerDiv.querySelector('.status-text'); // Utiliser la classe existante
+// Check if there's already a status for this player
+let statusSpan = playerDiv.querySelector('.status-text'); 
 if (!statusSpan) {
-  // Si inexistant, créer avec la classe appropriée
+  // if not, create a status
   statusSpan = document.createElement('span');
   statusSpan.className = 'status-text me-2';
-  playerDiv.insertBefore(statusSpan, playerDiv.querySelector('.remove-player') || null); // Avant le bouton de suppression si présent
+  playerDiv.insertBefore(statusSpan, playerDiv.querySelector('.remove-player') || null);
 } else {
-  // Si existant, vider le contenu
   statusSpan.textContent = '';
 }
 
@@ -812,7 +831,7 @@ if (playerDiv.classList.contains('additional-player')) {
 }
 
 
-
+//big function to handle the creation of a Tournament with the tournament form
 function setupSubmitHandlers() {
   const validateButton = document.getElementById('validateTournamentName');
   const submitButton = document.getElementById('submitButton');
@@ -910,7 +929,7 @@ function setupSubmitHandlers() {
       if (data.message) {
         logger.log("Tournament finalized:", data);
         showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
-          DisplayTournamentGame(); // Assuming this function shows the tournament game page
+          DisplayTournamentGame(); 
         });
       } else {
         showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
@@ -933,32 +952,32 @@ function handleError(error, message) {
   );
 }
 
-function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
-fetch("/api/tournament/new/", {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    tournament_name: tournamentName,
-    players: players,
-    number_of_games: numberOfGames,
-    points_to_win: pointsToWin
-  }),
-})
-.then((response) => {
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-  return response.json();
-})
-.then((data) => {
-  logger.log("Tournament created:", data);
-  localStorage.setItem("tournamentId", data.tournament_id);
-  DisplayTournamentGame();
-})
-.catch((error) => {
-  logger.error("Error creating tournament:", error);
-});
-}
+// function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
+//   fetch("/api/tournament/new/", {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({
+//       tournament_name: tournamentName,
+//       players: players,
+//       number_of_games: numberOfGames,
+//       points_to_win: pointsToWin
+//     }),
+//   })
+//   .then((response) => {
+//     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+//     return response.json();
+//   })
+//   .then((data) => {
+//     logger.log("Tournament created:", data);
+//     localStorage.setItem("tournamentId", data.tournament_id);
+//     DisplayTournamentGame();
+//   })
+//   .catch((error) => {
+//     logger.error("Error creating tournament:", error);
+//   });
+// }
 
 export function selectTournament(tournamentId, tournamentName) {
 localStorage.setItem("tournamentId", tournamentId);
@@ -966,15 +985,13 @@ localStorage.setItem("tournamentName", tournamentName);
 DisplayTournamentGame();
 }
 
-
 export function validateSearch() {
   
-
   document.getElementById('app_bottom').innerHTML = '';
 
   let tournamentName;
 
-  // Vérifiez si le nom du tournoi est déjà dans le stockage local
+  //check the local storage first 
   tournamentName = localStorage.getItem("tournamentName");
 
   if (!tournamentName) {
@@ -1052,7 +1069,7 @@ export function validateSearch() {
           tournamentBody.appendChild(row);
         });
 
-        // Relier le bouton "Select" pour naviguer vers la page du tournoi
+        // Select button
         document.querySelectorAll('.selectTournamentButton').forEach(button => {
           button.addEventListener('click', event => {
             const tournamentId = event.target.getAttribute('data-id');

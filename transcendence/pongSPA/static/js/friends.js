@@ -1,4 +1,4 @@
-import {showModal, navigateTo } from './app.js';
+import {showModal, navigateTo, logger } from './app.js';
 import {showModalConfirmation } from './auth.js';
 
 // TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
