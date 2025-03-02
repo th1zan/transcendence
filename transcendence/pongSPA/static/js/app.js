@@ -42,12 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
   //  0. Clear all cookies
   //
   //  COMMENTED FOR DEBUGIN
-  // document.cookie.split(";").forEach((c) => {
-  //   logger.log('clear the cookies');
-  //   document.cookie = c
-  //     .replace(/^ +/, "")
-  //     .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  // });
+  document.cookie.split(";").forEach((c) => {
+    logger.log('clear the cookies');
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+  });
 
   loadPrivacyPolicyModal();
 
