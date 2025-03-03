@@ -48,10 +48,6 @@ body {
     --bs-border-color: #007bff;
 }
 
-
-
-
-
 /* Style pmur les tableaux dans .table-responsive avec .table-striped et .table-hover */ */
 .table-responsive .table.table-striped.table-hover {
     background: rgba(255, 255, 255, 0.4) !important; /* Fond blanc avec 40% d'opacité, priorité forcée */
@@ -130,6 +126,15 @@ body {
   }
 }
 
+#app {
+    flex: auto;
+}
+
+#main > div {
+    flex-direction: column;
+}
+
+/* plus grand que 768px */
 @media (min-width: 768px) {
     #main > div {
         flex-wrap: nowrap;
@@ -197,7 +202,7 @@ body {
 }
 
 .menu-container img {
-    width: 90px;
+    width: 100px;
     height: 100px;
     border-radius: 50%;
     object-fit: cover;

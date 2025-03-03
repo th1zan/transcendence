@@ -15,20 +15,22 @@ export function displayConnectionFormular() {
           <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Welcome Back</h2>
           <form id="loginForm">
             <div class="form-group mb-4">
-              <label for="username" style="font-size: 1.3rem;"><i class="bi bi-person"></i> Username</label>
+              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> Username</label>
               <input
                 type="text"
                 id="username"
+                style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
                 placeholder="Enter your username"
                 required
               />
             </div>
             <div class="form-group mb-5">
-              <label for="password" style="font-size: 1.3rem;"><i class="bi bi-lock"></i> Password</label>
+              <label for="password" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-lock"></i> Password</label>
               <input
                 type="password"
                 id="password"
+                style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
                 placeholder="Enter your password"
                 required

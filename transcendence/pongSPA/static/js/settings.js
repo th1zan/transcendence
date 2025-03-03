@@ -16,12 +16,12 @@ function displayHTMLforSettings(user) {
   appTop.innerHTML = `
   <div class="container mt-4">
     <h3 class="text-center">Account Management</h3>
-  
+
     <!-- Update Profile Picture -->
     <div class="card shadow-sm p-4 mt-3">
       <h4 class="text-center">Update Profile Picture</h4>
       <div class="d-flex flex-column align-items-center">
-        <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border" width="150" height="150">
+        <img id="profilePic" src="${avatarUrl}" alt="Profile Picture" class="rounded-circle border object-fit-cover" width="150" height="150">
 
         <!-- Disable delete button if the avatar is default -->
           <button id="deleteAvatarButton" class="btn btn-danger mt-2" ${isDefaultAvatar ? "disabled" : ""}>
@@ -65,7 +65,7 @@ function displayHTMLforSettings(user) {
         <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
       </div>
     </div>
-  
+
 
       <!-- Change Password Section -->
       <div class="card shadow-sm p-4 mt-3">
@@ -158,11 +158,11 @@ export function displaySettings() {
       displayHTMLforSettings(user);
     })
     .catch(error => {
-      const username = localStorage.getItem("username") || "User"; 
+      const username = localStorage.getItem("username") || "User";
 
       const avatarUrl = storedAvatarUrl || "/media/avatars/default.png";
       const isDefaultAvatar = avatarUrl.includes("default.png");
-      
+
       const appDiv = document.getElementById("app_main");
       appDiv.innerHTML = `
     <div class="container mt-4">
@@ -189,7 +189,7 @@ export function displaySettings() {
       </div>
 
       <!-- Profile Information Update -->
-      
+
       <div class="card shadow-sm p-4 mt-3">
         <h4 class="text-center">Edit Profile Information</h4>
 
@@ -465,12 +465,12 @@ export async function deleteAvatar() {
   if (deleteButton) {
     deleteButton.disabled = true;
   }
-  
+
   const confirmed = await showModalConfirmation(
     "Are you sure you want to delete your avatar? This action cannot be undone.",
     "Confirm Deletion"
   );
-  
+
   // Re-enable the button if user cancels
   if (!confirmed) {
     if (deleteButton) {
@@ -478,7 +478,7 @@ export async function deleteAvatar() {
     }
     return; // Exit the function if not confirmed
   }
-  
+
   // User confirmed, proceed with deletion
   fetch("/api/auth/delete-avatar/", {
     method: "DELETE",
@@ -488,23 +488,23 @@ export async function deleteAvatar() {
     .then((data) => {
       // Update localStorage
       localStorage.setItem("avatarUrl", data.avatar_url);
-      
+
       // Update UI without showing another modal
       const profilePic = document.getElementById("profilePic");
       if (profilePic && data.avatar_url) {
         profilePic.src = data.avatar_url + "?t=" + new Date().getTime();
       }
-      
+
       // Keep the delete button disabled
       if (deleteButton) {
         deleteButton.disabled = true;
         //deleteButton.classList.add("disabled");
       }
-      
+
       // Update all UI elements
       displayMenu(data.avatar_url);
       updateWelcomePageAvatar(data.avatar_url);
-      
+
       showModal(
         "Success",
         "Avatar has been deleted successfully",
@@ -524,7 +524,7 @@ export async function deleteAvatar() {
       if (deleteButton) {
         deleteButton.disabled = false;
       }
-      
+
       // Show error once without callbacks
       showModal(
         "Error",
@@ -533,7 +533,7 @@ export async function deleteAvatar() {
         () => {} // Empty callback to prevent recursion
       );
     });
-  
+
 }
 
 
@@ -635,28 +635,28 @@ export function changePassword() {
   const currentPassword = document.getElementById("currentPasswordInput").value;
   const newPassword = document.getElementById("newPasswordInput").value;
   const confirmPassword = document.getElementById("confirmPasswordInput").value;
-  
+
   // Clear previous validation states
   document.getElementById("newPasswordInput").classList.remove("is-invalid");
   document.getElementById("confirmPasswordInput").classList.remove("is-invalid");
-  
+
   // Validate inputs
   if (newPassword.length < 3) {
     document.getElementById("newPasswordInput").classList.add("is-invalid");
     return;
   }
-  
+
   if (newPassword !== confirmPassword) {
     document.getElementById("confirmPasswordInput").classList.add("is-invalid");
     return;
   }
-  
+
   // Disable the button to prevent double submissions
   const changeBtn = document.getElementById("changePasswordBtn");
   if (changeBtn) {
     changeBtn.disabled = true;
   }
-  
+
   fetch("/api/auth/change-password/", {
     method: "POST",
     credentials: "include",
@@ -681,7 +681,7 @@ export function changePassword() {
       document.getElementById("currentPasswordInput").value = "";
       document.getElementById("newPasswordInput").value = "";
       document.getElementById("confirmPasswordInput").value = "";
-      
+
       // Wait for cookies to process
       setTimeout(() => {
         showModal(
@@ -693,7 +693,7 @@ export function changePassword() {
             navigateTo("settings");
           }
         );
-        
+
         // Re-enable button
         if (changeBtn) {
           changeBtn.disabled = false;
@@ -702,12 +702,12 @@ export function changePassword() {
     })
     .catch(error => {
       logger.error("Error changing password:", error);
-      
+
       // Re-enable button
       if (changeBtn) {
         changeBtn.disabled = false;
       }
-      
+
       showModal(
         'Error',
         'Error: ' + error.message,

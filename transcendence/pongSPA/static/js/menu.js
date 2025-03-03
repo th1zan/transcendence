@@ -65,38 +65,21 @@ export async function displayMenu(avatarUrl = null) {
   document.getElementById("settingsButton").addEventListener("click", () => navigateTo('settings'));
   document.getElementById("logoutButton").addEventListener("click", logout);
 
-  // Initialiser le menu après le rendu
-  setupMenuToggle(menuDiv);
-}
-
-function setupMenuToggle(menu) {
-  const navbarToggler = menu.querySelector('.navbar-toggler');
+  const menu = document.getElementById('menu');
   const navbarCollapse = menu.querySelector('.navbar-collapse');
 
-  if (!navbarToggler || !navbarCollapse) {
-    logger.warn("Navbar toggler ou collapse non trouvé dans #menu");
-    return;
+  function hideMenuIfScroll() {
+      const scrollThreshold = 200; // Seuil en pixels (ajustable selon tes besoins)
+      const scrollPosition = window.scrollY || window.pageYOffset;
+
+      if (scrollPosition > scrollThreshold) {
+          navbarCollapse.classList.remove('show'); // Ferme le menu si ouvert
+      }
   }
 
-  function toggleMenuBasedOnScroll() {
-    const scrollThreshold = 200;
-    const scrollPosition = window.scrollY || window.pageYOffset;
+  // Écouter le défilement de la page
+  window.addEventListener('scroll', hideMenuIfScroll);
 
-    if (scrollPosition > scrollThreshold) {
-      // Mode burger
-      menu.classList.remove('col-md-2');
-      menu.classList.add('col-12');
-      navbarToggler.style.display = 'block'; // Affiche le bouton burger
-      // Pas de manipulation de show/collapse ici, Bootstrap s’en charge
-    } else {
-      // Mode latéral
-      menu.classList.remove('col-12');
-      menu.classList.add('col-md-2');
-      navbarToggler.style.display = 'none'; // Cache le bouton
-    }
-  }
-
-  // Ajouter l’écouteur de scroll
-  window.addEventListener('scroll', toggleMenuBasedOnScroll);
-  toggleMenuBasedOnScroll(); // Appel initial
+  // Initialiser l’état au chargement
+  hideMenuIfScroll();
 }
