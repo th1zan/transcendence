@@ -635,140 +635,140 @@ function getTournamentFormHTML() {
 
 //Handling the adding of player (check if existing playerName, or existing re)
 async function initializePlayerManagement() {
-const playerContainer = document.getElementById('playerContainer');
-const addButton = document.getElementById('addPlayerButton');
-let playerCount = 1;
-const players = new Map();
+  const playerContainer = document.getElementById('playerContainer');
+  const addButton = document.getElementById('addPlayerButton');
+  let playerCount = 1;
+  const players = new Map();
 
-if (!playerContainer || !addButton) return;
+  if (!playerContainer || !addButton) return;
 
-// Ajouter la modale Bootstrap
-document.body.insertAdjacentHTML('beforeend', `
-  <div class="modal fade" id="duplicatePlayerModal" tabindex="-1" aria-labelledby="duplicatePlayerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="duplicatePlayerModalLabel">Duplicate Player Detected</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          This player has already been added to the tournament. Please choose a different name.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+  // Ajouter la modale Bootstrap
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal fade" id="duplicatePlayerModal" tabindex="-1" aria-labelledby="duplicatePlayerModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="duplicatePlayerModalLabel">Duplicate Player Detected</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            This player has already been added to the tournament. Please choose a different name.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-`);
+  `);
 
-// Add host player automatically
-const hostPlayerName = localStorage.getItem('username') || '';
-const hostPlayerDiv = addPlayer(playerContainer, playerCount++, hostPlayerName, true);
-updatePlayerStatus(hostPlayerDiv, { exists: true, is_guest: false, user_id: "host" });
-players.set(hostPlayerName.toLowerCase(), { validated: true, div: hostPlayerDiv });
+  // Add host player automatically
+  const hostPlayerName = localStorage.getItem('username') || '';
+  const hostPlayerDiv = addPlayer(playerContainer, playerCount++, hostPlayerName, true);
+  updatePlayerStatus(hostPlayerDiv, { exists: true, is_guest: false, user_id: "host" });
+  players.set(hostPlayerName.toLowerCase(), { validated: true, div: hostPlayerDiv });
 
-// Add an empty field for Player 2
-const player2Div = addPlayer(playerContainer, playerCount++, '', false);
-players.set('', { validated: false, div: player2Div });
+  // Add an empty field for Player 2
+  const player2Div = addPlayer(playerContainer, playerCount++, '', false);
+  players.set('', { validated: false, div: player2Div });
 
-// Event listener for checking player on blur
-playerContainer.addEventListener('blur', async (event) => {
-  if (event.target.tagName === 'INPUT') {
-    const playerDiv = event.target.closest('div');
-    const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
+  // Event listener for checking player on blur
+  playerContainer.addEventListener('blur', async (event) => {
+    if (event.target.tagName === 'INPUT') {
+      const playerDiv = event.target.closest('div');
+      const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
 
-    if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
-      if (players.has(playerName) && players.get(playerName).validated) {
-        const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
-        modal.show();
-      }
-      return;
-    }
-
-    try {
-      cleanupPlayersMap(players);
-      const userData = await checkUserExists(playerName);
-
-      if (userData.exists) {
-        updatePlayerStatus(playerDiv, userData);
-        playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
-        playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
-        players.set(playerName, { validated: true, div: playerDiv });
-      } else {
-        const playerData = await checkPlayerExists(playerName);
-        if (playerData.exists) {
-          updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
-          playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
-          playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
-        } else {
-          updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
-          playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
-          playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
+      if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
+        if (players.has(playerName) && players.get(playerName).validated) {
+          const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
+          modal.show();
         }
-        players.set(playerName, { validated: true, div: playerDiv });
+        return;
       }
-    } catch (error) {
-      handleError(error, "Error checking player or user existence");
-      playerDiv.querySelector('.status-text').textContent = 'Error checking player';
-      playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
+
+      try {
+        cleanupPlayersMap(players);
+        const userData = await checkUserExists(playerName);
+
+        if (userData.exists) {
+          updatePlayerStatus(playerDiv, userData);
+          playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
+          playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
+          players.set(playerName, { validated: true, div: playerDiv });
+        } else {
+          const playerData = await checkPlayerExists(playerName);
+          if (playerData.exists) {
+            updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
+            playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
+            playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
+          } else {
+            updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
+            playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
+            playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
+          }
+          players.set(playerName, { validated: true, div: playerDiv });
+        }
+      } catch (error) {
+        handleError(error, "Error checking player or user existence");
+        playerDiv.querySelector('.status-text').textContent = 'Error checking player';
+        playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
+      }
     }
-  }
-}, true);
+  }, true);
 
-// Event listener for removing a player
-playerContainer.addEventListener('click', (event) => {
-  if (event.target.classList.contains('remove-player')) {
-    const playerDiv = event.target.closest('div');
-    const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
-    players.delete(playerName);
-    playerDiv.remove();
-    logger.log(`Removed player: ${playerName}`);
-    cleanupPlayersMap(players);
-  }
-});
-
-// Event listener for adding new player line
-addButton.addEventListener('click', () => {
-  const newPlayerDiv = addPlayer(playerContainer, playerCount++, '', false);
-  players.set('', { validated: false, div: newPlayerDiv });
-  logger.log("New player line added");
-});
-
-// Updated addPlayer function
-function addPlayer(container, count, initialValue = '', isHost = false) {
-  const playerDiv = document.createElement('div');
-  playerDiv.className = 'd-flex align-items-center mb-2';
-  playerDiv.innerHTML = `
-    <span class="me-2">${isHost ? 'Player 1 (host)' : `Player ${count}`}</span>
-    <input 
-      type="text" 
-      class="form-control me-2" 
-      placeholder="Pseudo" 
-      value="${initialValue}" 
-      ${initialValue ? 'readonly' : ''} 
-    >
-    <span class="status-text me-2"></span>
-    ${!isHost ? '<button class="btn btn-sm remove-player">❌ remove</button>' : ''}
-  `;
-  if (!isHost) {
-    playerDiv.classList.add('additional-player');
-  }
-  container.appendChild(playerDiv);
-  return playerDiv;
-}
-
-// Function for cleaning up the players Map
-function cleanupPlayersMap(playersMap) {
-  const existingPlayerDivs = Array.from(playerContainer.querySelectorAll('.additional-player'));
-  const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
-
-  playersMap.forEach((value, key) => {
-    if (key !== '' && !existingPlayerNames.includes(key)) {
-      playersMap.delete(key);
+  // Event listener for removing a player
+  playerContainer.addEventListener('click', (event) => {
+    if (event.target.classList.contains('remove-player')) {
+      const playerDiv = event.target.closest('div');
+      const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
+      players.delete(playerName);
+      playerDiv.remove();
+      logger.log(`Removed player: ${playerName}`);
+      cleanupPlayersMap(players);
     }
   });
-}
+
+  // Event listener for adding new player line
+  addButton.addEventListener('click', () => {
+    const newPlayerDiv = addPlayer(playerContainer, playerCount++, '', false);
+    players.set('', { validated: false, div: newPlayerDiv });
+    logger.log("New player line added");
+  });
+
+  // Updated addPlayer function
+  function addPlayer(container, count, initialValue = '', isHost = false) {
+    const playerDiv = document.createElement('div');
+    playerDiv.className = 'd-flex align-items-center mb-2';
+    playerDiv.innerHTML = `
+      <span class="me-2">${isHost ? 'Player 1 (host)' : `Player ${count}`}</span>
+      <input 
+        type="text" 
+        class="form-control me-2" 
+        placeholder="Pseudo" 
+        value="${initialValue}" 
+        ${initialValue ? 'readonly' : ''} 
+      >
+      <span class="status-text me-2"></span>
+      ${!isHost ? '<button class="btn btn-sm remove-player">❌ remove</button>' : ''}
+    `;
+    if (!isHost) {
+      playerDiv.classList.add('additional-player');
+    }
+    container.appendChild(playerDiv);
+    return playerDiv;
+  }
+
+  // Function for cleaning up the players Map
+  function cleanupPlayersMap(playersMap) {
+    const existingPlayerDivs = Array.from(playerContainer.querySelectorAll('.additional-player'));
+    const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
+
+    playersMap.forEach((value, key) => {
+      if (key !== '' && !existingPlayerNames.includes(key)) {
+        playersMap.delete(key);
+      }
+    });
+  }
 }
 
 
@@ -790,7 +790,7 @@ const response = await fetch(`/api/player/exists/?player_name=${encodeURICompone
 return await response.json();
 }
 
-function updatePlayerStatus(playerDiv, userData) {
+export function updatePlayerStatus(playerDiv, userData) {
 // Check if there's already a status for this player
 let statusSpan = playerDiv.querySelector('.status-text'); 
 if (!statusSpan) {
@@ -942,7 +942,7 @@ function setupSubmitHandlers() {
   };
 }
 
-function handleError(error, message) {
+export function handleError(error, message) {
   logger.error(message, error);
   showModal(
     'Error',
