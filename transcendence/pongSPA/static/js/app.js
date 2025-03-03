@@ -284,7 +284,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     keyboard: false     // stop closing with escape
   });
 
-  // modal title
+  // Modal title
   const titleElement = document.getElementById(`${modalId}Label`);
   if (titleElement) {
     titleElement.textContent = title;
@@ -292,7 +292,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     logger.error(`Title element for ${modalId}Label not found`);
   }
 
-  // message
+  // Message
   const bodyElement = document.getElementById(`${modalId}Body`);
   if (bodyElement) {
     bodyElement.textContent = message;
@@ -300,22 +300,27 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     logger.error(`Modal body element not found for ${modalId}`);
   }
 
-  //actionCallback linked to the modal's button
+  // Action button
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
     actionButton.textContent = actionText || 'Close';
-    actionButton.removeEventListener('click', actionButton.handler);
-    actionButton.addEventListener('click', function handler() {
+
+    // Supprimer l’ancien listener s’il existe
+    if (actionButton._handler) {
+      actionButton.removeEventListener('click', actionButton._handler);
+    }
+
+    // Définir le nouveau handler
+    const handler = function () {
       if (actionCallback) {
         actionCallback();
       }
       modal.hide();
 
-      // handling focus after closing (cause some bug sometimes)
+      // Gestion du focus après fermeture
       setTimeout(() => {
         let focusTarget = null;
 
-        // 1.  focus on focusElementId (if not empty)
         if (focusElementId) {
           focusTarget = document.getElementById(focusElementId);
           if (focusTarget) {
@@ -327,17 +332,19 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
           }
         }
 
-        // 2. blur (delete) the  focus
         document.activeElement.blur();
         logger.log("Focus retiré après fermeture de la modale");
       }, 50);
-    });
-    actionButton.handler = actionButton.onclick;
+    };
+
+    // Ajouter le listener et stocker sa référence
+    actionButton.addEventListener('click', handler);
+    actionButton._handler = handler; // Stocker le handler pour suppression future
   } else {
     logger.error(`Action button for ${modalId}Action not found`);
   }
 
-  // display modal and focus on action button
+  // Afficher la modale et focaliser le bouton
   modal.show();
   if (actionButton) {
     actionButton.focus();

@@ -831,6 +831,12 @@ if (playerDiv.classList.contains('additional-player')) {
 }
 
 
+function resetTournamentData() {
+  localStorage.removeItem("tournamentName");
+  localStorage.removeItem("tournamentId");
+  localStorage.removeItem("players");
+}
+
 //big function to handle the creation of a Tournament with the tournament form
 function setupSubmitHandlers() {
   const validateButton = document.getElementById('validateTournamentName');
@@ -842,7 +848,18 @@ function setupSubmitHandlers() {
     return;
   }
 
+  function resetTournamentData() {
+    localStorage.removeItem("tournamentName");
+    localStorage.removeItem("tournamentId");
+    localStorage.removeItem("players");
+  }
+
+  validateButton.onclick = null;
+  submitButton.onclick = null;
+  savePlayersButton.onclick = null;
+
   validateButton.onclick = () => {
+    resetTournamentData(); // Réinitialisation au début
     const tournamentName = document.getElementById('tournamentName')?.value.trim();
     if (!tournamentName) {
       showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
@@ -850,12 +867,8 @@ function setupSubmitHandlers() {
     }
     fetch("/api/tournament/new/", {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        tournament_name: tournamentName
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tournament_name: tournamentName }),
     })
     .then(response => response.json())
     .then(data => {
@@ -882,7 +895,7 @@ function setupSubmitHandlers() {
         const playerDiv = input.parentElement;
         return {
           name: input.value.trim(),
-          authenticated: index === 0 ? true : false, // Only the first player (host) is authenticated
+          authenticated: index === 0 ? true : false,
           guest: playerDiv?.getAttribute('data-is-guest') === 'true'
         };
       })
@@ -895,6 +908,7 @@ function setupSubmitHandlers() {
 
     localStorage.setItem("players", JSON.stringify(players));
     showModal('Success', 'Players saved successfully!', 'OK', () => {
+      logger.log("Players saved, moving to step 3");
       const step2 = document.getElementById('step2');
       const step3 = document.getElementById('step3');
       if (step2) step2.style.display = 'none';
@@ -913,11 +927,14 @@ function setupSubmitHandlers() {
     const pointsToWin = document.getElementById('pointsToWin')?.value;
     const tournamentId = localStorage.getItem("tournamentId");
 
+    if (!numberOfGames || !pointsToWin) {
+      showModal('Error', 'Please specify the number of games and points to win', 'OK', () => {});
+      return;
+    }
+
     fetch(`/api/tournament/finalize/${tournamentId}/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         players: players,
         number_of_games: numberOfGames,
@@ -929,7 +946,8 @@ function setupSubmitHandlers() {
       if (data.message) {
         logger.log("Tournament finalized:", data);
         showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
-          DisplayTournamentGame(); 
+          logger.log("Finalizing tournament, launching game");
+          DisplayTournamentGame();
         });
       } else {
         showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
