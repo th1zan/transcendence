@@ -144,7 +144,7 @@ body {
     #menu {
         /*width: 16.666667%; PAS METTRE DE TAILLE MENU COMENTEE*/
         /*flex: 0 0 16.666667%; Force la largeur fixe*/
-        max-width: 16.666667%; /* Limite la largeur */
+        max-width: min-content; /* menu va pas se couper quand on change la taille de la fenetre */
         height: auto;
         width: auto ;
     }
@@ -440,5 +440,3 @@ h6 {
     height: 100%; /* Image prend toute la hauteur */
     object-fit: cover; /* Ajuste l’image pour couvrir tout le conteneur tout en conservant ses proportions */
 }
-
-
