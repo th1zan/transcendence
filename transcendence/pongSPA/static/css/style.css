@@ -48,10 +48,6 @@ body {
     --bs-border-color: #007bff;
 }
 
-
-
-
-
 /* Style pmur les tableaux dans .table-responsive avec .table-striped et .table-hover */ */
 .table-responsive .table.table-striped.table-hover {
     background: rgba(255, 255, 255, 0.4) !important; /* Fond blanc avec 40% d'opacité, priorité forcée */
