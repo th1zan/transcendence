@@ -1,0 +1,72 @@
+{
+	"login": {
+		"welcomeBack": "Bon retour",
+		"username": "Nom d'utilisateur",
+		"password": "Mot de passe",
+		"enterUsername": "Entrez votre nom d'utilisateur",
+		"enterPassword": "Entrez votre mot de passe",
+		"signIn": "Se connecter",
+		"enterOTPCode": "Entrez le code à 6 chiffres envoyé à votre e-mail :",
+		"enterOTP": "Entrez le code OTP",
+		"verifyOTP": "Vérifier le code",
+		"backToLogin": "Retour à la connexion",
+		"createAccount": "Créer un compte"
+	  },
+
+	"register": {
+		"createAccount": "Créer un compte",
+		"username": "Nom d'utilisateur",
+		"password": "Mot de passe",
+		"enterUsername": "Entrez votre nom d'utilisateur",
+		"enterPassword": "Entrez votre mot de passe",
+		"acceptPolicy": "J'accepte la",
+		"privacyPolicy": "Politique de Confidentialité",
+		"backToLogin": "Retour à la connexion",
+		"privacyRequired": "Politique de Confidentialité requise",
+		"mustAcceptPolicy": "Vous devez accepter la politique de confidentialité pour vous inscrire."
+	},
+
+	"menu": {
+		"profilePicture": "Photo de profil",
+		"welcome": "Page d'accueil",
+		"play": "Jouer une partie",
+		"tournament": "Tournoi",
+		"statistics": "Statistiques",
+		"friends": "Amis",
+		"settings": "Paramètres",
+		"logout": "Déconnexion"
+	},
+	
+	"welcome": {
+		"title": "Bienvenue, {{username}}!",
+		"profilePictureAlt": "Photo de profil de l'utilisateur",
+		"pendingFriendRequests": "Demandes d'amis en attente",
+		"pendingTournamentAuth": "Authentifications de tournoi en attente",
+		"noPendingFriendRequests": "Aucune demande d'ami en attente",
+		"noPendingTournament": "Aucune authentification de tournoi en attente",
+		"errorLoadingFriendRequests": "Erreur lors du chargement des demandes d'amis",
+		"errorLoadingTournamentAuth": "Erreur lors du chargement des authentifications de tournoi",
+		"errorLoadingQuickStats": "Erreur lors du chargement des statistiques rapides",
+		"quickStats": "Statistiques rapides pour {{playerName}}",
+		"noData": "Aucune donnée disponible",
+		"wins": "Victoires",
+		"losses": "Défaites",
+		"draws": "Égalités",
+		"vs": "contre",
+		"unknownPlayer1": "Joueur 1 inconnu",
+		"unknownPlayer2": "Joueur 2 inconnu",
+		"noRecentMatches": "Aucun match récent",
+		"lastThreeMatches": "3 derniers matchs",
+		"participationConfirmed": "Participation confirmée",
+		"authenticationFailed": "Échec de l'authentification",
+		"unexpectedResponse": "Réponse inattendue du serveur",
+		"successTitle": "Succès",
+		"participationConfirmedMsg": "Vous avez confirmé avec succès votre participation au tournoi.",
+		"failedToConfirm": "Échec de la confirmation de la participation",
+		"errorTitle": "Erreur",
+		"acceptButton": "Accepter",
+		"declineButton": "Refuser",
+		"confirmParticipation": "Confirmer la participation"
+	}
+  }
+  

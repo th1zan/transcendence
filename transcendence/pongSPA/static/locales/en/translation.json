@@ -1,0 +1,72 @@
+{
+	"login": {
+		"welcomeBack": "Welcome Back",
+		"username": "Username",
+		"password": "Password",
+		"enterUsername": "Enter your username",
+		"enterPassword": "Enter your password",
+		"signIn": "Sign In",
+		"enterOTPCode": "Enter the 6-digit code sent to your email:",
+		"enterOTP": "Enter OTP",
+		"verifyOTP": "Verify OTP",
+		"backToLogin": "Back to Login",
+		"createAccount": "Create Account"
+	},
+
+	"register": {
+		"createAccount": "Create Account",
+		"username": "Username",
+		"password": "Password",
+		"enterUsername": "Enter your username",
+		"enterPassword": "Enter your password",
+		"acceptPolicy": "I accept the",
+		"privacyPolicy": "Privacy Policy",
+		"backToLogin": "Back to Login",
+		"privacyRequired": "Privacy Policy Required",
+		"mustAcceptPolicy": "You must accept the Privacy Policy to register."
+	},
+
+	"menu": {
+		"profilePicture": "Profile picture",
+		"welcome": "Welcome page",
+		"play": "Play a game",
+		"tournament": "Tournament",
+		"statistics": "Statistics",
+		"friends": "Friends",
+		"settings": "Settings",
+		"logout": "Logout"
+	},
+
+	"welcome": {
+	  "title": "Welcome, {{username}}!",
+	  "profilePictureAlt": "User's avatar picture",
+	  "pendingFriendRequests": "Pending Friend Requests",
+	  "pendingTournamentAuth": "Pending Tournament Authentications",
+	  "noPendingFriendRequests": "No pending friend requests",
+	  "noPendingTournament": "No pending tournament authentications",
+	  "errorLoadingFriendRequests": "Error loading friend requests",
+	  "errorLoadingTournamentAuth": "Error loading tournament authentications",
+	  "errorLoadingQuickStats": "Error loading quick stats",
+	  "quickStats": "Quick Stats for {{playerName}}",
+	  "noData": "No data available",
+	  "wins": "Wins",
+	  "losses": "Losses",
+	  "draws": "Draws",
+	  "vs": "vs",
+	  "unknownPlayer1": "Unknown Player 1",
+	  "unknownPlayer2": "Unknown Player 2",
+	  "noRecentMatches": "No recent matches",
+	  "lastThreeMatches": "Last 3 Matches",
+	  "participationConfirmed": "Participation Confirmed",
+	  "authenticationFailed": "Authentication Failed",
+	  "unexpectedResponse": "Unexpected response from server",
+	  "successTitle": "Success",
+	  "participationConfirmedMsg": "You have successfully confirmed your participation in the tournament.",
+	  "failedToConfirm": "Failed to confirm participation",
+	  "errorTitle": "Error",
+	  "acceptButton": "Accept",
+	  "declineButton": "Decline",
+	  "confirmParticipation": "Confirm Participation"
+	}
+  }
+  

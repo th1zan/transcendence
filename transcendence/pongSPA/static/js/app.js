@@ -14,6 +14,34 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 //'true' to display logs, 'false' for production
 const DEBUG = true;
 
+document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
+document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
+
+i18next.use(i18nextHttpBackend).init({
+  lng: "en",
+  fallbackLng: "en",
+  backend: {
+    loadPath: "/static/locales/{{lng}}/translation.json"
+  }
+})
+.then(() => {
+  console.log("i18next ready!");
+    const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+    handleRouteChange(currentRoute);
+});
+
+export function changeLanguage(lang) {
+  i18next.changeLanguage(lang, (err) => {
+     if (err) {
+      console.error("Error changing language :", err);
+      } else {
+        logger.log('Language changed to', lang);
+        const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+        handleRouteChange(currentRoute);
+      }
+  });
+}
+
 export const logger = {
   log: (...args) => {
     if (DEBUG) {
@@ -264,10 +292,16 @@ function handleRouteChange(route) {
 }
 
 function updateUI(routeFunction) {
-  //1.display menu
-  displayMenu();
-  //2. disply the "content"
-  routeFunction();
+  // 1. Afficher le menu uniquement si l'utilisateur est connecté
+  if (isUserLoggedIn) {
+    displayMenu();
+  }
+  // 2. Afficher le contenu si routeFunction est une fonction
+  if (typeof routeFunction === 'function') {
+    routeFunction();
+  } else {
+    logger.warn('routeFunction is not a function:', routeFunction);
+  }
 }
 
 //function to display a modal with a custom message instead an alert() popup
