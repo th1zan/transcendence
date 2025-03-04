@@ -20,11 +20,12 @@ i18next.use(i18nextHttpBackend).init({
   backend: {
     loadPath: "/static/locales/{{lng}}/translation.json"
   }
-  })
-  .then(() => {
-    console.log("i18next ready!");
-    updateUI();
-  });
+})
+.then(() => {
+  console.log("i18next ready!");
+  // Supprimer ou passer une fonction valide
+  // updateUI(); // <- Supprimez cette ligne
+});
 
 export function changeLanguage(lang) {
   i18next.changeLanguage(lang, (err) => {
@@ -288,10 +289,16 @@ function handleRouteChange(route) {
 }
 
 function updateUI(routeFunction) {
-  //1.display menu
-  displayMenu();
-  //2. disply the "content"
-  routeFunction();
+  // 1. Afficher le menu uniquement si l'utilisateur est connecté
+  if (isUserLoggedIn) {
+    displayMenu();
+  }
+  // 2. Afficher le contenu si routeFunction est une fonction
+  if (typeof routeFunction === 'function') {
+    routeFunction();
+  } else {
+    logger.warn('routeFunction is not a function:', routeFunction);
+  }
 }
 
 //function to display a modal with a custom message instead an alert() popup
