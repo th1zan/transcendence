@@ -29,7 +29,7 @@ function displayHTMLforSettings(user) {
           </button>
 
         <div class="mt-3 w-75">
-          <label class="form-label">Choose a new profile picture:</label>
+          <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Choose a new profile picture:</label>
           <div class="input-group">
             <input type="file" id="avatarInput" accept="image/*" class="form-control">
             <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
@@ -42,19 +42,19 @@ function displayHTMLforSettings(user) {
       <h4 class="text-center">Edit Profile Information</h4>
 
       <div class="form-group mt-2">
-        <label>Username:</label>
+        <label style="font-family: 'Press Start 2P', cursive; font-size: 12px;">Username:</label>
         <input type="text" id="usernameInput" class="form-control" value="${user.username}">
       </div>
 
       <div class="form-group mt-2">
-        <label>Email:</label>
+        <label style="font-family: 'Press Start 2P', cursive; font-size: 12px;">Email:</label>
         <div class="input-group">
           <input type="email" id="emailInput" class="form-control" value="${user.email || ''}">
           <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
         </div>
 
       <div class="form-group mt-2">
-        <label>Phone Number:</label>
+        <label style="font-family: 'Press Start 2P', cursive; font-size: 12px;">Phone Number:</label>
         <div class="input-group">
           <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
           <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
@@ -71,18 +71,18 @@ function displayHTMLforSettings(user) {
       <div class="card shadow-sm p-4 mt-3">
         <h4 class="text-center">Change Password</h4>
         <div class="form-group mt-2">
-          <label>Current Password:</label>
+          <label style="font-family: 'Press Start 2P', cursive; font-size: 12px;">Current Password:</label>
           <input type="password" id="currentPasswordInput" class="form-control">
         </div>
         <div class="form-group mt-2">
-          <label>New Password:</label>
+          <label style="font-family: 'Press Start 2P', cursive; font-size: 12px;">New Password:</label>
           <input type="password" id="newPasswordInput" class="form-control">
           <div class="invalid-feedback">
             Password must be at least 3 characters.
           </div>
         </div>
         <div class="form-group mt-2">
-          <label>Confirm New Password:</label>
+          <label style="font-family: 'Press Start 2P', cursive; font-size: 12px;">Confirm New Password:</label>
           <input type="password" id="confirmPasswordInput" class="form-control">
           <div class="invalid-feedback">
             Passwords do not match.

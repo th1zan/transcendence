@@ -22,7 +22,7 @@ export function displayFriends() {
               <h5 class="card-title mb-3" >Send Friend Request</h5>
               <div class="form-group mt-2">
                 <label for="friendUsername" class="form-label" >Username</label>
-                <input type="text" id="friendUsername" placeholder="Username" class="form-control bg-transparent" required >
+                <input type="text" id="friendUsername" style="border: 2px solid #007bff;" placeholder="Username" class="form-control bg-transparent" required >
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
                   Send Friend Request
                 </button>

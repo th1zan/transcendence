@@ -19,7 +19,6 @@ export function displayConnectionFormular() {
               <input
                 type="text"
                 id="username"
-                style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
                 placeholder="Enter your username"
                 required
@@ -30,7 +29,6 @@ export function displayConnectionFormular() {
               <input
                 type="password"
                 id="password"
-                style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
                 placeholder="Enter your password"
                 required
