@@ -27,7 +27,7 @@ export async function displayWelcomePage() {
                           <div class="rounded-circle overflow-hidden me-3">
                               <img src="${avatarPicture}" class="object-fit-cover" alt="Profile picture" />
                           </div>
-                          <h3 class="card-title mb-0">Welcome ${username}</h3>
+                          <h3 class="card-title mb-0">${i18next.t('welcome.title', { username: username })}</h3>
                       </div>
                   </div>
                   <!-- Pending Friend Requests Card -->

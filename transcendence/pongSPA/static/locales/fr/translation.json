@@ -1,0 +1,35 @@
+{
+	"welcome": {
+	  "title": "Bienvenue, {{username}}!",
+	  "profilePictureAlt": "Photo de profil de l'utilisateur",
+	  "pendingFriendRequests": "Demandes d'amis en attente",
+	  "pendingTournamentAuth": "Authentifications de tournoi en attente",
+	  "noPendingFriendRequests": "Aucune demande d'ami en attente",
+	  "noPendingTournament": "Aucune authentification de tournoi en attente",
+	  "errorLoadingFriendRequests": "Erreur lors du chargement des demandes d'amis",
+	  "errorLoadingTournamentAuth": "Erreur lors du chargement des authentifications de tournoi",
+	  "quickStats": "Statistiques rapides pour {{playerName}}",
+	  "noData": "Aucune donnée disponible",
+	  "wins": "Victoires",
+	  "losses": "Défaites",
+	  "draws": "Égalités",
+	  "match": "Match",
+	  "score": "Score",
+	  "vs": "contre",
+	  "unknownPlayer1": "Joueur 1 inconnu",
+	  "unknownPlayer2": "Joueur 2 inconnu",
+	  "noRecentMatches": "Aucun match récent",
+	  "participationConfirmed": "Participation confirmée",
+	  "authenticationFailed": "Échec de l'authentification",
+	  "unexpectedResponse": "Réponse inattendue du serveur",
+	  "successTitle": "Succès",
+	  "participationConfirmedMsg": "Vous avez confirmé avec succès votre participation au tournoi.",
+	  "failedToConfirm": "Échec de la confirmation de la participation",
+	  "errorTitle": "Erreur",
+	  "okButton": "OK",
+	  "acceptButton": "Accepter",
+	  "declineButton": "Refuser",
+	  "confirmParticipation": "Confirmer la participation"
+	}
+  }
+  
