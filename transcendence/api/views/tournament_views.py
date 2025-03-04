@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class TournamentCreationView(APIView):
     permission_classes = [AllowAny]
-    parser_classes = [JSONParser]  # Maintenant défini grâce à l'import
+    parser_classes = [JSONParser]
 
     def post(self, request):
         tournament_data = request.data.get("tournament_name")
@@ -35,7 +35,7 @@ class TournamentCreationView(APIView):
             data={
                 "tournament_name": tournament_data,
                 "date": timezone.now().date(),
-                "is_finalized": False,  # Set this to False by default
+                "is_finalized": False,
             }
         )
 
@@ -60,7 +60,7 @@ class TournamentCreationView(APIView):
 
 class TournamentFinalizationView(APIView):
     permission_classes = [AllowAny]
-    parser_classes = [JSONParser]  # Maintenant défini grâce à l'import
+    parser_classes = [JSONParser]
 
     def post(self, request, tournament_id):
         players_data = request.data.get("players", [])
@@ -80,13 +80,11 @@ class TournamentFinalizationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Update tournament with match rules
         tournament.number_of_games = number_of_games
         tournament.points_to_win = points_to_win
-        tournament.is_finalized = True  # Mark as finalized
+        tournament.is_finalized = True
         tournament.save()
 
-        # Player management
         for player_data in players_data:
             player_name = player_data.get("name")
             authenticated = player_data.get("authenticated", False)
@@ -110,10 +108,8 @@ class TournamentFinalizationView(APIView):
                 guest=guest,
             )
 
-        # Generate matches after all players are added and tournament details are set
         generate_matches(tournament_id, number_of_games, points_to_win)
 
-        # Clean up unfinalized tournaments when a new tournament is finalized
         call_command("cleanup_tournaments")
 
         return Response(
@@ -125,47 +121,23 @@ class TournamentFinalizationView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    @staticmethod
-    def cleanup_unfinalized_tournaments():
-        # Define how old an unfinalized tournament should be to be considered for deletion
-        # max_age = timezone.now() - timezone.timedelta(
-        #     days=7
-        # )  # Example: delete tournaments older than 7 days if not finalized
-        unfinalized_tournaments = Tournament.objects.filter(
-            is_finalized=False
-            # is_finalized=False, date__lt=max_age
-        )
-
-        for tournament in unfinalized_tournaments:
-            # Delete associated TournamentPlayer entries
-            TournamentPlayer.objects.filter(tournament=tournament).delete()
-            # Then delete the tournament
-            tournament.delete()
-
-        return {
-            "message": f"Cleaned up {unfinalized_tournaments.count()} unfinalized tournaments"
-        }
-
 
 def generate_matches(tournament_id, number_of_games, points_to_win):
-    # Récupérer tous les joueurs associés au tournoi
     tournament_players = TournamentPlayer.objects.filter(tournament_id=tournament_id)
     players = [tp.player for tp in tournament_players]
 
-    # Générer tous les matchs possibles
     matches = combinations(players, 2)
 
-    # Enregistrer les matchs dans le modèle PongMatch
     for player1, player2 in matches:
         PongMatch.objects.create(
             tournament_id=tournament_id,
             player1=player1,
             player2=player2,
-            user1=player1.user,  # Peut être None
-            user2=player2.user,  # Peut être None
+            user1=player1.user,
+            user2=player2.user,
             sets_to_win=number_of_games,
             points_per_set=points_to_win,
-            is_tournament_match=True,  # Indiquer que c'est un match de tournoi
+            is_tournament_match=True,
         )
 
     logger.debug(f"Matches generated for tournament {tournament_id}")
