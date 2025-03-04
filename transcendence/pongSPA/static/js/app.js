@@ -14,6 +14,9 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 //'true' to display logs, 'false' for production
 const DEBUG = true;
 
+document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
+document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
+
 i18next.use(i18nextHttpBackend).init({
   lng: "en",
   fallbackLng: "en",
@@ -23,8 +26,8 @@ i18next.use(i18nextHttpBackend).init({
 })
 .then(() => {
   console.log("i18next ready!");
-  // Supprimer ou passer une fonction valide
-  // updateUI(); // <- Supprimez cette ligne
+    const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+    handleRouteChange(currentRoute);
 });
 
 export function changeLanguage(lang) {

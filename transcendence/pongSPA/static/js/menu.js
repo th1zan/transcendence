@@ -43,10 +43,6 @@ export async function displayMenu(avatarUrl = null) {
           <div class="collapse navbar-collapse" id="navbarNav">
               <div class="menu-container d-flex flex-column h-100 w-100">
                   <img src="${avatarPicture}" class="rounded-circle object-fit-cover align-self-center my-4" alt="Profile picture" />
-                   <div class="menu-item lang-menu d-flex justify-content-center mb-2">
-                    <button id="lang-en" class="btn btn-outline-primary me-2">EN</button>
-                    <button id="lang-fr" class="btn btn-outline-primary">FR</button>
-                  </div>
                   <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
                   <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Play a game</button>
                   <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
@@ -61,8 +57,6 @@ export async function displayMenu(avatarUrl = null) {
   `;
 
   // Ajouter les écouteurs d'événements
-  document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
-  document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
   document.getElementById("welcomeButton").addEventListener("click", () => navigateTo('welcome'));
   document.getElementById("playButton").addEventListener("click", () => navigateTo('game'));
   document.getElementById("tournamentButton").addEventListener("click", () => navigateTo('tournament'));

@@ -20,11 +20,17 @@
 </head>
 <body class="d-flex flex-column min-vh-100" style="background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee); animation: gradientBG 15s ease infinite">
 
-    <!-- Header -->
-    <header id="header" class="header bg-dark text-white text-center py-3">
-        <h1 class="m-0">PONG</h1>
+    <header id="header" class="header bg-dark text-white py-3 d-flex justify-content-between align-items-center" style="padding-left: 20px; padding-right: 20px;">
+        <div class="d-flex flex-grow-1 justify-content-center">
+            <h1 class="m-0">PONG</h1>
+        </div>
+        <div class="d-flex ms-3">
+            <button id="lang-en" class="btn btn-outline-primary me-2">EN</button>
+            <button id="lang-fr" class="btn btn-outline-primary">FR</button>
+        </div>
     </header>
 
+    
     <!-- Main content with grid structure -->
     <div class="container-fluid flex-grow-1 d-flex flex-column" id="main">
         <div class="row flex-grow-1" style="flex-wrap: nowrap">

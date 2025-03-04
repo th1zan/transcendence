@@ -1,4 +1,35 @@
 {
+	"common": {
+		"ok": "OK"
+	},
+
+	"login": {
+		"welcomeBack": "Welcome Back",
+		"username": "Username",
+		"password": "Password",
+		"enterUsername": "Enter your username",
+		"enterPassword": "Enter your password",
+		"signIn": "Sign In",
+		"enterOTPCode": "Enter the 6-digit code sent to your email:",
+		"enterOTP": "Enter OTP",
+		"verifyOTP": "Verify OTP",
+		"backToLogin": "Back to Login",
+		"createAccount": "Create Account"
+	},
+	
+	"register": {
+		"createAccount": "Create Account",
+		"username": "Username",
+		"password": "Password",
+		"enterUsername": "Enter your username",
+		"enterPassword": "Enter your password",
+		"acceptPolicy": "I accept the",
+		"privacyPolicy": "Privacy Policy",
+		"backToLogin": "Back to Login",
+		"privacyRequired": "Privacy Policy Required",
+		"mustAcceptPolicy": "You must accept the Privacy Policy to register."
+	},
+
 	"welcome": {
 	  "title": "Welcome, {{username}}!",
 	  "profilePictureAlt": "User's avatar picture",
