@@ -6,12 +6,13 @@ from ...models import Tournament, TournamentPlayer
 
 
 class Command(BaseCommand):
-    help = "Clean up unfinalized tournaments older than 7 days"
+    help = "Clean up unfinalized tournaments older than 1 days"
 
     def handle(self, *args, **options):
         max_age = timezone.now() - timezone.timedelta(days=1)
         unfinalized_tournaments = Tournament.objects.filter(
-            is_finalized=False, date__lt=max_age
+            is_finalized=False,
+            date__lt=max_age,
         )
 
         for tournament in unfinalized_tournaments:
