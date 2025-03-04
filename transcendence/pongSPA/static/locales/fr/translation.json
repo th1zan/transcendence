@@ -1,8 +1,4 @@
 {
-	"common": {
-		"ok": "OK"
-	  },
-
 	"login": {
 		"welcomeBack": "Bon retour",
 		"username": "Nom d'utilisateur",
@@ -50,17 +46,17 @@
 		"noPendingTournament": "Aucune authentification de tournoi en attente",
 		"errorLoadingFriendRequests": "Erreur lors du chargement des demandes d'amis",
 		"errorLoadingTournamentAuth": "Erreur lors du chargement des authentifications de tournoi",
+		"errorLoadingQuickStats": "Erreur lors du chargement des statistiques rapides",
 		"quickStats": "Statistiques rapides pour {{playerName}}",
 		"noData": "Aucune donnée disponible",
 		"wins": "Victoires",
 		"losses": "Défaites",
 		"draws": "Égalités",
-		"match": "Match",
-		"score": "Score",
 		"vs": "contre",
 		"unknownPlayer1": "Joueur 1 inconnu",
 		"unknownPlayer2": "Joueur 2 inconnu",
 		"noRecentMatches": "Aucun match récent",
+		"lastThreeMatches": "3 derniers matchs",
 		"participationConfirmed": "Participation confirmée",
 		"authenticationFailed": "Échec de l'authentification",
 		"unexpectedResponse": "Réponse inattendue du serveur",
@@ -68,7 +64,6 @@
 		"participationConfirmedMsg": "Vous avez confirmé avec succès votre participation au tournoi.",
 		"failedToConfirm": "Échec de la confirmation de la participation",
 		"errorTitle": "Erreur",
-		"okButton": "OK",
 		"acceptButton": "Accepter",
 		"declineButton": "Refuser",
 		"confirmParticipation": "Confirmer la participation"

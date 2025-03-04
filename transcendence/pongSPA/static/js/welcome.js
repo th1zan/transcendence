@@ -25,7 +25,7 @@ export async function displayWelcomePage() {
                   <div class="card shadow-sm welcome-card">
                       <div class="card-body d-flex align-items-center">
                           <div class="rounded-circle overflow-hidden me-3">
-                              <img src="${avatarPicture}" class="object-fit-cover" alt="Profile picture" />
+                              <img src="${avatarPicture}" class="object-fit-cover" alt="${i18next.t('welcome.profilePictureAlt')}" />
                           </div>
                           <h3 class="card-title mb-0">${i18next.t('welcome.title', { username: username })}</h3>
                       </div>
@@ -33,14 +33,14 @@ export async function displayWelcomePage() {
                   <!-- Pending Friend Requests Card -->
                   <div class="card shadow-sm pending-friend-card">
                       <div class="card-body">
-                          <h4 class="card-title mb-3">Pending Friend Requests</h4>
+                          <h4 class="card-title mb-3">${i18next.t('welcome.pendingFriendRequests')}</h4>
                           <ul class="list-group" id="pendingFriendRequests"></ul>
                       </div>
                   </div>
                   <!-- Pending Tournament Authentications Card -->
                   <div class="card shadow-sm pending-tournament-card">
                       <div class="card-body">
-                          <h4 class="card-title mb-3">Pending Tournament Authentications</h4>
+                          <h4 class="card-title mb-3">${i18next.t('welcome.pendingTournamentAuth')}</h4>
                           <ul class="list-group" id="pendingTournamentAuthentications"></ul>
                       </div>
                   </div>
@@ -82,7 +82,7 @@ export async function displayWelcomePage() {
     .catch(error => {
       logger.error("Error fetching quick stats:", error);
       const quickStatsContainer = document.getElementById("quickStatsContainer");
-      quickStatsContainer.innerHTML = `<p class="text-danger">Error loading quick stats: ${error.message}</p>`;
+      quickStatsContainer.innerHTML = `<p class="text-danger">${i18next.t('welcome.errorLoadingQuickStats')}: ${error.message}</p>`;
     });
 }
 
@@ -105,7 +105,7 @@ function fetchPendingTournamentAuthentications() {
           listItem.className = "list-group-item d-flex justify-content-between align-items-center";
           listItem.innerHTML = `
           <span>${tournament.tournament_name} (as ${tournament.player_name})</span>
-          <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">Confirm Participation</button>
+          <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">${i18next.t('welcome.confirmParticipation')}</button>
         `;
           authList.appendChild(listItem);
         });
@@ -119,13 +119,13 @@ function fetchPendingTournamentAuthentications() {
           });
         });
       } else {
-        authList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending tournament authentications.</li>`;
+        authList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.noPendingTournament')}</li>`;
       }
     })
     .catch(error => {
       logger.error("Error fetching pending tournament authentications:", error);
       const authList = document.getElementById("pendingTournamentAuthentications");
-      authList.innerHTML = `<li class="list-group-item text-center text-danger" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">Error loading tournament authentications.</li>`;
+      authList.innerHTML = `<li class="list-group-item text-center text-danger" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.errorLoadingTournamentAuth')}</li>`;
     });
 }
 
@@ -141,23 +141,22 @@ function confirmTournamentParticipation(tournamentId, playerName) {
     }),
   })
   .then(response => {
-    if (!response.ok) throw new Error("Authentication failed: " + response.status);
+    if (!response.ok) throw new Error(i18next.t('welcome.authenticationFailed') + ": " + response.status);
     return response.json();
   })
   .then(data => {
     if (data.message === "Player authenticated successfully") {
       logger.log(`Participation confirmed for ${playerName} in tournament ${tournamentId}`);
-      showModal('Success', 'Participation confirmed successfully!', 'OK', () => {
-        fetchPendingTournamentAuthentications(); // Rafraîchir la liste
+      showModal(i18next.t('welcome.participationConfirmed'), i18next.t('welcome.participationConfirmedMsg'), "OK", () => {
+        fetchPendingTournamentAuthentications(); //Rafraichir la liste
       });
     } else {
-      throw new Error("Unexpected response");
-    }
+      throw new Error(i18next.t('welcome.unexpectedResponse'));
+      }
   })
   .catch(error => {
     logger.error("Error confirming participation:", error);
-    showModal('Error', 'Failed to confirm participation. Please try again.', 'OK', () => {});
-  });
+    showModal(i18next.t('welcome.errorTitle'), i18next.t('welcome.failedToConfirm'), "OK", () => {});  });
 }
 
 
@@ -179,8 +178,8 @@ export function fetchPendingFriendRequests() {
           listItem.innerHTML = `
             <span>${request.sender}</span>
             <div>
-              <button class="btn btn-success btn-sm accept-request me-2" data-username="${request.sender}">Accept</button>
-              <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">Decline</button>
+              <button class="btn btn-success btn-sm accept-request me-2" data-username="${request.sender}">${i18next.t('welcome.acceptButton')}</button>
+              <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">${i18next.t('welcome.declineButton')}</button>
             </div>
           `;
           requestList.appendChild(listItem);
@@ -201,13 +200,13 @@ export function fetchPendingFriendRequests() {
           });
         });
       } else {
-        requestList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No pending friend requests.</li>`;
+        requestList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.noPendingFriendRequests')}</li>`;
       }
     })
     .catch(error => {
       logger.error("Error fetching friend requests:", error);
       const requestList = document.getElementById("pendingFriendRequests");
-      requestList.innerHTML = `<li class="list-group-item text-center text-danger">Error loading friend requests.</li>`;
+      requestList.innerHTML = `<li class="list-group-item text-center text-danger">${i18next.t('welcome.errorLoadingFriendRequests')}</li>`;
     });
 }
 
@@ -218,10 +217,10 @@ function displayQuickStats(data, playerName) {
     return `
       <div class="card shadow-sm pending-tournament-card">
           <div class="card-body">
-              <h4 class="card-title mb-3">Quick Stats for ${playerName || "You"}</h4>
+              <h4 class="card-title mb-3">${i18next.t('welcome.quickStats', { playerName: playerName || "You" })}</h4>
               <div>
                   <ul class="list-group" id="quickStatsList">
-                      <li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No data available.</li>
+                      <li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.noData')}</li>
                   </ul>
               </div>
           </div>
@@ -234,10 +233,10 @@ function displayQuickStats(data, playerName) {
     return `
       <div class="card shadow-sm pending-tournament-card">
           <div class="card-body">
-              <h4 class="card-title mb-3">Quick Stats for ${playerName || "You"}</h4>
+              <h4 class="card-title mb-3">${i18next.t('welcome.quickStats', { playerName: playerName || "You" })}</h4>
               <div>
                   <ul class="list-group" id="quickStatsList">
-                      <li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">No data available.</li>
+                      <li class="list-group-item text-center" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.noData')}</li>
                   </ul>
               </div>
           </div>
@@ -281,12 +280,12 @@ function displayQuickStats(data, playerName) {
         </thead>
         <tbody>
           ${lastThreeMatches.map(match => {
-            const player1 = match.player1_name || "Unknown Player 1";
-            const player2 = match.player2_name || "Unknown Player 2";
+            const player1 = match.player1_name || i18next.t('welcome.unknownPlayer1');
+            const player2 = match.player2_name || i18next.t('welcome.unknownPlayer2');
             const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
             return `
               <tr class="bg-transparent">
-                <td class="bg-transparent">${player1} vs ${player2}</td>
+              <td class="bg-transparent">${player1} ${i18next.t('welcome.vs')} ${player2}</td>
                 <td class="bg-transparent">${setScore}</td>
               </tr>
             `;
@@ -295,19 +294,18 @@ function displayQuickStats(data, playerName) {
       </table>
     `;
   } else {
-    lastMatchesTable = '<p class="text-muted small">No recent matches.</p>';
-  }
+    lastMatchesTable = `<p class="text-muted small">${i18next.t('welcome.noRecentMatches')}</p>`;  }
 
   return `
     <div class="card mb-4 shadow-sm h-100  style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
-        <h4 class="card-title">Quick Stats for ${playerName || "You"}</h4>
+        <h4 class="card-title">${i18next.t('welcome.quickStats', { playerName: playerName || "You" })}</h4>
         <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item"><strong>Wins:</strong> ${wins}</li>
-          <li class="list-group-item"><strong>Losses:</strong> ${losses}</li>
-          <li class="list-group-item"><strong>Draws:</strong> ${draws}</li>
+          <li class="list-group-item"><strong>${i18next.t('welcome.wins')}:</strong> ${wins}</li>
+          <li class="list-group-item"><strong>${i18next.t('welcome.losses')}:</strong> ${losses}</li>
+          <li class="list-group-item"><strong>${i18next.t('welcome.draws')}:</strong> ${draws}</li>
         </ul>
-        <h5 class="mb-2">Last 3 Matches</h5>
+        <h5 class="mb-2">${i18next.t('welcome.lastThreeMatches')}</h5>
         ${lastMatchesTable}
       </div>
     </div>
