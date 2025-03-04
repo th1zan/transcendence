@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -14,12 +15,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 # Import ajusté selon l'arborescence
 from ..authentication import CookieJWTAuthentication
-from ..models import CustomUser, Player
+from ..models import CustomUser, Player, PongMatch
 from ..serializers import ChangePasswordSerializer, UserRegisterSerializer
 
 logger = logging.getLogger(__name__)
 
-CustomUser = get_user_model()  # Utilisé quand nécessaire
+CustomUser = get_user_model()
 
 
 class UserRegisterView(APIView):

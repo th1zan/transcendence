@@ -1,3 +1,4 @@
+from itertools import combinations
 import logging
 
 from django.core.management import call_command
@@ -13,7 +14,7 @@ from rest_framework.views import APIView
 # Import ajusté selon l'arborescence
 from ..authentication import CookieJWTAuthentication
 from ..models import CustomUser, Player, PongMatch, Tournament, TournamentPlayer
-from ..serializers import TournamentPlayerSerializer, TournamentSerializer
+from ..serializers import TournamentPlayerSerializer, TournamentSerializer, PongMatchSerializer
 
 logger = logging.getLogger(__name__)
 

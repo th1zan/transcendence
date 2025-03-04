@@ -7,10 +7,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import JsonResponse
 
 # Import ajusté selon l'arborescence
 from ..authentication import CookieJWTAuthentication
-from ..models import Player, PongMatch, PongSet
+from ..models import CustomUser, Player, PongMatch, PongSet
 from ..serializers import PongMatchSerializer, PongSetSerializer
 
 logger = logging.getLogger(__name__)
