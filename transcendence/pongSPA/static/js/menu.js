@@ -42,15 +42,15 @@ export async function displayMenu(avatarUrl = null) {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
               <div class="menu-container d-flex flex-column h-100 w-100">
-                  <img src="${avatarPicture}" class="rounded-circle object-fit-cover align-self-center my-4" alt="Profile picture" />
-                  <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Welcome page</button>
-                  <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Play a game</button>
-                  <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Tournament</button>
-                  <button id="statsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Statistics</button>
-                  <button id="friendsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Friends</button>
+                  <img src="${avatarPicture}" class="rounded-circle object-fit-cover align-self-center my-4" alt="${i18next.t('menu.profilePicture')}" />
+                  <button id="welcomeButton" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.welcome')}</button>
+                  <button id="playButton" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.play')}</button>
+                  <button id="tournamentButton" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.tournament')}</button>
+                  <button id="statsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.statistics')}</button>
+                  <button id="friendsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.friends')}</button>
                   <div class="flex-grow-1"></div>
-                  <button id="settingsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">Settings</button>
-                  <button id="logoutButton" class="btn btn-danger nav-link menu-button w-100 mb-2">Logout</button>
+                  <button id="settingsButton" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.settings')}</button>
+                  <button id="logoutButton" class="btn btn-danger nav-link menu-button w-100 mb-2">${i18next.t('menu.logout')}</button>
               </div>
           </div>
       </div>

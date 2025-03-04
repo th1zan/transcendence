@@ -29,6 +29,17 @@
 		"privacyRequired": "Politique de Confidentialité requise",
 		"mustAcceptPolicy": "Vous devez accepter la politique de confidentialité pour vous inscrire."
 	},
+
+	"menu": {
+		"profilePicture": "Photo de profil",
+		"welcome": "Page d'accueil",
+		"play": "Jouer une partie",
+		"tournament": "Tournoi",
+		"statistics": "Statistiques",
+		"friends": "Amis",
+		"settings": "Paramètres",
+		"logout": "Déconnexion"
+	},
 	
 	"welcome": {
 		"title": "Bienvenue, {{username}}!",

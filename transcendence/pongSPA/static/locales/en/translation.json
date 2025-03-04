@@ -16,7 +16,7 @@
 		"backToLogin": "Back to Login",
 		"createAccount": "Create Account"
 	},
-	
+
 	"register": {
 		"createAccount": "Create Account",
 		"username": "Username",
@@ -28,6 +28,17 @@
 		"backToLogin": "Back to Login",
 		"privacyRequired": "Privacy Policy Required",
 		"mustAcceptPolicy": "You must accept the Privacy Policy to register."
+	},
+
+	"menu": {
+		"profilePicture": "Profile picture",
+		"welcome": "Welcome page",
+		"play": "Play a game",
+		"tournament": "Tournament",
+		"statistics": "Statistics",
+		"friends": "Friends",
+		"settings": "Settings",
+		"logout": "Logout"
 	},
 
 	"welcome": {
