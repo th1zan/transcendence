@@ -1,8 +1,10 @@
 import {logger, showModal} from "./app.js";
 import { startGameSetup } from "./pong.js";
-import { checkPlayerExists } from "./tournament.js";
+import { checkPlayerExists, checkUserExists, handleError, updatePlayerStatus} from "./tournament.js";
 
 export function displayGameForm() {
+  let players = new Map();
+
   // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
@@ -81,7 +83,7 @@ export function displayGameForm() {
         </div>
 
         <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
-          <div class="d-flex justify-content-between align-items-stretch mt-3">
+          <div class="d-flex justify-content-between align-items-stretch mt-3" id="player-container"> <!-- Ajout d'un ID pour le conteneur -->
             <div class="col p-3 d-flex flex-column">
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
@@ -101,10 +103,12 @@ export function displayGameForm() {
             </div>
             <div class="col p-3 d-flex flex-column">
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
+              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent player2-container">
                 <div class="mb-3">
                   <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" ${gameSettings.mode === "solo" ? "disabled" : ""}>
+                  <span class="status-text ms-2" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};"></span>
+                  <small class="text-muted mt-1" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};">Enter a player name or leave blank for a random opponent.</small>
                 </div>
                 <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
                   <label for="control2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
@@ -125,11 +129,11 @@ export function displayGameForm() {
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
-                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2 bg-transparent" style="width: 60px;">
                 </div>
                 <div class="mb-3">
-                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win a Set:</label>
                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
                 </div>
               </div>
@@ -148,6 +152,54 @@ export function displayGameForm() {
       <p id="summary"></p>
     </div>
   `;
+
+  const playerContainer = document.getElementById('player-container'); // Sélection du conteneur des joueurs
+  const player2Container = document.querySelector('.player2-container');
+  if (player2Container) {
+    const player2Input = player2Container.querySelector('#player2');
+    player2Input.addEventListener('blur', async (event) => {
+      if (gameSettings.mode === "multiplayer" && event.target.tagName === 'INPUT') {
+        const playerDiv = event.target.closest('div');
+        const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
+
+        if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
+          if (players.has(playerName) && players.get(playerName).validated) {
+            const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
+            modal.show();
+          }
+          return;
+        }
+
+        try {
+          cleanupPlayersMap(playerContainer, players); // Passer playerContainer comme paramètre
+          const userData = await checkUserExists(playerName);
+
+          if (userData.exists) {
+            updatePlayerStatus(playerDiv, userData);
+            playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
+            playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
+            players.set(playerName, { validated: true, div: playerDiv });
+          } else {
+            const playerData = await checkPlayerExists(playerName);
+            if (playerData.exists) {
+              updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
+              playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
+              playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
+            } else {
+              updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
+              playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
+              playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
+            }
+            players.set(playerName, { validated: true, div: playerDiv });
+          }
+        } catch (error) {
+          handleError(error, "Error checking player or user existence");
+          playerDiv.querySelector('.status-text').textContent = 'Error checking player';
+          playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
+        }
+      }
+    }, true);
+  }
 
   // Fonction pour basculer les boutons actifs
   function toggleActiveButton(group, selectedId) {
@@ -172,13 +224,17 @@ export function displayGameForm() {
   document.getElementById("onePlayer").addEventListener("click", function() {
     const player2Input = document.getElementById("player2");
     const control2Container = document.getElementById("control2Container");
+    const statusText = document.querySelector('.player2-container .status-text');
+    const infoText = document.querySelector('.player2-container .text-muted');
 
     player2Input.value = "Bot-AI";
     gameSettings.player2 = "Bot-AI";
     gameSettings.isAIActive = true;
     player2Input.disabled = true;
-    player2Input.placeholder = "AI Controlled"; // Indice visuel
+    player2Input.placeholder = "AI Controlled";
     control2Container.style.display = "none";
+    statusText.style.display = 'none';
+    infoText.style.display = 'none';
 
     const control1 = document.getElementById("control1");
     const control2 = document.getElementById("control2");
@@ -196,13 +252,17 @@ export function displayGameForm() {
   document.getElementById("twoPlayers").addEventListener("click", function() {
     const player2Input = document.getElementById("player2");
     const control2Container = document.getElementById("control2Container");
+    const statusText = document.querySelector('.player2-container .status-text');
+    const infoText = document.querySelector('.player2-container .text-muted');
 
     player2Input.value = "";
     gameSettings.player2 = "";
     gameSettings.isAIActive = false;
     player2Input.disabled = false;
-    player2Input.placeholder = "Enter Player 2 Name"; // Indice visuel
+    player2Input.placeholder = "Enter Player 2 Name";
     control2Container.style.display = "block";
+    statusText.style.display = 'block';
+    infoText.style.display = 'block';
 
     const control1 = document.getElementById("control1");
     const control2 = document.getElementById("control2");
@@ -284,21 +344,21 @@ export function displayGameForm() {
 
           if (playerData.exists && !playerData.is_guest) {
             showModal(
-              'Utilisateur enregistré',
-              'Cet utilisateur est enregistré. Une authentification est requise.',
+              'Registred player',
+              'This player is registered. Press "Start Game" again to authenticate and play, or enter a new player name.',
               'OK',
               () => {
                 alertShown = true;
                 lastCheckedPlayer2 = player2;
                 needAuth = true;
               },
-              "player2" // Focus préféré retourne à #player2, sinon #welcomeButton
+              "player2"
             );
             return;
           } else if (playerData.exists) {
             showModal(
-              'Joueur invité',
-              'Cet utilisateur est un invité. Voulez-vous continuer ?',
+              'Guest player',
+              'This player already exists as a guest. Press "Start Game" again to play with this player, or enter a new player name.',
               'OK',
               () => {
                 alertShown = true;
@@ -328,7 +388,6 @@ export function displayGameForm() {
       }
     }
 
-
     if (needAuth) {
       const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
       if (authResult) {
@@ -342,6 +401,17 @@ export function displayGameForm() {
 
     logger.log("Starting game with settings:", gameSettings);
   });
+
+  function cleanupPlayersMap(container, playersMap) {
+    const existingPlayerDivs = Array.from(container.querySelectorAll('.additional-player')); // Utilise le conteneur passé en paramètre
+    const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
+
+    playersMap.forEach((value, key) => {
+      if (key !== '' && !existingPlayerNames.includes(key)) {
+        playersMap.delete(key);
+      }
+    });
+  }
 }
 
 
@@ -421,6 +491,5 @@ async function authenticatePlayer(username, password, playerName) {
 
   return await response.json();
 }
-
 
 

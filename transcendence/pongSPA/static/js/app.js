@@ -14,6 +14,34 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 //'true' to display logs, 'false' for production
 const DEBUG = true;
 
+document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
+document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
+
+i18next.use(i18nextHttpBackend).init({
+  lng: "en",
+  fallbackLng: "en",
+  backend: {
+    loadPath: "/static/locales/{{lng}}/translation.json"
+  }
+})
+.then(() => {
+  console.log("i18next ready!");
+    const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+    handleRouteChange(currentRoute);
+});
+
+export function changeLanguage(lang) {
+  i18next.changeLanguage(lang, (err) => {
+     if (err) {
+      console.error("Error changing language :", err);
+      } else {
+        logger.log('Language changed to', lang);
+        const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+        handleRouteChange(currentRoute);
+      }
+  });
+}
+
 export const logger = {
   log: (...args) => {
     if (DEBUG) {
@@ -264,10 +292,16 @@ function handleRouteChange(route) {
 }
 
 function updateUI(routeFunction) {
-  //1.display menu
-  displayMenu();
-  //2. disply the "content"
-  routeFunction();
+  // 1. Afficher le menu uniquement si l'utilisateur est connecté
+  if (isUserLoggedIn) {
+    displayMenu();
+  }
+  // 2. Afficher le contenu si routeFunction est une fonction
+  if (typeof routeFunction === 'function') {
+    routeFunction();
+  } else {
+    logger.warn('routeFunction is not a function:', routeFunction);
+  }
 }
 
 //function to display a modal with a custom message instead an alert() popup
@@ -284,7 +318,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     keyboard: false     // stop closing with escape
   });
 
-  // modal title
+  // Modal title
   const titleElement = document.getElementById(`${modalId}Label`);
   if (titleElement) {
     titleElement.textContent = title;
@@ -292,7 +326,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     logger.error(`Title element for ${modalId}Label not found`);
   }
 
-  // message
+  // Message
   const bodyElement = document.getElementById(`${modalId}Body`);
   if (bodyElement) {
     bodyElement.textContent = message;
@@ -300,22 +334,27 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
     logger.error(`Modal body element not found for ${modalId}`);
   }
 
-  //actionCallback linked to the modal's button
+  // Action button
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
     actionButton.textContent = actionText || 'Close';
-    actionButton.removeEventListener('click', actionButton.handler);
-    actionButton.addEventListener('click', function handler() {
+
+    // Supprimer l’ancien listener s’il existe
+    if (actionButton._handler) {
+      actionButton.removeEventListener('click', actionButton._handler);
+    }
+
+    // Définir le nouveau handler
+    const handler = function () {
       if (actionCallback) {
         actionCallback();
       }
       modal.hide();
 
-      // handling focus after closing (cause some bug sometimes)
+      // Gestion du focus après fermeture
       setTimeout(() => {
         let focusTarget = null;
 
-        // 1.  focus on focusElementId (if not empty)
         if (focusElementId) {
           focusTarget = document.getElementById(focusElementId);
           if (focusTarget) {
@@ -327,17 +366,19 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
           }
         }
 
-        // 2. blur (delete) the  focus
         document.activeElement.blur();
         logger.log("Focus retiré après fermeture de la modale");
       }, 50);
-    });
-    actionButton.handler = actionButton.onclick;
+    };
+
+    // Ajouter le listener et stocker sa référence
+    actionButton.addEventListener('click', handler);
+    actionButton._handler = handler; // Stocker le handler pour suppression future
   } else {
     logger.error(`Action button for ${modalId}Action not found`);
   }
 
-  // display modal and focus on action button
+  // Afficher la modale et focaliser le bouton
   modal.show();
   if (actionButton) {
     actionButton.focus();

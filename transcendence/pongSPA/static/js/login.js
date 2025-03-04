@@ -12,25 +12,25 @@ export function displayConnectionFormular() {
     const appDiv = document.getElementById("app_main");  appDiv.innerHTML = `
       <div class="d-flex justify-content-center align-items-center mx-auto" style="min-height: 75vh;">
         <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-          <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">Welcome Back</h2>
+          <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">${i18next.t('login.welcomeBack')}</h2>
           <form id="loginForm">
             <div class="form-group mb-4">
-              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> Username</label>
+              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i>${i18next.t('login.username')}</label>
               <input
                 type="text"
                 id="username"
                 class="form-control form-control-lg"
-                placeholder="Enter your username"
+                placeholder="${i18next.t('login.enterUsername')}"
                 required
               />
             </div>
             <div class="form-group mb-5">
-              <label for="password" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-lock"></i> Password</label>
+              <label for="password" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-lock"></i> ${i18next.t('login.password')}</label>
               <input
                 type="password"
                 id="password"
                 class="form-control form-control-lg"
-                placeholder="Enter your password"
+                placeholder="${i18next.t('login.enterPassword')}"
                 required
               />
             </div>
@@ -38,16 +38,16 @@ export function displayConnectionFormular() {
               type="submit"
               class="btn btn-success w-100 py-3"
               style="font-size: 1.3rem;">
-              Sign In
+              ${i18next.t('login.signIn')}
             </button>
           </form>
 
           <!-- OTP Verification Section (Hidden by Default) -->
           <div id="otpSection" style="display: none;">
             <p class="text-center" style="font-size: 1.3rem;">Enter the 6-digit code sent to your email:</p>
-            <input type="text" id="otpInput" class="form-control form-control-lg" placeholder="Enter OTP">
-            <button id="otpVerifyButton" class="btn btn-primary w-100 mt-3 py-3" style="font-size: 1.3rem;">Verify OTP</button>
-            <button id="backToLoginButton" class="btn btn-secondary w-100 mt-2 py-3" style="font-size: 1.3rem;">Back to Login</button>
+            <input type="text" id="otpInput" class="form-control form-control-lg" placeholder="${i18next.t('login.enterOTP')}">
+            <button id="otpVerifyButton" class="btn btn-primary w-100 mt-3 py-3" style="font-size: 1.3rem;">${i18next.t('login.verifyOTP')}</button>
+            <button id="backToLoginButton" class="btn btn-secondary w-100 mt-2 py-3" style="font-size: 1.3rem;">${i18next.t('login.backToLogin')}</button>
           </div>
 
 
@@ -55,7 +55,7 @@ export function displayConnectionFormular() {
             id="signupButton"
             class="btn btn-primary w-100 mt-4 py-3"
             style="font-size: 1.3rem;">
-            Create Account
+            ${i18next.t('login.createAccount')}
           </button>
         </div>
       </div>
@@ -101,25 +101,25 @@ export function displayRegistrationForm() {
   appDiv.innerHTML = `
     <div class="d-flex justify-content-center align-items-center bg-transparent" style="min-height: 75vh;">
       <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-        <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">Create Account</h2>
+        <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">${i18next.t('register.createAccount')}</h2>
         <form id="signupForm">
           <div class="form-group mb-4">
-            <label for="newUsername" class="h5"><i class="bi bi-person"></i> Username</label>
+            <label for="newUsername" class="h5"><i class="bi bi-person"></i> ${i18next.t('register.username')}</label>
             <input
               type="text"
               id="newUsername"
               class="form-control form-control-lg"
-              placeholder="Enter your username"
+              placeholder="${i18next.t('register.enterUsername')}"
               required
             />
           </div>
           <div class="form-group mb-5">
-            <label for="newPassword" class="h5"><i class="bi bi-lock"></i> Mot de passe</label>
+            <label for="newPassword" class="h5"><i class="bi bi-lock"></i>${i18next.t('register.password')}</label>
             <input
               type="password"
               id="newPassword"
               class="form-control form-control-lg"
-              placeholder="Enter your password"
+              placeholder="${i18next.t('register.enterPassword')}"
               required
             />
           </div>
@@ -127,19 +127,19 @@ export function displayRegistrationForm() {
             <!-- <input type="checkbox" id="privacyPolicyAccepted" required /> -->
             <input type="checkbox" id="privacyPolicyAccepted"  />
             <label for="privacyPolicyAccepted">
-              I accept the <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">Privacy Policy</a>
+              ${i18next.t('register.acceptPolicy')} <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">${i18next.t('register.privacyPolicy')}</a>
             </label>
           </div>
           <button
             type="submit"
             class="btn btn-success w-100 py-3 h5">
-            Create Account
+            ${i18next.t('register.createAccount')}
           </button>
         </form>
         <button
           id="backToLoginButton"
           class="btn btn-primary w-100 mt-4 py-3 h5">
-          Back to Login
+          ${i18next.t('register.backToLogin')}
         </button>
       </div>
     </div>
@@ -157,8 +157,8 @@ export function displayRegistrationForm() {
       if (!privacyPolicyAccepted) {
       logger.log('Tentative d’affichage de la modale...');
       showModal(
-        'Privacy Policy Required',
-        'You must accept the Privacy Policy to register.',
+        i18next.t('register.privacyRequired'),
+        i18next.t('register.mustAcceptPolicy'),
         'OK',
         () => {}
       );
@@ -167,7 +167,10 @@ export function displayRegistrationForm() {
       createAccount(newUsername, newPassword, privacyPolicyAccepted);
     });
 
-  document
+    document
     .getElementById("backToLoginButton")
-    .addEventListener("click", displayConnectionFormular);
+    .addEventListener("click", function() {
+      history.pushState({ page: 'login' }, 'Login', '#login');
+      displayConnectionFormular();
+    });
 }

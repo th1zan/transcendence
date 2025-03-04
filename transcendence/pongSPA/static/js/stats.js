@@ -267,221 +267,223 @@ function displayChartInCard(chart, title) {
   return div;
 }
 
-// Récupérer et afficher les stats d’un joueur
 // Récupérer et afficher les stats d’un joueur (modifié pour accepter un paramètre par défaut)
 function fetchAndDisplayPlayerStats(username) {
-  if (!username) return;
+    if (!username) return;
 
-  fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(response => response.json())
-    .then(data => {
-      const appMain = document.getElementById('app_main');
-      appMain.innerHTML = '';
-
-      const playedMatches = data.filter(m => m.is_played);
-      if (playedMatches.length === 0) {
-        appMain.innerHTML = `<p class="text-muted" >No played matches found for ${username}.</p>`;
-        return;
-      }
-
-      // Calculs précis des stats avec gestion des nuls
-      const stats = {
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        setsWon: 0,
-        setsLost: 0,
-        pointsScored: 0,
-        pointsConceded: 0,
-        totalMatches: playedMatches.length
-      };
-
-      let totalMatchDuration = 0;
-      let totalSetDuration = 0;
-      let totalExchanges = 0;
-      let totalSets = 0;
-
-      playedMatches.forEach(match => {
-        const isPlayer1 = match.player1_name.toLowerCase() === username.toLowerCase();
-        const playerSetsWon = isPlayer1 ? match.player1_sets_won : match.player2_sets_won;
-        const playerSetsLost = isPlayer1 ? match.player2_sets_won : match.player1_sets_won;
-        const playerPointsScored = isPlayer1 ? match.player1_total_points : match.player2_total_points;
-        const playerPointsConceded = isPlayer1 ? match.player2_total_points : match.player1_total_points;
-
-        stats.setsWon += playerSetsWon || 0;
-        stats.setsLost += playerSetsLost || 0;
-        stats.pointsScored += playerPointsScored || 0;
-        stats.pointsConceded += playerPointsConceded || 0;
-
-        // Appliquer la logique fournie
-        const isDraw = (match.winner === null || match.winner_name === 'No winner');
-        const winLoss = isDraw ? 'Draw' : 
-                       match.winner_name && match.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 'Loss';
-
-        if (winLoss === 'Win') stats.wins++;
-        else if (winLoss === 'Loss') stats.losses++;
-        else stats.draws++;
-
-        // Calculs pour durée et échanges
-        const matchDuration = match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
-        const matchExchanges = match.sets.reduce((sum, set) => sum + (set.exchanges || 0), 0);
-        totalMatchDuration += matchDuration;
-        totalSets += match.sets.length;
-        totalSetDuration += match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
-        totalExchanges += matchExchanges;
-      });
-
-      // Showroom avec cartes et graphiques
-      const chartsContainer = document.createElement('div');
-      chartsContainer.className = 'row g-4';
-      appMain.appendChild(chartsContainer);
-
-      // Carte 1 : Player Summary
-      const summary = generateSummaryCard('Player Summary', {
-        'Name': username,
-        'Matches Played': stats.totalMatches,
-        'Win Rate': `${((stats.wins / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
-        'Draw Rate': `${((stats.draws / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
-        'Loss Rate': `${((stats.losses / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
-        'Sets Won': stats.setsWon,
-        'Total Points': stats.pointsScored,
-      });
-      const summaryCard = document.createElement('div');
-      summaryCard.className = 'col-12 col-md-4 col-sm-6';
-      summaryCard.innerHTML = summary;
-      chartsContainer.appendChild(summaryCard);
-
-      // Carte 2 : Match Durations
-      const durationStats = {
-        'Average Match Duration': `${(totalMatchDuration / stats.totalMatches || 0).toFixed(2)}s`,
-        'Total Match Duration': `${totalMatchDuration.toFixed(2)}s`,
-        'Average Exchanges per Match': `${(totalExchanges / stats.totalMatches || 0).toFixed(2)}`
-      };
-      const durationCard = document.createElement('div');
-      durationCard.className = 'col-12 col-md-4 col-sm-6';
-      durationCard.innerHTML = `
-        <div class="card mb-4 shadow-">
-          <div class="card-body">
-            <h5 class="text-center mb-3" >Match Durations</h5>
-            <ul class="list-group list-group-flush">
-              ${Object.entries(durationStats).map(([key, value]) => `
-                <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
-              `).join('')}
-            </ul>
-          </div>
-        </div>
-      `;
-      chartsContainer.appendChild(durationCard);
-
-      // Carte 3 : Set Durations & Exchanges
-      const setStats = {
-        'Average Set Duration': `${(totalSetDuration / totalSets || 0).toFixed(2)}s`,
-        'Average Exchanges per Set': `${(totalExchanges / totalSets || 0).toFixed(2)}`,
-        'Total Exchanges': totalExchanges
-      };
-      const setCard = document.createElement('div');
-      setCard.className = 'col-12 col-md-4 col-sm-6';
-      setCard.innerHTML = `
-        <div class="card mb-4 shadow-">
-          <div class="card-body">
-            <h5 class="text-center mb-3" >Set Durations & Exchanges</h5>
-            <ul class="list-group list-group-flush">
-              ${Object.entries(setStats).map(([key, value]) => `
-                <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
-              `).join('')}
-            </ul>
-          </div>
-        </div>
-      `;
-      chartsContainer.appendChild(setCard);
-
-      // 1. Barres : Sets gagnés/perdus/nuls par match
-      const setsData = playedMatches.map(match => ({
-        date: match.date_played.split('T')[0],
-        setsWon: match.player1_name.toLowerCase() === username.toLowerCase() ? match.player1_sets_won : match.player2_sets_won,
-        setsLost: match.player1_name.toLowerCase() === username.toLowerCase() ? match.player2_sets_won : match.player1_sets_won,
-        isDraw: (match.winner === null || match.winner_name === 'No winner')
-      }));
-      const barChart = generateChart('bar', 'playerBar', {
-        labels: setsData.map(d => d.date),
-        datasets: [
-          { label: 'Sets Won', data: setsData.map(d => d.isDraw ? 0 : d.setsWon), backgroundColor: '#28a745' },
-          { label: 'Sets Lost', data: setsData.map(d => d.isDraw ? 0 : d.setsLost), backgroundColor: '#dc3545' },
-          { label: 'Draws', data: setsData.map(d => d.isDraw ? (d.setsWon + d.setsLost) : 0), backgroundColor: '#ffc107' }
-        ]
-      }, { 
-        scales: { 
-          y: { beginAtZero: true, title: { display: true, text: 'Sets' } },
-          x: { stacked: true } // Empiler les barres pour mieux visualiser les nuls
-        },
-        plugins: { legend: { position: 'bottom' } }
-      });
-      chartsContainer.appendChild(displayChartInCard(barChart, 'Sets Won/Lost/Draws per Match'));
-
-      // 2. Donut : Répartition victoires/défaites/nuls
-      const donutChart = generateChart('doughnut', 'playerDonut', {
-        labels: ['Wins', 'Losses', 'Draws'],
-        datasets: [{ data: [stats.wins, stats.losses, stats.draws], backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
-      }, { plugins: { legend: { position: 'bottom' } } });
-      chartsContainer.appendChild(displayChartInCard(donutChart, 'Wins vs Losses vs Draws'));
-
-      // 3. Courbe : Points marqués par match
-      const lineChart = generateChart('line', 'playerLine', {
-        labels: playedMatches.map(m => m.date_played.split('T')[0]),
-        datasets: [{
-          label: 'Points Scored',
-          data: playedMatches.map(m => m.player1_name.toLowerCase() === username.toLowerCase() ? m.player1_total_points : m.player2_total_points),
-          borderColor: '#007bff',
-          fill: false,
-          tension: 0.1
-        }]
-      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
-      chartsContainer.appendChild(displayChartInCard(lineChart, 'Points Over Time'));
-
-      // 4. Barres : Durée moyenne par match
-      const matchDurations = playedMatches.map(m => ({
-        date: m.date_played.split('T')[0],
-        duration: m.sets.reduce((sum, s) => sum + (s.duration || 0), 0)
-      }));
-      const durationBarChart = generateChart('bar', 'playerDurationBar', {
-        labels: matchDurations.map(d => d.date),
-        datasets: [{ label: 'Average Match Duration (s)', data: matchDurations.map(d => d.duration), backgroundColor: '#007bff' }]
-      }, { 
-        scales: { 
-          y: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } }
-        },
-        plugins: { legend: { display: false } }
-      });
-      chartsContainer.appendChild(displayChartInCard(durationBarChart, 'Match Duration Over Time'));
-
-      // 5. Lignes : Évolution des échanges par match
-      const exchangesData = playedMatches.map(m => ({
-        date: m.date_played.split('T')[0],
-        exchanges: m.sets.reduce((sum, s) => sum + (s.exchanges || 0), 0)
-      }));
-      const exchangesLineChart = generateChart('line', 'playerExchangesLine', {
-        labels: exchangesData.map(d => d.date),
-        datasets: [{
-          label: 'Exchanges per Match',
-          data: exchangesData.map(d => d.exchanges),
-          borderColor: '#28a745',
-          fill: false,
-          tension: 0.1
-        }]
-      }, { 
-        scales: { 
-          y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } }
-        }
-      });
-      chartsContainer.appendChild(displayChartInCard(exchangesLineChart, 'Exchanges Over Time'));
+    fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
     })
-    .catch(error => {
-      document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
-    });
+        .then(response => response.json())
+        .then(data => {
+            const appMain = document.getElementById('app_main');
+            appMain.innerHTML = '';
+
+            const playedMatches = data.filter(m => m.is_played);
+            if (playedMatches.length === 0) {
+                appMain.innerHTML = `<p class="text-muted" >No played matches found for ${username}.</p>`;
+                return;
+            }
+
+            // Calculs précis des stats avec gestion des nuls
+            const stats = {
+                wins: 0,
+                losses: 0,
+                draws: 0,
+                setsWon: 0,
+                setsLost: 0,
+                pointsScored: 0,
+                pointsConceded: 0,
+                totalMatches: playedMatches.length
+            };
+
+            let totalMatchDuration = 0;
+            let totalSetDuration = 0;
+            let totalExchanges = 0;
+            let totalSets = 0;
+
+            playedMatches.forEach(match => {
+                const isPlayer1 = match.player1_name.toLowerCase() === username.toLowerCase();
+                const playerSetsWon = isPlayer1 ? match.player1_sets_won : match.player2_sets_won;
+                const playerSetsLost = isPlayer1 ? match.player2_sets_won : match.player1_sets_won;
+                const playerPointsScored = isPlayer1 ? match.player1_total_points : match.player2_total_points;
+                const playerPointsConceded = isPlayer1 ? match.player2_total_points : match.player1_total_points;
+
+                stats.setsWon += playerSetsWon || 0;
+                stats.setsLost += playerSetsLost || 0;
+                stats.pointsScored += playerPointsScored || 0;
+                stats.pointsConceded += playerPointsConceded || 0;
+
+                // Appliquer la logique fournie
+                const isDraw = (match.winner === null || match.winner_name === 'No winner');
+                const winLoss = isDraw ? 'Draw' : 
+                               match.winner_name && match.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 'Loss';
+
+                if (winLoss === 'Win') stats.wins++;
+                else if (winLoss === 'Loss') stats.losses++;
+                else stats.draws++;
+
+                // Calculs pour durée et échanges
+                const matchDuration = match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
+                const matchExchanges = match.sets.reduce((sum, set) => sum + (set.exchanges || 0), 0);
+                totalMatchDuration += matchDuration;
+                totalSets += match.sets.length;
+                totalSetDuration += match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
+                totalExchanges += matchExchanges;
+            });
+
+            // Showroom avec cartes et graphiques
+            const chartsContainer = document.createElement('div');
+            chartsContainer.className = 'row g-4';
+            appMain.appendChild(chartsContainer);
+
+            // Carte 1 : Player Summary
+            const summary = generateSummaryCard('Player Summary', {
+                'Name': username,
+                'Matches Played': stats.totalMatches,
+                'Win Rate': `${((stats.wins / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+                'Draw Rate': `${((stats.draws / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+                'Loss Rate': `${((stats.losses / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+                'Sets Won': stats.setsWon,
+                'Total Points': stats.pointsScored,
+            });
+            const summaryCard = document.createElement('div');
+            summaryCard.className = 'col-12 col-md-4 col-sm-6';
+            summaryCard.innerHTML = summary;
+            chartsContainer.appendChild(summaryCard);
+
+            // Carte 2 : Match Durations
+            const durationStats = {
+                'Average Match Duration': `${(totalMatchDuration / stats.totalMatches || 0).toFixed(2)}s`,
+                'Total Match Duration': `${totalMatchDuration.toFixed(2)}s`,
+                'Average Exchanges per Match': `${(totalExchanges / stats.totalMatches || 0).toFixed(2)}`
+            };
+            const durationCard = document.createElement('div');
+            durationCard.className = 'col-12 col-md-4 col-sm-6';
+            durationCard.innerHTML = `
+                <div class="card mb-4 shadow-">
+                    <div class="card-body">
+                        <h5 class="text-center mb-3" >Match Durations</h5>
+                        <ul class="list-group list-group-flush">
+                            ${Object.entries(durationStats).map(([key, value]) => `
+                                <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            chartsContainer.appendChild(durationCard);
+
+            // Carte 3 : Set Durations & Exchanges
+            const setStats = {
+                'Average Set Duration': `${(totalSetDuration / totalSets || 0).toFixed(2)}s`,
+                'Average Exchanges per Set': `${(totalExchanges / totalSets || 0).toFixed(2)}`,
+                'Total Exchanges': totalExchanges
+            };
+            const setCard = document.createElement('div');
+            setCard.className = 'col-12 col-md-4 col-sm-6';
+            setCard.innerHTML = `
+                <div class="card mb-4 shadow-">
+                    <div class="card-body">
+                        <h5 class="text-center mb-3" >Set Durations & Exchanges</h5>
+                        <ul class="list-group list-group-flush">
+                            ${Object.entries(setStats).map(([key, value]) => `
+                                <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            chartsContainer.appendChild(setCard);
+
+            // 1. Barres : Sets gagnés/perdus/nuls par match
+            const setsData = playedMatches.map(match => ({
+                date: match.date_played.split('T')[0],
+                setsWon: match.player1_name.toLowerCase() === username.toLowerCase() ? match.player1_sets_won : match.player2_sets_won,
+                setsLost: match.player1_name.toLowerCase() === username.toLowerCase() ? match.player2_sets_won : match.player1_sets_won,
+                isDraw: (match.winner === null || match.winner_name === 'No winner')
+            }));
+            const barChart = generateChart('bar', 'playerBar', {
+                labels: setsData.map(d => d.date),
+                datasets: [
+                    { label: 'Sets Won', data: setsData.map(d => d.isDraw ? 0 : d.setsWon), backgroundColor: '#28a745' },
+                    { label: 'Sets Lost', data: setsData.map(d => d.isDraw ? 0 : d.setsLost), backgroundColor: '#dc3545' },
+                    { label: 'Draws', data: setsData.map(d => d.isDraw ? (d.setsWon + d.setsLost) : 0), backgroundColor: '#ffc107' }
+                ]
+            }, { 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'Sets' } },
+                    x: { stacked: true } // Empiler les barres pour mieux visualiser les nuls
+                },
+                plugins: { legend: { position: 'bottom' } }
+            });
+            chartsContainer.appendChild(displayChartInCard(barChart, 'Sets Won/Lost/Draws per Match'));
+
+            // 2. Donut : Répartition victoires/défaites/nuls
+            const donutChart = generateChart('doughnut', 'playerDonut', {
+                labels: ['Wins', 'Losses', 'Draws'],
+                datasets: [{ data: [stats.wins, stats.losses, stats.draws], backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
+            }, { plugins: { legend: { position: 'bottom' } } });
+            chartsContainer.appendChild(displayChartInCard(donutChart, 'Wins vs Losses vs Draws'));
+
+            // 3. Courbe : Points marqués par match
+            const lineChart = generateChart('line', 'playerLine', {
+                labels: playedMatches.map(m => m.date_played.split('T')[0]),
+                datasets: [{
+                    label: 'Points Scored',
+                    data: playedMatches.map(m => m.player1_name.toLowerCase() === username.toLowerCase() ? m.player1_total_points : m.player2_total_points),
+                    borderColor: '#007bff',
+                    fill: false,
+                    tension: 0.1
+                }]
+            }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
+            chartsContainer.appendChild(displayChartInCard(lineChart, 'Points Over Time'));
+
+            // 4. Barres : Durée moyenne par match (modifié pour enlever les jours sans matchs)
+            const matchDurations = playedMatches.map(m => ({
+                date: m.date_played.split('T')[0],
+                duration: m.sets.reduce((sum, s) => sum + (s.duration || 0), 0)
+            }));
+            // Filtrer pour ne garder que les dates avec des durées > 0 (évite les jours sans matchs)
+            const filteredMatchDurations = matchDurations.filter(md => md.duration > 0);
+
+            const durationBarChart = generateChart('bar', 'playerDurationBar', {
+                labels: filteredMatchDurations.map(d => d.date),
+                datasets: [{ label: 'Average Match Duration (s)', data: filteredMatchDurations.map(d => d.duration), backgroundColor: '#007bff' }]
+            }, { 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } }
+                },
+                plugins: { legend: { display: false } }
+            });
+            chartsContainer.appendChild(displayChartInCard(durationBarChart, 'Match Duration Over Time'));
+
+            // 5. Lignes : Évolution des échanges par match
+            const exchangesData = playedMatches.map(m => ({
+                date: m.date_played.split('T')[0],
+                exchanges: m.sets.reduce((sum, s) => sum + (s.exchanges || 0), 0)
+            }));
+            const exchangesLineChart = generateChart('line', 'playerExchangesLine', {
+                labels: exchangesData.map(d => d.date),
+                datasets: [{
+                    label: 'Exchanges per Match',
+                    data: exchangesData.map(d => d.exchanges),
+                    borderColor: '#28a745',
+                    fill: false,
+                    tension: 0.1
+                }]
+            }, { 
+                scales: { 
+                    y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } }
+                }
+            });
+            chartsContainer.appendChild(displayChartInCard(exchangesLineChart, 'Exchanges Over Time'));
+        })
+        .catch(error => {
+            document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+        });
 }
 
 // Récupérer et afficher les stats d’un tournoi

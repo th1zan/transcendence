@@ -359,7 +359,7 @@ function displayTournamentGameList(data) {
       logger.error("Erreur lors de la vérification de l'authentification des joueurs:", error);
       showModal(
         'Error',
-        'Une erreur est survenue lors de la vérification de l\'authentification. Veuillez réessayer.',
+        'An error occurred during the authentication verification. Please try again.',
         'OK',
         () => {
           // Ne rien faire, reste sur la page
@@ -595,7 +595,7 @@ function getTournamentFormHTML() {
             <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Step 3: Finalize Tournament</h3>
             <div class="d-flex flex-column align-items-center gap-3">
               <div class="form-group w-50">
-                <label for="numberOfGames" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Number of Games:</label>
+                <label for="numberOfGames" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
                 <input 
                   type="number" 
                   id="numberOfGames" 
@@ -606,7 +606,7 @@ function getTournamentFormHTML() {
                 >
               </div>
               <div class="form-group w-50">
-                <label for="pointsToWin" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win:</label>
+                <label for="pointsToWin" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win a Set:</label>
                 <input 
                   type="number" 
                   id="pointsToWin" 
@@ -635,140 +635,140 @@ function getTournamentFormHTML() {
 
 //Handling the adding of player (check if existing playerName, or existing re)
 async function initializePlayerManagement() {
-const playerContainer = document.getElementById('playerContainer');
-const addButton = document.getElementById('addPlayerButton');
-let playerCount = 1;
-const players = new Map();
+  const playerContainer = document.getElementById('playerContainer');
+  const addButton = document.getElementById('addPlayerButton');
+  let playerCount = 1;
+  const players = new Map();
 
-if (!playerContainer || !addButton) return;
+  if (!playerContainer || !addButton) return;
 
-// Ajouter la modale Bootstrap
-document.body.insertAdjacentHTML('beforeend', `
-  <div class="modal fade" id="duplicatePlayerModal" tabindex="-1" aria-labelledby="duplicatePlayerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="duplicatePlayerModalLabel">Duplicate Player Detected</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          This player has already been added to the tournament. Please choose a different name.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+  // Ajouter la modale Bootstrap
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal fade" id="duplicatePlayerModal" tabindex="-1" aria-labelledby="duplicatePlayerModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="duplicatePlayerModalLabel">Duplicate Player Detected</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            This player has already been added to the tournament. Please choose a different name.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-`);
+  `);
 
-// Add host player automatically
-const hostPlayerName = localStorage.getItem('username') || '';
-const hostPlayerDiv = addPlayer(playerContainer, playerCount++, hostPlayerName, true);
-updatePlayerStatus(hostPlayerDiv, { exists: true, is_guest: false, user_id: "host" });
-players.set(hostPlayerName.toLowerCase(), { validated: true, div: hostPlayerDiv });
+  // Add host player automatically
+  const hostPlayerName = localStorage.getItem('username') || '';
+  const hostPlayerDiv = addPlayer(playerContainer, playerCount++, hostPlayerName, true);
+  updatePlayerStatus(hostPlayerDiv, { exists: true, is_guest: false, user_id: "host" });
+  players.set(hostPlayerName.toLowerCase(), { validated: true, div: hostPlayerDiv });
 
-// Add an empty field for Player 2
-const player2Div = addPlayer(playerContainer, playerCount++, '', false);
-players.set('', { validated: false, div: player2Div });
+  // Add an empty field for Player 2
+  const player2Div = addPlayer(playerContainer, playerCount++, '', false);
+  players.set('', { validated: false, div: player2Div });
 
-// Event listener for checking player on blur
-playerContainer.addEventListener('blur', async (event) => {
-  if (event.target.tagName === 'INPUT') {
-    const playerDiv = event.target.closest('div');
-    const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
+  // Event listener for checking player on blur
+  playerContainer.addEventListener('blur', async (event) => {
+    if (event.target.tagName === 'INPUT') {
+      const playerDiv = event.target.closest('div');
+      const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
 
-    if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
-      if (players.has(playerName) && players.get(playerName).validated) {
-        const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
-        modal.show();
-      }
-      return;
-    }
-
-    try {
-      cleanupPlayersMap(players);
-      const userData = await checkUserExists(playerName);
-
-      if (userData.exists) {
-        updatePlayerStatus(playerDiv, userData);
-        playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
-        playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
-        players.set(playerName, { validated: true, div: playerDiv });
-      } else {
-        const playerData = await checkPlayerExists(playerName);
-        if (playerData.exists) {
-          updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
-          playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
-          playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
-        } else {
-          updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
-          playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
-          playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
+      if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
+        if (players.has(playerName) && players.get(playerName).validated) {
+          const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
+          modal.show();
         }
-        players.set(playerName, { validated: true, div: playerDiv });
+        return;
       }
-    } catch (error) {
-      handleError(error, "Error checking player or user existence");
-      playerDiv.querySelector('.status-text').textContent = 'Error checking player';
-      playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
+
+      try {
+        cleanupPlayersMap(players);
+        const userData = await checkUserExists(playerName);
+
+        if (userData.exists) {
+          updatePlayerStatus(playerDiv, userData);
+          playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
+          playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
+          players.set(playerName, { validated: true, div: playerDiv });
+        } else {
+          const playerData = await checkPlayerExists(playerName);
+          if (playerData.exists) {
+            updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
+            playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
+            playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
+          } else {
+            updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
+            playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
+            playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
+          }
+          players.set(playerName, { validated: true, div: playerDiv });
+        }
+      } catch (error) {
+        handleError(error, "Error checking player or user existence");
+        playerDiv.querySelector('.status-text').textContent = 'Error checking player';
+        playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
+      }
     }
-  }
-}, true);
+  }, true);
 
-// Event listener for removing a player
-playerContainer.addEventListener('click', (event) => {
-  if (event.target.classList.contains('remove-player')) {
-    const playerDiv = event.target.closest('div');
-    const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
-    players.delete(playerName);
-    playerDiv.remove();
-    logger.log(`Removed player: ${playerName}`);
-    cleanupPlayersMap(players);
-  }
-});
-
-// Event listener for adding new player line
-addButton.addEventListener('click', () => {
-  const newPlayerDiv = addPlayer(playerContainer, playerCount++, '', false);
-  players.set('', { validated: false, div: newPlayerDiv });
-  logger.log("New player line added");
-});
-
-// Updated addPlayer function
-function addPlayer(container, count, initialValue = '', isHost = false) {
-  const playerDiv = document.createElement('div');
-  playerDiv.className = 'd-flex align-items-center mb-2';
-  playerDiv.innerHTML = `
-    <span class="me-2">${isHost ? 'Player 1 (host)' : `Player ${count}`}</span>
-    <input 
-      type="text" 
-      class="form-control me-2" 
-      placeholder="Pseudo" 
-      value="${initialValue}" 
-      ${initialValue ? 'readonly' : ''} 
-    >
-    <span class="status-text me-2"></span>
-    ${!isHost ? '<button class="btn btn-sm remove-player">❌ remove</button>' : ''}
-  `;
-  if (!isHost) {
-    playerDiv.classList.add('additional-player');
-  }
-  container.appendChild(playerDiv);
-  return playerDiv;
-}
-
-// Function for cleaning up the players Map
-function cleanupPlayersMap(playersMap) {
-  const existingPlayerDivs = Array.from(playerContainer.querySelectorAll('.additional-player'));
-  const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
-
-  playersMap.forEach((value, key) => {
-    if (key !== '' && !existingPlayerNames.includes(key)) {
-      playersMap.delete(key);
+  // Event listener for removing a player
+  playerContainer.addEventListener('click', (event) => {
+    if (event.target.classList.contains('remove-player')) {
+      const playerDiv = event.target.closest('div');
+      const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
+      players.delete(playerName);
+      playerDiv.remove();
+      logger.log(`Removed player: ${playerName}`);
+      cleanupPlayersMap(players);
     }
   });
-}
+
+  // Event listener for adding new player line
+  addButton.addEventListener('click', () => {
+    const newPlayerDiv = addPlayer(playerContainer, playerCount++, '', false);
+    players.set('', { validated: false, div: newPlayerDiv });
+    logger.log("New player line added");
+  });
+
+  // Updated addPlayer function
+  function addPlayer(container, count, initialValue = '', isHost = false) {
+    const playerDiv = document.createElement('div');
+    playerDiv.className = 'd-flex align-items-center mb-2';
+    playerDiv.innerHTML = `
+      <span class="me-2">${isHost ? 'Player 1 (host)' : `Player ${count}`}</span>
+      <input 
+        type="text" 
+        class="form-control me-2" 
+        placeholder="Pseudo" 
+        value="${initialValue}" 
+        ${initialValue ? 'readonly' : ''} 
+      >
+      <span class="status-text me-2"></span>
+      ${!isHost ? '<button class="btn btn-sm remove-player">❌ remove</button>' : ''}
+    `;
+    if (!isHost) {
+      playerDiv.classList.add('additional-player');
+    }
+    container.appendChild(playerDiv);
+    return playerDiv;
+  }
+
+  // Function for cleaning up the players Map
+  function cleanupPlayersMap(playersMap) {
+    const existingPlayerDivs = Array.from(playerContainer.querySelectorAll('.additional-player'));
+    const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
+
+    playersMap.forEach((value, key) => {
+      if (key !== '' && !existingPlayerNames.includes(key)) {
+        playersMap.delete(key);
+      }
+    });
+  }
 }
 
 
@@ -790,7 +790,7 @@ const response = await fetch(`/api/player/exists/?player_name=${encodeURICompone
 return await response.json();
 }
 
-function updatePlayerStatus(playerDiv, userData) {
+export function updatePlayerStatus(playerDiv, userData) {
 // Check if there's already a status for this player
 let statusSpan = playerDiv.querySelector('.status-text'); 
 if (!statusSpan) {
@@ -831,6 +831,12 @@ if (playerDiv.classList.contains('additional-player')) {
 }
 
 
+function resetTournamentData() {
+  localStorage.removeItem("tournamentName");
+  localStorage.removeItem("tournamentId");
+  localStorage.removeItem("players");
+}
+
 //big function to handle the creation of a Tournament with the tournament form
 function setupSubmitHandlers() {
   const validateButton = document.getElementById('validateTournamentName');
@@ -842,7 +848,18 @@ function setupSubmitHandlers() {
     return;
   }
 
+  function resetTournamentData() {
+    localStorage.removeItem("tournamentName");
+    localStorage.removeItem("tournamentId");
+    localStorage.removeItem("players");
+  }
+
+  validateButton.onclick = null;
+  submitButton.onclick = null;
+  savePlayersButton.onclick = null;
+
   validateButton.onclick = () => {
+    resetTournamentData(); // Réinitialisation au début
     const tournamentName = document.getElementById('tournamentName')?.value.trim();
     if (!tournamentName) {
       showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
@@ -850,12 +867,8 @@ function setupSubmitHandlers() {
     }
     fetch("/api/tournament/new/", {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        tournament_name: tournamentName
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tournament_name: tournamentName }),
     })
     .then(response => response.json())
     .then(data => {
@@ -882,7 +895,7 @@ function setupSubmitHandlers() {
         const playerDiv = input.parentElement;
         return {
           name: input.value.trim(),
-          authenticated: index === 0 ? true : false, // Only the first player (host) is authenticated
+          authenticated: index === 0 ? true : false,
           guest: playerDiv?.getAttribute('data-is-guest') === 'true'
         };
       })
@@ -895,6 +908,7 @@ function setupSubmitHandlers() {
 
     localStorage.setItem("players", JSON.stringify(players));
     showModal('Success', 'Players saved successfully!', 'OK', () => {
+      logger.log("Players saved, moving to step 3");
       const step2 = document.getElementById('step2');
       const step3 = document.getElementById('step3');
       if (step2) step2.style.display = 'none';
@@ -913,11 +927,14 @@ function setupSubmitHandlers() {
     const pointsToWin = document.getElementById('pointsToWin')?.value;
     const tournamentId = localStorage.getItem("tournamentId");
 
+    if (!numberOfGames || !pointsToWin) {
+      showModal('Error', 'Please specify the number of games and points to win', 'OK', () => {});
+      return;
+    }
+
     fetch(`/api/tournament/finalize/${tournamentId}/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         players: players,
         number_of_games: numberOfGames,
@@ -929,7 +946,8 @@ function setupSubmitHandlers() {
       if (data.message) {
         logger.log("Tournament finalized:", data);
         showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
-          DisplayTournamentGame(); 
+          logger.log("Finalizing tournament, launching game");
+          DisplayTournamentGame();
         });
       } else {
         showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
@@ -942,7 +960,7 @@ function setupSubmitHandlers() {
   };
 }
 
-function handleError(error, message) {
+export function handleError(error, message) {
   logger.error(message, error);
   showModal(
     'Error',

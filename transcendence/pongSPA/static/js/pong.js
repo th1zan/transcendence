@@ -308,8 +308,11 @@ function update() {
   ball.x += ball.velocityX;
   ball.y += ball.velocityY;
 
-  if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-    ball.velocityY = -ball.velocityY;
+  if (ball.y + ball.radius > canvas.height) {
+    ball.velocityY = -Math.abs(ball.velocityY);
+  }
+  else if (ball.y - ball.radius < 0) {
+    ball.velocityY = Math.abs(ball.velocityY);
   }
 
   if (difficulty === "hard" && obstacle) {
@@ -324,7 +327,12 @@ function update() {
       ball.y + ball.radius > obstacle.y &&
       ball.y - ball.radius < obstacle.y + obstacle.height
     ) {
-      ball.velocityX = -ball.velocityX;
+      if (ball.x > canvas.width / 2) {
+        ball.velocityX = Math.abs(ball.velocityX);
+      }
+      else{
+        ball.velocityX = -Math.abs(ball.velocityX);
+      }
       exchangesPerSet++;
     }
   }
@@ -474,13 +482,13 @@ function displayResults(matchID) {
         <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
         <h3 class="mt-3">Game Summary:</h3>
         <table class="table table-sm"><tbody>
-          <tr><td><strong>Game</strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
-          <tr><td><strong>Score (sets)</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
-          <tr><td><strong>Winner</strong></td><td>${data.winner_name}</td></tr>
+          <tr><td><strong>Players: </strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
+          <tr><td><strong>Final Score (sets)</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
+          <tr><td><strong>Game Winner</strong></td><td>${data.winner_name}</td></tr>
         </tbody></table>
-        <h3 class="mt-3">Set Details:</h3>
+        <h3 class="mt-3">Set Results:</h3>
         <table class="table table-striped"><thead class="thead-dark">
-          <tr><th scope="col">Set n°</th><th scope="col">Score</th><th scope="col">Exchanges</th><th scope="col">Duration (s)</th></tr>
+          <tr><th scope="col">Set number</th><th scope="col">Set Score</th><th scope="col">Exchanges</th><th scope="col">Duration (s)</th></tr>
         </thead><tbody>
       `;
       if (data.sets && Array.isArray(data.sets)) {
@@ -528,7 +536,7 @@ function initGameObjects(gameCanvas) {
 
   if (difficulty === "hard") {
     // Ancienne ligne : // obstacle = { x: canvas.width / 2 - 5, y: canvas.height / 3, width: 20, height: paddleHeight, color: "GRAY" };
-    obstacle = { x: canvas.width / 2 - 5, y: canvas.height / 3, width: paddleWidth, height: paddleHeight, color: "GRAY" };
+    obstacle = { x: canvas.width / 2 - 5, y: canvas.height / 3, width: 20, height: paddleHeight, color: "GRAY" };
   } else obstacle = null;
 
   player = { x: 0, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, color: "WHITE", score: 0 };
@@ -694,7 +702,7 @@ function resetBall() {
     ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
   }
   collisionActive = false;
-  setTimeout(() => (collisionActive = true), 2000);
+  setTimeout(() => (collisionActive = true), 20);
 }
 
 async function sendScore() {
