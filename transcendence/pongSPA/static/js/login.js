@@ -32,7 +32,7 @@ export function displayConnectionFormular() {
                 id="password"
                 style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
-                placeholder=${i18next.t('login.enterPassword')}
+                placeholder="${i18next.t('login.enterPassword')}"
                 required
               />
             </div>

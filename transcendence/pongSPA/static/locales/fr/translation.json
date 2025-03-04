@@ -4,7 +4,7 @@
 	  },
 
 	"login": {
-		"welcomeBack": "Bon retour!",
+		"welcomeBack": "Bon retour",
 		"username": "Nom d'utilisateur",
 		"password": "Mot de passe",
 		"enterUsername": "Entrez votre nom d'utilisateur",
