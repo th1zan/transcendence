@@ -4,31 +4,30 @@ services:
   #********************************************************************************
   nginx:
     container_name: nginx
-    image: nginx:1.27.0
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
     restart:        always
     healthcheck:
       test: ["CMD", "curl", "-k", "-f", "https://localhost"]
-      # test:         ["CMD", "curl", "-f", "http://localhost"]
-      interval:     1m30s
-      timeout:      10s
-      retries:      3
-    command: ["/nginx.sh", "nginx", "-g", "daemon off;"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
-      gunicorn:
-        condition: service_started
-      daphne:
-        condition: service_started
+      - gunicorn
+      - daphne
     ports:
-      - 8443:443
+      - "80:80"
+      - "443:443"
     volumes:
       - nginx_ssl_vol:/ssl
       - ./transcendence/static_files:/static
       - ./transcendence/media:/media
-      - ${PWD}/docker/nginx/nginx.sh:/nginx.sh
-      - ${PWD}/docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - nginx_logs:/var/log/nginx
     networks:
-        - backend
-        - frontend
+      - frontend
+      - backend
   #********************************************************************************
   redis:
     container_name: redis
@@ -111,7 +110,6 @@ services:
   #********************************************************************************
 
   setup:
-    image: setup
     build:
       context: ./docker/ELK/setup
       dockerfile: Dockerfile
@@ -192,7 +190,7 @@ services:
         condition: service_healthy
     volumes:
       - certs:/usr/share/logstash/config/certs
-      - ../nginx/access.log:/usr/share/logstash/nginx/access.log
+      - nginx_logs:/usr/share/logstash/nginx/
     env_file:
       - .env
     networks:
@@ -206,6 +204,7 @@ volumes:
   certs:
   elasticsearch:
   kibana:
+  nginx_logs:
 
 
 networks:
