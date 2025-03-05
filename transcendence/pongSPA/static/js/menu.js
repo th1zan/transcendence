@@ -31,7 +31,7 @@ export async function displayMenu(avatarUrl = null) {
 
   const menuDiv = document.getElementById("menu");
   if (!menuDiv) {
-    logger.error("Élément #menu non trouvé dans le DOM");
+    logger.error("Element #menu not found in DOM");
     return;
   }
 

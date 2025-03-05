@@ -45,23 +45,23 @@ export function removeGameListeners() {
   if (handlePlayerKeyDown) {
     document.removeEventListener("keydown", handlePlayerKeyDown);
     handlePlayerKeyDown = null;
-    logger.log("Écouteur handlePlayerKeyDown supprimé");
+    logger.log("handlePlayerKeyDown listener removed");
   }
   if (handleOpponentKeyDown && mode === "multiplayer") {
     document.removeEventListener("keydown", handleOpponentKeyDown);
     handleOpponentKeyDown = null;
-    logger.log("Écouteur handleOpponentKeyDown supprimé");
+    logger.log("handleOpponentKeyDown listener removed");
   }
   if (canvas) {
     if (handlePlayerMouseMove) {
       canvas.removeEventListener("mousemove", handlePlayerMouseMove);
       handlePlayerMouseMove = null;
-      logger.log("Écouteur handlePlayerMouseMove supprimé");
+      logger.log("handlePlayerMouseMove listener removed");
     }
     if (handleOpponentMouseMove && mode === "multiplayer") {
       canvas.removeEventListener("mousemove", handleOpponentMouseMove);
       handleOpponentMouseMove = null;
-      logger.log("Écouteur handleOpponentMouseMove supprimé");
+      logger.log("handleOpponentMouseMove listener removed");
     }
   }
 }
@@ -100,7 +100,7 @@ function connectWebSocket(onOpenCallback = null) {
 
 function sendGameConfiguration() {
   if (ws && ws.readyState === WebSocket.OPEN) {
-    logger.log("Envoi des données de jeu au serveur...");
+    logger.log("Sending game data to server...");
     ws.send(
       JSON.stringify({
         type: "start",
@@ -115,7 +115,7 @@ function sendGameConfiguration() {
       })
     );
   } else {
-    logger.error("WebSocket non connecté, impossible d'envoyer la configuration");
+    logger.error("WebSocket not connected, unable to send configuration");
   }
 }
 
@@ -135,8 +135,8 @@ function startPongGame() {
     } else {
       logger.error("Failed to find canvas after maximum retries. Please check the DOM.");
       showModal(
-        "Error",
-        "Failed to start the game. The game canvas could not be found. Please refresh the page and try again.",
+        i18next.t("pong.error.title"),
+        i18next.t("pong.error.canvasNotFound"),
         "OK",
         () => {
           stopGameProcess();
@@ -169,7 +169,7 @@ function startPongGame() {
   initSetStats();
 
   if (ws && ws.readyState === WebSocket.OPEN) {
-    logger.log("Envoi des données de jeu au serveur...");
+    logger.log("Sending game data to server...");
     // Ancienne ligne : //ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
     ws.send(JSON.stringify({ type: "start", canvas_height: canvas.height, canvas_width: canvas.width, paddle_height: player.height, fps: fps, step: step, control: control1 }));
   }
@@ -190,7 +190,7 @@ function updateGamePanel() {
     if (!document.getElementById("quitGameButton")) {
       const quitButton = document.createElement("button");
       quitButton.id = "quitGameButton";
-      quitButton.textContent = "Quit Game";
+      quitButton.textContent = i18next.t("pong.quitGame");
       quitButton.classList = "btn btn-danger";
       quitButton.onclick = () => {
         stopGameProcess(true);
@@ -266,8 +266,8 @@ export function startGameSetup(gameSettings) {
   if (!canvas) {
     logger.error("Canvas creation failed. Cannot start the game.");
     showModal(
-      "Error",
-      "Failed to create the game canvas. Please refresh the page and try again.",
+      i18next.t("pong.error"),
+      i18next.t("pong.canvasCreation"),
       "OK",
       () => {
         navigateTo("welcome");
@@ -350,7 +350,6 @@ function update() {
       ball.speed *= factor;
       ball.velocityX *= factor;
       ball.velocityY *= factor;
-      if (difficulty === "medium") logger.log("vitesse de la balle:", ball.speed);
     }
     exchangesPerSet++;
   }
@@ -386,7 +385,7 @@ function updateResults() {
       summaryElement.id = "summary";
       resultDiv.appendChild(summaryElement);
     }
-    let summary = `<h3 class="mb-3">Set History:</h3><table class="table table-striped"><thead class="thead-dark"><tr><th scope="col">Set n°</th><th scope="col">${player1}</th><th scope="col">${player2}</th></tr></thead><tbody>`;
+    let summary = `<h3 class="mb-3">${i18next.t("pong.setHistory")}:</h3><table class="table table-striped"><thead class="thead-dark"><tr><th scope="col">${i18next.t("pong.setNumber")}</th><th scope="col">${player1}</th><th scope="col">${player2}</th></tr></thead><tbody>`;
     setHistory.forEach((set, index) => {
       summary += `<tr><td>${index + 1}</td><td>${set.player1_score}</td><td>${set.player2_score}</td></tr>`;
     });
@@ -404,7 +403,7 @@ function handleGameEnd(winner) {
     let countdownValue = 3;
     
     // Message initial pour le modal
-    const initialMessage = `${winner} wins this set! Starting the next set in ${countdownValue} seconds...`;
+    const initialMessage = i18next.t("pong.setWinner", { winner, countdown: countdownValue });
     
     // Fonction pour démarrer le prochain set
     const startNextSet = () => {
@@ -427,8 +426,8 @@ function handleGameEnd(winner) {
       else {
         logger.error("Failed to initialize canvas for next set.");
         showModal(
-          "Error",
-          "Failed to start the next set. The game canvas could not be initialized.",
+          i18next.t("pong.error"),
+          i18next.t("pong.nextSetCanvas"),
           "OK",
           () => {
             stopGameProcess();
@@ -440,9 +439,9 @@ function handleGameEnd(winner) {
     
     // Afficher le modal
     showModal(
-      "Set's End",
+      i18next.t("pong.setEnd"),
       initialMessage,
-      "Start Now",
+      i18next.t("pong.startNow"),
       startNextSet
     );
     
@@ -450,7 +449,7 @@ function handleGameEnd(winner) {
     const updateCountdown = () => {
       const bodyElement = document.getElementById('oneButtonModalBody');
       if (bodyElement) {
-        bodyElement.textContent = `${winner} wins this set! Starting the next set in ${countdownValue} seconds...`;
+        bodyElement.textContent = i18next.t("pong.setWinner", { winner, countdown: countdownValue });
       }
     };
     
@@ -478,8 +477,8 @@ function handleGameEnd(winner) {
         logger.error("Error in game end processing:", error);
         stopGameProcess(true); // Appelé même en cas d'erreur
         showModal(
-          "Error",
-          "An error occurred while processing the game end: " + error.message,
+          i18next.t("pong.error"),
+          i18next.t("pong.gameEndProcessing", { error: error.message }),
           "OK",
           () => {
             stopGameProcess();
@@ -572,20 +571,20 @@ function displayResults(matchID) {
     })
     .then((data) => {
       logger.log("displayResults .then:: isTournamentMatch:", isTournamentMatch);
-      const buttonText = isTournamentMatch ? "Back to Tournament" : "New Game";
+      const buttonText = isTournamentMatch ? i18next.t("pong.backToTournament") : i18next.t("pong.newGame");
       logger.log("displayResults::.then buttonText:", buttonText);
 
       let summary = `
         <button id="backButton" class="btn btn-primary mb-3">${buttonText}</button>
-        <h3 class="mt-3">Game Summary:</h3>
+        <h3 class="mt-3">${i18next.t("pong.gameSummary")}:</h3>
         <table class="table table-sm"><tbody>
-          <tr><td><strong>Players: </strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
-          <tr><td><strong>Final Score (sets)</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
-          <tr><td><strong>Game Winner</strong></td><td>${data.winner_name}</td></tr>
+          <tr><td><strong>${i18next.t("pong.players")}: </strong></td><td>${data.player1_name} vs ${data.player2_name}</td></tr>
+          <tr><td><strong>${i18next.t("pong.finalScore")}</strong></td><td>${data.player1_sets_won} : ${data.player2_sets_won}</td></tr>
+          <tr><td><strong>${i18next.t("pong.gameWinner")}</strong></td><td>${data.winner_name}</td></tr>
         </tbody></table>
-        <h3 class="mt-3">Set Results:</h3>
+        <h3 class="mt-3">${i18next.t("pong.setResults")}:</h3>
         <table class="table table-striped"><thead class="thead-dark">
-          <tr><th scope="col">Set number</th><th scope="col">Set Score</th><th scope="col">Exchanges</th><th scope="col">Duration (s)</th></tr>
+          <tr><th scope="col">${i18next.t("pong.setNumber")}</th><th scope="col">${i18next.t("pong.setScore")}</th><th scope="col">${i18next.t("pong.exchanges")}</th><th scope="col">${i18next.t("pong.duration")}</th></tr>
         </thead><tbody>
       `;
       if (data.sets && Array.isArray(data.sets)) {
@@ -595,7 +594,7 @@ function displayResults(matchID) {
           `;
         });
       } else {
-        summary += `<tr><td colspan="2">No sets recorded.</td></tr>`;
+        summary += `<tr><td colspan="2">${i18next.t("pong.noSets")}</td></tr>`;
       }
       summary += "</tbody></table>";
 

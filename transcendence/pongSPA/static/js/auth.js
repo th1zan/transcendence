@@ -152,8 +152,8 @@ export function verifyOTP() {
   const otpCode = document.getElementById("otpInput").value.trim();
   if (!otpCode) {
     showModal(
-      'Warning',
-      'Please enter the OTP code.',
+      i18next.t('auth.warning'),
+      i18next.t('auth.enterOTPCode'),
       'OK',
       () => {}
     );
@@ -173,8 +173,8 @@ export function verifyOTP() {
 
       if (data.message === "2FA successfully enabled.") {
         showModal(
-          'Success',
-          '✅ 2FA enabled successfully!',
+          i18next.t('auth.success'),
+          i18next.t('auth.twoFAEnabled'),
           'OK',
           () => {
             // Hide the OTP section again
@@ -184,15 +184,15 @@ export function verifyOTP() {
         );
       } else if (data.error) {
         showModal(
-          'Error',
+          i18next.t('auth.error'),
           `❌ ${data.error}`,
           'OK',
           () => {}
         );
       } else {
         showModal(
-          'Error',
-          '❌ Unknown error verifying OTP.',
+          i18next.t('auth.error'),
+          i18next.t('auth.unknownOTPError'),
           'OK',
           () => {}
         );
@@ -201,8 +201,8 @@ export function verifyOTP() {
     .catch(error => {
       logger.error("Error verifying OTP for 2FA:", error);
       showModal(
-        'Error',
-        'Error verifying OTP: ' + error.message,
+        i18next.t('auth.error'),
+        i18next.t('auth.verifyingOTPError') + error.message,
         'OK',
         () => {}
       );
@@ -217,8 +217,8 @@ export function verify2FALogin() {
 
   if (!otp_code) {
     showModal(
-      'Warning',
-      'Please enter the OTP code.',
+      i18next.t('auth.warning'),
+      i18next.t('auth.enterOTPCode'),
       'OK',
       () => {}
     );
@@ -236,8 +236,8 @@ export function verify2FALogin() {
       logger.log("🔹 Verify 2FA Login response:", data);
       if (data.success) {
         showModal(
-          'Success',
-          '✅ 2FA verified! Redirecting...',
+          i18next.t('auth.success'),
+          i18next.t('auth.twoFAVerified'),
           'OK',
           () => {
             // Set the username in localStorage so the welcome page can use it
@@ -250,8 +250,8 @@ export function verify2FALogin() {
         );
       } else {
         showModal(
-          'Error',
-          '❌ Invalid OTP. Try again.',
+          i18next.t('auth.error'),
+          i18next.t('auth.invalidOTP'),
           'OK',
           () => {}
         );
@@ -280,13 +280,13 @@ export function update2FAStatus() {
       }
 
       if (user.is_2fa_enabled) {
-        statusElement.innerText = "2FA is Enabled ✅";
-        toggleButton.innerText = "Disable 2FA";
+        statusElement.innerText = i18next.t('auth.twoFAEnabled');
+        toggleButton.innerText = i18next.t('auth.disableTwoFA');
         toggleButton.classList.remove("btn-success");
         toggleButton.classList.add("btn-danger");
       } else {
-        statusElement.innerText = "2FA is Disabled ❌";
-        toggleButton.innerText = "Enable 2FA";
+        statusElement.innerText = i18next.t('auth.twoFADisabled');
+        toggleButton.innerText = i18next.t('auth.enableTwoFA');
         toggleButton.classList.remove("btn-danger");
         toggleButton.classList.add("btn-success");
       }
@@ -309,12 +309,12 @@ export async function logout() {
     });
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || "Logout request failed.");
+      throw new Error(errorData.error || i18next.t('auth.logoutRequestFailed'));
     }
     logger.log("✅ Logout successful!");
     showModal(
-      'Success',
-      'Logout successful!',
+      i18next.t('auth.success'),
+      i18next.t('auth.logoutSuccessful'),
       'OK',
       () => {
         localStorage.clear(); // Clear all user data
@@ -324,8 +324,8 @@ export async function logout() {
   } catch (error) {
     logger.error("Logout failed:", error);
     showModal(
-      'Error',
-      'An error occurred during logout: ' + error.message,
+      i18next.t('auth.error'),
+      i18next.t('auth.logoutError') + error.message,
       'OK',
       () => {}
     );
@@ -352,8 +352,8 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
     .then((data) => {
       if (data.success) {
         showModal(
-          'Success',
-          'Account created successfully. You can now log in.',
+          i18next.t('auth.success'),
+          i18next.t('auth.accountCreated'),
           'OK',
           () => {
             displayConnectionFormular();
@@ -361,8 +361,8 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
         );
       } else {
         showModal(
-          'Error',
-          'Error creating account. Please try again.',
+          i18next.t('auth.error'),
+          i18next.t('auth.accountCreationError'),
           'OK',
           () => {}
         );
@@ -380,7 +380,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
         }
       }
       showModal(
-        'Error',
+        i18next.t('auth.error'),
         errorMessage,
         'OK',
         () => {}
@@ -423,8 +423,8 @@ export function getToken(username, password) {
         if (!otpSection || !otpInput || !loginForm) {
           logger.error("OTP section/input or login form not found in DOM!");
           showModal(
-            'Error',
-            'Something went wrong. Please refresh the page and try again.',
+            i18next.t('auth.error'),
+            i18next.t('auth.refreshAndRetry'),
             'OK',
             () => {}
           );
@@ -453,8 +453,8 @@ export function getToken(username, password) {
     .catch(error => {
       logger.error("Login failed:", error);
       showModal(
-        'Error',
-        `Login failed: ${error.message}`,
+        i18next.t('auth.error'),
+        i18next.t('auth.loginFailed') + error.message,
         'OK',
         () => {}
       );

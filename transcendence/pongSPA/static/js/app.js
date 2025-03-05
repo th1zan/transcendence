@@ -124,8 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!refreshed) {
       logger.warn('Interval refresh failed, consider re-authenticating.');
       showModal(
-        'Warning',
-        'Your session may have expired or the token is blacklisted. Please log in again.',
+        i18next.t('app.warning'),
+        i18next.t('app.sessionExpired'),
         'OK',
         () => navigateTo('login')
       );
@@ -178,7 +178,7 @@ export function navigateTo(route) {
   // Delete (blur) the focus (it can be lost sometimes)
   setTimeout(() => {
     document.activeElement.blur();
-    logger.log("Focus retiré après navigation vers:", route);
+    logger.log("Focus removed after navigation to:", route);
   }, 50);
 }
 
@@ -193,8 +193,8 @@ function handleRouteChange(route) {
   if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
     logger.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
     showModal(
-      'Error',
-      'An authentication error occurred. Please refresh the page or log in again.',
+      i18next.t('app.error'),
+      i18next.t('app.authError'),
       'OK',
       () => navigateTo('login')
     );
@@ -337,7 +337,7 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   // Action button
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
-    actionButton.textContent = actionText || 'Close';
+    actionButton.textContent = actionText || i18next.t('app.close');
 
     // Supprimer l’ancien listener s’il existe
     if (actionButton._handler) {
@@ -359,15 +359,15 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
           focusTarget = document.getElementById(focusElementId);
           if (focusTarget) {
             focusTarget.focus();
-            logger.log(`Focus restauré sur ${focusElementId}`);
+            logger.log(`Focus restored on ${focusElementId}`);
             return;
           } else {
-            logger.warn(`Élément spécifié ${focusElementId} non trouvé pour le focus`);
+            logger.warn(`Specified element ${focusElementId} not found for focus`);
           }
         }
 
         document.activeElement.blur();
-        logger.log("Focus retiré après fermeture de la modale");
+        logger.log("Focus removed after modal closed");
       }, 50);
     };
 

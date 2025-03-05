@@ -151,14 +151,14 @@ export function displayRegistrationForm() {
     .getElementById("signupForm")
     .addEventListener("submit", function (event) {
       event.preventDefault();
-      logger.log('Formulaire soumis, vérification de privacyPolicyAccepted...');
+      logger.log('Form submitted, checking privacyPolicyAccepted...');
       const newUsername = document.getElementById("newUsername").value;
       const newPassword = document.getElementById("newPassword").value;
       const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
 
       if (!privacyPolicyAccepted) {
-      logger.log('Tentative d’affichage de la modale...');
-      showModal(
+        logger.log('Attempting to display modal...');
+        showModal(
         i18next.t('register.privacyRequired'),
         i18next.t('register.mustAcceptPolicy'),
         'OK',
