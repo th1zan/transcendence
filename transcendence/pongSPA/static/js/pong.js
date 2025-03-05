@@ -24,7 +24,7 @@ let mode = "solo";
 let isTournamentMatch = false;
 
 let fps = 50;
-let step = 10;
+let step = 20;
 
 let exchangesPerSet = 0;
 let setStartTime = null;

@@ -283,10 +283,40 @@ export function displayGameForm() {
     gameSettings.numberOfGames = parseInt(this.value);
   });
 
+  document.getElementById("numberOfGames").addEventListener("blur", function() {
+    if (gameSettings.numberOfGames === "" || isNaN(gameSettings.numberOfGames)){
+      gameSettings.numberOfGames = 1;
+      this.value = 1;  
+    }
+    else if (gameSettings.numberOfGames < 1) {
+      gameSettings.numberOfGames = 1;
+      this.value = 1;
+    }
+    else if (gameSettings.numberOfGames > 5) {
+      gameSettings.numberOfGames = 5;
+      this.value = 5;
+    }
+  });
+
   document.getElementById("setsPerGame").addEventListener("input", function() {
     gameSettings.setsPerGame = parseInt(this.value);
   });
 
+  document.getElementById("setsPerGame").addEventListener("blur", function() {
+    if (this.value === "" || isNaN(gameSettings.setsPerGame)) {
+      gameSettings.setsPerGame = 3;
+      this.value = 3;
+    }
+    else if (gameSettings.setsPerGame < 1) {
+      gameSettings.setsPerGame = 1;
+      this.value = 1;
+    }
+    else if (gameSettings.setsPerGame > 5) {
+      gameSettings.setsPerGame = 5;
+      this.value = 5;
+    }
+  });
+  
   document.getElementById("player2").addEventListener("input", function() {
     gameSettings.player2 = this.value;
   });
@@ -329,9 +359,10 @@ export function displayGameForm() {
   document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
     let player2 = document.getElementById("player2").value.trim();
-    const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
-    const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
-
+    
+    document.getElementById("numberOfGames").dispatchEvent(new Event('blur'));
+    document.getElementById("setsPerGame").dispatchEvent(new Event('blur'));
+  
     logger.log("Start button clicked");
     logger.log("Game settings at start:", gameSettings);
 
