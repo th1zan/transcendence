@@ -24,7 +24,7 @@ let mode = "solo";
 let isTournamentMatch = false;
 
 let fps = 50;
-let step = 10;
+let step = 20;
 
 let exchangesPerSet = 0;
 let setStartTime = null;
@@ -399,6 +399,102 @@ function handleGameEnd(winner) {
   clearInterval(gameInterval);
   currentGame++;
   updateResults();
+  
+  if (currentGame < numberOfGames) {
+    let countdownValue = 3;
+    
+    // Message initial pour le modal
+    const initialMessage = `${winner} wins this set! Starting the next set in ${countdownValue} seconds...`;
+    
+    // Fonction pour démarrer le prochain set
+    const startNextSet = () => {
+      clearInterval(countdownInterval);
+      resetScores();
+      initSetStats();
+      updateResults();
+      let canvas = document.getElementById("pong");
+      if (!canvas) {
+        logger.warn("Canvas not found after modal closure. Recreating canvas.");
+        const appMain = document.getElementById("app_main");
+        if (!appMain.querySelector("#pong")) appMain.innerHTML = `
+            <div class="card text-center" style="background-color: rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; border-radius: 10px; padding: 10px; margin: 0 auto; width: fit-content;">
+              <canvas id="pong" width="800" height="400"></canvas>
+            </div>
+        `;
+        canvas = document.getElementById("pong");
+      }
+      if (canvas) requestAnimationFrame(() => startPongGame());
+      else {
+        logger.error("Failed to initialize canvas for next set.");
+        showModal(
+          "Error",
+          "Failed to start the next set. The game canvas could not be initialized.",
+          "OK",
+          () => {
+            stopGameProcess();
+            navigateTo("game");
+          }
+        );
+      }
+    };
+    
+    // Afficher le modal
+    showModal(
+      "Set's End",
+      initialMessage,
+      "Start Now",
+      startNextSet
+    );
+    
+    // Actualiser le message avec le compte à rebours
+    const updateCountdown = () => {
+      const bodyElement = document.getElementById('oneButtonModalBody');
+      if (bodyElement) {
+        bodyElement.textContent = `${winner} wins this set! Starting the next set in ${countdownValue} seconds...`;
+      }
+    };
+    
+    // Démarrer le compte à rebours
+    const countdownInterval = setInterval(() => {
+      countdownValue--;
+      updateCountdown();
+      
+      if (countdownValue <= 0) {
+        clearInterval(countdownInterval);
+        // Déclencher le bouton d'action
+        const actionButton = document.getElementById('oneButtonModalAction');
+        if (actionButton && actionButton._handler) {
+          actionButton._handler();
+        }
+      }
+    }, 1000);
+  } else {
+    sendScore()
+      .then((matchID) => {
+        stopGameProcess(true); // Toujours appelé
+        displayResults(matchID);
+      })
+      .catch((error) => {
+        logger.error("Error in game end processing:", error);
+        stopGameProcess(true); // Appelé même en cas d'erreur
+        showModal(
+          "Error",
+          "An error occurred while processing the game end: " + error.message,
+          "OK",
+          () => {
+            stopGameProcess();
+            navigateTo("game")
+          }
+        );
+      });
+  }
+}
+
+/*
+function handleGameEnd(winner) {
+  clearInterval(gameInterval);
+  currentGame++;
+  updateResults();
   if (currentGame < numberOfGames) {
     showModal(
       "Set's End",
@@ -455,6 +551,7 @@ function handleGameEnd(winner) {
       });
   }
 }
+*/
 
 function displayResults(matchID) {
   logger.log("displayResults:: isTournamentMatch:", isTournamentMatch);
