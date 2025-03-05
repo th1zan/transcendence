@@ -12,7 +12,6 @@
 		"backToLogin": "Retour à la connexion",
 		"createAccount": "Créer un compte"
 	  },
-
 	"register": {
 		"createAccount": "Créer un compte",
 		"username": "Nom d'utilisateur",
@@ -36,7 +35,6 @@
 		"settings": "Paramètres",
 		"logout": "Déconnexion"
 	},
-	
 	"welcome": {
 		"title": "Bienvenue, {{username}} !",
 		"profilePictureAlt": "Photo de profil de l'utilisateur",
@@ -74,7 +72,7 @@
 		"processingTitle": "Traitement en cours",
 		"processingMsg": "Suppression du joueur, veuillez patienter...",
 		"tournamentDeletedTitle": "Tournoi supprimé",
-		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait.",
+		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait."
 	},
 	"app": {
 		"warning": "Avertissement",
@@ -193,6 +191,6 @@
 		"exchanges": "Échanges",
 		"duration": "Durée (s)",
 		"noSets": "Aucune manche enregistrée."
-  }
+	}
   }
   
