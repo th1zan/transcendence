@@ -66,7 +66,29 @@
 	  "errorTitle": "Error",
 	  "acceptButton": "Accept",
 	  "declineButton": "Decline",
-	  "confirmParticipation": "Confirm Participation"
-	}
+	  "confirmParticipation": "Confirm",
+    "removePlayerConfirmationTitle": "Confirm Player Removal",
+    "removePlayerConfirmationMsg": "Are you sure you want to remove this player from the tournament? This will delete their matches.",
+    "removeFailed": "Failed to remove player",
+    "removeErrorMsg": "An error occurred while removing the player. Ensure you have the necessary permissions and try again."
+    "processingTitle": "Processing",
+    "processingMsg": "Removing player, please wait...",
+    "tournamentDeletedTitle": "Tournament Removed",
+    "tournamentDeletedMsg": "The tournament was deleted because it had no matches or only the organizer remained.",
+	  "removeInvitation": "Remove",
+    "processingTitle": "Processing",
+    "processingMsg": "Removing player, please wait...",
+    "tournamentDeletedTitle": "Tournament Removed",
+    "tournamentDeletedMsg": "The tournament was deleted because it had no matches or only the organizer remained.",
+    "removeInvitation": "Remove",
+    "organizerRequiredTitle": "Organizer Required",
+    "organizerRequiredMsg": "Only the tournament organizer can start a match.",
+    "authRequiredTitle": "Authentication Required",
+    "matchNotFoundTitle": "Match Not Found",
+    "matchNotFoundMsg": "The requested match was not found.",
+    "errorMsg": "An unexpected error occurred: {{detail}}",
+    "networkErrorTitle": "Network Error",
+    "networkErrorMsg": "A network error occurred. Please check your connection and try again."
+  }
   }
   

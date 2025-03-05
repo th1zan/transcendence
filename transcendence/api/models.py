@@ -119,12 +119,12 @@ class Tournament(models.Model):
     number_of_games = models.IntegerField(default=1)
     points_to_win = models.IntegerField(default=3)
     is_finished = models.BooleanField(default=False)
-    is_finalized = models.BooleanField(
-        default=False
-    )  # New field to track if the tournament has been finalized
+    is_finalized = models.BooleanField(default=False)
+    organizer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def is_tournament_finished(self):
-        # Tous les matchs du tournoi doivent avoir été joués pour que le tournoi soit considéré comme terminé
         return all(match.is_match_played() for match in self.matches.all())
 
     def __str__(self):
