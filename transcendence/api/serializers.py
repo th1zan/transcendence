@@ -22,6 +22,7 @@ from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
 #
 class TournamentSerializer(serializers.ModelSerializer):
     players = serializers.SerializerMethodField()
+    organizer = serializers.PrimaryKeyRelatedField(read_only=True)  # Ajout optionnel
 
     class Meta:
         model = Tournament
@@ -33,10 +34,10 @@ class TournamentSerializer(serializers.ModelSerializer):
             "points_to_win",
             "is_finished",
             "players",
+            "organizer",  # Ajouté
         ]
 
     def get_players(self, obj):
-        # Fetch all TournamentPlayer instances for this tournament and serialize them
         tournament_players = TournamentPlayer.objects.filter(tournament=obj)
         return TournamentPlayerSerializer(tournament_players, many=True).data
 
@@ -196,11 +197,11 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
     def validate_current_password(self, value):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if not user.check_password(value):
             raise serializers.ValidationError("Current password is incorrect.")
         return value
-        
+
     def validate_new_password(self, value):
         # for dev phase, remove later
         # if len(value) < 3:
@@ -209,17 +210,27 @@ class ChangePasswordSerializer(serializers.Serializer):
         #     )
         # Check for minimum length
         if len(value) < 8:
-            raise serializers.ValidationError("The password must contain at least 8 characters.")
+            raise serializers.ValidationError(
+                "The password must contain at least 8 characters."
+            )
         # Check for at least one digit
         if not re.search(r"\d", value):
-            raise serializers.ValidationError("The password must contain at least one digit.")
+            raise serializers.ValidationError(
+                "The password must contain at least one digit."
+            )
         # Check for at least one uppercase letter
         if not re.search(r"[A-Z]", value):
-            raise serializers.ValidationError("The password must contain at least one uppercase letter.")
+            raise serializers.ValidationError(
+                "The password must contain at least one uppercase letter."
+            )
         # Check for at least one lowercase letter
         if not re.search(r"[a-z]", value):
-            raise serializers.ValidationError("The password must contain at least one lowercase letter.")
+            raise serializers.ValidationError(
+                "The password must contain at least one lowercase letter."
+            )
         # Check for at least one special character
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
-            raise serializers.ValidationError("The password must contain at least one special character.")
+            raise serializers.ValidationError(
+                "The password must contain at least one special character."
+            )
         return value

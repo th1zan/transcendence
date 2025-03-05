@@ -63,18 +63,27 @@
 		"successTitle": "Success",
 		"participationConfirmedMsg": "You have successfully confirmed your participation in the tournament.",
 		"failedToConfirm": "Failed to confirm participation",
-		"errorTitle": "Error",
+		"errorTitle": "Error", 
 		"acceptButton": "Accept",
 		"declineButton": "Decline",
-		"confirmParticipation": "Confirm Participation"
-	},
+		"confirmParticipation": "Confirm",
+		"removePlayerConfirmationTitle": "Confirm Player Removal",
+		"removePlayerConfirmationMsg": "Are you sure you want to remove this player from the tournament? This will delete their matches.",
+		"removeFailed": "Failed to remove player",
+		"removeErrorMsg": "An error occurred while removing the player. Ensure you have the necessary permissions and try again.",
+		"processingTitle": "Processing",
+		"processingMsg": "Removing player, please wait...",
+		"tournamentDeletedTitle": "Tournament Removed",
+		"tournamentDeletedMsg": "The tournament was deleted because it had no matches or only the organizer remained.",
+		"removeInvitation": "Remove"
+		},
 	"app": {
 		"warning": "Warning",
 		"error": "Error",
 		"sessionExpired": "Your session may have expired or the token is blacklisted. Please log in again.",
 		"authError": "An authentication error occurred. Please refresh the page or log in again.",
 		"close": "Close"
-	  },
+	},
 	"auth": {
 		"warning": "Warning",
 		"success": "Success",

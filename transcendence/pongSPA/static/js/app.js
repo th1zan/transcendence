@@ -36,6 +36,7 @@ export function changeLanguage(lang) {
       console.error("Error changing language :", err);
       } else {
         logger.log('Language changed to', lang);
+        loadPrivacyPolicyModal();
         const currentRoute = window.location.hash.replace('#', '') || 'welcome';
         handleRouteChange(currentRoute);
       }

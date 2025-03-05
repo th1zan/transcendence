@@ -1,3 +1,4 @@
+import { showModalConfirmation } from "./auth.js";
 import { showModal, logger } from "./app.js";
 import { respondToFriendRequest } from "./friends.js";
 
@@ -104,9 +105,12 @@ function fetchPendingTournamentAuthentications() {
           const listItem = document.createElement("li");
           listItem.className = "list-group-item d-flex justify-content-between align-items-center";
           listItem.innerHTML = `
-          <span>${tournament.tournament_name} (as ${tournament.player_name})</span>
-          <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">${i18next.t('welcome.confirmParticipation')}</button>
-        `;
+            <span>${tournament.tournament_name} (as ${tournament.player_name})</span>
+            <div>
+              <button class="btn btn-primary btn-sm confirm-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">${i18next.t('welcome.confirmParticipation')}</button>
+              <button class="btn btn-danger btn-sm remove-auth" data-tournament-id="${tournament.tournament_id}" data-player-name="${tournament.player_name}">${i18next.t('welcome.removeInvitation')}</button>
+            </div>
+          `;
           authList.appendChild(listItem);
         });
 
@@ -118,6 +122,15 @@ function fetchPendingTournamentAuthentications() {
             confirmTournamentParticipation(tournamentId, playerName);
           });
         });
+
+        // Ajouter des événements pour les boutons "Remove Invitation"
+        document.querySelectorAll(".remove-auth").forEach(button => {
+          button.addEventListener("click", event => {
+            const tournamentId = event.target.getAttribute("data-tournament-id");
+            const playerName = event.target.getAttribute("data-player-name");
+            removePlayerFromTournament(tournamentId, playerName);
+          });
+        });
       } else {
         authList.innerHTML = `<li class="list-group-item text-center bg-transparent border border-white" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.noPendingTournament')}</li>`;
       }
@@ -127,6 +140,55 @@ function fetchPendingTournamentAuthentications() {
       const authList = document.getElementById("pendingTournamentAuthentications");
       authList.innerHTML = `<li class="list-group-item text-center text-danger" style="font-family: 'Press Start 2P', cursive; font-size: 10px;">${i18next.t('welcome.errorLoadingTournamentAuth')}</li>`;
     });
+}
+
+// Fonction pour supprimer une invitation et rafraîchir la liste
+function removePlayerFromTournament(tournamentId, playerName) {
+  logger.log("in removePlayerFromTournament:: tournament id: ", tournamentId, " playerName: ", playerName);
+
+  showModalConfirmation(
+    i18next.t('welcome.removePlayerConfirmationMsg'), // "Are you sure you want to remove this player?"
+    i18next.t('welcome.removePlayerConfirmationTitle') // "Confirm Removal"
+  ).then((confirmed) => {
+    if (confirmed) {
+      showModal(
+        i18next.t('welcome.processingTitle'), // "Processing"
+        i18next.t('welcome.processingMsg'), // "Please wait..."
+        "OK",
+        () => {
+          fetch(`/api/tournament/${tournamentId}/remove-player-matches/${encodeURIComponent(playerName)}/`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then(response => {
+              if (!response.ok) throw new Error(i18next.t('welcome.removeFailed') + ": " + response.status);
+              return response.json();
+            })
+            .then(data => {
+              logger.log(`Player ${playerName} removed from tournament ${tournamentId}`);
+              if (data.tournament_deleted) {
+                showModal(
+                  i18next.t('welcome.tournamentDeletedTitle'), // "Tournament Deleted"
+                  i18next.t('welcome.tournamentDeletedMsg'), // "The tournament has been deleted"
+                  "OK",
+                  () => {}
+                );
+              }
+              // Rafraîchir la liste des authentifications en attente
+              fetchPendingTournamentAuthentications();
+            })
+            .catch(error => {
+              logger.error("Error removing player:", error);
+              showModal(i18next.t('welcome.errorTitle'), i18next.t('welcome.removeErrorMsg'), "OK", () => {});
+            });
+        },
+        null
+      );
+    }
+  });
 }
 
 function confirmTournamentParticipation(tournamentId, playerName) {

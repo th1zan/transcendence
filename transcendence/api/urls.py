@@ -2,52 +2,30 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 
-from .views.auth_views import (
-    AuthenticateMatchPlayerView,
-    AuthenticateTournamentPlayerView,
-    CustomTokenObtainPairView,
-    CustomTokenRefreshView,
-    CustomTokenValidateView,
-    LogoutView,
-    Session2FAView,
-    Toggle2FAView,
-    Verify2FALoginView,
-)
-from .views.friend_views import (
-    FriendsOnlineStatusView,
-    ListFriendsView,
-    RemoveFriendView,
-    RespondToFriendRequestView,
-    SendFriendRequestView,
-    ViewFriendRequestsView,
-)
-from .views.match_views import (
-    PongMatchDetail,
-    PongMatchList,
-    PongScoreView,
-    RankingView,
-    check_player_exists,
-    check_user_exists,
-)
-from .views.tournament_views import (
-    ConfirmTournamentParticipationView,
-    PendingTournamentAuthenticationsView,
-    TournamentCreationView,
-    TournamentFinalizationView,
-    TournamentMatchesView,
-    TournamentPlayersView,
-    TournamentSearchView,
-    UserTournamentsView,
-)
-from .views.user_views import (
-    AnonymizeAccountView,
-    ChangePasswordView,
-    DeleteAccountView,
-    DeleteAvatarView,
-    UploadAvatarView,
-    UserDetailView,
-    UserRegisterView,
-)
+from .views.auth_views import (AuthenticateMatchPlayerView,
+                               AuthenticateTournamentPlayerView,
+                               CustomTokenObtainPairView,
+                               CustomTokenRefreshView, CustomTokenValidateView,
+                               LogoutView, Session2FAView, Toggle2FAView,
+                               Verify2FALoginView)
+from .views.friend_views import (FriendsOnlineStatusView, ListFriendsView,
+                                 RemoveFriendView, RespondToFriendRequestView,
+                                 SendFriendRequestView, ViewFriendRequestsView)
+from .views.match_views import (PongMatchDetail, PongMatchList, PongScoreView,
+                                RankingView, check_player_exists,
+                                check_user_exists)
+from .views.tournament_views import (ConfirmTournamentParticipationView,
+                                     PendingTournamentAuthenticationsView,
+                                     RemovePlayerMatchesView, StartMatchView,
+                                     TournamentCreationView,
+                                     TournamentFinalizationView,
+                                     TournamentMatchesView,
+                                     TournamentPlayersView,
+                                     TournamentSearchView, UserTournamentsView)
+from .views.user_views import (AnonymizeAccountView, ChangePasswordView,
+                               DeleteAccountView, DeleteAvatarView,
+                               UploadAvatarView, UserDetailView,
+                               UserRegisterView)
 
 urlpatterns = [
     # Authentification API
@@ -141,6 +119,16 @@ urlpatterns = [
         "user/tournaments/",
         UserTournamentsView.as_view(),
         name="user-tournaments",
+    ),
+    path(
+        "tournament/<int:tournament_id>/remove-player-matches/<str:player_name>/",
+        RemovePlayerMatchesView.as_view(),
+        name="remove_player_matches",
+    ),
+    path(
+        "tournament/start-match/<int:match_id>/",
+        StartMatchView.as_view(),
+        name="start-match",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
