@@ -70,7 +70,7 @@
     "removePlayerConfirmationTitle": "Confirm Player Removal",
     "removePlayerConfirmationMsg": "Are you sure you want to remove this player from the tournament? This will delete their matches.",
     "removeFailed": "Failed to remove player",
-    "removeErrorMsg": "An error occurred while removing the player. Ensure you have the necessary permissions and try again."
+    "removeErrorMsg": "An error occurred while removing the player. Ensure you have the necessary permissions and try again.",
     "processingTitle": "Processing",
     "processingMsg": "Removing player, please wait...",
     "tournamentDeletedTitle": "Tournament Removed",
