@@ -1,6 +1,7 @@
 import { navigateTo, showModal, logger } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
 import { displayGameForm } from "./gameForm.js";
+import { initSounds, playSound, toggleSound } from "./sounds.js";
 
 export let gameInterval;
 
@@ -22,6 +23,8 @@ let difficulty = "easy";
 let mode = "solo";
 let isTournamentMatch = false;
 
+let collisionActive = false;
+
 let fps = 50;
 let step = 20;
 
@@ -37,6 +40,8 @@ let handlePlayerKeyDown = null;
 let handleOpponentKeyDown = null;
 let handlePlayerMouseMove = null;
 let handleOpponentMouseMove = null;
+
+window.isSoundOn = false;
 
 // Export d'une fonction pour supprimer les écouteurs
 export function removeGameListeners() {
@@ -125,6 +130,8 @@ function startPongGame() {
   logger.log("Starting game, initGameObjects called");
   const canvas = document.getElementById("pong");
 
+  initSounds();
+
   if (!canvas) {
     if (retryCount < MAX_RETRIES) {
       logger.warn(`Canvas not found. Retry ${retryCount + 1}/${MAX_RETRIES} in 100 ms.`);
@@ -152,6 +159,8 @@ function startPongGame() {
   logger.log("Canvas context obtained:", cnv_context !== null);
 
   initGameObjects(canvas);
+  collisionActive = false;
+  setTimeout(() => (collisionActive = true), 500);
   logger.log("Game objects initialized");
   resetScores();
   logger.log("Scores reset");
@@ -186,6 +195,11 @@ function updateGamePanel() {
 
     gamePanel.innerHTML = `<div id="summary"></div>`;
 
+    const buttonsDiv = document.createElement("div");
+    buttonsDiv.className = "d-flex justify-content-between mt-3";
+    gamePanel.appendChild(buttonsDiv);
+
+    // Bouton Quitter
     if (!document.getElementById("quitGameButton")) {
       const quitButton = document.createElement("button");
       quitButton.id = "quitGameButton";
@@ -197,7 +211,39 @@ function updateGamePanel() {
         if (isTournamentMatch) navigateTo("tournament");
         else navigateTo("welcome");
       };
-      gamePanel.appendChild(quitButton);
+      buttonsDiv.appendChild(quitButton);
+    }
+
+    // Bouton Son
+    if (!document.getElementById("toggleSoundButton")) {
+      const soundButton = document.createElement("button");
+      soundButton.id = "toggleSoundButton";
+      
+      // Utiliser l'état actuel du son pour définir l'icône
+      soundButton.innerHTML = `<i class="bi bi-volume-${isSoundOn ? 'up' : 'mute'}-fill" style="font-size: 1.5rem;"></i>`;
+      
+      // Style pour un bouton circulaire avec fond gris
+      soundButton.classList = "btn btn-secondary rounded-circle d-flex align-items-center justify-content-center";
+      
+      // Définir une taille fixe pour le bouton
+      soundButton.style.width = "50px";
+      soundButton.style.height = "50px";
+      soundButton.style.padding = "0";
+      
+      // Centrer l'icône
+      soundButton.style.display = "flex";
+      soundButton.style.justifyContent = "center";
+      soundButton.style.alignItems = "center";
+      
+      soundButton.onclick = () => {
+        const soundStatus = toggleSound();
+        if (soundStatus) {
+          soundButton.innerHTML = `<i class="bi bi-volume-up-fill" style="font-size: 1.5rem;"></i>`;
+        } else {
+          soundButton.innerHTML = `<i class="bi bi-volume-mute-fill" style="font-size: 1.5rem;"></i>`;
+        }
+      };
+      buttonsDiv.appendChild(soundButton);
     }
   }
 
@@ -207,6 +253,8 @@ function updateGamePanel() {
 function startCountdown(canvas, callback) {
   const ctx = canvas.getContext("2d");
   let countdown = 3;
+
+  playSound('countdown');
 
   function drawCountdown() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -246,6 +294,7 @@ export function startGameSetup(gameSettings) {
   design = gameSettings.design;
   difficulty = gameSettings.difficulty;
   isTournamentMatch = gameSettings.isTournamentMatch;
+  isSoundOn = gameSettings.soundEnabled;
 
   logger.log("StartGameSetup: Game settings isTournamentMatch:", gameSettings.isTournamentMatch);
   logger.log("StartGameSetup: isTournamentMatch:", isTournamentMatch);
@@ -319,13 +368,14 @@ function update() {
     if (obstacle.y <= 0 || obstacle.y + obstacle.height >= canvas.height) obstacleDirection *= -1;
   }
 
-  if (difficulty === "hard" && obstacle) {
+  if (difficulty === "hard" && obstacle  && collisionActive) {
     if (
       ball.x + ball.radius > obstacle.x &&
       ball.x - ball.radius < obstacle.x + obstacle.width &&
       ball.y + ball.radius > obstacle.y &&
       ball.y - ball.radius < obstacle.y + obstacle.height
     ) {
+      playSound('paddleHit');
       if (ball.x > canvas.width / 2) {
         ball.velocityX = Math.abs(ball.velocityX);
       }
@@ -338,6 +388,7 @@ function update() {
 
   const playerPaddle = ball.x < canvas.width / 2 ? player : opponent;
   if (collision(ball, playerPaddle)) {
+    playSound('paddleHit');
     const angle = -(playerPaddle.y + player.height / 2 - ball.y) / (player.height / 2) * Math.PI / 4;
     ball.velocityY = ball.speed * Math.sin(angle);
     ball.velocityX = ball.x < canvas.width / 2 ? ball.speed * Math.cos(angle) : -ball.speed * Math.cos(angle);
@@ -355,16 +406,20 @@ function update() {
 
   if (ball.x - ball.radius < 0) {
     opponent.score++;
+    playSound('point');
     if (opponent.score === pointsToWin) {
       player2Wins++;
       saveSetResult();
+      playSound('lose');
       handleGameEnd(player2);
     } else resetBall();
   } else if (ball.x + ball.radius > canvas.width) {
     player.score++;
+    playSound('point');
     if (player.score === pointsToWin) {
       player1Wins++;
       saveSetResult();
+      playSound('win');
       handleGameEnd(player1);
     } else resetBall();
   }
@@ -796,6 +851,8 @@ function resetBall() {
     ws.send(JSON.stringify({ type: "reset", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
     ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
   }
+  collisionActive = false;
+  setTimeout(() => (collisionActive = true), 500);
 }
 
 async function sendScore() {

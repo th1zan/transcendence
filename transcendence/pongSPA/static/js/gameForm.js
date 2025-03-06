@@ -25,7 +25,8 @@ export function displayGameForm() {
     control1: "arrows",
     control2: "wasd",
     isTournamentMatch: false,
-    isAIActive: true // Ajouté pour clarifier la logique IA
+    isAIActive: true, // Ajouté pour clarifier la logique IA
+    soundEnabled: false
   };
 
   // Insertion du formulaire HTML
@@ -143,8 +144,13 @@ export function displayGameForm() {
       </div>
     </form>
 
-    <div class="text-center mt-4">
-      <button id="startGameButton" class="btn btn-success" type="button">${i18next.t('game.startGame')}</button>
+   <div class="position-relative mt-4">
+      <div class="text-center">
+        <button id="startGameButton" class="btn btn-success" type="button">${i18next.t('game.startGame')}</button>
+      </div>
+      <button id="toggleSoundButton" class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center position-absolute top-0 end-0" style="width: 50px; height: 50px; padding: 0;">
+        <i class="bi bi-volume-mute-fill" style="font-size: 1.5rem;"></i>
+      </button>
     </div>
 
     <div id="result" style="display: none;">
@@ -350,6 +356,20 @@ export function displayGameForm() {
       toggleActiveButton(".design-button", this.id);
     });
   });
+
+  document.getElementById("toggleSoundButton").addEventListener("click", function() {
+    gameSettings.soundEnabled = !gameSettings.soundEnabled;
+    updateSoundButtonIcon();
+  });
+
+  function updateSoundButtonIcon() {
+    const soundButton = document.getElementById("toggleSoundButton");
+    if (gameSettings.soundEnabled) {
+      soundButton.innerHTML = `<i class="bi bi-volume-up-fill" style="font-size: 1.5rem;"></i>`;
+    } else {
+      soundButton.innerHTML = `<i class="bi bi-volume-mute-fill" style="font-size: 1.5rem;"></i>`;
+    }
+  }
 
   let alertShown = false;
   let lastCheckedPlayer2 = "";
