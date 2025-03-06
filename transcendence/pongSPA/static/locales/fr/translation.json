@@ -12,7 +12,6 @@
 		"backToLogin": "Retour à la connexion",
 		"createAccount": "Créer un compte"
 	  },
-
 	"register": {
 		"createAccount": "Créer un compte",
 		"username": "Nom d'utilisateur",
@@ -36,7 +35,6 @@
 		"settings": "Paramètres",
 		"logout": "Déconnexion"
 	},
-	
 	"welcome": {
 		"title": "Bienvenue, {{username}} !",
 		"profilePictureAlt": "Photo de profil de l'utilisateur",
@@ -194,6 +192,6 @@
 		"exchanges": "Échanges",
 		"duration": "Durée (s)",
 		"noSets": "Aucune manche enregistrée."
-  }
+	}
   }
   
