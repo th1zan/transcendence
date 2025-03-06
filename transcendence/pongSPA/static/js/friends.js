@@ -19,12 +19,12 @@ export function displayFriends() {
         <div class="col-12 col-md-4">
           <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
             <div class="card-body text-center">
-              <h5 class="card-title mb-3" >Send Friend Request</h5>
+              <h5 class="card-title mb-3" >${i18next.t('friends.sendFriendRequest')}</h5>
               <div class="form-group mt-2">
-                <label for="friendUsername" class="form-label" >Username</label>
-                <input type="text" id="friendUsername" style="border: 2px solid #007bff;" placeholder="Username" class="form-control bg-transparent" required >
+                <label for="friendUsername" class="form-label" >${i18next.t('friends.username')}</label>
+                <input type="text" id="friendUsername" style="border: 2px solid #007bff;" placeholder="${i18next.t('friends.username')}" class="form-control bg-transparent" required >
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
-                  Send Friend Request
+                  ${i18next.t('friends.sendRequest')}
                 </button>
               </div>
             </div>
@@ -37,7 +37,7 @@ export function displayFriends() {
             <div class="col-12">
               <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
                 <div class="card-body text-center">
-                  <h4 class="card-title mb-3" >Pending Friend Requests</h4>
+                  <h4 class="card-title mb-3" >${i18next.t('friends.pendingRequests')}</h4>
                   <ul id="friendRequests" class="list-group list-group-flush"></ul>
                 </div>
               </div>
@@ -46,7 +46,7 @@ export function displayFriends() {
             <div class="col-12">
               <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
                 <div class="card-body text-center">
-                  <h4 class="card-title mb-3" >My Friends</h4>
+                  <h4 class="card-title mb-3" >${i18next.t('friends.myFriends')}</h4>
                   <ul id="friendList" class="list-group list-group-flush"></ul>
                 </div>
               </div>
@@ -66,8 +66,8 @@ export function displayFriends() {
     } else {
       // Remplacer une éventuelle alert par oneButtonModal
       showModal(
-        'Warning',
-        'Please enter a username.',
+        i18next.t('friends.warning'),
+        i18next.t('friends.enterUsername'),
         'OK', // Texte du bouton
         () => {} // Action vide, juste fermer la modale
       );
@@ -84,8 +84,8 @@ export function sendFriendRequest(friendUsername) {
 
     if (friendUsername === loggedInUsername) {
         showModal(
-            'Warning',
-            'You cannot send a friend request to yourself.',
+            i18next.t('friends.warning'),
+            i18next.t('friends.cannotAddSelf'),
             'OK',
             () => {}
         );
@@ -103,8 +103,8 @@ export function sendFriendRequest(friendUsername) {
         const isAlreadyFriend = friendsData.friends.some(friend => friend.username === friendUsername);
         if (isAlreadyFriend) {
             showModal(
-                'Warning',
-                `You are already friends with ${friendUsername}.`,
+                i18next.t('friends.warning'),
+                i18next.t('friends.alreadyFriend', { username: friendUsername }),
                 'OK',
                 () => {
                   navigateTo('friends');
@@ -126,8 +126,8 @@ export function sendFriendRequest(friendUsername) {
         .then((data) => {
             if (data.error) {
                 showModal(
-                    'Error',
-                    'Error: ' + data.error,
+                    i18next.t('friends.error'),
+                    i18next.t('friends.errorPrefix') + data.error,
                     'OK',
                     () => {
                       navigateTo('friends');
@@ -135,8 +135,8 @@ export function sendFriendRequest(friendUsername) {
                 );
             } else {
                 showModal(
-                    'Success',
-                    `Friend request sent to ${friendUsername}.`,
+                    i18next.t('friends.success'),
+                    i18next.t('friends.requestSent', { username: friendUsername }),
                     'OK',
                     () => {
                       navigateTo('friends');
@@ -153,8 +153,8 @@ export function sendFriendRequest(friendUsername) {
         .catch((error) => {
             logger.error("Error sending friend request:", error);
             showModal(
-                'Error',
-                'An error occurred.',
+                i18next.t('friends.error'),
+                i18next.t('friends.errorOccurred'),
                 'OK',
                 () => {
                   navigateTo('friends');
@@ -165,8 +165,8 @@ export function sendFriendRequest(friendUsername) {
     .catch((error) => {
         logger.error("Error fetching friend list:", error);
         showModal(
-            'Error',
-            'An error occurred while checking friend status.',
+            i18next.t('friends.error'),
+            i18next.t('friends.errorCheckingStatus'),
             'OK',
             () => {
               navigateTo('friends');
@@ -189,8 +189,8 @@ export function respondToFriendRequest(friendUsername, action) {
       .then((data) => {
         if (data.error) {
           showModal(
-            'Error',
-            'Error: ' + data.error,
+            i18next.t('friends.error'),
+            i18next.t('friends.errorPrefix') + data.error,
             'OK',
             () => {
               navigateTo('friends');
@@ -198,7 +198,7 @@ export function respondToFriendRequest(friendUsername, action) {
           );
         } else {
           showModal(
-            'Success',
+            i18next.t('friends.success'),
             data.message,
             'OK',
             () => {
@@ -212,8 +212,8 @@ export function respondToFriendRequest(friendUsername, action) {
       .catch((error) => {
         logger.error("Error responding to friend request:", error);
         showModal(
-            'Error',
-            'An error occurred.',
+            i18next.t('friends.error'),
+            i18next.t('friends.errorOccurred'),
             'OK',
             () => {
               navigateTo('friends');
@@ -223,7 +223,7 @@ export function respondToFriendRequest(friendUsername, action) {
 }
 
 export function removeFriend(friendUsername) {
-  showModalConfirmation(`Do you really want to remove ${friendUsername} from your friends list?`)
+  showModalConfirmation(i18next.t('friends.confirmRemove', { username: friendUsername }))
     .then(confirmed => {
       if (!confirmed) {
         return;
@@ -241,8 +241,8 @@ export function removeFriend(friendUsername) {
         .then((data) => {
           if (data.error) {
             showModal(
-              'Error',
-              'Error: ' + data.error,
+              i18next.t('friends.error'),
+              i18next.t('friends.errorPrefix') + data.error,
               'OK',
               () => {
                 navigateTo('friends');
@@ -250,7 +250,7 @@ export function removeFriend(friendUsername) {
             );
           } else {
             showModal(
-              'Success',
+              i18next.t('friends.success'),
               data.message,
               'OK',
               () => {
@@ -263,8 +263,8 @@ export function removeFriend(friendUsername) {
         .catch((error) => {
           logger.error("Error removing friend:", error);
           showModal(
-            'Error',
-            'An error occurred.',
+            i18next.t('friends.error'),
+            i18next.t('friends.errorOccurred'),
             'OK',
             () => {
               navigateTo('friends');
@@ -290,13 +290,13 @@ export function fetchFriendRequests() {
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
       <div class="d-flex align-items-center">
-            <img src="${avatarUrl}" alt="${request.sender}'s avatar" class="friend-avatar" 
+            <img src="${avatarUrl}" alt="${i18next.t('friends.avatarAlt', { username: request.sender })}" class="friend-avatar" 
               style="width:50px; height:50px; border-radius:50%; margin-right:12px;">
             <span style="font-weight: bold; font-size: 16px;">${request.sender}</span>
           </div>
 			<div>
-			  <button class="btn btn-success btn-sm accept-request" data-username="${request.sender}">Accept</button>
-			  <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">Decline</button>
+			  <button class="btn btn-success btn-sm accept-request" data-username="${request.sender}">${i18next.t('friends.accept')}</button>
+			  <button class="btn btn-danger btn-sm decline-request" data-username="${request.sender}">${i18next.t('friends.decline')}</button>
 			</div>
 		  `;
 		  requestList.appendChild(listItem);
@@ -344,11 +344,11 @@ export function fetchFriends() {
 			  );
   
 			  const isOnline = friendStatus ? friendStatus.is_online : false;
-			  const lastSeen = friendStatus ? friendStatus.last_seen : "Never";
+			  const lastSeen = friendStatus ? friendStatus.last_seen : i18next.t('friends.never');
   
 			  const statusBadge = isOnline
-				? `<span >🟢 Online</span>`
-				: `<span >🔘 Offline (last seen: ${lastSeen})</span>`;
+				? `<span >🟢 ${i18next.t('friends.online')}</span>`
+				: `<span >🔘 ${i18next.t('friends.offline', { lastSeen: lastSeen })}</span>`;
 
         const avatarUrl = friend.avatar;
 
@@ -356,14 +356,14 @@ export function fetchFriends() {
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
         <div class="d-flex align-items-center">
-          <img src="${avatarUrl}" alt="${friend.username}'s avatar" class="friend-avatar" 
+          <img src="${avatarUrl}" alt="${i18next.t('friends.avatarAlt', { username: friend.username })}" class="friend-avatar" 
             style="width:50px; height:50px; border-radius:50%; margin-right:12px;">
             <div class="d-flex flex-column">
 			        <span style="font-weight: bold; font-size: 16px;">${friend.username}</span>
               <span style="font-size: 14px; ">${statusBadge}</span>
             </div>
         </div>
-			<button class="btn btn-danger btn-sm remove-friend" data-username="${friend.username}">Remove</button>
+			<button class="btn btn-danger btn-sm remove-friend" data-username="${friend.username}">${i18next.t('friends.remove')}</button>
 		  `;
 		  friendList.appendChild(listItem);
 		});

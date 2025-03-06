@@ -35,17 +35,17 @@ export function displayGameForm() {
         <li class="nav-item" role="presentation">
           <button class="nav-link active border border-primary rounded-0 bg-transparent" id="pills-game-settings-tab"
             data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
-            aria-controls="pills-game-settings" aria-selected="true">Game Settings</button>
+            aria-controls="pills-game-settings" aria-selected="true">${i18next.t('game.gameSettings')}</button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-player-settings-tab"
             data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
-            aria-controls="pills-player-settings" aria-selected="false">Player Settings</button>
+            aria-controls="pills-player-settings" aria-selected="false">${i18next.t('game.playerSettings')}</button>
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-match-settings-tab"
             data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
-            aria-controls="pills-match-settings" aria-selected="false">Match Settings</button>
+            aria-controls="pills-match-settings" aria-selected="false">${i18next.t('game.matchSettings')}</button>
         </li>
       </ul>
 
@@ -53,28 +53,28 @@ export function displayGameForm() {
         <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
           <div class="d-flex justify-content-center mt-3">
             <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Settings</h3>
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.gameSettings')}</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Game Mode:</label>
+                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.gameMode')}:</label>
                   <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
-                    <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">1 Player</button>
-                    <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">2 Players</button>
+                    <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">${i18next.t('game.onePlayer')}</button>
+                    <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">${i18next.t('game.twoPlayers')}</button>
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Difficulty:</label>
+                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.difficulty')}:</label>
                   <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">Easy</button>
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">Medium</button>
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">Hard</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">${i18next.t('game.easy')}</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">${i18next.t('game.medium')}</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">${i18next.t('game.hard')}</button>
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Design:</label>
+                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.design')}:</label>
                   <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
-                    <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">Retro</button>
-                    <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">Neon</button>
+                    <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">${i18next.t('game.retro')}</button>
+                    <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">${i18next.t('game.neon')}</button>
                   </div>
                 </div>
               </div>
@@ -85,37 +85,37 @@ export function displayGameForm() {
         <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
           <div class="d-flex justify-content-between align-items-stretch mt-3" id="player-container"> <!-- Ajout d'un ID pour le conteneur -->
             <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 1</h3>
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 1</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
-                  <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Name:</label>
+                  <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.name')}:</label>
                   <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control bg-transparent" disabled>
                 </div>
                 <div class="mb-3">
-                  <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
+                  <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
                   <select id="control1" class="form-select bg-transparent">
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>Arrow Keys</option>
+                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>${i18next.t('game.arrowKeys')}</option>
                     <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>Mouse</option>
+                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>${i18next.t('game.mouse')}</option>
                   </select>
                 </div>
               </div>
             </div>
             <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Player 2</h3>
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 2</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent player2-container">
                 <div class="mb-3">
-                  <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name:</label>
+                  <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.name')}:</label>
                   <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" ${gameSettings.mode === "solo" ? "disabled" : ""}>
                   <span class="status-text ms-2" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};"></span>
-                  <small class="text-muted mt-1" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};">Enter a player name or leave blank for a random opponent.</small>
+                  <small class="text-muted mt-1" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};">${i18next.t('game.enterPlayerName')}</small>
                 </div>
                 <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-                  <label for="control2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">Control:</label>
+                  <label for="control2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
                   <select id="control2" class="form-select bg-transparent">
                     <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>Arrow Keys</option>
-                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>Mouse</option>
+                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>${i18next.t('game.arrowKeys')}</option>
+                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>${i18next.t('game.mouse')}</option>
                   </select>
                 </div>
               </div>
@@ -126,14 +126,14 @@ export function displayGameForm() {
         <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
           <div class="d-flex justify-content-center mt-3">
             <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match Settings</h3>
+              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.matchSettings')}</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
-                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.setsPerGame')}:</label>
                   <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2 bg-transparent" style="width: 60px;">
                 </div>
                 <div class="mb-3">
-                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win a Set:</label>
+                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.pointsToWin')}:</label>
                   <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
                 </div>
               </div>
@@ -144,11 +144,11 @@ export function displayGameForm() {
     </form>
 
     <div class="text-center mt-4">
-      <button id="startGameButton" class="btn btn-success" type="button">Start Game</button>
+      <button id="startGameButton" class="btn btn-success" type="button">${i18next.t('game.startGame')}</button>
     </div>
 
     <div id="result" style="display: none;">
-      <h2>Game Results</h2>
+      <h2>${i18next.t('game.gameResults')}</h2>
       <p id="summary"></p>
     </div>
   `;
@@ -176,25 +176,25 @@ export function displayGameForm() {
 
           if (userData.exists) {
             updatePlayerStatus(playerDiv, userData);
-            playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
+            playerDiv.querySelector('.status-text').textContent = i18next.t('game.existingPlayerNeedsAuth');
             playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
             players.set(playerName, { validated: true, div: playerDiv });
           } else {
             const playerData = await checkPlayerExists(playerName);
             if (playerData.exists) {
               updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
-              playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
+              playerDiv.querySelector('.status-text').textContent = i18next.t('game.existingGuestPlayer');
               playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
             } else {
               updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
-              playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
+              playerDiv.querySelector('.status-text').textContent = i18next.t('game.newGuestPlayer');
               playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
             }
             players.set(playerName, { validated: true, div: playerDiv });
           }
         } catch (error) {
-          handleError(error, "Error checking player or user existence");
-          playerDiv.querySelector('.status-text').textContent = 'Error checking player';
+          handleError(error, i18next.t('game.errorCheckingPlayer'));
+          playerDiv.querySelector('.status-text').textContent = i18next.t('game.errorCheckingPlayer');
           playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
         }
       }
@@ -231,7 +231,7 @@ export function displayGameForm() {
     gameSettings.player2 = "Bot-AI";
     gameSettings.isAIActive = true;
     player2Input.disabled = true;
-    player2Input.placeholder = "AI Controlled";
+    player2Input.placeholder = i18next.t('game.aiControlled');
     control2Container.style.display = "none";
     statusText.style.display = 'none';
     infoText.style.display = 'none';
@@ -259,7 +259,7 @@ export function displayGameForm() {
     gameSettings.player2 = "";
     gameSettings.isAIActive = false;
     player2Input.disabled = false;
-    player2Input.placeholder = "Enter Player 2 Name";
+    player2Input.placeholder = i18next.t('game.enterPlayer2Name');
     control2Container.style.display = "block";
     statusText.style.display = 'block';
     infoText.style.display = 'block';
@@ -283,10 +283,40 @@ export function displayGameForm() {
     gameSettings.numberOfGames = parseInt(this.value);
   });
 
+  document.getElementById("numberOfGames").addEventListener("blur", function() {
+    if (gameSettings.numberOfGames === "" || isNaN(gameSettings.numberOfGames)){
+      gameSettings.numberOfGames = 1;
+      this.value = 1;  
+    }
+    else if (gameSettings.numberOfGames < 1) {
+      gameSettings.numberOfGames = 1;
+      this.value = 1;
+    }
+    else if (gameSettings.numberOfGames > 5) {
+      gameSettings.numberOfGames = 5;
+      this.value = 5;
+    }
+  });
+
   document.getElementById("setsPerGame").addEventListener("input", function() {
     gameSettings.setsPerGame = parseInt(this.value);
   });
 
+  document.getElementById("setsPerGame").addEventListener("blur", function() {
+    if (this.value === "" || isNaN(gameSettings.setsPerGame)) {
+      gameSettings.setsPerGame = 3;
+      this.value = 3;
+    }
+    else if (gameSettings.setsPerGame < 1) {
+      gameSettings.setsPerGame = 1;
+      this.value = 1;
+    }
+    else if (gameSettings.setsPerGame > 5) {
+      gameSettings.setsPerGame = 5;
+      this.value = 5;
+    }
+  });
+  
   document.getElementById("player2").addEventListener("input", function() {
     gameSettings.player2 = this.value;
   });
@@ -329,9 +359,10 @@ export function displayGameForm() {
   document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
     let player2 = document.getElementById("player2").value.trim();
-    const numberOfGames = parseInt(document.getElementById("numberOfGames").value);
-    const setsPerGame = parseInt(document.getElementById("setsPerGame").value);
-
+    
+    document.getElementById("numberOfGames").dispatchEvent(new Event('blur'));
+    document.getElementById("setsPerGame").dispatchEvent(new Event('blur'));
+  
     logger.log("Start button clicked");
     logger.log("Game settings at start:", gameSettings);
 
@@ -344,8 +375,8 @@ export function displayGameForm() {
 
           if (playerData.exists && !playerData.is_guest) {
             showModal(
-              'Registred player',
-              'This player is registered. Press "Start Game" again to authenticate and play, or enter a new player name.',
+              i18next.t('game.registeredPlayer'),
+              i18next.t('game.registeredPlayerMsg'),
               'OK',
               () => {
                 alertShown = true;
@@ -357,8 +388,8 @@ export function displayGameForm() {
             return;
           } else if (playerData.exists) {
             showModal(
-              'Guest player',
-              'This player already exists as a guest. Press "Start Game" again to play with this player, or enter a new player name.',
+              i18next.t('game.guestPlayer'),
+              i18next.t('game.guestPlayerMsg'),
               'OK',
               () => {
                 alertShown = true;
@@ -374,8 +405,8 @@ export function displayGameForm() {
         } catch (error) {
           logger.error("Error checking player existence:", error);
           showModal(
-            'Utilisateur introuvable',
-            'There was an error checking player existence. Please try again.',
+            i18next.t('game.userNotFound'),
+            i18next.t('game.errorCheckingPlayerMsg'),
             'OK',
             () => {},
             "player2"
@@ -422,24 +453,24 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
+              <h5 class="modal-title" id="loginModalLabel">${i18next.t('game.loginToAuthenticate')}</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <form id="loginForm">
                 <div class="form-group">
-                  <label for="username">Username</label>
-                  <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+                  <label for="username">${i18next.t('login.username')}</label>
+                  <input type="text" class="form-control" id="username" placeholder="${i18next.t('login.enterUsername')}" required>
                 </div>
                 <div class="form-group">
-                  <label for="password">Password</label>
-                  <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                  <label for="password">${i18next.t('login.password')}</label>
+                  <input type="password" class="form-control" id="password" placeholder="${i18next.t('login.enterPassword')}" required>
                 </div>
               </form>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18next.t('app.close')}</button>
+              <button type="button" class="btn btn-primary" id="submitLogin">${i18next.t('login.signIn')}</button>
             </div>
           </div>
         </div>
@@ -463,8 +494,8 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
         resolve(true); // Résout la promesse en cas de succès
       } else {
         showModal(
-          'Error',
-          'Authentication failed. Please try again.',
+          i18next.t('app.error'),
+          i18next.t('game.authenticationFailed'),
           'OK',
           () => {}
         );
