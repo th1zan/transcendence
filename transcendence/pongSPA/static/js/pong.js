@@ -19,7 +19,6 @@ let control1 = "arrows";
 let control2 = "wasd";
 let design = "retro";
 let difficulty = "easy";
-let collisionActive = false;
 let mode = "solo";
 let isTournamentMatch = false;
 
@@ -320,7 +319,7 @@ function update() {
     if (obstacle.y <= 0 || obstacle.y + obstacle.height >= canvas.height) obstacleDirection *= -1;
   }
 
-  if (difficulty === "hard" && obstacle && collisionActive) {
+  if (difficulty === "hard" && obstacle) {
     if (
       ball.x + ball.radius > obstacle.x &&
       ball.x - ball.radius < obstacle.x + obstacle.width &&
@@ -797,8 +796,6 @@ function resetBall() {
     ws.send(JSON.stringify({ type: "reset", x: ball.x, y: ball.y, speedx: ball.velocityX, speedy: ball.velocityY }));
     ws.send(JSON.stringify({ type: "score", player_score: player.score, ai_score: opponent.score }));
   }
-  collisionActive = false;
-  setTimeout(() => (collisionActive = true), 20);
 }
 
 async function sendScore() {
