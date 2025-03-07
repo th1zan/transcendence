@@ -72,7 +72,8 @@
 		"processingTitle": "Traitement en cours",
 		"processingMsg": "Suppression du joueur, veuillez patienter...",
 		"tournamentDeletedTitle": "Tournoi supprimé",
-		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait."
+		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait.",
+		"removeInvitation": "Supprimer"
 	},
 	"app": {
 		"warning": "Avertissement",
