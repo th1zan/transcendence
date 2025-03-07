@@ -18,8 +18,8 @@ services:
       - gunicorn
       - daphne
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
       - nginx_ssl_vol:/ssl
       - ./transcendence/static_files:/static
@@ -124,7 +124,8 @@ services:
       - .env
     networks:
       - elk
-    restart: always
+    restart: on-failure
+    # restart: always
     healthcheck:
       test: ['CMD-SHELL', '[ -f /usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.crt ]']
       interval: 1s

@@ -15,6 +15,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# Export the sqlite db to a json file -> execute the following line
+# python manage.py dumpdata > transcendence/fixtures/initial_data.json
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -199,7 +203,9 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_SAMESITE": "Lax",  # SameSite attribute
 }
 
-AUTHENTICATION_BACKENDS = 'django.contrib.auth.backends.ModelBackend',  # Default auth backend
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+)  # Default auth backend
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
@@ -211,7 +217,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# put in .env 
+# put in .env
 # EMAIL_HOST_USER=pong42lausanne@gmail.com
 # EMAIL_HOST_PASSWORD=xxxx xxxx xxxx xxxx code is shared in Discord chat
 
@@ -219,7 +225,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-	 "formatters": {
+    "formatters": {
         "verbose": {
             "format": "%(asctime)s [%(levelname)s] %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
@@ -231,7 +237,7 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-			"formatter": "verbose",
+            "formatter": "verbose",
         },
     },
     "root": {
