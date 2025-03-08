@@ -1,4 +1,4 @@
-##!/bin/bash
+#!/bin/bash
 
 # Check if Django project exists
 if [[ ! -e /transcendence/manage.py ]]; then
