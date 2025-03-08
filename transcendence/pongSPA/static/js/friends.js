@@ -16,13 +16,12 @@ export function displayFriends() {
     <div class="container mt-4">
       <div class="row g-4">
         <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-5">
           <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
             <div class="card-body text-center">
               <h5 class="card-title mb-3" >${i18next.t('friends.sendFriendRequest')}</h5>
               <div class="form-group mt-2">
-                <label for="friendUsername" class="form-label" >${i18next.t('friends.username')}</label>
-                <input type="text" id="friendUsername" placeholder="${i18next.t('friends.username')}" class="form-control bg-transparent" required >
+                <input type="text" id="friendUsername" placeholder="${i18next.t('friends.enterFriendUsername')}" class="form-control bg-transparent" required >
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
                   ${i18next.t('friends.sendRequest')}
                 </button>

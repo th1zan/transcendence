@@ -73,7 +73,8 @@
 		"processingMsg": "Suppression du joueur, veuillez patienter...",
 		"tournamentDeletedTitle": "Tournoi supprimé",
 		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait.",
-		"removeInvitation": "Supprimer"
+		"removeInvitation": "Supprimer",
+		"matchOutcomes": "Issues des matchs"
 	},
 	"app": {
 		"warning": "Avertissement",
@@ -109,6 +110,7 @@
 	"friends": {
 		"sendFriendRequest": "Envoyer une demande d'ami",
 		"username": "Nom d'utilisateur",
+		"enterFriendUsername": "Entrez le nom d'utilisateur de votre ami",
 		"sendRequest": "Envoyer la demande",
 		"pendingRequests": "Demandes d'ami en attente",
 		"myFriends": "Mes amis",

@@ -69,7 +69,8 @@
         "errorLoadingRanking": "Error loading ranking",
         "points": "Points",
         "players": "Players",
-        "pointsScored": "Points Scored"
+        "pointsScored": "Points Scored",
+		"matchOutcomes": "Match Outcomes"
     },
     "app": {
         "warning": "Warning",
@@ -105,6 +106,7 @@
     "friends": {
         "sendFriendRequest": "Send Friend Request",
         "username": "Username",
+		"enterFriendUsername": "Enter your friend's username",
         "sendRequest": "Send Friend Request",
         "pendingRequests": "Pending Friend Requests",
         "myFriends": "My Friends",

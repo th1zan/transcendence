@@ -15,11 +15,10 @@ export function displayConnectionFormular() {
           <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">${i18next.t('login.welcomeBack')}</h2>
           <form id="loginForm">
             <div class="form-group mb-4">
-              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i>${i18next.t('login.username')}</label>
+              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> ${i18next.t('login.username')}</label>
               <input
                 type="text"
                 id="username"
-                style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
                 placeholder="${i18next.t('login.enterUsername')}"
                 required
@@ -30,7 +29,6 @@ export function displayConnectionFormular() {
               <input
                 type="password"
                 id="password"
-                style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
                 class="form-control form-control-lg"
                 placeholder="${i18next.t('login.enterPassword')}"
                 required
@@ -106,7 +104,7 @@ export function displayRegistrationForm() {
         <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">${i18next.t('register.createAccount')}</h2>
         <form id="signupForm">
           <div class="form-group mb-4">
-            <label for="newUsername" class="h5"><i class="bi bi-person"></i> ${i18next.t('register.username')}</label>
+            <label for="newUsername" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> ${i18next.t('register.username')}</label>
             <input
               type="text"
               id="newUsername"
@@ -116,7 +114,7 @@ export function displayRegistrationForm() {
             />
           </div>
           <div class="form-group mb-5">
-            <label for="newPassword" class="h5"><i class="bi bi-lock"></i>${i18next.t('register.password')}</label>
+            <label for="newPassword" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-lock"></i> ${i18next.t('register.password')}</label>
             <input
               type="password"
               id="newPassword"
@@ -134,13 +132,15 @@ export function displayRegistrationForm() {
           </div>
           <button
             type="submit"
-            class="btn btn-success w-100 py-3 h5">
+            class="btn btn-success w-100 py-3 h5"
+            style="font-size: 1.3rem;">
             ${i18next.t('register.createAccount')}
           </button>
         </form>
         <button
           id="backToLoginButton"
-          class="btn btn-primary w-100 mt-4 py-3 h5">
+          class="btn btn-primary w-100 mt-4 py-3 h5"
+          style="font-size: 1.3rem;">
           ${i18next.t('register.backToLogin')}
         </button>
       </div>
