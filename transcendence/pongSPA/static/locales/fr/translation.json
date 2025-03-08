@@ -14,7 +14,7 @@
 	  },
 	"register": {
 		"createAccount": "Créer un compte",
-		"username": "Nom d'utilisateur",
+			"username": "Nom d'utilisateur",
 		"password": "Mot de passe",
 		"enterUsername": "Entrez votre nom d'utilisateur",
 		"enterPassword": "Entrez votre mot de passe",
@@ -332,7 +332,13 @@
 		"confirmNewPassword": "Confirmer le nouveau mot de passe",
 
 		"passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+		"passwordRequiresDigit": "Le mot de passe doit contenir au moins un chiffre.",
+		"passwordRequiresUppercase": "Le mot de passe doit contenir au moins une lettre majuscule.",
+		"passwordRequiresLowercase": "Le mot de passe doit contenir au moins une lettre minuscule.",
+		"passwordRequiresSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*(),.?\":{}|<>).",
 		"passwordMismatch": "Les mots de passe ne correspondent pas.",
+		"passwordRequirements": "Le mot de passe doit contenir au moins 8 caractères, un chiffre, une lettre majuscule, une lettre minuscule et un caractère spécial.",
+		
 		"passwordChangeSuccess": "Mot de passe changé avec succès !",
 		"passwordChangeFailed": "Échec du changement de mot de passe.",
 		
@@ -359,6 +365,6 @@
 	"modal": {
 		"yes": "Oui",
 		"no": "Non",
-		"ok": "OK"
+		"ok": "J'ai compris"
 	}
 }
