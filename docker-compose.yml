@@ -18,8 +18,8 @@ services:
       - gunicorn
       - daphne
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
       - nginx_ssl_vol:/ssl
       - ./transcendence/static_files:/static
@@ -78,15 +78,17 @@ services:
         - backend
         - frontend
     environment:
-      DB_NAME:      ${DB_NAME}
-      DB_USER:      ${DB_USER}
-      DB_PASSWORD:  ${DB_PASSWORD}
-      DB_HOST:      db
-      DB_PORT:      ${DB_PORT}
-      SUPER_USER:   ${SUPER_USER}
-      SUPER_PASSWORD:   ${SUPER_PASSWORD}
-      SUPER_MAIL:   ${SUPER_MAIL}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      SUPER_USER: ${SUPER_USER}
+      SUPER_PASSWORD: ${SUPER_PASSWORD}
+      SUPER_MAIL: ${SUPER_MAIL}
       SECRET_KEY: ${SECRET_KEY}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
   #********************************************************************************
   gunicorn:
     container_name: gunicorn
@@ -101,113 +103,116 @@ services:
         - backend
         - frontend
     environment:
-      DB_NAME:      ${DB_NAME}
-      DB_USER:      ${DB_USER}
-      DB_PASSWORD:  ${DB_PASSWORD}
-      DB_HOST:      db
-      DB_PORT:      ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
       SECRET_KEY: ${SECRET_KEY}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
   #********************************************************************************
 
-  setup:
-    build:
-      context: ./docker/ELK/setup
-      dockerfile: Dockerfile
-    container_name: setup
-    depends_on:
-      nginx:
-        condition: service_healthy
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-      - /var/run/docker.sock:/var/run/docker.sock
-    env_file:
-      - .env
-    networks:
-      - elk
-    restart: always
-    healthcheck:
-      test: ['CMD-SHELL', '[ -f /usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.crt ]']
-      interval: 1s
-      timeout: 5s
-      retries: 120
-
-  elasticsearch:
-    container_name: elasticsearch  # Correction ici
-    build:
-      context: ./docker/ELK/elasticsearch
-      dockerfile: Dockerfile
-    depends_on:
-      setup:
-        condition: service_healthy
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-      - elasticsearch:/usr/share/elasticsearch/data
-    ports:
-      - '9200:9200'
-    env_file:
-      - .env
-    networks:
-      - elk
-    restart: always
-    mem_limit: ${MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -s -k https://elasticsearch:9200 | grep -q "missing authentication credentials"']
-      interval: 5s
-      timeout: 5s
-      retries: 120
-
-  kibana:
-    container_name: kibana
-    build:
-      context: ./docker/ELK/kibana
-      dockerfile: Dockerfile
-    depends_on:
-      setup:
-        condition: service_healthy
-    volumes:
-      - certs:/usr/share/kibana/config/certs
-      - kibana:/usr/share/kibana/data
-    ports:
-      - '5601:5601'
-    env_file:
-      - .env
-    networks:
-      - elk
-    restart: always
-    mem_limit: ${MEM_LIMIT}
-
-  logstash:
-    container_name: logstash
-    build:
-      context: ./docker/ELK/logstash
-      dockerfile: Dockerfile
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    volumes:
-      - certs:/usr/share/logstash/config/certs
-      - nginx_logs:/usr/share/logstash/nginx/
-    env_file:
-      - .env
-    networks:
-      - elk
-    restart: always
+  # setup:
+  #   build:
+  #     context: ./docker/ELK/setup
+  #     dockerfile: Dockerfile
+  #   container_name: setup
+  #   depends_on:
+  #     nginx:
+  #       condition: service_healthy
+  #   volumes:
+  #     - certs:/usr/share/elasticsearch/config/certs
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - elk
+  #   restart: on-failure
+  #   # restart: always
+  #   healthcheck:
+  #     test: ['CMD-SHELL', '[ -f /usr/share/elasticsearch/config/certs/elasticsearch/elasticsearch.crt ]']
+  #     interval: 1s
+  #     timeout: 5s
+  #     retries: 120
+  #
+  # elasticsearch:
+  #   container_name: elasticsearch  # Correction ici
+  #   build:
+  #     context: ./docker/ELK/elasticsearch
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     setup:
+  #       condition: service_healthy
+  #   volumes:
+  #     - certs:/usr/share/elasticsearch/config/certs
+  #     - elasticsearch:/usr/share/elasticsearch/data
+  #   ports:
+  #     - '9200:9200'
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - elk
+  #   restart: always
+  #   mem_limit: ${MEM_LIMIT}
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   healthcheck:
+  #     test: ['CMD-SHELL', 'curl -s -k https://elasticsearch:9200 | grep -q "missing authentication credentials"']
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 120
+  #
+  # kibana:
+  #   container_name: kibana
+  #   build:
+  #     context: ./docker/ELK/kibana
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     setup:
+  #       condition: service_healthy
+  #   volumes:
+  #     - certs:/usr/share/kibana/config/certs
+  #     - kibana:/usr/share/kibana/data
+  #   ports:
+  #     - '5601:5601'
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - elk
+  #   restart: always
+  #   mem_limit: ${MEM_LIMIT}
+  #
+  # logstash:
+  #   container_name: logstash
+  #   build:
+  #     context: ./docker/ELK/logstash
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     elasticsearch:
+  #       condition: service_healthy
+  #   volumes:
+  #     - certs:/usr/share/logstash/config/certs
+  #     - nginx_logs:/usr/share/logstash/nginx/
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - elk
+  #   restart: always
   #********************************************************************************
 
 volumes:
   db_vol:
   nginx_ssl_vol:
-  certs:
-  elasticsearch:
-  kibana:
   nginx_logs:
+  # certs:
+  # elasticsearch:
+  # kibana:
 
 
 networks:
   backend:
   frontend:
-  elk:
+  # elk:

@@ -13,10 +13,12 @@ from rest_framework.views import APIView
 
 # Import ajusté selon l'arborescence
 from ..authentication import CookieJWTAuthentication
-from ..models import (CustomUser, Player, PongMatch, Tournament,
-                      TournamentPlayer)
-from ..serializers import (PongMatchSerializer, TournamentPlayerSerializer,
-                           TournamentSerializer)
+from ..models import CustomUser, Player, PongMatch, Tournament, TournamentPlayer
+from ..serializers import (
+    PongMatchSerializer,
+    TournamentPlayerSerializer,
+    TournamentSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +49,33 @@ class TournamentCreationView(APIView):
         )
 
         if tournament_serializer.is_valid():
+            # Création du tournoi avec l'organisateur
             tournament = tournament_serializer.save(organizer=request.user)
             logger.info(
                 f"Tournament created with organizer: {tournament.organizer.username}"
             )
+
+            # Ajout de l'organisateur comme joueur authentifié
+            player, created = Player.objects.get_or_create(
+                player=request.user.username, defaults={"user": request.user}
+            )
+            if not created and not player.user:
+                player.user = request.user
+                player.save()
+
+            TournamentPlayer.objects.create(
+                player=player,
+                tournament=tournament,
+                authenticated=True,  # L'organisateur est authentifié par défaut
+                guest=False,  # Pas un invité
+            )
+            logger.info(
+                f"Organizer {request.user.username} added as authenticated player in tournament {tournament.id}"
+            )
+
             return Response(
                 {
-                    "message": "Tournament created successfully",
+                    "message": "Tournament created successfully and organizer added as authenticated player",
                     "tournament_id": tournament.id,
                     "tournament_name": tournament.tournament_name,
                 },
@@ -111,12 +133,24 @@ class TournamentFinalizationView(APIView):
             except CustomUser.DoesNotExist:
                 player, created = Player.objects.get_or_create(player=player_name)
 
-            TournamentPlayer.objects.create(
+            # Vérifier si le joueur existe déjà dans ce tournoi
+            tournament_player, tp_created = TournamentPlayer.objects.get_or_create(
                 player=player,
                 tournament=tournament,
-                authenticated=authenticated,
-                guest=guest,
+                defaults={"authenticated": authenticated, "guest": guest},
             )
+            if not tp_created:
+                # Si le joueur existe déjà, mettre à jour ses attributs
+                tournament_player.authenticated = authenticated
+                tournament_player.guest = guest
+                tournament_player.save()
+                logger.info(
+                    f"Updated existing player {player_name} in tournament {tournament_id}"
+                )
+            else:
+                logger.info(
+                    f"Added new player {player_name} to tournament {tournament_id}"
+                )
 
         generate_matches(tournament_id, number_of_games, points_to_win)
 
@@ -161,16 +195,19 @@ class TournamentMatchesView(APIView):
                 {"error": "Tournament ID is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         try:
             tournament = Tournament.objects.get(id=tournament_id)
             matches = PongMatch.objects.filter(tournament=tournament)
             serializer = PongMatchSerializer(matches, many=True)
-            return Response(serializer.data)
+            return Response(
+                {
+                    "matches": serializer.data,
+                    "is_finished": tournament.is_tournament_finished(),  # Calculé à la volée
+                }
+            )
         except Tournament.DoesNotExist:
             return Response(
-                {"error": "Tournament not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Tournament not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
 
@@ -326,7 +363,6 @@ class RemovePlayerMatchesView(APIView):
                 f"Player to remove: {player_to_remove.player}, User linked: {player_to_remove.user.username if player_to_remove.user else 'None'}"
             )
 
-            # Vérifier si le joueur à supprimer est l'organisateur
             if tournament.organizer and player_to_remove.user == tournament.organizer:
                 logger.warning(
                     f"Attempt to remove organizer {tournament.organizer.username} blocked"
@@ -336,7 +372,6 @@ class RemovePlayerMatchesView(APIView):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            # Vérifier les autorisations
             is_self = (
                 player_to_remove.user == user and player_to_remove.user is not None
             )
@@ -361,16 +396,22 @@ class RemovePlayerMatchesView(APIView):
             # Supprimer le joueur
             tournament_player.delete()
 
-            # Vérifier l'état du tournoi
-            remaining_matches = PongMatch.objects.filter(tournament=tournament).exists()
-            remaining_players = TournamentPlayer.objects.filter(tournament=tournament)
+            # Réévaluer l’état du tournoi
+            remaining_matches = tournament.matches.all()
+            if remaining_matches.exists():
+                tournament.is_finished = all(
+                    match.is_match_played() for match in remaining_matches
+                )
+            else:
+                tournament.is_finished = False  # Aucun match restant, tournoi pas fini
+            tournament.save()
             logger.info(
-                f"Remaining matches: {remaining_matches}, Remaining players: {remaining_players.count()}"
+                f"Tournament {tournament_id} status updated: is_finished={tournament.is_finished}"
             )
 
             # Vérifier que l'organisateur est toujours présent
-            organizer_present = remaining_players.filter(
-                player__user=tournament.organizer
+            organizer_present = TournamentPlayer.objects.filter(
+                tournament=tournament, player__user=tournament.organizer
             ).exists()
             if not organizer_present and tournament.organizer:
                 logger.error(
@@ -381,8 +422,11 @@ class RemovePlayerMatchesView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            if not remaining_matches and remaining_players.count() == 1:
-                last_player = remaining_players.get()
+            if (
+                not remaining_matches.exists()
+                and TournamentPlayer.objects.filter(tournament=tournament).count() == 1
+            ):
+                last_player = TournamentPlayer.objects.get(tournament=tournament)
                 if last_player.player.user == tournament.organizer:
                     tournament.delete()
                     logger.info(
@@ -425,8 +469,7 @@ class RemovePlayerMatchesView(APIView):
         except Exception as e:
             logger.error(f"Error removing player matches: {str(e)}")
             return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -445,12 +488,28 @@ class StartMatchView(APIView):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            # Vérifier si les joueurs sont authentifiés
+            # Récupérer les entrées TournamentPlayer pour ce tournoi
+            try:
+                player1_tournament = TournamentPlayer.objects.get(
+                    tournament=tournament, player=match.player1
+                )
+                player2_tournament = TournamentPlayer.objects.get(
+                    tournament=tournament, player=match.player2
+                )
+            except TournamentPlayer.DoesNotExist:
+                return Response(
+                    {
+                        "error": "One or both players are not registered in this tournament"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Vérifier si les joueurs sont authentifiés ou invités
             player1_authenticated = (
-                match.player1.authenticated or match.player1.is_guest
+                player1_tournament.authenticated or player1_tournament.guest
             )
             player2_authenticated = (
-                match.player2.authenticated or match.player2.is_guest
+                player2_tournament.authenticated or player2_tournament.guest
             )
 
             if not player1_authenticated:

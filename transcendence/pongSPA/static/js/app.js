@@ -310,78 +310,66 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   const modalId = 'oneButtonModal';
   const modalElement = document.getElementById(modalId);
   if (!modalElement) {
-    logger.error(`Modal element with ID ${modalId} not found`);
+    logger.error(`Modal element with ID ${modalId} not found. Ensure it exists in index.html.`);
     return;
   }
 
+  // Nettoyer tout backdrop existant avant d’ouvrir
+  const existingBackdrop = document.querySelector('.modal-backdrop');
+  if (existingBackdrop) {
+    existingBackdrop.remove();
+    logger.log("Pre-existing backdrop removed before showing modal");
+  }
+
   const modal = new bootstrap.Modal(modalElement, {
-    backdrop: 'static', // stop closing if clicking outside the modal
-    keyboard: false     // stop closing with escape
+    backdrop: 'static',
+    keyboard: false
   });
 
-  // Modal title
   const titleElement = document.getElementById(`${modalId}Label`);
-  if (titleElement) {
-    titleElement.textContent = title;
-  } else {
-    logger.error(`Title element for ${modalId}Label not found`);
-  }
+  if (titleElement) titleElement.textContent = title;
+  else logger.error(`Title element ${modalId}Label not found`);
 
-  // Message
   const bodyElement = document.getElementById(`${modalId}Body`);
-  if (bodyElement) {
-    bodyElement.textContent = message;
-  } else {
-    logger.error(`Modal body element not found for ${modalId}`);
-  }
+  if (bodyElement) bodyElement.textContent = message;
+  else logger.error(`Body element ${modalId}Body not found`);
 
-  // Action button
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
     actionButton.textContent = actionText || i18next.t('app.close');
-
-    // Supprimer l’ancien listener s’il existe
     if (actionButton._handler) {
       actionButton.removeEventListener('click', actionButton._handler);
     }
-
-    // Définir le nouveau handler
     const handler = function () {
-      if (actionCallback) {
-        actionCallback();
-      }
+      if (actionCallback) actionCallback();
       modal.hide();
 
-      // Gestion du focus après fermeture
+      // Nettoyer le backdrop après fermeture
       setTimeout(() => {
-        let focusTarget = null;
-
-        if (focusElementId) {
-          focusTarget = document.getElementById(focusElementId);
-          if (focusTarget) {
-            focusTarget.focus();
-            logger.log(`Focus restored on ${focusElementId}`);
-            return;
-          } else {
-            logger.warn(`Specified element ${focusElementId} not found for focus`);
-          }
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+          backdrop.remove();
+          logger.log("Backdrop manually removed after hide");
+        } else {
+          logger.log("No backdrop found after hide");
         }
 
-        document.activeElement.blur();
-        logger.log("Focus removed after modal closed");
-      }, 50);
+        let focusTarget = focusElementId ? document.getElementById(focusElementId) : null;
+        if (focusTarget) {
+          focusTarget.focus();
+          logger.log(`Focus restored on ${focusElementId}`);
+        } else {
+          document.activeElement.blur();
+          logger.log("Focus removed after modal closed");
+        }
+      }, 300);
     };
-
-    // Ajouter le listener et stocker sa référence
     actionButton.addEventListener('click', handler);
-    actionButton._handler = handler; // Stocker le handler pour suppression future
+    actionButton._handler = handler;
+    actionButton.focus();
   } else {
-    logger.error(`Action button for ${modalId}Action not found`);
+    logger.error(`Action button ${modalId}Action not found`);
   }
 
-  // Afficher la modale et focaliser le bouton
   modal.show();
-  if (actionButton) {
-    actionButton.focus();
-  }
 }
