@@ -84,7 +84,7 @@ function displayHTMLforSettings(user) {
           <div class="form-group mt-2">
             <label>${i18next.t('settings.newPassword')}:</label>
             <input type="password" id="newPasswordInput" class="form-control">
-            <div class="invalid-feedback">
+            <div class="invalid-feedback" id="newPasswordFeedback">
               ${i18next.t('settings.passwordTooShort')}
             </div>
           </div>
@@ -690,6 +690,20 @@ export function changePassword() {
   // Validate inputs with the same rules as the backend serializer
   let errorMessage = "";
 
+  // Check if new password is the same as current password
+  if (newPassword === currentPassword) {
+    errorMessage = i18next.t('settings.passwordSameAsCurrent');
+    document.getElementById("newPasswordInput").classList.add("is-invalid");
+    const feedbackElement = document.getElementById("newPasswordFeedback");
+    if (feedbackElement) {
+      feedbackElement.textContent = errorMessage;
+    } else {
+      // Fallback if element doesn't exist
+      document.querySelector("#newPasswordInput + .invalid-feedback").textContent = errorMessage;
+    }
+    return;
+  }
+
   // Check for minimum length
   if (newPassword.length < 8) {
     errorMessage = i18next.t('settings.passwordTooShort');
@@ -719,7 +733,13 @@ export function changePassword() {
   // If there's an error message, show it
   if (errorMessage) {
     document.getElementById("newPasswordInput").classList.add("is-invalid");
-    document.querySelector("#newPasswordInput + .invalid-feedback").textContent = errorMessage;
+    const feedbackElement = document.getElementById("newPasswordFeedback");
+    if (feedbackElement) {
+      feedbackElement.textContent = errorMessage;
+    } else {
+      // Fallback if element doesn't exist
+      document.querySelector("#newPasswordInput + .invalid-feedback").textContent = errorMessage;
+    }
     return;
   }
 
@@ -780,11 +800,22 @@ export function changePassword() {
         changeBtn.disabled = false;
       }
 
-      showModal(
-        i18next.t('auth.error'),
-        i18next.t('settings.passwordChangeFailed'),
-        i18next.t('modal.ok'),
-        () => {}
-      );
+      // Check if the error message contains "Current password is incorrect"
+      if (error.message.includes("Current password is incorrect") || 
+          error.message.toLowerCase().includes("incorrect")) {
+        showModal(
+          i18next.t('auth.error'),
+          i18next.t('settings.incorrectCurrentPassword'),
+          i18next.t('modal.ok'),
+          () => {}
+        );
+      } else {
+        showModal(
+          i18next.t('auth.error'),
+          i18next.t('settings.passwordChangeFailed'),
+          i18next.t('modal.ok'),
+          () => {}
+        );
+      }
     });
 }
