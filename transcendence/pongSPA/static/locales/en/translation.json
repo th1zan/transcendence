@@ -337,6 +337,8 @@
 		"passwordMismatch": "Passwords do not match.",
 		"passwordChangeSuccess": "Password changed successfully!",
 		"passwordChangeFailed": "Failed to change password.",
+		"incorrectCurrentPassword": "The current password you entered is incorrect.",
+		"passwordSameAsCurrent": "New password cannot be the same as your current password.",
 		
 		"twoFactorAuthentication": "Two-Factor Authentication",
 		"deleteAccount": "Delete Account",
