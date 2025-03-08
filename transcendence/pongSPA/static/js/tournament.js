@@ -1,4 +1,3 @@
-
 import { showModalConfirmation } from "./auth.js";
 import { startGameSetup } from "./pong.js";
 import {showModal, logger, navigateTo} from "./app.js";
@@ -15,12 +14,12 @@ export function displayTournament() {
       <ul class="nav nav-pills mb-3 d-flex justify-content-center gap-3" role="tablist">
         <li class="nav-item" role="presentation">
           <button id="myTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-            My Tournaments
+            ${i18next.t('tournament.myTournaments')}
           </button>
         </li>
         <li class="nav-item" role="presentation">
           <button id="newTournamentButton" class="nav-link btn btn-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-            New Tournament
+            ${i18next.t('tournament.newTournament')}
           </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -29,11 +28,11 @@ export function displayTournament() {
               type="text" 
               id="tournamentNameInput" 
               class="form-control rounded-pill bg-transparent" 
-              placeholder="Tournament Name" 
+              placeholder="${i18next.t('tournament.tournamentNamePlaceholder')}"  
               style="font-family: 'Press Start 2P', cursive; font-size: 15px; border: 2px solid #007bff;"
             >
             <button id="tournamentSearchButton" class="nav-link btn btn-outline-primary px-4 py-2 bg-transparent" type="button" style="font-family: 'Press Start 2P', cursive; font-size: 15px; border-radius: 10px; transition: transform 0.3s ease;">
-              Search
+              ${i18next.t('tournament.search')}
             </button>
           </div>
         </li>
@@ -63,7 +62,7 @@ export function displayTournament() {
 
     const tournamentName = tournamentNameInput.value;
     if (!tournamentName) {
-      showModal('Warning', 'Please enter a tournament name.', 'OK', () => {});
+      showModal(i18next.t('tournament.warning'), i18next.t('tournament.enterTournamentName'), 'OK', () => {});
       return;
     }
     localStorage.setItem("tournamentName", tournamentName);
@@ -81,24 +80,24 @@ function authenticateNow(playerName, tournamentId) {
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">Login to Authenticate</h5>
+            <h5 class="modal-title" id="loginModalLabel">${i18next.t('tournament.loginToAuth')}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <form id="loginForm">
               <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+                <label for="username">${i18next.t('tournament.username')}</label>
+                <input type="text" class="form-control" id="username" placeholder="${i18next.t('tournament.enterUsername')}" required>
               </div>
               <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                <label for="password">${i18next.t('tournament.password')}</label>
+                <input type="password" class="form-control" id="password" placeholder="${i18next.t('tournament.enterPassword')}" required>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" id="submitLogin">Login</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18next.t('tournament.close')}</button>
+            <button type="button" class="btn btn-primary" id="submitLogin">${i18next.t('tournament.login')}</button>
           </div>
         </div>
       </div>
@@ -166,7 +165,7 @@ function updatePlayerStatusUI(playerName) {
 
     if (nameCell && nameCell.textContent === playerName) {
       // update status
-      statusCell.innerHTML = '<span class="badge bg-success">✔️ Authenticated</span>';
+      statusCell.innerHTML = `<span class="badge bg-success">${i18next.t('tournament.authenticated')}</span>`;
       // delete authentification button
       if (actionCell) {
         actionCell.innerHTML = '';
@@ -197,22 +196,28 @@ function displayTournamentGameList(data) {
       let playersHTML = `
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
-            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Players</h3>
+            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.players')}</h3>
             <table class="table table-hover mb-0">
               <thead class="text-dark">
                 <tr>
-                  <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Name</th>
-                  <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
-                  <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                  <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.name')}</th>
+                  <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.status')}</th>
+                  <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.action')}</th>
                 </tr>
               </thead>
               <tbody>
       `;
 
       playersData.forEach((player, index) => {
-        let statusText = player.guest ? '<span class="badge bg-secondary">🕵️ Guest</span>' : (player.authenticated ? '<span class="badge bg-success">✔️ Authenticated</span>' : '<span class="badge bg-warning text-dark">🔒 Needs authentication</span>');
-        let authButton = !player.guest && !player.authenticated ? `<button class="btn btn-success btn-sm auth-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Authenticate Now</button>` : '';
-        let removeButton = index === 0 ? '' : `<button class="btn btn-danger btn-sm remove-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Remove</button>`;
+        let statusText = player.guest ? 
+          `<span class="badge bg-secondary">${i18next.t('tournament.guest')}</span>` : 
+          (player.authenticated ? 
+            `<span class="badge bg-success">${i18next.t('tournament.authenticated')}</span>` : 
+            `<span class="badge bg-warning text-dark">${i18next.t('tournament.needsAuthentication')}</span>`);
+        let authButton = !player.guest && !player.authenticated ? 
+          `<button class="btn btn-success btn-sm auth-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.authenticateNow')}</button>` : '';
+        let removeButton = index === 0 ? '' : 
+          `<button class="btn btn-danger btn-sm remove-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.remove')}</button>`;
 
         playersHTML += `
           <tr>
@@ -228,14 +233,14 @@ function displayTournamentGameList(data) {
       let matchesHTML = `
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
-            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Match List</h3>
+            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.matchList')}</h3>
           <table class="table table-hover mb-0">
             <thead class="text-dark">
               <tr>
-                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Match</th>
-                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Score</th>
-                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Winner</th>
-                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.match')}</th>
+                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.score')}</th>
+                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.winner')}</th>
+                <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.action')}</th>
               </tr>
             </thead>
             <tbody>
@@ -245,7 +250,11 @@ function displayTournamentGameList(data) {
       if (Array.isArray(data) && data.length > 0) {
         data.forEach((match) => {
           const score = `${match.player1_sets_won} - ${match.player2_sets_won}`;
-          const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? '<span class="badge bg-info">Match to be played</span>' : (match.winner ? `<span class="badge bg-success">${match.winner}</span>` : '<span class="badge bg-warning text-dark">In progress</span>');
+          const winner = (match.player1_sets_won === 0 && match.player2_sets_won === 0) ? 
+            `<span class="badge bg-info">${i18next.t('tournament.matchToBePlayed')}</span>` : 
+            (match.winner ? 
+              `<span class="badge bg-success">${match.winner}</span>` : 
+              `<span class="badge bg-warning text-dark">${i18next.t('tournament.inProgress')}</span>`);
           let actionButton = '';
 
           if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
@@ -256,14 +265,14 @@ function displayTournamentGameList(data) {
                       data-sets-to-win="${match.sets_to_win}"
                       data-points-per-set="${match.points_per_set}"
                       data-match-id="${match.id}"
-                      style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Start Game</button>
+                      style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.startGame')}</button>
             `;
             playButtonDisplayed = true;
           }
 
           matchesHTML += `
             <tr>
-              <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${match.player1_name} vs ${match.player2_name}</td>
+              <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${match.player1_name} ${i18next.t('tournament.vs')} ${match.player2_name}</td>
               <td class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${score}</td>
               <td class="text-center">${winner}</td>
               <td class="text-center">${actionButton}</td>
@@ -283,7 +292,7 @@ function displayTournamentGameList(data) {
         tournamentMatchesDiv.innerHTML = `
           ${playersHTML}
           <div class="alert alert-info text-center" role="alert">
-            No match found for this tournament.
+             ${i18next.t('tournament.noMatchFound')}
           </div>
         `;
         displayTournamentRanking(data); // Même ici, passer un tableau vide ou gérer différemment
@@ -365,7 +374,7 @@ function displayTournamentGameList(data) {
     .catch((error) => {
       logger.error("Error retrieving players:", error);
       tournamentMatchesDiv.innerHTML = `
-        <div class="alert alert-danger text-center" role="alert">Error loading player information.</div>
+        <div class="alert alert-danger text-center" role="alert">${i18next.t('tournament.errorLoadingPlayers')}</div>
       `;
     });
 }
@@ -467,14 +476,14 @@ function displayTournamentRanking(data) {
   let rankingHTML = `
     <div class="card border-primary border-1 mb-4">
       <div class="card-body">
-        <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Standings</h3>
+        <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.standings')}</h3>
         <table class="table table-striped table-hover mb-0">
           <thead class="text-dark"">
             <tr>
-              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Player</th>
-              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Wins</th>
-              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points Scored</th>
-              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points Conceded</th>
+              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.player')}</th>
+              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.wins')}</th>
+              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.pointsScored')}</th>
+              <th scope="col" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.pointsConceded')}</th>
             </tr>
           </thead>
           <tbody>
@@ -551,11 +560,11 @@ export function DisplayTournamentGame() {
 
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
-    <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Tournament: ${tournamentName}</h2>
+    <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.tournament', { tournamentName: tournamentName })}</h2>
     <div id="tournamentStatus" class="text-center mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 18px;"></div>
     <div id="tournamentMatches"></div>
     <div id="game_panel" style="display: none;">
-      <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Results</h2>
+      <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.gameResults')}</h2>
       <p id="summary" style="font-family: 'Press Start 2P', cursive; font-size: 15px;"></p>
     </div>
   `;
@@ -580,7 +589,7 @@ export function DisplayTournamentGame() {
     })
     .catch((error) => {
       logger.error("Error retrieving tournament matches:", error);
-      statusElement.textContent = "Error loading tournament";
+      statusElement.textContent = i18next.t('tournament.errorLoadingTournament');
     });
 }
 
@@ -611,13 +620,13 @@ function getTournamentFormHTML() {
       <div id="step1" style="display: block;">
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
-            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Step 1: Enter Tournament Name</h3>
+            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.step1')}</h3>
             <div class="d-flex justify-content-center align-items-center gap-3">
               <input 
                 type="text" 
                 id="tournamentName" 
                 class="form-control w-50" 
-                placeholder="Tournament Name" 
+                placeholder="${i18next.t('tournament.tournamentNamePlaceholder')}"
                 required
                 style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               >
@@ -627,7 +636,7 @@ function getTournamentFormHTML() {
                 class="btn btn-primary"
                 style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               >
-                Next
+                ${i18next.t('tournament.next')}
               </button>
             </div>
           </div>
@@ -638,7 +647,7 @@ function getTournamentFormHTML() {
       <div id="step2" style="display: none;">
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
-            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Step 2: Add Players</h3>
+            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.step2')}</h3>
             <div id="playerContainer" class="mb-3"></div>
             <div class="d-flex justify-content-center gap-3">
               <button 
@@ -647,7 +656,7 @@ function getTournamentFormHTML() {
                 class="btn btn-outline-primary"
                 style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               >
-                Add a Player
+                ${i18next.t('tournament.addPlayer')}
               </button>
               <button 
                 type="button" 
@@ -655,7 +664,7 @@ function getTournamentFormHTML() {
                 class="btn btn-success"
                 style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               >
-                Next
+                ${i18next.t('tournament.next')}
               </button>
             </div>
           </div>
@@ -666,10 +675,10 @@ function getTournamentFormHTML() {
       <div id="step3" style="display: none;">
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
-            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Step 3: Finalize Tournament</h3>
+            <h3 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('tournament.step3')}</h3>
             <div class="d-flex flex-column align-items-center gap-3">
               <div class="form-group w-50">
-                <label for="numberOfGames" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Sets per Game:</label>
+                <label for="numberOfGames" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.setsPerGame')}</label>
                 <input 
                   type="number" 
                   id="numberOfGames" 
@@ -680,7 +689,7 @@ function getTournamentFormHTML() {
                 >
               </div>
               <div class="form-group w-50">
-                <label for="pointsToWin" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Points to Win a Set:</label>
+                <label for="pointsToWin" class="form-label text-dark" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.pointsToWinSet')}</label>
                 <input 
                   type="number" 
                   id="pointsToWin" 
@@ -696,7 +705,7 @@ function getTournamentFormHTML() {
                 class="btn btn-primary mt-3"
                 style="font-family: 'Press Start 2P', cursive; font-size: 15px;"
               >
-                Finalize Tournament
+                ${i18next.t('tournament.finalizeTournament')}
               </button>
             </div>
           </div>
@@ -740,25 +749,25 @@ async function initializePlayerManagement() {
 
         if (userData.exists) {
           updatePlayerStatus(playerDiv, userData);
-          playerDiv.querySelector('.status-text').textContent = '🔒 Existing player, will need authentication';
+          playerDiv.querySelector('.status-text').textContent = i18next.t('tournament.existingPlayerAuth');
           playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
           players.set(playerName, { validated: true, div: playerDiv });
         } else {
           const playerData = await checkPlayerExists(playerName);
           if (playerData.exists) {
             updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
-            playerDiv.querySelector('.status-text').textContent = '👤 Existing guest player';
+            playerDiv.querySelector('.status-text').textContent = i18next.t('tournament.existingGuestPlayer');
             playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
           } else {
             updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
-            playerDiv.querySelector('.status-text').textContent = '👾 New guest player';
+            playerDiv.querySelector('.status-text').textContent = i18next.t('tournament.newGuestPlayer');
             playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
           }
           players.set(playerName, { validated: true, div: playerDiv });
         }
       } catch (error) {
         handleError(error, "Error checking player or user existence");
-        playerDiv.querySelector('.status-text').textContent = 'Error checking player';
+        playerDiv.querySelector('.status-text').textContent = i18next.t('tournament.errorCheckingPlayer');
         playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
       }
     }
@@ -788,16 +797,16 @@ async function initializePlayerManagement() {
     const playerDiv = document.createElement('div');
     playerDiv.className = 'd-flex align-items-center mb-2';
     playerDiv.innerHTML = `
-      <span class="me-2">${isHost ? 'Player 1 (host)' : `Player ${count}`}</span>
+      <span class="me-2">${isHost ? i18next.t('tournament.host') : `${i18next.t('tournament.player')} ${count}`}</span>
       <input 
         type="text" 
         class="form-control me-2" 
-        placeholder="Pseudo" 
+        placeholder="${i18next.t('tournament.pseudo')}"
         value="${initialValue}" 
         ${initialValue ? 'readonly' : ''} 
       >
       <span class="status-text me-2"></span>
-      ${!isHost ? '<button class="btn btn-sm remove-player">❌ remove</button>' : ''}
+      <button class="btn btn-sm remove-player">❌ ${i18next.t('tournament.remove')}</button>
     `;
     if (!isHost) {
       playerDiv.classList.add('additional-player');
@@ -910,7 +919,7 @@ function setupSubmitHandlers() {
     resetTournamentData();
     const tournamentName = document.getElementById('tournamentName')?.value.trim();
     if (!tournamentName) {
-      showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
+      showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.emptyTournamentName'), 'OK', () => {});
       return;
     }
     fetch("/api/tournament/new/", {
@@ -928,12 +937,12 @@ function setupSubmitHandlers() {
         if (step1) step1.style.display = 'none';
         if (step2) step2.style.display = 'block';
       } else {
-        showModal('Error', `Error validating tournament name: ${data.error || 'Unknown error'}`, 'OK', () => {});
+        showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorValidatingTournament', { error: data.error || i18next.t('tournament.unknownError') }), 'OK', () => {});
       }
     })
     .catch(error => {
       logger.error("Error validating tournament name:", error);
-      showModal('Error', 'There was an error validating the tournament name.', 'OK', () => {});
+      showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorValidatingName'), 'OK', () => {});
     });
   };
 
@@ -947,7 +956,7 @@ function setupSubmitHandlers() {
     })).filter(player => player.name !== '');
 
     if (players.length < 2) {
-      showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+      showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.atLeast2Players'), 'OK', () => {});
       return;
     }
 
@@ -975,7 +984,7 @@ function setupSubmitHandlers() {
       guest: player.guest
     }));
     localStorage.setItem("players", JSON.stringify(playerData));
-    showModal('Success', 'Players saved successfully!', 'OK', () => {
+    showModal(i18next.t('tournament.successTitle'), i18next.t('tournament.playersSaved'), 'OK', () => {
       logger.log("Players saved, moving to step 3");
       const step2 = document.getElementById('step2');
       const step3 = document.getElementById('step3');
@@ -987,7 +996,7 @@ function setupSubmitHandlers() {
   submitButton.onclick = () => {
     const players = JSON.parse(localStorage.getItem("players") || "[]");
     if (players.length < 2) {
-      showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
+      showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.atLeast2Players'), 'OK', () => {});
       return;
     }
 
@@ -996,7 +1005,7 @@ function setupSubmitHandlers() {
     const tournamentId = localStorage.getItem("tournamentId");
 
     if (!numberOfGames || !pointsToWin) {
-      showModal('Error', 'Please specify the number of games and points to win', 'OK', () => {});
+      showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.specifySettings'), 'OK', () => {});
       return;
     }
 
@@ -1013,17 +1022,17 @@ function setupSubmitHandlers() {
     .then(data => {
       if (data.message) {
         logger.log("Tournament finalized:", data);
-        showModal('Success', 'Tournament finalized successfully!', 'OK', () => {
+        showModal(i18next.t('tournament.successTitle'), i18next.t('tournament.tournamentFinalized'), 'OK', () => {
           logger.log("Finalizing tournament, launching game");
           DisplayTournamentGame();
         });
       } else {
-        showModal('Error', 'Error finalizing tournament. Please try again.', 'OK', () => {});
+        showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorFinalizingTournament'), 'OK', () => {});
       }
     })
     .catch(error => {
       logger.error("Error finalizing tournament:", error);
-      showModal('Error', 'There was an error finalizing the tournament.', 'OK', () => {});
+      showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorCreatingTournament'), 'OK', () => {});
     });
   };
 }
@@ -1056,8 +1065,8 @@ export function validateSearch() {
 
   if (!tournamentName) {
     showModal(
-      'Warning',
-      'Please enter a tournament name.',
+      i18next.t('tournament.warning'),
+      i18next.t('tournament.enterTournamentName'),
       'OK',
       () => {}
     );
@@ -1071,18 +1080,18 @@ export function validateSearch() {
         <div class="card-body p-3">
           <div class="card shadow-sm border-primary border-1">
             <div class="card-header text-center">
-              <h2 class="display-6 mb-0 text-primary">Tournaments Found</h2>
+              <h2 class="display-6 mb-0 text-primary">${i18next.t('tournament.tournamentsFound')}</h2>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive bg-transparent" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover bg-transparent">
                   <thead class="bg-transparent text-white">
                     <tr>
-                      <th scope="col" class="text-center bg-transparent" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.tournamentName')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.status')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.id')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.date')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.action')}</th>
                     </tr>
                   </thead>
                   <tbody id="tournamentBody"></tbody>
@@ -1111,8 +1120,8 @@ export function validateSearch() {
         tournaments.forEach((tournament) => {
           const emoji = tournament.is_finished ? '✅' : '🏓';
           const statusBadge = tournament.is_finished ? 
-            '<span class="badge bg-success">Finished</span>' : 
-            '<span class="badge bg-info text-dark">Ongoing</span>';
+            `<span class="badge bg-success">${i18next.t('tournament.finished')}</span>` : 
+            `<span class="badge bg-info text-dark">${i18next.t('tournament.ongoing')}</span>`;
 
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -1122,7 +1131,7 @@ export function validateSearch() {
             <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${new Date(tournament.date).toLocaleDateString()}</td>
             <td class="text-center align-middle">
               <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
-                <i class="bi bi-play-fill"></i> Select
+                <i class="bi bi-play-fill"></i> ${i18next.t('tournament.select')}
               </button>
             </td>
           `;
@@ -1140,7 +1149,7 @@ export function validateSearch() {
       } else {
         tournamentBody.innerHTML = `
           <tr>
-            <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">No tournament found with that name.</td>
+            <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.noTournamentFound')}</td>
           </tr>
         `;
       }
@@ -1151,7 +1160,7 @@ export function validateSearch() {
       tournamentBody.innerHTML = `
         <tr>
           <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
-            Error loading tournament information: ${error.message}
+            ${i18next.t('tournament.errorLoadingTournaments', { error: error.message })}
           </td>
         </tr>
       `;
@@ -1162,7 +1171,7 @@ export function displayUserTournaments() {
   const username = localStorage.getItem("username");
 
   if (!username) {
-    showModal('Login Required', 'Please log in to view your tournaments.', 'OK', function() {});
+    showModal(i18next.t('tournament.loginRequired'), i18next.t('tournament.pleaseLogin'), 'OK', function() {});
     return;
   }
 
@@ -1172,23 +1181,23 @@ export function displayUserTournaments() {
     <div class="card mb-4 shadow-sm border-primary border-1 bg-transparent">
       <div class="card-body p-3">
         <div class="mb-4">
-          <button id="toggleAllTournaments" class="btn btn-secondary btn-sm shadow-sm rounded-pill">Show all tournaments</button>
+          <button id="toggleAllTournaments" class="btn btn-secondary btn-sm shadow-sm rounded-pill">${i18next.t('tournament.showAllTournaments')}</button>
         </div>
         <div id="userTournamentList">
           <div class="card shadow-sm border-primary border-1 bg-transparent">
             <div class="card-header text-center bg-transparent" style="background: white;">
-              <h2 class="display-6 mb-0 text-primary">Your Tournaments</h2>
+              <h2 class="display-6 mb-0 text-primary">${i18next.t('tournament.yourTournaments')}</h2>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-hover">
                   <thead class="bg-transparent text-white">
                     <tr>
-                      <th scope="col" class="text-center bg-transparent" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Tournament Name</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Status</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">ID</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Date</th>
-                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">Action</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.tournamentName')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.status')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="3" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.id')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="4" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.date')}</th>
+                      <th scope="col" class="text-center bg-transparent" data-priority="2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.action')}</th>
                     </tr>
                   </thead>
                   <tbody id="tournamentsBody"></tbody>
@@ -1220,8 +1229,8 @@ export function displayUserTournaments() {
         reversedTournaments.forEach((tournament) => {
           const emoji = tournament.is_finished ? '✅' : '🏓';
           const statusBadge = tournament.is_finished ? 
-            '<span class="badge bg-success">Finished</span>' : 
-            '<span class="badge bg-info text-dark">Ongoing</span>';
+            `<span class="badge bg-success">${i18next.t('tournament.finished')}</span>` : 
+            `<span class="badge bg-info text-dark">${i18next.t('tournament.ongoing')}</span>`;
 
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -1231,7 +1240,7 @@ export function displayUserTournaments() {
             <td class="text-center align-middle" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${new Date(tournament.date).toLocaleDateString()}</td>
             <td class="text-center align-middle">
               <button class="btn btn-primary btn-sm selectTournamentButton shadow rounded" data-id="${tournament.id}" data-name="${tournament.tournament_name}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
-                <i class="bi bi-play-fill"></i> Select
+                <i class="bi bi-play-fill"></i> ${i18next.t('tournament.select')}
               </button>
             </td>
           `;
@@ -1244,14 +1253,14 @@ export function displayUserTournaments() {
         toggleButton.replaceWith(toggleButton.cloneNode(true)); // Réinitialiser le bouton pour éviter les anciens écouteurs
         const newToggleButton = document.getElementById("toggleAllTournaments");
         newToggleButton.addEventListener('click', () => {
-          if (newToggleButton.textContent.includes("Show all tournaments")) {
+          if (newToggleButton.textContent.includes(i18next.t('tournament.showAllTournaments'))) {
             filterTournaments('all');
-            newToggleButton.textContent = "Show only ongoing tournaments";
+            newToggleButton.textContent = i18next.t('tournament.showOnlyOngoing');
             newToggleButton.classList.remove('btn-secondary');
             newToggleButton.classList.add('btn-info');
           } else {
             filterTournaments('ongoing');
-            newToggleButton.textContent = "Show all tournaments";
+            newToggleButton.textContent = i18next.t('tournament.showAllTournaments');
             newToggleButton.classList.remove('btn-info');
             newToggleButton.classList.add('btn-secondary');
           }
@@ -1268,7 +1277,7 @@ export function displayUserTournaments() {
         tournamentsBody.innerHTML = `
           <tr>
             <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
-              You are not participating in any tournament.
+              ${i18next.t('tournament.notParticipating')}
             </td>
           </tr>
         `;
@@ -1280,7 +1289,7 @@ export function displayUserTournaments() {
       tournamentsBody.innerHTML = `
         <tr>
           <td colspan="5" class="text-center" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
-            Error loading tournament information.
+            ${i18next.t('tournament.errorLoadingTournamentInfo')}
           </td>
         </tr>
       `;
