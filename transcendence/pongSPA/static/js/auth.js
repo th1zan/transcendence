@@ -36,6 +36,10 @@ export function showModalConfirmation(message, title = "Confirmation") {
     const noButton = document.getElementById('confirmationModalNo');
 
     if (yesButton && noButton) {
+      // Translate button labels
+      yesButton.textContent = i18next.t('modal.yes');
+      noButton.textContent = i18next.t('modal.no');
+
       // Supprimer les anciens écouteurs pour éviter les doublons
       yesButton.removeEventListener('click', yesButton.handler);
       noButton.removeEventListener('click', noButton.handler);
@@ -280,7 +284,7 @@ export function update2FAStatus() {
       }
 
       if (user.is_2fa_enabled) {
-        statusElement.innerText = i18next.t('auth.twoFAEnabled');
+        statusElement.innerText = i18next.t('auth.twoFAEnabledstatus'); // Changed from 'auth.twoFAEnabled'
         toggleButton.innerText = i18next.t('auth.disableTwoFA');
         toggleButton.classList.remove("btn-success");
         toggleButton.classList.add("btn-danger");
