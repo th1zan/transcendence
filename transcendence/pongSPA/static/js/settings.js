@@ -85,15 +85,19 @@ function displayHTMLforSettings(user) {
             <label>${i18next.t('settings.newPassword')}:</label>
             <input type="password" id="newPasswordInput" class="form-control">
             <div class="invalid-feedback">
-              Password must be at least 3 characters.
+              ${i18next.t('settings.passwordTooShort')}
             </div>
           </div>
           <div class="form-group mt-2">
             <label>${i18next.t('settings.confirmNewPassword')}:</label>
             <input type="password" id="confirmPasswordInput" class="form-control">
             <div class="invalid-feedback">
-              Passwords do not match.
+              ${i18next.t('settings.passwordMismatch')}
             </div>
+          </div>
+          <!-- This is the general guidance visible to all users -->
+          <div class="mt-2 text-muted small">
+            ${i18next.t('settings.passwordRequirements')}
           </div>
           <div class="d-flex justify-content-center mt-3">
             <button id="changePasswordBtn" class="btn btn-success px-4">${i18next.t('settings.changePassword')}</button>
@@ -258,7 +262,7 @@ export function displaySettings() {
               <label>New Password:</label>
               <input type="password" id="newPasswordInput" class="form-control">
               <div class="invalid-feedback">
-                Password must be at least 3 characters.
+                Password must be at least 8 characters.
               </div>
             </div>
             <div class="form-group mt-2">
@@ -267,6 +271,10 @@ export function displaySettings() {
               <div class="invalid-feedback">
                 Passwords do not match.
               </div>
+            </div>
+            <!-- This is the general guidance visible to all users -->
+            <div class="mt-2 text-muted small">
+              ${i18next.t('settings.passwordRequirements')}
             </div>
             <div class="d-flex justify-content-center mt-3">
               <button id="changePasswordBtn" class="btn btn-success px-4">Change Password</button>
@@ -350,7 +358,7 @@ export async function deleteAccount() {
       showModal(
         i18next.t('settings.success'),
         i18next.t('settings.accountDeleted'),
-        'OK',
+        i18next.t('modal.ok'),
         () => {
           localStorage.clear(); // Clear all user data from localStorage
 
@@ -368,7 +376,7 @@ export async function deleteAccount() {
         showModal(
           i18next.t('settings.error'),
           'An error occurred:' + error.message,
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -399,9 +407,9 @@ export async function anonymizeAccount() {
     })
     .then((data) => {
       showModal(
-        'Success',
-        data.message || "Your account has been anonymized successfully.",
-        'OK',
+        i18next.t('settings.success'),
+        data.message || i18next.t('settings.anonymizeAccountSuccess'),
+        i18next.t('modal.ok'),
         () => {
           localStorage.clear();
           window.location.href = "/";
@@ -411,9 +419,9 @@ export async function anonymizeAccount() {
     .catch((error) => {
       logger.error("Error anonymizing account:", error);
       showModal(
-        'Error',
-        'An error occurred: ' + error.message,
-        'OK',
+        i18next.t('settings.error'),
+        i18next.t('settings.genericError').replace('{errorMessage}', error.message),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -427,7 +435,7 @@ export function uploadAvatar() {
     showModal(
       i18next.t('auth.warning'),
       i18next.t('settings.selectFile'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return;
@@ -453,7 +461,7 @@ export function uploadAvatar() {
       showModal(
         i18next.t('auth.success'),
         i18next.t('settings.profilePictureUpdated'),
-        'OK',
+        i18next.t('modal.ok'),
         () => {
           localStorage.setItem("avatarUrl", data.avatar_url);
           const profilePic = document.getElementById("profilePic");
@@ -479,9 +487,9 @@ export function uploadAvatar() {
     .catch(error => {
       logger.error("Error uploading profile picture:", error);
       showModal(
-        'Error',
-        'Error: ' + error.message,
-        'OK',
+        i18next.t('settings.error'),
+        i18next.t('settings.avatarUploadFailed'),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -547,7 +555,7 @@ export async function deleteAvatar() {
       showModal(
         i18next.t('auth.success'),
         i18next.t('settings.avatarDeleted'),
-        'OK',
+        i18next.t('modal.ok'),
         () => {}
       );
       // // Wait briefly before re-rendering settings to ensure DOM stability
@@ -566,9 +574,9 @@ export async function deleteAvatar() {
 
       // Show error once without callbacks
       showModal(
-        "Error",
-        `An error occurred: ${error.message}`,
-        "OK",
+        i18next.t('settings.error'),
+        i18next.t('settings.avatarDeletionFailed'),
+        i18next.t('modal.ok'),
         () => {} // Empty callback to prevent recursion
       );
     });
@@ -592,7 +600,7 @@ export function updateProfile() {
     showModal(
       i18next.t('auth.error'),
       i18next.t('settings.invalidEmail'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return; // Stop execution if email is invalid
@@ -639,7 +647,7 @@ export function updateProfile() {
           showModal(
             i18next.t('auth.success'),
             i18next.t('settings.profileUpdated'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo("settings");
             }
@@ -660,9 +668,9 @@ export function updateProfile() {
       }
 
       showModal(
-        'Error',
-        'An error occurred: ' + error.message,
-        'OK',
+        i18next.t('settings.error'),
+        i18next.t('settings.genericError').replace('{errorMessage}', error.message),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -679,14 +687,39 @@ export function changePassword() {
   document.getElementById("newPasswordInput").classList.remove("is-invalid");
   document.getElementById("confirmPasswordInput").classList.remove("is-invalid");
 
-  // Validate inputs
+  // Validate inputs with the same rules as the backend serializer
+  let errorMessage = "";
+
+  // Check for minimum length
   if (newPassword.length < 8) {
-    document.getElementById("newPasswordInput").classList.add("is-invalid");
+    errorMessage = i18next.t('settings.passwordTooShort');
+  }
+  // Check for at least one digit
+  else if (!/\d/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresDigit');
+  }
+  // Check for at least one uppercase letter
+  else if (!/[A-Z]/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresUppercase');
+  }
+  // Check for at least one lowercase letter
+  else if (!/[a-z]/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresLowercase');
+  }
+  // Check for at least one special character
+  else if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresSpecialChar');
+  }
+  // Check if passwords match
+  else if (newPassword !== confirmPassword) {
+    document.getElementById("confirmPasswordInput").classList.add("is-invalid");
     return;
   }
 
-  if (newPassword !== confirmPassword) {
-    document.getElementById("confirmPasswordInput").classList.add("is-invalid");
+  // If there's an error message, show it
+  if (errorMessage) {
+    document.getElementById("newPasswordInput").classList.add("is-invalid");
+    document.querySelector("#newPasswordInput + .invalid-feedback").textContent = errorMessage;
     return;
   }
 
@@ -726,7 +759,7 @@ export function changePassword() {
         showModal(
           i18next.t('auth.success'),
           i18next.t('settings.passwordChangeSuccess'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Navigate back to settings with fresh tokens
             navigateTo("settings");
@@ -749,8 +782,8 @@ export function changePassword() {
 
       showModal(
         i18next.t('auth.error'),
-        'Error: ' + error.message,
-        'OK',
+        i18next.t('settings.passwordChangeFailed'),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
