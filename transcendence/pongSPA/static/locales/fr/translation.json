@@ -59,6 +59,8 @@
 		"authenticationFailed": "Échec de l'authentification",
 		"unexpectedResponse": "Réponse inattendue du serveur",
 		"successTitle": "Succès",
+		"noRankingData": "Aucune donnée de classement disponible.",
+		"errorLoadingRanking": "Erreur lors du chargement du classement",
 		"participationConfirmedMsg": "Vous avez confirmé avec succès votre participation au tournoi.",
 		"failedToConfirm": "Échec de la confirmation de participation",
 		"errorTitle": "Erreur",
@@ -74,7 +76,15 @@
 		"tournamentDeletedTitle": "Tournoi supprimé",
 		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait.",
 		"removeInvitation": "Supprimer",
-		"matchOutcomes": "Issues des matchs"
+		"pointsPerPlayer": "Points par Joueur",
+		"top5Players": "Top 5 Joueurs",
+		"rankingTitle": "Classement général",
+		"points": "Points",
+        "players": "Joueurs",
+		"matchOutcomes": "Issues des matchs",
+		"rank": "Rang",
+		"player": "Joueur",
+		"pointsScored": "Points marqués"
 	},
 	"app": {
 		"warning": "Avertissement",

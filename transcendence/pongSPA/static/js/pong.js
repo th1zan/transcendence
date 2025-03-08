@@ -141,8 +141,8 @@ function startPongGame() {
     } else {
       logger.error("Failed to find canvas after maximum retries. Please check the DOM.");
       showModal(
-        i18next.t("pong.error.title"),
-        i18next.t("pong.error.canvasNotFound"),
+        i18next.t("pong.error"),
+        i18next.t("pong.canvasNotFound"),
         "OK",
         () => {
           stopGameProcess();
