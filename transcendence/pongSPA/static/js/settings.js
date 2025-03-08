@@ -85,15 +85,19 @@ function displayHTMLforSettings(user) {
             <label>${i18next.t('settings.newPassword')}:</label>
             <input type="password" id="newPasswordInput" class="form-control">
             <div class="invalid-feedback">
-              Password must be at least 3 characters.
+              ${i18next.t('settings.passwordTooShort')}
             </div>
           </div>
           <div class="form-group mt-2">
             <label>${i18next.t('settings.confirmNewPassword')}:</label>
             <input type="password" id="confirmPasswordInput" class="form-control">
             <div class="invalid-feedback">
-              Passwords do not match.
+              ${i18next.t('settings.passwordMismatch')}
             </div>
+          </div>
+          <!-- This is the general guidance visible to all users -->
+          <div class="mt-2 text-muted small">
+            ${i18next.t('settings.passwordRequirements')}
           </div>
           <div class="d-flex justify-content-center mt-3">
             <button id="changePasswordBtn" class="btn btn-success px-4">${i18next.t('settings.changePassword')}</button>
@@ -258,7 +262,7 @@ export function displaySettings() {
               <label>New Password:</label>
               <input type="password" id="newPasswordInput" class="form-control">
               <div class="invalid-feedback">
-                Password must be at least 3 characters.
+                Password must be at least 8 characters.
               </div>
             </div>
             <div class="form-group mt-2">
@@ -267,6 +271,10 @@ export function displaySettings() {
               <div class="invalid-feedback">
                 Passwords do not match.
               </div>
+            </div>
+            <!-- This is the general guidance visible to all users -->
+            <div class="mt-2 text-muted small">
+              ${i18next.t('settings.passwordRequirements')}
             </div>
             <div class="d-flex justify-content-center mt-3">
               <button id="changePasswordBtn" class="btn btn-success px-4">Change Password</button>
@@ -679,14 +687,39 @@ export function changePassword() {
   document.getElementById("newPasswordInput").classList.remove("is-invalid");
   document.getElementById("confirmPasswordInput").classList.remove("is-invalid");
 
-  // Validate inputs
+  // Validate inputs with the same rules as the backend serializer
+  let errorMessage = "";
+
+  // Check for minimum length
   if (newPassword.length < 8) {
-    document.getElementById("newPasswordInput").classList.add("is-invalid");
+    errorMessage = i18next.t('settings.passwordTooShort');
+  }
+  // Check for at least one digit
+  else if (!/\d/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresDigit');
+  }
+  // Check for at least one uppercase letter
+  else if (!/[A-Z]/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresUppercase');
+  }
+  // Check for at least one lowercase letter
+  else if (!/[a-z]/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresLowercase');
+  }
+  // Check for at least one special character
+  else if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+    errorMessage = i18next.t('settings.passwordRequiresSpecialChar');
+  }
+  // Check if passwords match
+  else if (newPassword !== confirmPassword) {
+    document.getElementById("confirmPasswordInput").classList.add("is-invalid");
     return;
   }
 
-  if (newPassword !== confirmPassword) {
-    document.getElementById("confirmPasswordInput").classList.add("is-invalid");
+  // If there's an error message, show it
+  if (errorMessage) {
+    document.getElementById("newPasswordInput").classList.add("is-invalid");
+    document.querySelector("#newPasswordInput + .invalid-feedback").textContent = errorMessage;
     return;
   }
 
