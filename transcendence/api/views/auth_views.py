@@ -193,6 +193,7 @@ class Toggle2FAView(APIView):
         user = request.user
         otp_code = request.data.get("otp_code")
 
+        # If user is disabling 2FA
         if user.is_2fa_enabled:
             user.is_2fa_enabled = False
             user.otp_secret = None
@@ -201,6 +202,14 @@ class Toggle2FAView(APIView):
                 {"message": "2FA disabled successfully."}, status=status.HTTP_200_OK
             )
 
+        # Check if user has an email before enabling 2FA
+        if not user.email:
+            return Response(
+                {"error": "Email is required for 2FA.", "need_email": True},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Handle OTP verification for enabling 2FA
         if otp_code:
             stored_otp = str(user.otp_secret).strip() if user.otp_secret else None
             entered_otp = str(otp_code).strip()
