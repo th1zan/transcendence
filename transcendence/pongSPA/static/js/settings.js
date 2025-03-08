@@ -350,7 +350,7 @@ export async function deleteAccount() {
       showModal(
         i18next.t('settings.success'),
         i18next.t('settings.accountDeleted'),
-        'OK',
+        i18next.t('modal.ok'),
         () => {
           localStorage.clear(); // Clear all user data from localStorage
 
@@ -368,7 +368,7 @@ export async function deleteAccount() {
         showModal(
           i18next.t('settings.error'),
           'An error occurred:' + error.message,
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -399,9 +399,9 @@ export async function anonymizeAccount() {
     })
     .then((data) => {
       showModal(
-        'Success',
-        data.message || "Your account has been anonymized successfully.",
-        'OK',
+        i18next.t('settings.success'),
+        data.message || i18next.t('settings.anonymizeAccountSuccess'),
+        i18next.t('modal.ok'),
         () => {
           localStorage.clear();
           window.location.href = "/";
@@ -411,9 +411,9 @@ export async function anonymizeAccount() {
     .catch((error) => {
       logger.error("Error anonymizing account:", error);
       showModal(
-        'Error',
-        'An error occurred: ' + error.message,
-        'OK',
+        i18next.t('settings.error'),
+        i18next.t('settings.genericError').replace('{errorMessage}', error.message),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -427,7 +427,7 @@ export function uploadAvatar() {
     showModal(
       i18next.t('auth.warning'),
       i18next.t('settings.selectFile'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return;
@@ -453,7 +453,7 @@ export function uploadAvatar() {
       showModal(
         i18next.t('auth.success'),
         i18next.t('settings.profilePictureUpdated'),
-        'OK',
+        i18next.t('modal.ok'),
         () => {
           localStorage.setItem("avatarUrl", data.avatar_url);
           const profilePic = document.getElementById("profilePic");
@@ -479,9 +479,9 @@ export function uploadAvatar() {
     .catch(error => {
       logger.error("Error uploading profile picture:", error);
       showModal(
-        'Error',
-        'Error: ' + error.message,
-        'OK',
+        i18next.t('settings.error'),
+        i18next.t('settings.avatarUploadFailed'),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -547,7 +547,7 @@ export async function deleteAvatar() {
       showModal(
         i18next.t('auth.success'),
         i18next.t('settings.avatarDeleted'),
-        'OK',
+        i18next.t('modal.ok'),
         () => {}
       );
       // // Wait briefly before re-rendering settings to ensure DOM stability
@@ -566,9 +566,9 @@ export async function deleteAvatar() {
 
       // Show error once without callbacks
       showModal(
-        "Error",
-        `An error occurred: ${error.message}`,
-        "OK",
+        i18next.t('settings.error'),
+        i18next.t('settings.avatarDeletionFailed'),
+        i18next.t('modal.ok'),
         () => {} // Empty callback to prevent recursion
       );
     });
@@ -592,7 +592,7 @@ export function updateProfile() {
     showModal(
       i18next.t('auth.error'),
       i18next.t('settings.invalidEmail'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return; // Stop execution if email is invalid
@@ -639,7 +639,7 @@ export function updateProfile() {
           showModal(
             i18next.t('auth.success'),
             i18next.t('settings.profileUpdated'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo("settings");
             }
@@ -660,9 +660,9 @@ export function updateProfile() {
       }
 
       showModal(
-        'Error',
-        'An error occurred: ' + error.message,
-        'OK',
+        i18next.t('settings.error'),
+        i18next.t('settings.genericError').replace('{errorMessage}', error.message),
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -726,7 +726,7 @@ export function changePassword() {
         showModal(
           i18next.t('auth.success'),
           i18next.t('settings.passwordChangeSuccess'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Navigate back to settings with fresh tokens
             navigateTo("settings");
@@ -749,8 +749,8 @@ export function changePassword() {
 
       showModal(
         i18next.t('auth.error'),
-        'Error: ' + error.message,
-        'OK',
+        i18next.t('settings.passwordChangeFailed'),
+        i18next.t('modal.ok'),
         () => {}
       );
     });

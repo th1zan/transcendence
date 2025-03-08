@@ -146,7 +146,7 @@ export function toggle2FA() {
         showModal(
           i18next.t('auth.error'), 
           i18next.t('auth.emailRequiredFor2FA'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Redirect to profile settings
             navigateTo("settings");
@@ -167,7 +167,7 @@ export function verifyOTP() {
     showModal(
       i18next.t('auth.warning'),
       i18next.t('auth.enterOTPCode'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return;
@@ -188,7 +188,7 @@ export function verifyOTP() {
         showModal(
           i18next.t('auth.success'),
           i18next.t('auth.twoFAEnabled'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Hide the OTP section again
             document.getElementById("otpSection").style.display = "none";
@@ -199,14 +199,14 @@ export function verifyOTP() {
         showModal(
           i18next.t('auth.error'),
           `❌ ${data.error}`,
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       } else {
         showModal(
           i18next.t('auth.error'),
           i18next.t('auth.unknownOTPError'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -216,7 +216,7 @@ export function verifyOTP() {
       showModal(
         i18next.t('auth.error'),
         i18next.t('auth.verifyingOTPError') + error.message,
-        'OK',
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -232,7 +232,7 @@ export function verify2FALogin() {
     showModal(
       i18next.t('auth.warning'),
       i18next.t('auth.enterOTPCode'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return;
@@ -251,7 +251,7 @@ export function verify2FALogin() {
         showModal(
           i18next.t('auth.success'),
           i18next.t('auth.twoFAVerified'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Set the username in localStorage so the welcome page can use it
             localStorage.setItem("username", username);
@@ -265,7 +265,7 @@ export function verify2FALogin() {
         showModal(
           i18next.t('auth.error'),
           i18next.t('auth.invalidOTP'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -328,7 +328,7 @@ export async function logout() {
     showModal(
       i18next.t('auth.success'),
       i18next.t('auth.logoutSuccessful'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {
         localStorage.clear(); // Clear all user data
         window.location.href = "/"; // Redirect to login page
@@ -339,7 +339,7 @@ export async function logout() {
     showModal(
       i18next.t('auth.error'),
       i18next.t('auth.logoutError') + error.message,
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
   }
@@ -367,7 +367,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
         showModal(
           i18next.t('auth.success'),
           i18next.t('auth.accountCreated'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             displayConnectionFormular();
           }
@@ -376,7 +376,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
         showModal(
           i18next.t('auth.error'),
           i18next.t('auth.accountCreationError'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -395,7 +395,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
       showModal(
         i18next.t('auth.error'),
         errorMessage,
-        'OK',
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -438,7 +438,7 @@ export function getToken(username, password) {
           showModal(
             i18next.t('auth.error'),
             i18next.t('auth.refreshAndRetry'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {}
           );
           return;
@@ -468,7 +468,7 @@ export function getToken(username, password) {
       showModal(
         i18next.t('auth.error'),
         i18next.t('auth.loginFailed') + error.message,
-        'OK',
+        i18next.t('modal.ok'),
         () => {}
       );
     });
