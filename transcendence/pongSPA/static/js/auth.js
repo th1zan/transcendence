@@ -142,7 +142,17 @@ export function toggle2FA() {
     .then(data => {
       logger.log("Toggle 2FA response:", data);
       
-      if (data.otp_required) {
+      if (data.need_email) {
+        showModal(
+          i18next.t('auth.error'), 
+          i18next.t('auth.emailRequiredFor2FA'),
+          'OK',
+          () => {
+            // Redirect to profile settings
+            navigateTo("settings");
+          }
+        );
+      } else if (data.otp_required) {
         document.getElementById("otpSection").style.display = "block"; // Show OTP field
       } else {
         update2FAStatus();
@@ -150,7 +160,6 @@ export function toggle2FA() {
     })
     .catch(error => logger.error("Error toggling 2FA:", error));
 }
-
 
 export function verifyOTP() {
   const otpCode = document.getElementById("otpInput").value.trim();

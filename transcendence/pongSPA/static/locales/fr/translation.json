@@ -104,7 +104,8 @@
 		"accountCreationError": "Erreur lors de la création du compte. Veuillez réessayer.",
 		"registrationError": "Erreur d'inscription :",
 		"refreshAndRetry": "Un problème est survenu. Veuillez rafraîchir la page et réessayer.",
-		"loginFailed": "Échec de connexion : "
+		"loginFailed": "Échec de connexion : ",
+		"emailRequiredFor2FA": "L'authentification à deux facteurs nécessite une adresse e-mail. Veuillez mettre à jour votre profil."
 	},
 	"friends": {
 		"sendFriendRequest": "Envoyer une demande d'ami",

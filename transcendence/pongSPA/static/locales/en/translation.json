@@ -100,7 +100,8 @@
         "accountCreationError": "Error creating account. Please try again.",
         "registrationError": "Registration error:",
         "refreshAndRetry": "Something went wrong. Please refresh the page and try again.",
-        "loginFailed": "Login failed: "
+        "loginFailed": "Login failed: ",
+		"emailRequiredFor2FA": "An email address is required for two-factor authentication. Please add an email in your profile settings."
     },
     "friends": {
         "sendFriendRequest": "Send Friend Request",
