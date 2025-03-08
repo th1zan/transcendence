@@ -197,7 +197,7 @@
 	"statistics": {
 		"statisticsDashboard": "Tableau de bord des Statistiques",
 		"search": "Chercher",
-		"enter username": "Entrez le nom d'utilisateur",
+		"enterUsername": "Entrez le nom d'utilisateur",
 		"player": "Joueur",
 		"tournament": "Tournoi",
 		"game": "Jeu",
@@ -235,6 +235,19 @@
 		"exchangesPerMatch": "Échange par match",
 		"exchanges": "Échange",
 		"noTournamentsFound": "Pas de tournoi trouvé",
+		"errorInvalidData": "Erreur: Donnée pas valide reçue du serveur.",
+
+		"recentTournamentFor": "Tournoi récent de {{username}}",
+		"tournament&Date": "Tournoi & Date",
+		"status": "Statut",
+		"finished": "Fini",
+		"ongoing": "En cours",
+		"errorLoadingTournament": "Erreur lors du chargement du tournoi",
+		"errorLoadingGames": "Erreur lors du chargement du Jeu}",
+		"noPlayedMatchesFoundFor": "Aucun match joué trouvé par {{username}}",
+		"": "",
+
+
 		"gamesFor": "Jeu de {{username}}",
 		"opponent&Date": "Opposant & Date",
 		"result": "Résultats",

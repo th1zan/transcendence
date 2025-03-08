@@ -17,16 +17,16 @@ export function displayStats() {
   // Menu avec barre de recherche et onglets dans #app_top
   appTop.innerHTML = `
     <div class="container mt-3">
-      <h3 class="text-center text-primary mb-4" >Statistics Dashboard</h3>
+      <h3 class="text-center text-primary mb-4" >${i18next.t('statistics.statisticsDashboard')}</h3>
       <div class="input-group w-50 mx-auto mb-3">
-        <input id="globalSearch" class="form-control" placeholder="Enter username" >
-        <button id="globalSearchBtn" class="btn btn-primary" >Search</button>
+        <input id="globalSearch" class="form-control" placeholder="${i18next.t('statistics.enterUsername')}" >
+        <button id="globalSearchBtn" class="btn btn-primary" >${i18next.t('statistics.search')}</button>
       </div>
       <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-        <button id="tabPlayer" class="btn btn-outline-primary shadow-sm" >Player</button>
-        <button id="tabTournament" class="btn btn-outline-primary shadow-sm" >Tournament</button>
-        <button id="tabGame" class="btn btn-outline-primary shadow-sm" >Game</button>
-        <button id="tabRanking" class="btn btn-outline-primary shadow-sm" >General Ranking</button>
+        <button id="tabPlayer" class="btn btn-outline-primary shadow-sm" >${i18next.t('statistics.player')}</button>
+        <button id="tabTournament" class="btn btn-outline-primary shadow-sm" >${i18next.t('statistics.tournament')}</button>
+        <button id="tabGame" class="btn btn-outline-primary shadow-sm" >${i18next.t('statistics.game')}</button>
+        <button id="tabRanking" class="btn btn-outline-primary shadow-sm" >${i18next.t('statistics.generalRanking')}</button>
       </div>
       <div id="searchArea" class="d-flex justify-content-center"></div>
     </div>
@@ -109,12 +109,12 @@ function displayUserGames(username) {
       searchArea.innerHTML = `
         <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
           <div class="card-body p-2">
-            <h5 class="text-center mb-3" >Games for ${username}</h5>
+            <h5 class="text-center mb-3" >${i18next.t('statistics.gamesFor', { username: username })}</h5>
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th style="font-family: 'Press Start 2P', cursive; width: 60%;">Opponent & Date</th>
-                  <th style="font-family: 'Press Start 2P', cursive; width: 40%;">Result</th>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 60%;">${i18next.t('statistics.opponent&Date')}</th>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 40%;">${i18next.t('statistics.result')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,9 +125,9 @@ function displayUserGames(username) {
 
                   // Vérifier les matchs nuls en utilisant winner et winner_name
                   const isDraw = (m.winner === null || m.winner_name === 'No winner');
-                  const winLoss = isDraw ? 'Draw' : 
-                                 m.winner_name && m.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 'Loss';
-                  const colorClass = winLoss === 'Win' ? 'text-success' : winLoss === 'Loss' ? 'text-danger' : 'text-warning';
+                  const winLoss = isDraw ? i18next.t('statistics.draw') :
+                                 m.winner_name && m.winner_name.toLowerCase() === username.toLowerCase() ? i18next.t('statistics.win') : i18next.t('statistics.loss');
+                  const colorClass = winLoss === i18next.t('statistics.win') ? 'text-success' : winLoss === i18next.t('statistics.loss') ? 'text-danger' : 'text-warning';
 
                   return `
                     <tr>
@@ -153,7 +153,7 @@ function displayUserGames(username) {
       });
     })
     .catch(error => {
-      searchArea.innerHTML = `<p class="text-danger" >Error loading games: ${error.message}</p>`;
+      searchArea.innerHTML = `<p class="text-danger" >${i18next.t('statistics.errorLoadingGames')}</p>`;
     });
 }
 
@@ -175,13 +175,13 @@ function displayLastUserTournaments(searchArea, username) {
     .then(data => {
       // Vérifier si data est un tableau
       if (!Array.isArray(data)) {
-        searchArea.innerHTML = `<p class="text-danger">Error: Invalid data received from server.</p>`;
+        searchArea.innerHTML = `<p class="text-danger">${i18next.t('statistics.errorInvalidData')}</p>`;
         console.error('Expected an array, received:', data);
         return;
       }
 
       if (data.length === 0) {
-        searchArea.innerHTML = `<p class="text-muted">No tournaments found.</p>`;
+        searchArea.innerHTML = `<p class="text-muted">${i18next.t('statistics.noTournamentsFound')}</p>`;
         return;
       }
 
@@ -191,21 +191,21 @@ function displayLastUserTournaments(searchArea, username) {
       searchArea.innerHTML = `
         <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
           <div class="card-body p-2">
-            <h5 class="text-center mb-3">Recent Tournaments for ${username}</h5>
+            <h5 class="text-center mb-3">${i18next.t('statistics.recentTournamentFor', { username: username })}</h5>
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th style="font-family: 'Press Start 2P', cursive; width: 60%;">Tournament & Date</th>
-                  <th style="font-family: 'Press Start 2P', cursive; width: 40%;">Status</th>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 60%;">${i18next.t('statistics.tournament&Date')}</th>
+                  <th style="font-family: 'Press Start 2P', cursive; width: 40%;">${i18next.t('statistics.status')}</th>
                 </tr>
               </thead>
               <tbody>
                 ${tournaments.map(t => {
                   const tournamentName = `${t.tournament_name} ${t.is_finished ? '✅' : '🏓'}`;
                   const date = new Date(t.date).toLocaleDateString();
-                  const status = t.is_finished 
-                    ? '<span class="badge bg-success">Finished</span>' 
-                    : '<span class="badge bg-info text-dark">Ongoing</span>';
+                  const status = t.is_finished
+                    ? `<span class="badge bg-success">${i18next.t('statistics.finished')}</span>`
+                    : `<span class="badge bg-info text-dark">${i18next.t('statistics.ongoing')}</span>`;
                   return `
                     <tr>
                       <td style="font-family: 'Press Start 2P', cursive; cursor: pointer;" class="selectTournamentLink" data-id="${t.id}">
@@ -230,7 +230,7 @@ function displayLastUserTournaments(searchArea, username) {
       });
     })
     .catch(error => {
-      searchArea.innerHTML = `<p class="text-danger">Error loading tournaments: ${error.message}</p>`;
+      searchArea.innerHTML = `<p class="text-danger">${i18next.t('statistics.errorLoadingTournament')}</p>`;
       console.error('Fetch error:', error);
     });
 }
@@ -328,7 +328,7 @@ function fetchAndDisplayPlayerStats(username) {
 
                 // Appliquer la logique fournie
                 const isDraw = (match.winner === null || match.winner_name === 'No winner');
-                const winLoss = isDraw ? 'Draw' : 
+                const winLoss = isDraw ? 'Draw' :
                                match.winner_name && match.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 'Loss';
 
                 if (winLoss === 'Win') stats.wins++;
@@ -350,14 +350,14 @@ function fetchAndDisplayPlayerStats(username) {
             appMain.appendChild(chartsContainer);
 
             // Carte 1 : Player Summary
-            const summary = generateSummaryCard('Player Summary', {
-                'Name': username,
-                'Matches Played': stats.totalMatches,
-                'Win Rate': `${((stats.wins / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
-                'Draw Rate': `${((stats.draws / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
-                'Loss Rate': `${((stats.losses / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
-                'Sets Won': stats.setsWon,
-                'Total Points': stats.pointsScored,
+            const summary = generateSummaryCard(i18next.t('statistics.playerSummary'), {
+                [i18next.t('statistics.name')]: username,
+                [i18next.t('statistics.matchesPlayed')]: stats.totalMatches,
+                [i18next.t('statistics.winRate')]: `${((stats.wins / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+                [i18next.t('statistics.drawRate')]: `${((stats.draws / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+                [i18next.t('statistics.lossRate')]: `${((stats.losses / stats.totalMatches) * 100 || 0).toFixed(1)}%`,
+                [i18next.t('statistics.setsWon')]: stats.setsWon,
+                [i18next.t('statistics.totalPoints')]: stats.pointsScored,
             });
             const summaryCard = document.createElement('div');
             summaryCard.className = 'col-12 col-md-4 col-sm-6';
@@ -366,16 +366,16 @@ function fetchAndDisplayPlayerStats(username) {
 
             // Carte 2 : Match Durations
             const durationStats = {
-                'Average Match Duration': `${(totalMatchDuration / stats.totalMatches || 0).toFixed(2)}s`,
-                'Total Match Duration': `${totalMatchDuration.toFixed(2)}s`,
-                'Average Exchanges per Match': `${(totalExchanges / stats.totalMatches || 0).toFixed(2)}`
+              [i18next.t('statistics.averageMatchDuration')]: `${(totalMatchDuration / stats.totalMatches || 0).toFixed(2)}s`,
+              [i18next.t('statistics.totalMatchDuration')]: `${totalMatchDuration.toFixed(2)}s`,
+              [i18next.t('statistics.averageExchangePerMatch')]: `${(totalExchanges / stats.totalMatches || 0).toFixed(2)}`
             };
             const durationCard = document.createElement('div');
             durationCard.className = 'col-12 col-md-4 col-sm-6';
             durationCard.innerHTML = `
                 <div class="card mb-4 shadow-">
                     <div class="card-body">
-                        <h5 class="text-center mb-3" >Match Durations</h5>
+                        <h5 class="text-center mb-3" >${i18next.t('statistics.matchDurations')}</h5>
                         <ul class="list-group list-group-flush">
                             ${Object.entries(durationStats).map(([key, value]) => `
                                 <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
@@ -388,16 +388,16 @@ function fetchAndDisplayPlayerStats(username) {
 
             // Carte 3 : Set Durations & Exchanges
             const setStats = {
-                'Average Set Duration': `${(totalSetDuration / totalSets || 0).toFixed(2)}s`,
-                'Average Exchanges per Set': `${(totalExchanges / totalSets || 0).toFixed(2)}`,
-                'Total Exchanges': totalExchanges
+              [i18next.t('statistics.averageSetDuration')]: `${(totalSetDuration / totalSets || 0).toFixed(2)}s`,
+              [i18next.t('statistics.averageExchangePerSet')]: `${(totalExchanges / totalSets || 0).toFixed(2)}`,
+              [i18next.t('statistics.totalExchanges')]: totalExchanges
             };
             const setCard = document.createElement('div');
             setCard.className = 'col-12 col-md-4 col-sm-6';
             setCard.innerHTML = `
                 <div class="card mb-4 shadow-">
                     <div class="card-body">
-                        <h5 class="text-center mb-3" >Set Durations & Exchanges</h5>
+                        <h5 class="text-center mb-3" >${i18next.t('statistics.setDurations&Exchanges')}</h5>
                         <ul class="list-group list-group-flush">
                             ${Object.entries(setStats).map(([key, value]) => `
                                 <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
@@ -418,38 +418,38 @@ function fetchAndDisplayPlayerStats(username) {
             const barChart = generateChart('bar', 'playerBar', {
                 labels: setsData.map(d => d.date),
                 datasets: [
-                    { label: 'Sets Won', data: setsData.map(d => d.isDraw ? 0 : d.setsWon), backgroundColor: '#28a745' },
-                    { label: 'Sets Lost', data: setsData.map(d => d.isDraw ? 0 : d.setsLost), backgroundColor: '#dc3545' },
-                    { label: 'Draws', data: setsData.map(d => d.isDraw ? (d.setsWon + d.setsLost) : 0), backgroundColor: '#ffc107' }
+                    { label: i18next.t('statistics.setsWon'), data: setsData.map(d => d.isDraw ? 0 : d.setsWon), backgroundColor: '#28a745' },
+                    { label: i18next.t('statistics.setsLost'), data: setsData.map(d => d.isDraw ? 0 : d.setsLost), backgroundColor: '#dc3545' },
+                    { label: i18next.t('statistics.draws'), data: setsData.map(d => d.isDraw ? (d.setsWon + d.setsLost) : 0), backgroundColor: '#ffc107' }
                 ]
-            }, { 
-                scales: { 
-                    y: { beginAtZero: true, title: { display: true, text: 'Sets' } },
+            }, {
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.sets') } },
                     x: { stacked: true } // Empiler les barres pour mieux visualiser les nuls
                 },
                 plugins: { legend: { position: 'bottom' } }
             });
-            chartsContainer.appendChild(displayChartInCard(barChart, 'Sets Won/Lost/Draws per Match'));
+            chartsContainer.appendChild(displayChartInCard(barChart, i18next.t('statistics.setsWon/Lost/DrawsPerMatch')));
 
             // 2. Donut : Répartition victoires/défaites/nuls
             const donutChart = generateChart('doughnut', 'playerDonut', {
-                labels: ['Wins', 'Losses', 'Draws'],
+                labels: [i18next.t('statistics.win'), i18next.t('statistics.losses'), i18next.t('statistics.draws')],
                 datasets: [{ data: [stats.wins, stats.losses, stats.draws], backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
             }, { plugins: { legend: { position: 'bottom' } } });
-            chartsContainer.appendChild(displayChartInCard(donutChart, 'Wins vs Losses vs Draws'));
+            chartsContainer.appendChild(displayChartInCard(donutChart, i18next.t('statistics.winVsLossesVsDraws')));
 
             // 3. Courbe : Points marqués par match
             const lineChart = generateChart('line', 'playerLine', {
                 labels: playedMatches.map(m => m.date_played.split('T')[0]),
                 datasets: [{
-                    label: 'Points Scored',
+                    label: i18next.t('statistics.pointsScored'),
                     data: playedMatches.map(m => m.player1_name.toLowerCase() === username.toLowerCase() ? m.player1_total_points : m.player2_total_points),
                     borderColor: '#007bff',
                     fill: false,
                     tension: 0.1
                 }]
-            }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
-            chartsContainer.appendChild(displayChartInCard(lineChart, 'Points Over Time'));
+            }, { scales: { y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.points') } } } });
+            chartsContainer.appendChild(displayChartInCard(lineChart, i18next.t('statistics.poinsOverTime')));
 
             // 4. Barres : Durée moyenne par match (modifié pour enlever les jours sans matchs)
             const matchDurations = playedMatches.map(m => ({
@@ -461,14 +461,14 @@ function fetchAndDisplayPlayerStats(username) {
 
             const durationBarChart = generateChart('bar', 'playerDurationBar', {
                 labels: filteredMatchDurations.map(d => d.date),
-                datasets: [{ label: 'Average Match Duration (s)', data: filteredMatchDurations.map(d => d.duration), backgroundColor: '#007bff' }]
-            }, { 
-                scales: { 
-                    y: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } }
+                datasets: [{ label: i18next.t('statistics.averageMatchDuration(s)'), data: filteredMatchDurations.map(d => d.duration), backgroundColor: '#007bff' }]
+            }, {
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.duration(s)') } }
                 },
                 plugins: { legend: { display: false } }
             });
-            chartsContainer.appendChild(displayChartInCard(durationBarChart, 'Match Duration Over Time'));
+            chartsContainer.appendChild(displayChartInCard(durationBarChart, i18next.t('statistics.matchDurationOverTime')));
 
             // 5. Lignes : Évolution des échanges par match
             const exchangesData = playedMatches.map(m => ({
@@ -478,18 +478,18 @@ function fetchAndDisplayPlayerStats(username) {
             const exchangesLineChart = generateChart('line', 'playerExchangesLine', {
                 labels: exchangesData.map(d => d.date),
                 datasets: [{
-                    label: 'Exchanges per Match',
+                    label: i18next.t('statistics.exchangesPerMatch'),
                     data: exchangesData.map(d => d.exchanges),
                     borderColor: '#28a745',
                     fill: false,
                     tension: 0.1
                 }]
-            }, { 
-                scales: { 
-                    y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } }
+            }, {
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.exchanges') } }
                 }
             });
-            chartsContainer.appendChild(displayChartInCard(exchangesLineChart, 'Exchanges Over Time'));
+            chartsContainer.appendChild(displayChartInCard(exchangesLineChart, i18next.t('statistics.exchangesOverTime')));
         })
         .catch(error => {
             document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
@@ -531,8 +531,8 @@ function fetchAndDisplayTournamentStats(tournamentId) {
         .map(m => m.winner_name)
         .filter(w => w && w !== 'No winner');
       const draws = playedMatches.filter(m => m.winner === null || m.winner_name === 'No winner').length;
-      const topWinner = winners.length 
-        ? winners.sort((a, b) => winners.filter(w => w === b).length - winners.filter(w => w === a).length)[0] 
+      const topWinner = winners.length
+        ? winners.sort((a, b) => winners.filter(w => w === b).length - winners.filter(w => w === a).length)[0]
         : 'None';
       const avgSets = (playedMatches.reduce((sum, m) => sum + (m.player1_sets_won || 0) + (m.player2_sets_won || 0), 0) / playedMatches.length || 0).toFixed(1);
       const totalPoints = playedMatches.reduce((sum, m) => sum + (m.player1_total_points || 0) + (m.player2_total_points || 0), 0);
@@ -618,12 +618,12 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       winners.forEach(w => winnersCount[w] = (winnersCount[w] || 0) + 1);
       const barChart = generateChart('bar', 'tourneyBar', {
         labels: [...Object.keys(winnersCount), 'Draws'],
-        datasets: [{ 
-          label: 'Match Outcomes', 
-          data: [...Object.values(winnersCount), draws], 
-          backgroundColor: ['#007bff', '#ffc107'] 
+        datasets: [{
+          label: 'Match Outcomes',
+          data: [...Object.values(winnersCount), draws],
+          backgroundColor: ['#007bff', '#ffc107']
         }]
-      }, { 
+      }, {
         scales: { y: { beginAtZero: true, title: { display: true, text: 'Matches' } } },
         plugins: { legend: { position: 'bottom' } }
       });
@@ -632,12 +632,12 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       // 2. Aires : Points par match
       const areaChart = generateChart('line', 'tourneyArea', {
         labels: playedMatches.map(m => `Match ${m.id}`),
-        datasets: [{ 
-          label: 'Points', 
-          data: playedMatches.map(m => (m.player1_total_points || 0) + (m.player2_total_points || 0)), 
-          borderColor: '#28a745', 
-          fill: true, 
-          tension: 0.1 
+        datasets: [{
+          label: 'Points',
+          data: playedMatches.map(m => (m.player1_total_points || 0) + (m.player2_total_points || 0)),
+          borderColor: '#28a745',
+          fill: true,
+          tension: 0.1
         }]
       }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
       chartsContainer.appendChild(displayChartInCard(areaChart, 'Points per Match'));
@@ -654,9 +654,9 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const hBarChart = generateChart('bar', 'tourneyHBar', {
         labels: Object.keys(playerStats),
         datasets: [{ label: 'Sets Won', data: Object.values(playerStats).map(p => p.setsWon), backgroundColor: '#dc3545', borderWidth: 1 }]
-      }, { 
-        indexAxis: 'y', 
-        scales: { 
+      }, {
+        indexAxis: 'y',
+        scales: {
           x: { beginAtZero: true, title: { display: true, text: 'Sets' } },
           y: { title: { display: true, text: 'Players' } }
         },
@@ -682,9 +682,9 @@ function fetchAndDisplayTournamentStats(tournamentId) {
           backgroundColor: '#007bff',
           borderWidth: 1
         }]
-      }, { 
-        indexAxis: 'y', 
-        scales: { 
+      }, {
+        indexAxis: 'y',
+        scales: {
           x: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } },
           y: { title: { display: true, text: 'Players' } }
         },
@@ -710,8 +710,8 @@ function fetchAndDisplayTournamentStats(tournamentId) {
           backgroundColor: '#28a745',
           borderWidth: 1
         }]
-      }, { 
-        scales: { 
+      }, {
+        scales: {
           y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } }
         },
         plugins: { legend: { display: false } }
@@ -831,12 +831,12 @@ function fetchAndDisplayGameStats(matchId, username) {
           { label: match.player1_name, data: match.sets.map(s => s.player1_score), backgroundColor: '#28a745', stack: 'combined' },
           { label: match.player2_name, data: match.sets.map(s => s.player2_score), backgroundColor: '#dc3545', stack: 'combined' }
         ]
-      }, { 
-        scales: { 
-          y: { beginAtZero: true, title: { display: true, text: 'Score' } }, 
-          x: { stacked: true } 
+      }, {
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Score' } },
+          x: { stacked: true }
         },
-        plugins: { 
+        plugins: {
           title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
         }
       });
@@ -845,12 +845,12 @@ function fetchAndDisplayGameStats(matchId, username) {
       // 2. Anneau : Répartition des points
       const donutChart = generateChart('doughnut', 'gameDonut', {
         labels: [match.player1_name, match.player2_name],
-        datasets: [{ 
-          data: [match.player1_total_points, match.player2_total_points], 
-          backgroundColor: ['#28a745', '#dc3545'] 
+        datasets: [{
+          data: [match.player1_total_points, match.player2_total_points],
+          backgroundColor: ['#28a745', '#dc3545']
         }]
-      }, { 
-        plugins: { 
+      }, {
+        plugins: {
           legend: { position: 'bottom' },
           title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
         }
@@ -864,13 +864,13 @@ function fetchAndDisplayGameStats(matchId, username) {
           { label: match.player1_name, data: [match.player1_sets_won, match.player1_total_points], backgroundColor: '#28a745' },
           { label: match.player2_name, data: [match.player2_sets_won, match.player2_total_points], backgroundColor: '#dc3545' }
         ]
-      }, { 
-        indexAxis: 'y', 
-        scales: { 
+      }, {
+        indexAxis: 'y',
+        scales: {
           x: { beginAtZero: true, title: { display: true, text: 'Value' } },
           y: { title: { display: true, text: 'Players' } }
         },
-        plugins: { 
+        plugins: {
           legend: { position: 'right' },
           title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
         }
@@ -889,8 +889,8 @@ function fetchAndDisplayGameStats(matchId, username) {
           data: setDurations.map(d => d.duration),
           backgroundColor: '#007bff'
         }]
-      }, { 
-        scales: { 
+      }, {
+        scales: {
           y: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } }
         },
         plugins: { legend: { display: false } }
@@ -909,8 +909,8 @@ function fetchAndDisplayGameStats(matchId, username) {
           { label: match.player1_name, data: setExchanges.map(e => e.exchangesP1), backgroundColor: '#28a745', stack: 'combined' },
           { label: match.player2_name, data: setExchanges.map(e => e.exchangesP2), backgroundColor: '#dc3545', stack: 'combined' }
         ]
-      }, { 
-        scales: { 
+      }, {
+        scales: {
           y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } },
           x: { stacked: true }
         },
@@ -944,10 +944,10 @@ function fetchAndDisplayRankingStats() {
       appMain.innerHTML = `
         <div class="card mb-4 shadow-">
           <div class="card-body">
-            <h4 class="card-title text-center mb-3" >Ranking Summary</h4>
+            <h4 class="card-title text-center mb-3" >${i18next.t('statistics.rankingSummary')}</h4>
             <div class="table-responsive">
               <table class="table table-striped table-hover bg-transparent ">
-                <thead><tr>${['Rank', 'Player', 'Wins', 'Draws', 'Losses', 'Points Scored'].map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <thead><tr>${[i18next.t('statistics.rank'), i18next.t('statistics.player'), i18next.t('statistics.wins'), i18next.t('statistics.draws'), i18next.t('statistics.losses'), i18next.t('statistics.pointsScored')].map(h => `<th>${h}</th>`).join('')}</tr></thead>
                 <tbody>${data.map((p, i) => `<tr><td>${i + 1}</td><td>${p.name}</td><td>${p.total_wins || 0}</td><td>${p.total_draws || 0}</td><td>${p.total_losses || 0}</td><td>${p.points_scored || 0}</td></tr>`).join('')}</tbody>
               </table>
             </div>
@@ -964,32 +964,32 @@ function fetchAndDisplayRankingStats() {
       const top5 = data.slice(0, 5);
       const barChart = generateChart('bar', 'rankBar', {
         labels: top5.map(p => p.name),
-        datasets: [{ label: 'Wins', data: top5.map(p => p.total_wins), backgroundColor: '#007bff' }]
-      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Wins' } } } });
-      chartsContainer.appendChild(displayChartInCard(barChart, 'Top 5 Wins'));
+        datasets: [{ label: i18next.t('statistics.wins'), data: top5.map(p => p.total_wins), backgroundColor: '#007bff' }]
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.wins') } } } });
+      chartsContainer.appendChild(displayChartInCard(barChart, i18next.t('statistics.top5Wins')));
 
       // 2. Donut : Répartition globale wins/draws/losses
       const totalWins = data.reduce((sum, p) => sum + (p.total_wins || 0), 0);
       const totalDraws = data.reduce((sum, p) => sum + (p.total_draws || 0), 0);
       const totalLosses = data.reduce((sum, p) => sum + (p.total_losses || 0), 0);
       const donutChart = generateChart('doughnut', 'rankDonut', {
-        labels: ['Wins', 'Draws', 'Losses'],
+        labels: [i18next.t('statistics.wins'), i18next.t('statistics.draws'), i18next.t('statistics.losses')],
         datasets: [{ data: [totalWins, totalDraws, totalLosses], backgroundColor: ['#28a745', '#ffc107', '#dc3545'] }]
       }, { plugins: { legend: { position: 'bottom' } } });
-      chartsContainer.appendChild(displayChartInCard(donutChart, 'Global Wins vs Draws vs Losses'));
+      chartsContainer.appendChild(displayChartInCard(donutChart, i18next.t('statistics.globalWinsVsDrawsVsLosses')));
 
       // 3. Courbe : Points par joueur
       const lineChart = generateChart('line', 'rankLine', {
         labels: data.map(p => p.name),
         datasets: [{
-          label: 'Points Scored',
+          label: i18next.t('statistics.pointsScored'),
           data: data.map(p => p.points_scored || 0),
           borderColor: '#007bff',
           fill: false,
           tension: 0.1
         }]
-      }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
-      chartsContainer.appendChild(displayChartInCard(lineChart, 'Points per Player'));
+      }, { scales: { y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.points') } } } });
+      chartsContainer.appendChild(displayChartInCard(lineChart, i18next.t('statistics.pointsPerPlayer')));
     })
     .catch(error => {
       document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
