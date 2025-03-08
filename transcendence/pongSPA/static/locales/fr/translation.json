@@ -14,7 +14,7 @@
 	  },
 	"register": {
 		"createAccount": "Créer un compte",
-			"username": "Nom d'utilisateur",
+		"username": "Nom d'utilisateur",
 		"password": "Mot de passe",
 		"enterUsername": "Entrez votre nom d'utilisateur",
 		"enterPassword": "Entrez votre mot de passe",
@@ -73,7 +73,8 @@
 		"processingMsg": "Suppression du joueur, veuillez patienter...",
 		"tournamentDeletedTitle": "Tournoi supprimé",
 		"tournamentDeletedMsg": "Le tournoi a été supprimé car il n'avait plus de matchs ou seul l'organisateur restait.",
-		"removeInvitation": "Supprimer"
+		"removeInvitation": "Supprimer",
+		"matchOutcomes": "Issues des matchs"
 	},
 	"app": {
 		"warning": "Avertissement",
@@ -110,6 +111,7 @@
 	"friends": {
 		"sendFriendRequest": "Envoyer une demande d'ami",
 		"username": "Nom d'utilisateur",
+		"enterFriendUsername": "Entrez le nom d'utilisateur de votre ami",
 		"sendRequest": "Envoyer la demande",
 		"pendingRequests": "Demandes d'ami en attente",
 		"myFriends": "Mes amis",
@@ -338,9 +340,11 @@
 		"passwordRequiresSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*(),.?\":{}|<>).",
 		"passwordMismatch": "Les mots de passe ne correspondent pas.",
 		"passwordRequirements": "Le mot de passe doit contenir au moins 8 caractères, un chiffre, une lettre majuscule, une lettre minuscule et un caractère spécial.",
+		"passwordSameAsCurrent": "Le nouveau mot de passe ne peut pas être identique à votre mot de passe actuel.",
 		
 		"passwordChangeSuccess": "Mot de passe changé avec succès !",
 		"passwordChangeFailed": "Échec du changement de mot de passe.",
+		"incorrectCurrentPassword": "Le mot de passe actuel que vous avez saisi est incorrect.",
 		
 		"twoFactorAuthentication": "Authentification à deux facteurs",
 		"deleteAccount": "Supprimer le compte",

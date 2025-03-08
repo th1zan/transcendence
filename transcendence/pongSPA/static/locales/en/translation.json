@@ -69,7 +69,8 @@
         "errorLoadingRanking": "Error loading ranking",
         "points": "Points",
         "players": "Players",
-        "pointsScored": "Points Scored"
+        "pointsScored": "Points Scored",
+		"matchOutcomes": "Match Outcomes"
     },
     "app": {
         "warning": "Warning",
@@ -106,6 +107,7 @@
     "friends": {
         "sendFriendRequest": "Send Friend Request",
         "username": "Username",
+		"enterFriendUsername": "Enter your friend's username",
         "sendRequest": "Send Friend Request",
         "pendingRequests": "Pending Friend Requests",
         "myFriends": "My Friends",
@@ -335,6 +337,8 @@
 		"passwordMismatch": "Passwords do not match.",
 		"passwordChangeSuccess": "Password changed successfully!",
 		"passwordChangeFailed": "Failed to change password.",
+		"incorrectCurrentPassword": "The current password you entered is incorrect.",
+		"passwordSameAsCurrent": "New password cannot be the same as your current password.",
 		
 		"twoFactorAuthentication": "Two-Factor Authentication",
 		"deleteAccount": "Delete Account",
