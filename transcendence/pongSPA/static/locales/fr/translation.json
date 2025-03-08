@@ -375,7 +375,20 @@
 		"avatarDeleteSuccess": "L'avatar a été supprimé avec succès.",
 		"genericError": "Une erreur est survenue : {errorMessage}",
 		"chooseFile": "Choisir un fichier",
-		"noFileChosen": "Aucun fichier sélectionné"
+		"noFileChosen": "Aucun fichier sélectionné",
+		
+		"emailError": "Erreur d'e-mail",
+        "phoneError": "Erreur de numéro de téléphone",
+        "usernameError": "Erreur de nom d'utilisateur",
+        "validationError": "Erreur de validation",
+        
+        "emailAlreadyInUse": "Cette adresse e-mail est déjà utilisée par un autre utilisateur.",
+        "phoneAlreadyInUse": "Ce numéro de téléphone est déjà utilisé par un autre utilisateur.",
+        "usernameAlreadyTaken": "Ce nom d'utilisateur est déjà pris.",
+        
+        "emailTooLong": "L'adresse e-mail est trop longue. Maximum 255 caractères autorisés.",
+        "phoneTooLong": "Le numéro de téléphone est trop long. Maximum 15 caractères autorisés.",
+        "usernameTooLong": "Le nom d'utilisateur est trop long. Maximum 255 caractères autorisés."
 	},
 	"modal": {
 		"yes": "Oui",

@@ -631,6 +631,7 @@ export function updateProfile() {
     credentials: "include", // Send authentication cookies
     headers: {
       "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
     },
     body: JSON.stringify({
       username: username,
@@ -640,7 +641,9 @@ export function updateProfile() {
   })
     .then(response => {
       if (!response.ok) {
-        throw new Error("Failed to update profile.");
+                return response.json().then(data => {
+          throw new Error(data.error || data.detail || "Failed to update profile.");
+        });
       }
       return response.json();
     })
@@ -652,7 +655,7 @@ export function updateProfile() {
           // Add cache-busting parameter if avatar was updated
           profilePic.src = profilePic.src.split('?')[0] + '?t=' + new Date().getTime();
         }
-           // Update localStorage with new username
+        // Update localStorage with new username
         localStorage.setItem("username", username);
         setTimeout(() => {
           showModal(
@@ -678,16 +681,61 @@ export function updateProfile() {
         saveButton.disabled = false;
       }
 
+      // Check specific error messages from the backend
+      let errorTitle = i18next.t('settings.error');
+      let errorMessage = "";
+      
+      // error messages with translations
+      if (error.message.includes("email is already in use")) {
+        errorTitle = i18next.t('settings.emailError');
+        errorMessage = i18next.t('settings.emailAlreadyInUse');
+        // Highlight the problematic field
+        const emailInput = document.getElementById("emailInput");
+        if (emailInput) {
+          emailInput.classList.add("is-invalid");
+        }
+      } 
+      else if (error.message.includes("phone number is already in use")) {
+        errorTitle = i18next.t('settings.phoneError');
+        errorMessage = i18next.t('settings.phoneAlreadyInUse');
+        const phoneInput = document.getElementById("phoneInput");
+        if (phoneInput) {
+          phoneInput.classList.add("is-invalid");
+        }
+      }
+      else if (error.message.includes("username is already taken")) {
+        errorTitle = i18next.t('settings.usernameError');
+        errorMessage = i18next.t('settings.usernameAlreadyTaken');
+        const usernameInput = document.getElementById("usernameInput");
+        if (usernameInput) {
+          usernameInput.classList.add("is-invalid");
+        }
+      }
+      else if (error.message.includes("Email address is too long")) {
+        errorTitle = i18next.t('settings.validationError');
+        errorMessage = i18next.t('settings.emailTooLong');
+      }
+      else if (error.message.includes("Phone number is too long")) {
+        errorTitle = i18next.t('settings.validationError');
+        errorMessage = i18next.t('settings.phoneTooLong');
+      }
+      else if (error.message.includes("Username is too long")) {
+        errorTitle = i18next.t('settings.validationError');
+        errorMessage = i18next.t('settings.usernameTooLong');
+      }
+      else {
+        // unknown errors
+        errorMessage = error.message;
+      }
+
       showModal(
-        i18next.t('settings.error'),
-        i18next.t('settings.genericError').replace('{errorMessage}', error.message),
+        errorTitle,
+        errorMessage,
         i18next.t('modal.ok'),
         () => {}
       );
     });
 }
-
-
 
 export function changePassword() {
   const currentPassword = document.getElementById("currentPasswordInput").value;

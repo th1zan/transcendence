@@ -15,7 +15,7 @@
 
 	"register": {
 		"createAccount": "Create Account",
-		"username": "Username",
+			"username": "Username",
 		"password": "Password",
 		"enterUsername": "Enter your username",
 		"enterPassword": "Enter your password",
@@ -337,6 +337,19 @@
 
 		"error": "Error",
 		"invalidEmail": "Invalid email format. Please enter a valid email (e.g., user@example.com).",
+		
+		"emailError": "Email Error",
+		"phoneError": "Phone Number Error",
+		"usernameError": "Username Error",
+		"validationError": "Validation Error",
+		
+		"emailAlreadyInUse": "This email address is already in use by another user.",
+		"phoneAlreadyInUse": "This phone number is already in use by another user.",
+		"usernameAlreadyTaken": "This username is already taken.",
+		
+		"emailTooLong": "Email address is too long. Maximum 255 characters allowed.",
+		"phoneTooLong": "Phone number is too long. Maximum 15 characters allowed.",
+		"usernameTooLong": "Username is too long. Maximum 255 characters allowed.",
 		
 		"phoneNumber": "Phone Number",
 		"clear": "Clear",
