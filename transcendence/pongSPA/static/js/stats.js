@@ -163,7 +163,7 @@ function displayUserGames(username) {
 // Nouvelle fonction pour afficher les 3 derniers tournois de l'utilisateur
 function displayLastUserTournaments(searchArea, username) {
   if (!username) {
-    searchArea.innerHTML = `<p class="text-danger" >Please enter a username.</p>`;
+    searchArea.innerHTML = `<p class="text-danger">Please enter a username.</p>`;
     return;
   }
 
@@ -173,16 +173,25 @@ function displayLastUserTournaments(searchArea, username) {
   })
     .then(response => response.json())
     .then(data => {
-      const tournaments = Array.isArray(data) ? data.slice(-3).reverse() : [];
-      if (tournaments.length === 0) {
-        searchArea.innerHTML = `<p class="text-muted" >No tournaments found.</p>`;
+      // Vérifier si data est un tableau
+      if (!Array.isArray(data)) {
+        searchArea.innerHTML = `<p class="text-danger">Error: Invalid data received from server.</p>`;
+        console.error('Expected an array, received:', data);
         return;
       }
+
+      if (data.length === 0) {
+        searchArea.innerHTML = `<p class="text-muted">No tournaments found.</p>`;
+        return;
+      }
+
+      // Afficher tous les tournois (pas de slice)
+      const tournaments = data.reverse(); // Inverser pour avoir les plus récents en haut
 
       searchArea.innerHTML = `
         <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
           <div class="card-body p-2">
-            <h5 class="text-center mb-3" >Recent Tournaments for ${username}</h5>
+            <h5 class="text-center mb-3">Recent Tournaments for ${username}</h5>
             <table class="table table-hover">
               <thead>
                 <tr>
@@ -202,7 +211,7 @@ function displayLastUserTournaments(searchArea, username) {
                       <td style="font-family: 'Press Start 2P', cursive; cursor: pointer;" class="selectTournamentLink" data-id="${t.id}">
                         ${tournamentName}<br><small style="font-size: 0.8em; color: #666;">${date}</small>
                       </td>
-                      <td >${status}</td>
+                      <td>${status}</td>
                     </tr>
                   `;
                 }).join('')}
@@ -221,7 +230,8 @@ function displayLastUserTournaments(searchArea, username) {
       });
     })
     .catch(error => {
-      searchArea.innerHTML = `<p class="text-danger" >Error loading tournaments: ${error.message}</p>`;
+      searchArea.innerHTML = `<p class="text-danger">Error loading tournaments: ${error.message}</p>`;
+      console.error('Fetch error:', error);
     });
 }
 
@@ -493,18 +503,39 @@ function fetchAndDisplayTournamentStats(tournamentId) {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
   })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       const appMain = document.getElementById('app_main');
       appMain.innerHTML = '';
 
+      // Vérifier la structure de la réponse
+      if (!data || typeof data !== 'object' || !Array.isArray(data.matches)) {
+        appMain.innerHTML = `<p class="text-danger">Error: Invalid tournament matches data received.</p>`;
+        console.error('Expected an object with a "matches" array, received:', data);
+        return;
+      }
+
+      const playedMatches = data.matches.filter(m => m.is_played);
+      if (playedMatches.length === 0) {
+        appMain.innerHTML = `<p class="text-muted">No played matches found for this tournament${data.is_finished ? ' (Finished)' : ''}.</p>`;
+        return;
+      }
+
       // Calcul des stats
-      const playedMatches = data.filter(m => m.is_played);
-      const winners = playedMatches.map(m => m.winner_name).filter(w => w && w !== 'No winner');
+      const winners = playedMatches
+        .map(m => m.winner_name)
+        .filter(w => w && w !== 'No winner');
       const draws = playedMatches.filter(m => m.winner === null || m.winner_name === 'No winner').length;
-      const topWinner = winners.length ? winners.sort((a, b) => winners.filter(w => w === b).length - winners.filter(w => w === a).length)[0] : 'None';
-      const avgSets = (playedMatches.reduce((sum, m) => sum + m.player1_sets_won + m.player2_sets_won, 0) / playedMatches.length || 0).toFixed(1);
-      const totalPoints = playedMatches.reduce((sum, m) => sum + m.player1_total_points + m.player2_total_points, 0);
+      const topWinner = winners.length 
+        ? winners.sort((a, b) => winners.filter(w => w === b).length - winners.filter(w => w === a).length)[0] 
+        : 'None';
+      const avgSets = (playedMatches.reduce((sum, m) => sum + (m.player1_sets_won || 0) + (m.player2_sets_won || 0), 0) / playedMatches.length || 0).toFixed(1);
+      const totalPoints = playedMatches.reduce((sum, m) => sum + (m.player1_total_points || 0) + (m.player2_total_points || 0), 0);
 
       // Showroom avec cartes et graphiques
       const chartsContainer = document.createElement('div');
@@ -513,12 +544,13 @@ function fetchAndDisplayTournamentStats(tournamentId) {
 
       // Carte 1 : Tournament Summary
       const summary = generateSummaryCard('Tournament Summary', {
-        'Name': data[0]?.tournament_name || 'Unknown',
+        'Name': playedMatches[0]?.tournament_name || 'Unknown',
         'Matches Played': playedMatches.length,
         'Top Winner': topWinner,
         'Draw Matches': draws,
         'Avg Sets per Match': avgSets,
         'Total Points': totalPoints,
+        'Status': data.is_finished ? 'Finished' : 'Ongoing'
       });
       const summaryCard = document.createElement('div');
       summaryCard.className = 'col-12 col-md-4 col-sm-6';
@@ -531,11 +563,11 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       let totalExchanges = 0;
       let totalSets = 0;
       playedMatches.forEach(match => {
-        const matchDuration = match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
-        const matchExchanges = match.sets.reduce((sum, set) => sum + (set.exchanges || 0), 0);
+        const matchDuration = match.sets?.reduce((sum, set) => sum + (set.duration || 0), 0) || 0;
+        const matchExchanges = match.sets?.reduce((sum, set) => sum + (set.exchanges || 0), 0) || 0;
         totalMatchDuration += matchDuration;
-        totalSets += match.sets.length;
-        totalSetDuration += match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
+        totalSets += match.sets?.length || 0;
+        totalSetDuration += matchDuration;
         totalExchanges += matchExchanges;
       });
       const durationStats = {
@@ -546,12 +578,12 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const durationCard = document.createElement('div');
       durationCard.className = 'col-12 col-md-4 col-sm-6';
       durationCard.innerHTML = `
-        <div class="card mb-4 shadow-">
+        <div class="card mb-4 shadow-sm">
           <div class="card-body">
-            <h5 class="text-center mb-3" >Tournament Durations</h5>
+            <h5 class="text-center mb-3">Tournament Durations</h5>
             <ul class="list-group list-group-flush">
               ${Object.entries(durationStats).map(([key, value]) => `
-                <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
+                <li class="list-group-item bg-transparent"><strong>${key}:</strong> ${value}</li>
               `).join('')}
             </ul>
           </div>
@@ -568,12 +600,12 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const setCard = document.createElement('div');
       setCard.className = 'col-12 col-md-4 col-sm-6';
       setCard.innerHTML = `
-        <div class="card mb-4 shadow-">
+        <div class="card mb-4 shadow-sm">
           <div class="card-body">
-            <h5 class="text-center mb-3" >Set Statistics</h5>
+            <h5 class="text-center mb-3">Set Statistics</h5>
             <ul class="list-group list-group-flush">
               ${Object.entries(setStats).map(([key, value]) => `
-                <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
+                <li class="list-group-item bg-transparent"><strong>${key}:</strong> ${value}</li>
               `).join('')}
             </ul>
           </div>
@@ -589,7 +621,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
         datasets: [{ 
           label: 'Match Outcomes', 
           data: [...Object.values(winnersCount), draws], 
-          backgroundColor: ['#007bff', '#ffc107'] // Bleu pour victoires, jaune pour nuls
+          backgroundColor: ['#007bff', '#ffc107'] 
         }]
       }, { 
         scales: { y: { beginAtZero: true, title: { display: true, text: 'Matches' } } },
@@ -602,7 +634,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
         labels: playedMatches.map(m => `Match ${m.id}`),
         datasets: [{ 
           label: 'Points', 
-          data: playedMatches.map(m => m.player1_total_points + m.player2_total_points), 
+          data: playedMatches.map(m => (m.player1_total_points || 0) + (m.player2_total_points || 0)), 
           borderColor: '#28a745', 
           fill: true, 
           tension: 0.1 
@@ -610,7 +642,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
       chartsContainer.appendChild(displayChartInCard(areaChart, 'Points per Match'));
 
-      // 3. Barres horizontales : Répartition des sets gagnés (avec nuls)
+      // 3. Barres horizontales : Répartition des sets gagnés
       const playerStats = {};
       playedMatches.forEach(match => {
         [match.player1_name, match.player2_name].forEach(player => {
@@ -637,7 +669,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       playedMatches.forEach(match => {
         [match.player1_name, match.player2_name].forEach(player => {
           if (!playerDurations[player]) playerDurations[player] = { totalDuration: 0, matchCount: 0 };
-          const matchDuration = match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
+          const matchDuration = match.sets?.reduce((sum, set) => sum + (set.duration || 0), 0) || 0;
           playerDurations[player].totalDuration += matchDuration;
           playerDurations[player].matchCount++;
         });
@@ -665,7 +697,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       playedMatches.forEach(match => {
         [match.player1_name, match.player2_name].forEach(player => {
           if (!playerExchanges[player]) playerExchanges[player] = { totalExchanges: 0, matchCount: 0 };
-          const matchExchanges = match.sets.reduce((sum, set) => sum + (set.exchanges || 0), 0);
+          const matchExchanges = match.sets?.reduce((sum, set) => sum + (set.exchanges || 0), 0) || 0;
           playerExchanges[player].totalExchanges += matchExchanges;
           playerExchanges[player].matchCount++;
         });
@@ -688,6 +720,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
     })
     .catch(error => {
       document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+      console.error('Fetch error:', error);
     });
 }
 

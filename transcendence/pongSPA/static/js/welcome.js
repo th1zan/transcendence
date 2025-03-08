@@ -4,16 +4,13 @@ import { respondToFriendRequest } from "./friends.js";
 
 
 export async function displayWelcomePage() {
-  // Attendre l'URL de l'avatar
-  const avatarPicture = localStorage.getItem("avatarUrl"); // Fallback pour username
-  const username = localStorage.getItem("username") || "Guest"; // Fallback pour username
+  const avatarPicture = localStorage.getItem("avatarUrl");
+  const username = localStorage.getItem("username") || "Guest";
 
-  // Vider tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  // app_top reste vide
   const appTop = document.getElementById('app_top');
   appTop.innerHTML = '';
 
@@ -46,8 +43,8 @@ export async function displayWelcomePage() {
                       </div>
                   </div>
               </div>
-              <div class="col-md-6" id="quickStatsContainer">
-                  <!-- Les stats rapides seront insérées ici -->
+              <div class="col-md-6 d-flex flex-column gap-4" id="quickStatsContainer">
+                  <!-- Quick Stats et Ranking seront insérés ici -->
               </div>
           </div>
       </div>
@@ -58,22 +55,16 @@ export async function displayWelcomePage() {
     <!-- Footer de la page -->
   `;
 
-  // Charger les requêtes d’amis et les tournois non authentifiés
   fetchPendingFriendRequests();
   fetchPendingTournamentAuthentications();
 
-  // Charger les stats rapides et les derniers matchs
   fetch(`/api/results/?user1=${encodeURIComponent(username)}`, {
     method: "GET",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
   })
     .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return response.json();
     })
     .then(data => {
@@ -84,6 +75,15 @@ export async function displayWelcomePage() {
       logger.error("Error fetching quick stats:", error);
       const quickStatsContainer = document.getElementById("quickStatsContainer");
       quickStatsContainer.innerHTML = `<p class="text-danger">${i18next.t('welcome.errorLoadingQuickStats')}: ${error.message}</p>`;
+    });
+
+  displayRankingCard()
+    .then(rankingHtml => {
+      const quickStatsContainer = document.getElementById("quickStatsContainer");
+      quickStatsContainer.innerHTML += rankingHtml;
+    })
+    .catch(error => {
+      logger.error("Error rendering ranking card:", error);
     });
 }
 
@@ -174,7 +174,9 @@ function removePlayerFromTournament(tournamentId, playerName) {
                   i18next.t('welcome.tournamentDeletedTitle'), // "Tournament Deleted"
                   i18next.t('welcome.tournamentDeletedMsg'), // "The tournament has been deleted"
                   "OK",
-                  () => {}
+                  () => {
+                    
+                    }
                 );
               }
               // Rafraîchir la liste des authentifications en attente
@@ -347,7 +349,7 @@ function displayQuickStats(data, playerName) {
             const setScore = `${match.player1_sets_won || 0} - ${match.player2_sets_won || 0}`;
             return `
               <tr class="bg-transparent">
-              <td class="bg-transparent">${player1} ${i18next.t('welcome.vs')} ${player2}</td>
+                <td class="bg-transparent">${player1} ${i18next.t('welcome.vs')} ${player2}</td>
                 <td class="bg-transparent">${setScore}</td>
               </tr>
             `;
@@ -356,21 +358,162 @@ function displayQuickStats(data, playerName) {
       </table>
     `;
   } else {
-    lastMatchesTable = `<p class="text-muted small">${i18next.t('welcome.noRecentMatches')}</p>`;  }
+    lastMatchesTable = `<p class="text-muted small">${i18next.t('welcome.noRecentMatches')}</p>`;
+  }
 
-  return `
-    <div class="card mb-4 shadow-sm h-100  style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+  // Générer le canvas pour le donut
+  const donutCanvasId = 'quickStatsDonut';
+  const donutHtml = `<canvas id="${donutCanvasId}" style="max-height: 150px;"></canvas>`;
+
+  // HTML de la carte avec le donut
+  const cardHtml = `
+    <div class="card mb-4 shadow-sm h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
       <div class="card-body">
-        <h4 class="card-title">${i18next.t('welcome.quickStats', { playerName: playerName || "You" })}</h4>
-        <ul class="list-group list-group-flush mb-3">
-          <li class="list-group-item"><strong>${i18next.t('welcome.wins')}:</strong> ${wins}</li>
-          <li class="list-group-item"><strong>${i18next.t('welcome.losses')}:</strong> ${losses}</li>
-          <li class="list-group-item"><strong>${i18next.t('welcome.draws')}:</strong> ${draws}</li>
-        </ul>
-        <h5 class="mb-2">${i18next.t('welcome.lastThreeMatches')}</h5>
+        <h4 class="card-title mb-3">${i18next.t('welcome.quickStats', { playerName: playerName || "You" })}</h4>
+        <h5 class="mb-2">${i18next.t('welcome.matchOutcomes')}</h5>
+        ${donutHtml}
+        <h5 class="mb-2 mt-3">${i18next.t('welcome.lastThreeMatches')}</h5>
         ${lastMatchesTable}
       </div>
     </div>
   `;
+
+  // Générer le graphique en donut après le rendu
+  setTimeout(() => {
+    const canvas = document.getElementById(donutCanvasId);
+    if (canvas) {
+      new Chart(canvas, {
+        type: 'doughnut', // Peut être changé en 'pie' pour un camembert
+        data: {
+          labels: [i18next.t('welcome.wins'), i18next.t('welcome.losses'), i18next.t('welcome.draws')],
+          datasets: [{
+            data: [wins, losses, draws],
+            backgroundColor: ['#28a745', '#dc3545', '#ffc107'], // Vert, rouge, jaune
+            borderWidth: 1
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          maintainAspectRatio: false
+        }
+      });
+    }
+  }, 0);
+
+  return cardHtml;
 }
 
+function displayRankingCard() {
+  return fetch('/api/ranking/', {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (!Array.isArray(data) || data.length === 0) {
+        return `
+          <div class="card mb-4 shadow-sm h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+              <h4 class="card-title mb-3">${i18next.t('welcome.rankingTitle')}</h4>
+              <p class="text-muted">${i18next.t('welcome.noRankingData')}</p>
+            </div>
+          </div>
+        `;
+      }
+
+      // Tableau et graphique limités au top 5
+      const top5 = data.slice(0, 5);
+      const rankingTable = `
+        <table class="table table-sm table-striped bg-transparent border border-white" style="background: rgba(255, 255, 255, 0.9); border-radius: 10px;">
+          <thead>
+            <tr>
+              <th scope="col">${i18next.t('welcome.rank')}</th>
+              <th scope="col">${i18next.t('welcome.player')}</th>
+              <th scope="col">${i18next.t('welcome.wins')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${top5.map((p, i) => `
+              <tr class="bg-transparent">
+                <td class="bg-transparent">${i + 1}</td>
+                <td class="bg-transparent">${p.name}</td>
+                <td class="bg-transparent">${p.total_wins || 0}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      // Générer le canvas pour le graphique à barres (limité au top 5)
+      const barCanvasId = 'rankingBarWelcome';
+      const barHtml = `<canvas id="${barCanvasId}" style="max-height: 200px;"></canvas>`;
+
+      // HTML de la carte
+      const cardHtml = `
+        <div class="card mb-4 shadow-sm h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+          <div class="card-body">
+            <h4 class="card-title mb-3">${i18next.t('welcome.rankingTitle')}</h4>
+            <h5 class="mb-2">${i18next.t('welcome.top5Players')}</h5>
+            ${rankingTable}
+            <h5 class="mb-2 mt-3">${i18next.t('welcome.pointsPerPlayer')}</h5>
+            ${barHtml}
+          </div>
+        </div>
+      `;
+
+      // Générer le graphique à barres après insertion (limité au top 5)
+      setTimeout(() => {
+        const canvas = document.getElementById(barCanvasId);
+        if (canvas) {
+          new Chart(canvas, {
+            type: 'bar',
+            data: {
+              labels: top5.map(p => p.name), // Seulement les 5 premiers joueurs
+              datasets: [{
+                label: i18next.t('welcome.pointsScored'),
+                data: top5.map(p => p.points_scored || 0), // Points des 5 premiers joueurs
+                backgroundColor: '#007bff',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: { display: true, text: i18next.t('welcome.points') }
+                },
+                x: {
+                  title: { display: true, text: i18next.t('welcome.players') }
+                }
+              },
+              plugins: {
+                legend: { display: false }
+              },
+              maintainAspectRatio: false
+            }
+          });
+        }
+      }, 0);
+
+      return cardHtml;
+    })
+    .catch(error => {
+      logger.error("Error fetching ranking stats:", error);
+      return `
+        <div class="card mb-4 shadow-sm h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          <div class="card-body">
+            <h4 class="card-title mb-3">${i18next.t('welcome.rankingTitle')}</h4>
+            <p class="text-danger">${i18next.t('welcome.errorLoadingRanking')}: ${error.message}</p>
+          </div>
+        </div>
+      `;
+    });
+}
