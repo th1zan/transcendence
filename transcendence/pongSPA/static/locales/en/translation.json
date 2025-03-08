@@ -90,6 +90,7 @@
 		"error": "Error",
 		"enterOTPCode": "Please enter the OTP code.",
 		"twoFAEnabled": "✅ 2FA enabled successfully!",
+		"twoFAEnabledstatus": "✅ 2FA enabled",
 		"twoFADisabled": "2FA is Disabled ❌",
 		"enableTwoFA": "Enable 2FA",
 		"disableTwoFA": "Disable 2FA",
@@ -194,6 +195,66 @@
 		"exchanges": "Exchanges",
 		"duration": "Duration (s)",
 		"noSets": "No sets recorded."
-	  }
-  }
-  
+	},
+	"settings": {
+		"accountManagement": "Account Management",
+		"updateProfilePicture": "Update Avatar",
+		"profilePicture": "Profile Picture",
+		"deleteAvatar": "Delete Avatar",
+		"chooseNewProfilePicture": "Choose a new profile picture",
+		"selectFile": "Please select a file.",
+		"upload": "Upload",
+		"profilePictureUpdated": "Profile picture updated successfully!",
+		"avatarDeletionConfirmation" : "Are you sure you want to delete your avatar?",
+		"confirmDeletion" : "Confirm Deletion",
+		"avatarDeleted" : "Avatar has been deleted successfully!",
+		"avatarDeletionFailed": "Failed to delete avatar.",
+		"editProfileInformation": "Edit Profile Information",
+		"profileUpdated" : "Profile updated successfully!",
+		
+		"username": "Username",
+		"email": "Email",
+
+		"error": "Error",
+		"invalidEmail": "Invalid email format. Please enter a valid email (e.g., user@example.com).",
+		
+		"phoneNumber": "Phone Number",
+		"clear": "Clear",
+		"saveChanges": "Save Changes",
+		"changePassword": "Change Password",
+		"currentPassword": "Current Password",
+		"newPassword": "New Password",
+		"confirmNewPassword": "Confirm New Password",
+
+		"passwordTooShort": "Password must be at least 8 characters.",
+		"passwordMismatch": "Passwords do not match.",
+		"passwordChangeSuccess": "Password changed successfully!",
+		"passwordChangeFailed": "Failed to change password.",
+		
+		"twoFactorAuthentication": "Two-Factor Authentication",
+		"deleteAccount": "Delete Account",
+		"deleteConfirmation": "Confirmation",
+		"accountDeletionConfirmation": "Are you sure you want to delete your account? This action is irreversible.",
+		"success": "Success",
+		"accountDeleted": "Your account has been deleted successfully.",
+		"accountDeletionFailed": "Account deletion failed.",
+		"anonymizeAccount": "Anonymize Account",
+		"anonymizeConfirmation": "Confirmation",
+		"accountAnonymizationConfirmation": "Are you sure you want to anonymize your account? This action is irreversible.",
+		"anonymizeAccountSuccess": "Your account has been anonymized successfully.",
+		"accountAnonymizationFailed": "Account anonymization failed.",
+		"privacyPolicy": "Read our Privacy Policy",
+		"failedFetchUserData": "Failed to fetch user data.",
+		"avatarUploadFailed": "Upload failed.",
+		"avatarDeleteSuccess": "Avatar has been deleted successfully.",
+		"genericError": "An error occurred: {errorMessage}",
+		"chooseFile": "Choose file",
+		"noFileChosen": "No file chosen"
+	},
+	"modal": {
+		"yes": "Yes",
+		"no": "No",
+		"ok": "OK"
+	}
+}
+
