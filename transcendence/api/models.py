@@ -118,14 +118,17 @@ class Tournament(models.Model):
     date = models.DateField()
     number_of_games = models.IntegerField(default=1)
     points_to_win = models.IntegerField(default=3)
-    is_finished = models.BooleanField(default=False)
+    is_finished = models.BooleanField(default=False)  # Peut rester, mais pas mis à jour
     is_finalized = models.BooleanField(default=False)
     organizer = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     def is_tournament_finished(self):
-        return all(match.is_match_played() for match in self.matches.all())
+        matches = self.matches.all()
+        if not matches.exists():
+            return False  # Aucun match restant = tournoi non terminé
+        return all(match.is_match_played() for match in matches)
 
     def __str__(self):
         return self.tournament_name

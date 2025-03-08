@@ -1,10 +1,12 @@
 
 import { showModalConfirmation } from "./auth.js";
 import { startGameSetup } from "./pong.js";
-import {showModal, logger} from "./app.js";
+import {showModal, logger, navigateTo} from "./app.js";
 
 //menu to display the tournament feature 
 export function displayTournament() {
+
+  document.getElementById('app_bottom').innerHTML = '';
   logger.log('Tournament');
 
   const appTop = document.getElementById("app_top");
@@ -175,14 +177,14 @@ function updatePlayerStatusUI(playerName) {
 
 //when a Tournament is selected, display the games linked to the tournament and other stuff
 function displayTournamentGameList(data) {
-  document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
   const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
   localStorage.setItem("isTournamentMatch", true);
 
-  const tournamentMatchesDiv = document.getElementById("app_main");
+
+  const tournamentMatchesDiv = document.getElementById("tournamentMatches");
 
   fetch(`/api/tournament/players/${tournamentId}/`, {
     method: "GET",
@@ -272,22 +274,19 @@ function displayTournamentGameList(data) {
         matchesHTML += '</tbody></table></div></div>';
 
         tournamentMatchesDiv.innerHTML = `
-          <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Tournament: ${tournamentName}</h2>
           ${playersHTML}
           ${matchesHTML}
         `;
-        // Afficher le classement après les matchs
+        // Passer le tableau des matchs à displayTournamentRanking
         displayTournamentRanking(data);
       } else {
         tournamentMatchesDiv.innerHTML = `
-          <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Tournament: ${tournamentName}</h2>
           ${playersHTML}
           <div class="alert alert-info text-center" role="alert">
             No match found for this tournament.
           </div>
         `;
-        // Afficher le classement même s'il n'y a pas de matchs
-        displayTournamentRanking(data);
+        displayTournamentRanking(data); // Même ici, passer un tableau vide ou gérer différemment
       }
 
       document.querySelectorAll('.auth-button').forEach(button => {
@@ -308,10 +307,9 @@ function displayTournamentGameList(data) {
           logger.log("Attempting to start match with ID: ", matchID);
 
           try {
-            // Envoyer une requête au backend pour valider le démarrage du match
             const response = await fetch(`/api/tournament/start-match/${matchID}/`, {
               method: "POST",
-              credentials: "include", // Inclut le token JWT dans les cookies
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -320,33 +318,13 @@ function displayTournamentGameList(data) {
             if (!response.ok) {
               const errorData = await response.json();
               if (response.status === 403) {
-                showModal(
-                  i18next.t('welcome.organizerRequiredTitle'), // "Organizer Required"
-                  i18next.t('welcome.organizerRequiredMsg'),   // "Only the tournament organizer can start a match."
-                  'OK',
-                  () => {}
-                );
+                showModal(i18next.t('tournament.organizerRequiredTitle'), i18next.t('tournament.organizerRequiredMsg'), 'OK', () => {});
               } else if (response.status === 400) {
-                showModal(
-                  i18next.t('welcome.authRequiredTitle'), // "Authentication Required"
-                  errorData.error,                        // Message dynamique du backend, ex: "Player X is not authenticated"
-                  'OK',
-                  () => {}
-                );
+                showModal(i18next.t('tournament.authRequiredTitle'), errorData.error, 'OK', () => {});
               } else if (response.status === 404) {
-                showModal(
-                  i18next.t('welcome.matchNotFoundTitle'), // "Match Not Found"
-                  i18next.t('welcome.matchNotFoundMsg'),   // "The requested match was not found."
-                  'OK',
-                  () => {}
-                );
+                showModal(i18next.t('tournament.matchNotFoundTitle'), i18next.t('tournament.matchNotFoundMsg'), 'OK', () => {});
               } else {
-                showModal(
-                  i18next.t('welcome.errorTitle'), // "Error"
-                  i18next.t('welcome.errorMsg', { detail: errorData.error || 'Unknown error' }), // "An unexpected error occurred: {detail}"
-                  'OK',
-                  () => {}
-                );
+                showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorMsg', { detail: errorData.error || 'Unknown error' }), 'OK', () => {});
               }
               return;
             }
@@ -354,7 +332,6 @@ function displayTournamentGameList(data) {
             const data = await response.json();
             logger.log("Match validated by backend:", data);
 
-            // Si le backend valide, démarrer le jeu
             let gameSettings = {
               mode: "multiplayer",
               difficulty: "medium",
@@ -372,12 +349,7 @@ function displayTournamentGameList(data) {
 
           } catch (error) {
             logger.error("Error during match validation or start:", error);
-            showModal(
-              i18next.t('welcome.networkErrorTitle'), // "Network Error"
-              i18next.t('welcome.networkErrorMsg'),   // "A network error occurred. Please check your connection and try again."
-              'OK',
-              () => {}
-            );
+            showModal(i18next.t('tournament.networkErrorTitle'), i18next.t('tournament.networkErrorMsg'), 'OK', () => {});
           }
         });
       });
@@ -393,7 +365,6 @@ function displayTournamentGameList(data) {
     .catch((error) => {
       logger.error("Error retrieving players:", error);
       tournamentMatchesDiv.innerHTML = `
-        <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${tournamentName}</h2>
         <div class="alert alert-danger text-center" role="alert">Error loading player information.</div>
       `;
     });
@@ -404,13 +375,13 @@ function removePlayerFromTournament(tournamentId, playerName) {
   logger.log("in removePlayerFromTournament:: tournament id: ", tournamentId, " playerName: ", playerName);
 
   showModalConfirmation(
-    i18next.t('welcome.removePlayerConfirmationMsg'),
-    i18next.t('welcome.removePlayerConfirmationTitle')
+    i18next.t('tournament.removePlayerConfirmationMsg'),
+    i18next.t('tournament.removePlayerConfirmationTitle')
   ).then((confirmed) => {
     if (confirmed) {
       showModal(
-        i18next.t('welcome.processingTitle'),
-        i18next.t('welcome.processingMsg'),
+        i18next.t('tournament.processingTitle'),
+        i18next.t('tournament.processingMsg'),
         "OK",
         () => {
           fetch(`/api/tournament/${tournamentId}/remove-player-matches/${encodeURIComponent(playerName)}/`, {
@@ -421,17 +392,20 @@ function removePlayerFromTournament(tournamentId, playerName) {
             },
           })
             .then(response => {
-              if (!response.ok) throw new Error(i18next.t('welcome.removeFailed') + ": " + response.status);
+              if (!response.ok) throw new Error(i18next.t('tournament.removeFailed') + ": " + response.status);
               return response.json();
             })
             .then(data => {
               logger.log(`Player ${playerName} removed from tournament ${tournamentId}`);
               if (data.tournament_deleted) {
                 showModal(
-                  i18next.t('welcome.tournamentDeletedTitle'),
-                  i18next.t('welcome.tournamentDeletedMsg'),
+                  i18next.t('tournament.tournamentDeletedTitle'),
+                  i18next.t('tournament.tournamentDeletedMsg'),
                   "OK",
-                  () => {}
+                  () => {
+                    logger.log(`tournament deleted -> redirection to Tournament page`);
+                    navigateTo('tournament');
+                  }
                 );
               } else {
                 fetch(`/api/tournament/matches/?tournament_id=${tournamentId}`, {
@@ -447,13 +421,21 @@ function removePlayerFromTournament(tournamentId, playerName) {
                   })
                   .then(matchesData => {
                     logger.log("Matches reloaded successfully:", matchesData);
-                    displayTournamentGameList(matchesData);
+                    displayTournamentGameList(matchesData.matches); // Passer uniquement le tableau matches
+                    if (matchesData.is_finished) {
+                      showModal(
+                        i18next.t('tournament.tournamentFinishedTitle'),
+                        i18next.t('tournament.tournamentFinishedMsg'),
+                        "OK",
+                        () => {}
+                      );
+                    }
                   })
                   .catch(error => {
                     logger.error("Error reloading matches:", error);
                     showModal(
-                      i18next.t('welcome.errorTitle'),
-                      i18next.t('welcome.reloadMatchesErrorMsg') || "Failed to reload matches",
+                      i18next.t('tournament.errorTitle'),
+                      i18next.t('tournament.reloadMatchesErrorMsg') || "Failed to reload matches",
                       "OK",
                       () => {}
                     );
@@ -462,7 +444,7 @@ function removePlayerFromTournament(tournamentId, playerName) {
             })
             .catch(error => {
               logger.error("Error removing player:", error);
-              showModal(i18next.t('welcome.errorTitle'), i18next.t('welcome.removeErrorMsg'), "OK", () => {});
+              showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.removeErrorMsg'), "OK", () => {});
             });
         },
         null
@@ -552,7 +534,6 @@ function calculateStandings(matches) {
 
 //display a list of Tournament's Games for a Tournament research based on Tournament ID
 export function DisplayTournamentGame() {
-  // Empty all containers
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -571,6 +552,7 @@ export function DisplayTournamentGame() {
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Tournament: ${tournamentName}</h2>
+    <div id="tournamentStatus" class="text-center mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 18px;"></div>
     <div id="tournamentMatches"></div>
     <div id="game_panel" style="display: none;">
       <h2 class="text-center text-primary mb-4" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">Game Results</h2>
@@ -578,6 +560,7 @@ export function DisplayTournamentGame() {
     </div>
   `;
 
+  const statusElement = document.getElementById("tournamentStatus");
   fetch(`/api/tournament/matches/?tournament_id=${tournamentId}`, {
     method: "GET",
     headers: {
@@ -586,10 +569,18 @@ export function DisplayTournamentGame() {
   })
     .then((response) => response.json())
     .then((data) => {
-      displayTournamentGameList(data);
+      displayTournamentGameList(data.matches);
+      if (data.is_finished) {
+        statusElement.textContent = i18next.t('tournament.tournamentFinishedTitle');
+        statusElement.classList.add("text-success");
+      } else {
+        statusElement.textContent = i18next.t('tournament.tournamentInProgress');
+        statusElement.classList.add("text-warning");
+      }
     })
     .catch((error) => {
       logger.error("Error retrieving tournament matches:", error);
+      statusElement.textContent = "Error loading tournament";
     });
 }
 
@@ -725,26 +716,6 @@ async function initializePlayerManagement() {
 
   if (!playerContainer || !addButton) return;
 
-  // Ajouter la modale Bootstrap
-  document.body.insertAdjacentHTML('beforeend', `
-    <div class="modal fade" id="duplicatePlayerModal" tabindex="-1" aria-labelledby="duplicatePlayerModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="duplicatePlayerModalLabel">Duplicate Player Detected</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            This player has already been added to the tournament. Please choose a different name.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `);
-
   // Add host player automatically
   const hostPlayerName = localStorage.getItem('username') || '';
   const hostPlayerDiv = addPlayer(playerContainer, playerCount++, hostPlayerName, true);
@@ -755,19 +726,13 @@ async function initializePlayerManagement() {
   const player2Div = addPlayer(playerContainer, playerCount++, '', false);
   players.set('', { validated: false, div: player2Div });
 
-  // Event listener for checking player on blur
+  // Event listener for checking player on blur (sans vérification des doublons)
   playerContainer.addEventListener('blur', async (event) => {
     if (event.target.tagName === 'INPUT') {
       const playerDiv = event.target.closest('div');
       const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
 
-      if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
-        if (players.has(playerName) && players.get(playerName).validated) {
-          const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
-          modal.show();
-        }
-        return;
-      }
+      if (!playerName) return; // Ignorer si vide, pas de modale ici
 
       try {
         cleanupPlayersMap(players);
@@ -942,7 +907,7 @@ function setupSubmitHandlers() {
   savePlayersButton.onclick = null;
 
   validateButton.onclick = () => {
-    resetTournamentData(); // Réinitialisation au début
+    resetTournamentData();
     const tournamentName = document.getElementById('tournamentName')?.value.trim();
     if (!tournamentName) {
       showModal('Error', 'The tournament name cannot be empty', 'OK', () => {});
@@ -955,7 +920,7 @@ function setupSubmitHandlers() {
     })
     .then(response => response.json())
     .then(data => {
-      if (data.tournament_id && data.message === "Tournament created successfully") {
+      if (data.tournament_id && data.message.includes("Tournament created successfully")) {
         localStorage.setItem("tournamentName", data.tournament_name);
         localStorage.setItem("tournamentId", data.tournament_id);
         const step1 = document.getElementById('step1');
@@ -963,7 +928,7 @@ function setupSubmitHandlers() {
         if (step1) step1.style.display = 'none';
         if (step2) step2.style.display = 'block';
       } else {
-        showModal('Error', 'Error validating tournament name. Please try again.', 'OK', () => {});
+        showModal('Error', `Error validating tournament name: ${data.error || 'Unknown error'}`, 'OK', () => {});
       }
     })
     .catch(error => {
@@ -973,23 +938,43 @@ function setupSubmitHandlers() {
   };
 
   savePlayersButton.onclick = () => {
-    const players = Array.from(document.getElementById('playerContainer')?.querySelectorAll('input') || [])
-      .map((input, index) => {
-        const playerDiv = input.parentElement;
-        return {
-          name: input.value.trim(),
-          authenticated: index === 0 ? true : false,
-          guest: playerDiv?.getAttribute('data-is-guest') === 'true'
-        };
-      })
-      .filter(player => player.name !== '');
+    const playerDivs = document.getElementById('playerContainer')?.querySelectorAll('div') || [];
+    const players = Array.from(playerDivs).map(div => ({
+      name: div.querySelector('input').value.trim().toLowerCase(),
+      div: div,
+      authenticated: div.getAttribute('data-authenticated') === 'true',
+      guest: div.getAttribute('data-is-guest') === 'true'
+    })).filter(player => player.name !== '');
 
     if (players.length < 2) {
       showModal('Error', 'At least 2 players are required to create a tournament', 'OK', () => {});
       return;
     }
 
-    localStorage.setItem("players", JSON.stringify(players));
+    // Vérification des doublons
+    const playerNames = players.map(player => player.name);
+    const uniqueNames = new Set(playerNames);
+    if (uniqueNames.size !== playerNames.length) {
+      const duplicateName = playerNames.find((name, index) => playerNames.indexOf(name) !== index);
+      const duplicateDiv = players.find(player => player.name === duplicateName).div;
+      showModal(
+        i18next.t('tournament.duplicatePlayerTitle') || 'Duplicate Player Detected',
+        i18next.t('tournament.duplicatePlayerMsg') || 'Duplicate player(s) detected. Please choose a different name.',
+        'OK',
+        () => {
+          duplicateDiv.querySelector('input').focus();
+        }
+      );
+      return;
+    }
+
+    // Si pas de doublons, enregistrer les joueurs et passer à l’étape 3
+    const playerData = players.map(player => ({
+      name: player.name,
+      authenticated: player.authenticated,
+      guest: player.guest
+    }));
+    localStorage.setItem("players", JSON.stringify(playerData));
     showModal('Success', 'Players saved successfully!', 'OK', () => {
       logger.log("Players saved, moving to step 3");
       const step2 = document.getElementById('step2');
@@ -1053,32 +1038,6 @@ export function handleError(error, message) {
   );
 }
 
-// function sendTournamentToAPI(tournamentName, players, numberOfGames, pointsToWin) {
-//   fetch("/api/tournament/new/", {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({
-//       tournament_name: tournamentName,
-//       players: players,
-//       number_of_games: numberOfGames,
-//       points_to_win: pointsToWin
-//     }),
-//   })
-//   .then((response) => {
-//     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-//     return response.json();
-//   })
-//   .then((data) => {
-//     logger.log("Tournament created:", data);
-//     localStorage.setItem("tournamentId", data.tournament_id);
-//     DisplayTournamentGame();
-//   })
-//   .catch((error) => {
-//     logger.error("Error creating tournament:", error);
-//   });
-// }
 
 export function selectTournament(tournamentId, tournamentName) {
 localStorage.setItem("tournamentId", tournamentId);
