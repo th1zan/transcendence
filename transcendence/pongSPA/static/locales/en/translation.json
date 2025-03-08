@@ -101,7 +101,8 @@
         "accountCreationError": "Error creating account. Please try again.",
         "registrationError": "Registration error:",
         "refreshAndRetry": "Something went wrong. Please refresh the page and try again.",
-        "loginFailed": "Login failed: "
+        "loginFailed": "Login failed: ",
+		"emailRequiredFor2FA": "An email address is required for two-factor authentication. Please add an email in your profile settings."
     },
     "friends": {
         "sendFriendRequest": "Send Friend Request",
@@ -327,8 +328,12 @@
 		"currentPassword": "Current Password",
 		"newPassword": "New Password",
 		"confirmNewPassword": "Confirm New Password",
-
+		"passwordRequirements": "Password must contain at least 8 characters, one digit, one uppercase letter, one lowercase letter, and one special character.",
 		"passwordTooShort": "Password must be at least 8 characters.",
+		"passwordRequiresDigit": "Password must contain at least one digit.",
+		"passwordRequiresUppercase": "Password must contain at least one uppercase letter.",
+		"passwordRequiresLowercase": "Password must contain at least one lowercase letter.",
+		"passwordRequiresSpecialChar": "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>).",
 		"passwordMismatch": "Passwords do not match.",
 		"passwordChangeSuccess": "Password changed successfully!",
 		"passwordChangeFailed": "Failed to change password.",

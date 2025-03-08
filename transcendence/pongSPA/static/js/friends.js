@@ -1,9 +1,6 @@
 import {showModal, navigateTo, logger } from './app.js';
 import {showModalConfirmation } from './auth.js';
 
-// TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
-// prevent sending friend request to the user himself
-
 
 export function displayFriends() {
   // Vide tous les conteneurs
@@ -141,12 +138,6 @@ export function sendFriendRequest(friendUsername) {
                       navigateTo('friends');
                     }
                 );
-                // showModal(
-                // 	'Success',
-                // 	data.message,
-                // 	'OK',
-                // 	() => {}
-                // );
             }
         })
         .catch((error) => {
@@ -378,31 +369,3 @@ export function fetchFriends() {
     })
 	.catch((error) => logger.error("Error fetching friends:", error));
 }
-
-// const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
-
-// ws.onmessage = (event) => {
-//   const data = JSON.parse(event.data);
-  
-//   if (data.notification_type === "friend_request") {
-//     showModal(
-//       'Notification',
-//       "🔔 Friend Request: " + data.message,
-//       'OK',
-//       () => {
-//         fetchFriendRequests(); // Refresh friend requests dynamically
-//       }
-//     );
-//   } else {
-//     showModal(
-//       'Notification',
-//       "🔔 Notification: " + data.message,
-//       'OK',
-//       () => {}
-//     );
-//   }
-// };
-
-// ws.onerror = (error) => {
-//   logger.error("WebSocket error:", error);
-// };
