@@ -332,6 +332,7 @@
 		"profileUpdated" : "Profile updated successfully!",
 		
 		"username": "Username",
+		"usernameRequired": "Username is required and cannot be empty.",
 		"email": "Email",
 
 		"error": "Error",

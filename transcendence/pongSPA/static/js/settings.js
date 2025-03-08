@@ -585,10 +585,21 @@ export async function deleteAvatar() {
 
 
 export function updateProfile() {
-  const username = document.getElementById("usernameInput").value;
+  const username = document.getElementById("usernameInput").value.trim();
   const emailInput = document.getElementById("emailInput");
   const emailValue = emailInput.value.trim();
   const phoneNumber = document.getElementById("phoneInput").value;
+
+  // Validate username is not empty
+  if (!username) {
+    showModal(
+      i18next.t('settings.error'),
+      i18next.t('settings.usernameRequired'),
+      i18next.t('modal.ok'),
+      () => {}
+    );
+    return;
+  }
 
   // Regular Expression to validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -330,6 +330,7 @@
 		"profileUpdated": "Profil mis à jour avec succès !",
 		
 		"username": "Nom d'utilisateur",
+		"usernameRequired": "Le nom d'utilisateur est requis et ne peut pas être vide.",
 		"email": "E-mail",
 
 		"error": "Erreur",
