@@ -60,11 +60,17 @@ export async function displayWelcomePage() {
 
 // Fonction pour remplir la carte de bienvenue
 function fillWelcomeCard(username, avatarPicture) {
+  // Default avatar if none is provided
+  const defaultAvatar = "/static/images/default_avatar.png";
+  const avatarSrc = avatarPicture && avatarPicture !== "null" && avatarPicture !== "undefined" ? avatarPicture : defaultAvatar;
+  
   const welcomeCardBody = document.getElementById("welcomeCardBody");
   welcomeCardBody.innerHTML = `
     <div class="d-flex align-items-center">
-      <div class="rounded-circle overflow-hidden me-3">
-        <img src="${avatarPicture}" class="object-fit-cover" alt="${i18next.t('welcome.profilePictureAlt')}" />
+      <div class="rounded-circle overflow-hidden me-3" style="width: 60px; height: 60px;">
+        <img src="${avatarSrc}" class="object-fit-cover" style="width: 100%; height: 100%;" 
+             alt="${i18next.t('welcome.profilePictureAlt')}" 
+             onerror="this.onerror=null; this.src='/static/images/default_avatar.png';" />
       </div>
       <h3 class="card-title mb-0">${i18next.t('welcome.title', { username })}</h3>
     </div>

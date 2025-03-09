@@ -129,6 +129,8 @@
 		"enterUsername": "Veuillez entrer un nom d'utilisateur.",
 		"cannotAddSelf": "Vous ne pouvez pas vous envoyer une demande d'ami.",
 		"alreadyFriend": "Vous êtes déjà ami avec {{username}}.",
+		"pendingRequestExists": "Une demande d'ami avec {{username}} est déjà en attente.",
+		"errorCheckingRequests": "Erreur lors de la vérification des demandes d'amis en attente.",
 		"error": "Erreur",
 		"errorPrefix": "Erreur : ",
 		"errorOccurred": "Une erreur s'est produite.",
