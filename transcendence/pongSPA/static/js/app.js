@@ -1,7 +1,7 @@
 import { displayWelcomePage } from "./welcome.js";
 import { gameInterval, stopGameProcess, removeGameListeners } from "./pong.js";
 import { displayStats } from "./stats.js";
-import { displayTournament } from "./tournament.js";
+import { displayTournament, resetAppMainLock } from "./tournament.js";
 import { validateToken } from "./auth.js";
 import { displayFriends } from "./friends.js";
 import { displaySettings } from "./settings.js";
@@ -199,7 +199,9 @@ export function navigateTo(route) {
 
   // delete the lister used to play (mouse, AWSD, arrows)
   removeGameListeners();
-
+  // be sur app_main is unlocked
+  resetAppMainLock();
+  
   history.pushState({ page: route }, '', `#${route}`);
   logger.log('pushstate: ', history.state);
   addToCustomHistory(route);

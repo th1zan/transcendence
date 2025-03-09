@@ -3,8 +3,21 @@ import { startGameSetup } from "./pong.js";
 import {showModal, logger, navigateTo} from "./app.js";
 
 //menu to display the tournament feature 
-export function displayTournament() {
 
+export function resetAppMainLock() {
+  const appMain = document.getElementById("app_main");
+  if (appMain) {
+    appMain.style.pointerEvents = "auto"; // Réactiver les interactions
+    const existingOverlay = document.getElementById("organizer-overlay");
+    if (existingOverlay) {
+      existingOverlay.remove(); // Supprimer le voile
+    }
+  }
+}
+
+export function displayTournament() {
+  resetAppMainLock();
+  
   document.getElementById('app_bottom').innerHTML = '';
   logger.log('Tournament');
 
@@ -411,9 +424,39 @@ async function displayTournamentGameList(data) {
                   };
                   localStorage.setItem("matchID", matchID);
                   startGameSetup(gameSettings);
+                } else {
+                  // Si la réponse n'est pas OK, analyser l'erreur
+                  const errorData = await response.json();
+                  const errorMessage = errorData.error || "Unknown error";
+
+                  if (response.status === 400 && errorMessage.includes("is not authenticated")) {
+                    // Extraire le nom du joueur non authentifié depuis le message d'erreur
+                    showModal(
+                      i18next.t('tournament.errorTitle'), // Titre de la modale
+                      i18next.t('tournament.playerNotAuthenticated'), // Message avec le nom du joueur
+                      "OK", // Bouton de fermeture
+                      () => {
+                        // Optionnel : Ajouter une action, par exemple lancer authenticateNow
+                      }
+                    );
+                  } else {
+                    // Autres erreurs non liées à l'authentification
+                    showModal(
+                      i18next.t('tournament.errorTitle'),
+                      i18next.t('tournament.errorStartingMatch', { error: errorMessage }),
+                      "OK",
+                      () => {}
+                    );
+                  }
                 }
               } catch (error) {
                 logger.error("Error during match start:", error);
+                showModal(
+                  i18next.t('tournament.errorTitle'),
+                  i18next.t('tournament.errorStartingMatch', { error: error.message }),
+                  "OK",
+                  () => {}
+                );
               }
             });
           });
@@ -608,6 +651,8 @@ function calculateStandings(matches) {
 
 //display a list of Tournament's Games for a Tournament research based on Tournament ID
 export function DisplayTournamentGame() {
+   resetAppMainLock();
+
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -660,6 +705,7 @@ export function DisplayTournamentGame() {
 
 //create a Tournament form
 export function createTournamentForm() {
+  resetAppMainLock
   //empty all the containers
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -1116,16 +1162,12 @@ export function handleError(error, message) {
 export function selectTournament(tournamentId, tournamentName) {
   localStorage.setItem("tournamentId", tournamentId);
   localStorage.setItem("tournamentName", tournamentName);
-  const appMain = document.getElementById("app_main");
-  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
-  const existingOverlay = document.getElementById("organizer-overlay");
-  if (existingOverlay) {
-    existingOverlay.remove();
-  }
+  resetAppMainLock(); // Déverrouiller app_main
   DisplayTournamentGame();
 }
 
 export function validateSearch() {
+  resetAppMainLock
   document.getElementById('app_bottom').innerHTML = '';
 
   let tournamentName = localStorage.getItem("tournamentName");

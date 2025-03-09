@@ -314,7 +314,9 @@
         "showOnlyOngoing": "Show only ongoing tournaments",
         "notParticipating": "You are not participating in any tournament.",
         "notOrganizerMsg": "You are not the organizer of this tournament ({{username}}) and cannot interact with it. Matches must be played from the organizer's session.",
-        "errorLoadingTournamentInfo": "Error loading tournament information."
+        "errorLoadingTournamentInfo": "Error loading tournament information.",
+        "playerNotAuthenticated": "Player is not authenticated.",
+        "errorStartingMatch": "Error starting the match: {error}"
     },
     "statistics": {
         "statisticsDashboard": "Statistics Dashboard",
