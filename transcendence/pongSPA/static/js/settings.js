@@ -200,7 +200,7 @@ export function displaySettings() {
       const appTop = document.getElementById("app_top");
       appTop.innerHTML = `
         <div class="container mt-4">
-          <h3 class="text-center">Account Management</h3>
+          <h3 class="text-center">${i18next.t('settings.accountManagement')}</h3>
         </div>
         `;
 
@@ -209,20 +209,24 @@ export function displaySettings() {
         <div class="container">
           <!-- Update Profile Picture -->
           <div class="card shadow-sm p-4 mt-3">
-            <h4 class="text-center">Update Profile Picture</h4>
+            <h4 class="text-center">${i18next.t('settings.updateProfilePicture')}</h4>
             <div class="d-flex flex-column align-items-center">
               <img id="profilePic" src="${avatarUrl}" alt="${i18next.t('settings.profilePicture')}" class="rounded-circle border" width="150" height="150">
 
               <!-- Disable delete button if the avatar is default -->
               <button id="deleteAvatarButton" class="btn btn-danger mt-2" ${isDefaultAvatar ? "disabled" : ""}>
-                Delete Avatar
+                ${i18next.t('settings.deleteAvatar')}
               </button>
 
-              <div class="mt-3 w-75">
-                <label class="form-label">Choose a new profile picture:</label>
-                <div class="input-group">
-                  <input type="file" id="avatarInput" accept="image/*" class="form-control">
-                  <button id="uploadAvatarButton" class="btn btn-primary">Upload</button>
+              <div class="mt-3 w-100">
+                <label class="form-label">${i18next.t('settings.chooseNewProfilePicture')}:</label>
+                <div class="row g-2">
+                  <div class="col-12 col-md-8">
+                    <input type="file" id="avatarInput" accept="image/*" class="form-control">
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <button id="uploadAvatarButton" class="btn btn-primary w-100">${i18next.t('settings.upload')}</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -230,56 +234,56 @@ export function displaySettings() {
 
           <!-- Profile Information Update -->
           <div class="card shadow-sm p-4 mt-3">
-            <h4 class="text-center">Edit Profile Information</h4>
+            <h4 class="text-center">${i18next.t('settings.editProfileInformation')}</h4>
 
             <div class="form-group mt-2">
-              <label>Username:</label>
+              <label>${i18next.t('settings.username')}:</label>
               <input type="text" id="usernameInput" class="form-control" value="${username}">
             </div>
 
             <div class="form-group mt-2">
-              <label>Email:</label>
+              <label>${i18next.t('settings.email')}:</label>
               <div class="input-group">
                 <input type="email" id="emailInput" class="form-control">
-                <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">Clear</button>
+                <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">${i18next.t('settings.clear')}</button>
               </div>
               <div class="invalid-feedback">
-                Please enter a valid email address with "@" and a domain (e.g., user@example.com).
+                ${i18next.t('settings.invalidEmail')}
               </div>
             </div>
 
             <div class="form-group mt-2">
-              <label>Phone Number:</label>
+              <label>${i18next.t('settings.phoneNumber')}:</label>
               <div class="input-group">
                 <input type="text" id="phoneInput" class="form-control" value="">
-                <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">Clear</button>
+                <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">${i18next.t('settings.clear')}</button>
               </div>
             </div>
 
             <div class="d-flex justify-content-center mt-3">
-              <button id="saveProfileButton" class="btn btn-success px-4">Save Changes</button>
+              <button id="saveProfileButton" class="btn btn-success px-4">${i18next.t('settings.saveChanges')}</button>
             </div>
           </div>
 
           <!-- Change Password Section -->
           <div class="card shadow-sm p-4 mt-3">
-            <h4 class="text-center">Change Password</h4>
+            <h4 class="text-center">${i18next.t('settings.changePassword')}</h4>
             <div class="form-group mt-2">
-              <label>Current Password:</label>
+              <label>${i18next.t('settings.currentPassword')}:</label>
               <input type="password" id="currentPasswordInput" class="form-control">
             </div>
             <div class="form-group mt-2">
-              <label>New Password:</label>
+              <label>${i18next.t('settings.newPassword')}:</label>
               <input type="password" id="newPasswordInput" class="form-control">
               <div class="invalid-feedback">
-                Password must be at least 8 characters.
+                ${i18next.t('settings.passwordTooShort')}
               </div>
             </div>
             <div class="form-group mt-2">
-              <label>Confirm New Password:</label>
+              <label>${i18next.t('settings.confirmNewPassword')}:</label>
               <input type="password" id="confirmPasswordInput" class="form-control">
               <div class="invalid-feedback">
-                Passwords do not match.
+                ${i18next.t('settings.passwordMismatch')}
               </div>
             </div>
             <!-- This is the general guidance visible to all users -->
@@ -287,29 +291,36 @@ export function displaySettings() {
               ${i18next.t('settings.passwordRequirements')}
             </div>
             <div class="d-flex justify-content-center mt-3">
-              <button id="changePasswordBtn" class="btn btn-success px-4">Change Password</button>
+              <button id="changePasswordBtn" class="btn btn-success px-4">${i18next.t('settings.changePassword')}</button>
             </div>
           </div>
 
           <!-- 2FA Section -->
           <div class="card shadow-sm p-4 mt-3">
-            <h4 class="text-center">Two-Factor Authentication (2FA)</h4>
-            <p class="text-center" id="2fa_status">2FA is Disabled ❌</p>
+            <h4 class="text-center">${i18next.t('settings.twoFactorAuthentication')}</h4>
+            <p class="text-center" id="2fa_status">${i18next.t('auth.twoFADisabled')}</p>
             <div class="d-flex justify-content-center">
               <button id="toggle2FAButton" class="btn btn-success">
-                Enable 2FA
+                ${i18next.t('auth.enableTwoFA')}
               </button>
             </div>
             <div id="otpSection" class="text-center mt-3" style="display:none;">
-              <input type="text" id="otpInput" class="form-control text-center w-50 mx-auto" placeholder="${i18next.t('login.enterOTP')}">
-              <button id="verifyOTPButton" class="btn btn-primary mt-2">${i18next.t('login.verifyOTP')}</button>
+              <input type="text" id="otpInput" class="form-control text-center mx-auto mb-2" style="max-width: 300px;" placeholder="${i18next.t('login.enterOTP')}">
+              <button id="verifyOTPButton" class="btn btn-primary">${i18next.t('login.verifyOTP')}</button>
             </div>
           </div>
 
           <!-- Account Actions -->
-          <div class="d-flex justify-content-center mt-4">
-            <button id="deleteAccountButton" class="btn btn-danger px-4" style="margin-right: 38px;">Delete Account</button>
-            <button id="anonymizeAccountButton" class="btn btn-warning">Anonymize Account</button>
+          <div class="card shadow-sm p-4 mt-3">
+            <h4 class="text-center">${i18next.t('settings.accountActions')}</h4>
+            <div class="d-flex flex-column flex-md-row justify-content-center gap-2 mt-3">
+              <button id="deleteAccountButton" class="btn btn-danger text-white w-100 w-md-auto">
+                ${i18next.t('settings.deleteAccount')}
+              </button>
+              <button id="anonymizeAccountButton" class="btn btn-warning text-white w-100 w-md-auto">
+                ${i18next.t('settings.anonymizeAccount')}
+              </button>
+            </div>
           </div>
         </div>
         `;
@@ -385,7 +396,7 @@ export async function deleteAccount() {
         logger.error("Error deleting account:", error);
         showModal(
           i18next.t('settings.error'),
-          'An error occurred:' + error.message,
+          i18next.t('settings.genericError').replace('{errorMessage}', error.message),
           i18next.t('modal.ok'),
           () => {}
         );
