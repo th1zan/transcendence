@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanitization Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-area { margin-bottom: 30px; }
+        .test-results { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .test-results th, .test-results td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        .test-results th { background-color: #f2f2f2; }
+        .pass { background-color: #dff0d8; color: #3c763d; }
+        .fail { background-color: #f2dede; color: #a94442; }
+        code { background: #f5f5f5; padding: 2px 4px; border-radius: 3px; }
+        button { padding: 8px 16px; margin-right: 10px; }
+        input[type="text"] { padding: 8px; width: 60%; margin-right: 10px; }
+        .comparison { display: flex; justify-content: space-between; }
+        .comparison > div { width: 48%; }
+        .explanation { background-color: #f8f9fa; padding: 15px; margin: 20px 0; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Form Sanitization Test</h1>
+        
+        <div class="explanation">
+            <h3>Understanding the Results:</h3>
+            <p>This tool compares two types of input sanitization:</p>
+            <ul>
+                <li><strong>Basic sanitization:</strong> Only escapes HTML characters like &lt; &gt; " ' etc.</li>
+                <li><strong>Advanced sanitization:</strong> Also neutralizes dangerous patterns like javascript: URLs and event handlers.</li>
+            </ul>
+            <p>A <span class="pass">PASS</span> means the sanitization successfully prevents the XSS attack, while a <span class="fail">FAIL</span> means potential vulnerability.</p>
+        </div>
+        
+        <div class="test-area">
+            <h2>Manual Testing</h2>
+            <p>Enter potential XSS or injection payloads to test sanitization:</p>
+            <input type="text" id="test-input" placeholder="e.g. <script>alert('XSS')</script>">
+            <button id="test-manual">Test Sanitization</button>
+            
+            <div class="comparison">
+                <div>
+                    <h3>Basic Sanitization</h3>
+                    <div>
+                        <strong>Original input:</strong>
+                        <pre id="original-input"></pre>
+                    </div>
+                    <div>
+                        <strong>Basic sanitized output:</strong>
+                        <pre id="sanitized-output"></pre>
+                    </div>
+                    <div>
+                        <strong>Rendered result (safe):</strong>
+                        <div id="safe-render"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Advanced Sanitization</h3>
+                    <div>
+                        <strong>Advanced sanitized output:</strong>
+                        <pre id="advanced-sanitized-output"></pre>
+                    </div>
+                    <div>
+                        <strong>Rendered result (safe with advanced):</strong>
+                        <div id="advanced-safe-render"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h3>Unsafe Demonstration</h3>
+                <div class="fail" style="padding: 10px; margin-bottom: 10px;">
+                    ⚠️ WARNING: This section intentionally renders unsafe content to demonstrate vulnerabilities!
+                </div>
+                <div>
+                    <strong>Rendered result (unsafe - for demo only):</strong>
+                    <div id="unsafe-render"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-area">
+            <h2>Automated Testing</h2>
+            <p>Test against common XSS vectors:</p>
+            <button id="run-automated-tests">Run All Tests</button>
+            <div id="sanitization-test-results"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { sanitizeHTML, sanitizeAdvanced, displaySafeContent } from '../static/js/utils.js';
+        import { displayTestResults } from '../static/js/sanitization-tester.js';
+
+        document.getElementById('test-manual').addEventListener('click', () => {
+            const input = document.getElementById('test-input').value;
+            const basicSanitized = sanitizeHTML(input);
+            const advancedSanitized = sanitizeAdvanced(input);
+            
+            // Display original and sanitized versions
+            document.getElementById('original-input').textContent = input;
+            document.getElementById('sanitized-output').textContent = basicSanitized;
+            document.getElementById('advanced-sanitized-output').textContent = advancedSanitized;
+            
+            // Display rendered versions
+            document.getElementById('safe-render').textContent = basicSanitized;
+            document.getElementById('advanced-safe-render').textContent = advancedSanitized;
+            
+            // WARNING: This is intentionally vulnerable for demonstration purposes only!
+            document.getElementById('unsafe-render').innerHTML = input;
+        });
+
+        document.getElementById('run-automated-tests').addEventListener('click', () => {
+            displayTestResults();
+        });
+    </script>
+</body>
+</html>

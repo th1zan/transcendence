@@ -146,6 +146,19 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if CustomUser.objects.filter(username=value).exists():
             raise serializers.ValidationError("This username is already taken.")
+            
+        # validation reject explicitly dangerous inputs
+        dangerous_patterns = [
+            r'<script.*?>.*?</script>', 
+            r'javascript:',
+            r'onerror=',
+            r'onload='
+        ]
+        
+        for pattern in dangerous_patterns:
+            if re.search(pattern, value, re.IGNORECASE):
+                raise serializers.ValidationError("Username contains potentially unsafe content.")
+                
         return value
 
     def validate_password(self, value):

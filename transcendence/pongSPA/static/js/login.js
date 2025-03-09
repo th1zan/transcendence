@@ -1,6 +1,6 @@
 import {showModal, logger } from './app.js';
 import { getToken, createAccount, verify2FALogin } from './auth.js';
-
+import { sanitizeAdvanced } from './utils.js';
 
 // login
 export function displayConnectionFormular() {
@@ -66,8 +66,13 @@ export function displayConnectionFormular() {
       .getElementById("loginForm")
       .addEventListener("submit", function (event) {
         event.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+        const usernameRaw = document.getElementById("username").value;
+        const passwordRaw = document.getElementById("password").value;
+        
+        // Sanitize inputs
+        const username = sanitizeAdvanced(usernameRaw);
+        const password = passwordRaw; // Don't sanitize passwords as they might contain special chars
+        
         getToken(username, password);
       });
 
@@ -152,10 +157,14 @@ export function displayRegistrationForm() {
     .addEventListener("submit", function (event) {
       event.preventDefault();
       logger.log('Form submitted, checking privacyPolicyAccepted...');
-      const newUsername = document.getElementById("newUsername").value;
-      const newPassword = document.getElementById("newPassword").value;
+      const newUsernameRaw = document.getElementById("newUsername").value;
+      const newPasswordRaw = document.getElementById("newPassword").value;
       const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
-
+      
+      // Sanitize inputs
+      const newUsername = sanitizeAdvanced(newUsernameRaw);
+      const newPassword = newPasswordRaw; // we don't sanitize passwords as they might contain special chars
+      
       if (!privacyPolicyAccepted) {
         logger.log('Attempting to display modal...');
         showModal(

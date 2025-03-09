@@ -1,6 +1,7 @@
 import {logger, showModal} from "./app.js";
 import { startGameSetup } from "./pong.js";
 import { checkPlayerExists, checkUserExists, handleError, updatePlayerStatus} from "./tournament.js";
+import { sanitizeAdvanced, sanitizeHTML } from "./utils.js";
 
 export function displayGameForm() {
   let players = new Map();
@@ -274,7 +275,7 @@ export function displayGameForm() {
     control1.value = "arrows";
     control2.value = "wasd";
     control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
-    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    control2.querySelectorAll("option").forEach(opt.disabled = false);
     control1.querySelector("option[value='wasd']").disabled = true;
     control2.querySelector("option[value='arrows']").disabled = true;
 
@@ -377,7 +378,10 @@ export function displayGameForm() {
   // Gestion du bouton "Start Game"
   document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
-    let player2 = document.getElementById("player2").value.trim();
+    let player2Raw = document.getElementById("player2").value.trim();
+    
+    // Sanitize player names
+    let player2 = sanitizeAdvanced(player2Raw);
     
     document.getElementById("numberOfGames").dispatchEvent(new Event('blur'));
     document.getElementById("setsPerGame").dispatchEvent(new Event('blur'));
