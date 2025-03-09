@@ -36,11 +36,14 @@ function displayHTMLforSettings(user) {
               ${i18next.t('settings.deleteAvatar')}
             </button>
 
-          <div class="mt-3 w-75">
-            <label class="form-label">${i18next.t('settings.chooseNewProfilePicture')}:</label>
-            <div class="input-group">
+          <div class="mt-3 w-100">
+          <label class="form-label">${i18next.t('settings.chooseNewProfilePicture')}:</label>
+          <div class="row g-2">
+            <div class="col-12 col-md-8">
               <input type="file" id="avatarInput" accept="image/*" class="form-control">
-              <button id="uploadAvatarButton" class="btn btn-primary">${i18next.t('settings.upload')}</button>
+            </div>
+            <div class="col-12 col-md-4">
+              <button id="uploadAvatarButton" class="btn btn-primary w-100">${i18next.t('settings.upload')}</button>
             </div>
           </div>
         </div>
@@ -110,22 +113,28 @@ function displayHTMLforSettings(user) {
         <h4 class="text-center">${i18next.t('settings.twoFactorAuthentication')}</h4>
         <p class="text-center" id="2fa_status">${user.is_2fa_enabled ? i18next.t('auth.twoFAEnabledstatus') : i18next.t('auth.twoFADisabled')}</p>
         <div class="d-flex justify-content-center">
-          <button id="toggle2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"}">
+          <button id="toggle2FAButton" class="btn ${user.is_2fa_enabled ? "btn-danger" : "btn-success"} w-100 w-md-auto">
             ${user.is_2fa_enabled ? i18next.t('auth.disableTwoFA') : i18next.t('auth.enableTwoFA')}
           </button>
         </div>
         <div id="otpSection" class="text-center mt-3" style="display:none;">
-          <input type="text" id="otpInput" class="form-control text-center w-50 mx-auto" placeholder="${i18next.t('login.enterOTP')}">
-          <button id="verifyOTPButton" class="btn btn-primary mt-2">${i18next.t('login.verifyOTP')}</button>
+          <input type="text" id="otpInput" class="form-control text-center mx-auto mb-2" style="max-width: 300px;" placeholder="${i18next.t('login.enterOTP')}">
+          <button id="verifyOTPButton" class="btn btn-primary">${i18next.t('login.verifyOTP')}</button>
         </div>
       </div>
 
       <!-- Account Actions -->
-      <div class="d-flex justify-content-center mt-4">
-        <button id="deleteAccountButton" class="btn btn-link nav-link text-danger">${i18next.t('settings.deleteAccount')}</button>
-        <button id="anonymizeAccountButton" class="btn btn-link nav-link text-success">${i18next.t('settings.anonymizeAccount')}</button>
+      <div class="card shadow-sm p-4 mt-3">
+        <h4 class="text-center">${i18next.t('settings.accountActions')}</h4>
+        <div class="d-flex flex-column flex-md-row justify-content-center gap-2 mt-3">
+          <button id="deleteAccountButton" class="btn btn-outline-danger w-100 w-md-auto">
+            ${i18next.t('settings.deleteAccount')}
+          </button>
+          <button id="anonymizeAccountButton" class="btn btn-outline-warning w-100 w-md-auto">
+            ${i18next.t('settings.anonymizeAccount')}
+          </button>
+        </div>
       </div>
-    </div>
     `;
   // Footer in app_bottom
   document.getElementById('app_bottom').innerHTML = `

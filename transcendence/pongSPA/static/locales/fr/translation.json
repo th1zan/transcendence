@@ -181,7 +181,8 @@
 		"userNotFound": "Utilisateur introuvable",
 		"errorCheckingPlayerMsg": "Une erreur s'est produite lors de la vérification de l'existence du joueur. Veuillez réessayer.",
 		"loginToAuthenticate": "Connexion pour authentification",
-		"authenticationFailed": "Échec de l'authentification. Veuillez réessayer."
+		"authenticationFailed": "Échec de l'authentification. Veuillez réessayer.",
+		"touchButtons": "Contrôles tactiles"
 	},
 	"pong": {
 		"error": "Erreur",
@@ -311,7 +312,10 @@
 		"showAllTournaments": "Afficher tous les tournois",
 		"showOnlyOngoing": "Afficher uniquement les tournois en cours",
 		"notParticipating": "Vous ne participez à aucun tournoi.",
-		"errorLoadingTournamentInfo": "Erreur lors du chargement des informations du tournoi."
+		"errorLoadingTournamentInfo": "Erreur lors du chargement des informations du tournoi.",
+		"mobileNotSupported": "Non compatible avec mobile",
+    	"pleaseUseBrowser": "Veuillez utiliser un navigateur de bureau pour accéder à la fonctionnalité tournoi.",
+    	"backToWelcomePage": "Retour à la page d'accueil"
 	},
 	"statistics": {
 		"statisticsDashboard": "Tableau de bord des Statistiques",
@@ -454,7 +458,9 @@
         
         "emailTooLong": "L'adresse e-mail est trop longue. Maximum 255 caractères autorisés.",
         "phoneTooLong": "Le numéro de téléphone est trop long. Maximum 15 caractères autorisés.",
-        "usernameTooLong": "Le nom d'utilisateur est trop long. Maximum 255 caractères autorisés."
+        "usernameTooLong": "Le nom d'utilisateur est trop long. Maximum 255 caractères autorisés.",
+		"accountActions": "Actions du compte"
+
 	},
 	"modal": {
 		"yes": "Oui",

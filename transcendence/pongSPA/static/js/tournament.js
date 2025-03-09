@@ -1,10 +1,46 @@
 import { showModalConfirmation } from "./auth.js";
 import { startGameSetup } from "./pong.js";
 import {showModal, logger, navigateTo} from "./app.js";
+import { isMobileDevice } from "./gameForm.js";
 
 //menu to display the tournament feature 
 export function displayTournament() {
-
+  if (isMobileDevice()) {
+    // Vider tous les conteneurs
+    document.getElementById('app_top').innerHTML = '';
+    document.getElementById('app_main').innerHTML = '';
+    document.getElementById('app_bottom').innerHTML = '';
+    
+    // Afficher le message d'erreur dans app_main
+    const appMain = document.getElementById("app_main");
+    appMain.innerHTML = `
+      <div class="container py-5">
+        <div class="card border-warning shadow">
+          <div class="card-header bg-warning text-dark">
+            <h3 class="text-center mb-0">
+              <i class="bi bi-exclamation-triangle me-2"></i>${i18next.t('tournament.mobileNotSupported')}
+            </h3>
+          </div>
+          <div class="card-body text-center">
+            <p class="lead mb-4">${i18next.t('tournament.pleaseUseBrowser')}</p>
+            <div class="mt-4">
+              <button class="btn btn-primary" onclick="navigateTo('welcome')">
+                ${i18next.t('tournament.backToWelcomePage')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Ajouter écouteur d'événement pour le bouton de retour
+    const backButton = appMain.querySelector('.btn-primary');
+    if (backButton) {
+      backButton.addEventListener('click', () => navigateTo('welcome'));
+    }
+    
+    return; // Sortir de la fonction pour ne pas exécuter le reste du code
+  }
   document.getElementById('app_bottom').innerHTML = '';
   logger.log('Tournament');
 

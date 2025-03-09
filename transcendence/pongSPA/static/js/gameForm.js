@@ -3,8 +3,17 @@ import { startGameSetup } from "./pong.js";
 import { checkPlayerExists, checkUserExists, handleError, updatePlayerStatus} from "./tournament.js";
 import { sanitizeAdvanced, sanitizeHTML } from "./utils.js";
 
+export function isMobileDevice() {
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+    (window.innerWidth < 768 && ('ontouchstart' in window || navigator.maxTouchPoints > 0))
+  );
+}
+
 export function displayGameForm() {
   let players = new Map();
+
+  const isMobile = isMobileDevice();
 
   // Vide tous les conteneurs
   document.getElementById('app_top').innerHTML = '';
@@ -23,7 +32,7 @@ export function displayGameForm() {
     setsPerGame: 3, // entre 1 et 5
     player1: username || "Player1", // Sécurité si username est null
     player2: "Bot-AI", // Valeur initiale pour mode solo
-    control1: "arrows",
+    control1: isMobile ? "touch" : "arrows", // Sur mobile, utiliser le tactile par défaut
     control2: "wasd",
     isTournamentMatch: false,
     isAIActive: true, // Ajouté pour clarifier la logique IA
@@ -33,18 +42,18 @@ export function displayGameForm() {
   // Insertion du formulaire HTML
   formContainer.innerHTML = `
     <form id="gameForm" class="container w-100">
-      <ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
-        <li class="nav-item" role="presentation">
+      <ul class="nav nav-pills nav-justified mb-3 d-flex flex-wrap" id="pills-tab" role="tablist">
+        <li class="nav-item flex-grow-1" role="presentation">
           <button class="nav-link active border border-primary rounded-0 bg-transparent" id="pills-game-settings-tab"
             data-bs-toggle="pill" data-bs-target="#pills-game-settings" type="button" role="tab"
             aria-controls="pills-game-settings" aria-selected="true">${i18next.t('game.gameSettings')}</button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item flex-grow-1" role="presentation">
           <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-player-settings-tab"
             data-bs-toggle="pill" data-bs-target="#pills-player-settings" type="button" role="tab"
             aria-controls="pills-player-settings" aria-selected="false">${i18next.t('game.playerSettings')}</button>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item flex-grow-1" role="presentation">
           <button class="nav-link border border-primary rounded-0 bg-transparent" id="pills-match-settings-tab"
             data-bs-toggle="pill" data-bs-target="#pills-match-settings" type="button" role="tab"
             aria-controls="pills-match-settings" aria-selected="false">${i18next.t('game.matchSettings')}</button>
@@ -54,29 +63,35 @@ export function displayGameForm() {
       <div class="tab-content" id="pills-tabContent">
         <div class="tab-pane fade show active" id="pills-game-settings" role="tabpanel" aria-labelledby="pills-game-settings-tab">
           <div class="d-flex justify-content-center mt-3">
-            <div class="col p-3 d-flex flex-column">
+            <div class="col-12 p-3 d-flex flex-column">
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.gameSettings')}</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
+                <!-- Paramètre: Mode de jeu -->
                 <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.gameMode')}:</label>
-                  <div class="btn-group d-flex pag-2" role="group" aria-label="Game Mode">
-                    <button id="onePlayer" class="mode-button btn ${gameSettings.mode === "solo" ? "btn-primary" : "btn-outline-primary"}" type="button">${i18next.t('game.onePlayer')}</button>
-                    <button id="twoPlayers" class="mode-button btn ${gameSettings.mode === "multiplayer" ? "btn-primary" : "btn-outline-primary"}" type="button">${i18next.t('game.twoPlayers')}</button>
+                  <label class="form-label d-block" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.gameMode')}:</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <!-- Sur mobile, classe w-100 pour utiliser toute la largeur disponible -->
+                    <button id="onePlayer" class="mode-button btn btn-primary ${isMobile ? 'w-100' : 'flex-grow-1'}" type="button">${i18next.t('game.onePlayer')}</button>
+                    ${!isMobile ? `<button id="twoPlayers" class="mode-button btn btn-outline-primary flex-grow-1" type="button">${i18next.t('game.twoPlayers')}</button>` : ''}
                   </div>
                 </div>
+                
+                <!-- Paramètre: Difficulté -->
                 <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.difficulty')}:</label>
-                  <div class="btn-group d-flex pag-2" role="group" aria-label="Difficulty">
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"}" id="easy" type="button">${i18next.t('game.easy')}</button>
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"}" id="medium" type="button">${i18next.t('game.medium')}</button>
-                    <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"}" id="hard" type="button">${i18next.t('game.hard')}</button>
+                  <label class="form-label d-block" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.difficulty')}:</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "easy" ? "btn-primary" : "btn-outline-primary"} flex-grow-1" id="easy" type="button">${i18next.t('game.easy')}</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "medium" ? "btn-primary" : "btn-outline-primary"} flex-grow-1" id="medium" type="button">${i18next.t('game.medium')}</button>
+                    <button class="difficulty-button btn ${gameSettings.difficulty === "hard" ? "btn-primary" : "btn-outline-primary"} flex-grow-1" id="hard" type="button">${i18next.t('game.hard')}</button>
                   </div>
                 </div>
+                
+                <!-- Paramètre: Design -->
                 <div class="mb-3">
-                  <label class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.design')}:</label>
-                  <div class="btn-group d-flex pag-2" role="group" aria-label="Design">
-                    <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"}" id="retro" type="button">${i18next.t('game.retro')}</button>
-                    <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"}" id="neon" type="button">${i18next.t('game.neon')}</button>
+                  <label class="form-label d-block" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.design')}:</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button class="design-button btn ${gameSettings.design === "retro" ? "btn-primary" : "btn-outline-primary"} flex-grow-1" id="retro" type="button">${i18next.t('game.retro')}</button>
+                    <button class="design-button btn ${gameSettings.design === "neon" ? "btn-primary" : "btn-outline-primary"} flex-grow-1" id="neon" type="button">${i18next.t('game.neon')}</button>
                   </div>
                 </div>
               </div>
@@ -85,39 +100,52 @@ export function displayGameForm() {
         </div>
 
         <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
-          <div class="d-flex justify-content-between align-items-stretch mt-3" id="player-container"> <!-- Ajout d'un ID pour le conteneur -->
-            <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 1</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
-                <div class="mb-3">
-                  <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.name')}:</label>
-                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control bg-transparent" disabled>
-                </div>
-                <div class="mb-3">
-                  <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
-                  <select id="control1" class="form-select bg-transparent">
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>${i18next.t('game.arrowKeys')}</option>
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>${i18next.t('game.mouse')}</option>
-                  </select>
+          <div class="row mt-3" id="player-container">
+            <!-- Joueur 1 -->
+            <div class="col-12 col-md-6 mb-3 mb-md-0">
+              <div class="d-flex flex-column h-100">
+                <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 1</h3>
+                <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
+                  <div class="mb-3">
+                    <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.name')}:</label>
+                    <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control bg-transparent" disabled>
+                  </div>
+                  <div class="mb-3">
+                    <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
+                    ${isMobile ? 
+                      `<div class="form-control bg-transparent" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">
+                        ${i18next.t('game.touchButtons') || 'Touch Controls'}
+                      </div>
+                      <input type="hidden" id="control1" value="touch">` 
+                    : 
+                    `<select id="control1" class="form-select bg-transparent">
+                      <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="arrows" ${gameSettings.control1 === "arrows" ? "selected" : ""}>${i18next.t('game.arrowKeys')}</option>
+                      <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="wasd" ${gameSettings.control1 === "wasd" ? "selected" : ""}>WASD</option>
+                      <option style="font-family: 'Press Start 2P', cursive; font-size: 15px;" value="mouse" ${gameSettings.control1 === "mouse" ? "selected" : ""}>${i18next.t('game.mouse')}</option>
+                    </select>`
+                    }
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="col p-3 d-flex flex-column">
-              <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 2</h3>
-              <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent player2-container">
-                <div class="mb-3">
-                  <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.name')}:</label>
-                  <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" ${gameSettings.mode === "solo" ? "disabled" : ""}>
-                  <span class="status-text ms-2" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};"></span>
-                </div>
-                <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
-                  <label for="control2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
-                  <select id="control2" class="form-select bg-transparent">
-                    <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
-                    <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>${i18next.t('game.arrowKeys')}</option>
-                    <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>${i18next.t('game.mouse')}</option>
-                  </select>
+            </div>      
+            <!-- Joueur 2 -->
+            <div class="col-12 col-md-6">
+              <div class="d-flex flex-column h-100">
+                <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 2</h3>
+                <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent player2-container">
+                  <div class="mb-3">
+                    <label for="player2" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.name')}:</label>
+                    <input type="text" id="player2" value="${gameSettings.player2}" class="form-control bg-transparent" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" ${gameSettings.mode === "solo" ? "disabled" : ""}>
+                    <span class="status-text ms-2" style="display: ${gameSettings.mode === "solo" ? 'none' : 'block'};"></span>
+                  </div>
+                  <div id="control2Container" class="mb-3" style="${gameSettings.mode === "solo" ? "display:none;" : "display:block;"}">
+                    <label for="control2" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
+                    <select id="control2" class="form-select bg-transparent">
+                      <option value="wasd" ${gameSettings.control2 === "wasd" ? "selected" : ""}>WASD</option>
+                      <option value="arrows" ${gameSettings.control2 === "arrows" ? "selected" : ""}>${i18next.t('game.arrowKeys')}</option>
+                      <option value="mouse" ${gameSettings.control2 === "mouse" ? "selected" : ""}>${i18next.t('game.mouse')}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -126,16 +154,24 @@ export function displayGameForm() {
 
         <div class="tab-pane fade" id="pills-match-settings" role="tabpanel" aria-labelledby="pills-match-settings-tab">
           <div class="d-flex justify-content-center mt-3">
-            <div class="col p-3 d-flex flex-column">
+            <div class="col-12 p-3 d-flex flex-column">
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.matchSettings')}</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
-                <div class="mb-3">
-                  <label for="numberOfGames" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.setsPerGame')}:</label>
-                  <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control p-2 bg-transparent" style="width: 60px;">
+                <div class="row mb-3 align-items-center">
+                  <div class="col-7">
+                    <label for="numberOfGames" class="form-label mb-0" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.setsPerGame')}:</label>
+                  </div>
+                  <div class="col-5">
+                    <input type="number" id="numberOfGames" value="${gameSettings.numberOfGames}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
+                  </div>
                 </div>
-                <div class="mb-3">
-                  <label for="setsPerGame" class="form-label" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.pointsToWin')}:</label>
-                  <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
+                <div class="row align-items-center">
+                  <div class="col-7">
+                    <label for="setsPerGame" class="form-label mb-0" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('game.pointsToWin')}:</label>
+                  </div>
+                  <div class="col-5">
+                    <input type="number" id="setsPerGame" value="${gameSettings.setsPerGame}" min="1" max="5" class="form-control bg-transparent" style="width: 60px;">
+                  </div>
                 </div>
               </div>
             </div>
@@ -144,19 +180,24 @@ export function displayGameForm() {
       </div>
     </form>
 
-   <div class="position-relative mt-4">
-      <div class="text-center">
-        <button id="startGameButton" class="btn btn-success" type="button">${i18next.t('game.startGame')}</button>
-      </div>
-      <button id="toggleSoundButton" class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center position-absolute top-0 end-0" style="width: 50px; height: 50px; padding: 0;">
-        <i class="bi bi-volume-mute-fill" style="font-size: 1.5rem;"></i>
-      </button>
-    </div>
+  <div class="mt-4">
+  <!-- Bouton de son placé au-dessus, aligné à droite -->
+  <div class="d-flex justify-content-end mb-3">
+    <button id="toggleSoundButton" class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; padding: 0;">
+      <i class="bi bi-volume-mute-fill" style="font-size: 1.5rem;"></i>
+    </button>
+  </div>
+  
+  <!-- Bouton démarrer placé en dessous, centré -->
+  <div class="text-center">
+    <button id="startGameButton" class="btn btn-success btn-lg px-4 py-2" type="button">${i18next.t('game.startGame')}</button>
+  </div>
+</div>
 
-    <div id="result" style="display: none;">
-      <h2>${i18next.t('game.gameResults')}</h2>
-      <p id="summary"></p>
-    </div>
+<div id="result" style="display: none;">
+  <h2>${i18next.t('game.gameResults')}</h2>
+  <p id="summary"></p>
+</div>
   `;
 
   const playerContainer = document.getElementById('player-container'); // Sélection du conteneur des joueurs
@@ -213,21 +254,74 @@ export function displayGameForm() {
       button.classList.remove('btn-primary');
       button.classList.add('btn-outline-primary');
     });
-    document.getElementById(selectedId).classList.remove('btn-outline-primary');
-    document.getElementById(selectedId).classList.add('btn-primary');
+    const selectedButton = document.getElementById(selectedId);
+    if (selectedButton) {
+      selectedButton.classList.remove('btn-outline-primary');
+      selectedButton.classList.add('btn-primary');
+    }
   }
 
-  // Ajout des écouteurs pour les boutons de mode, difficulté et design
-  document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
-    button.addEventListener("click", function() {
-      toggleActiveButton(`.${this.classList[0]}`, this.id);
+  // Fonctions de gestion des boutons
+  function handleDifficultyButtonClick(buttonId) {
+    gameSettings.difficulty = buttonId;
+    toggleActiveButton(".difficulty-button", buttonId);
+  }
+
+  function handleDesignButtonClick(buttonId) {
+    gameSettings.design = buttonId;
+    toggleActiveButton(".design-button", buttonId);
+  }
+
+  // Écouteurs d'événements conditionnels selon le type d'appareil
+  if (isMobile) {
+    // Sur mobile : utiliser touchend pour éviter les problèmes
+    document.querySelectorAll(".difficulty-button").forEach(button => {
+      button.addEventListener("touchend", function(e) {
+        e.preventDefault();
+        handleDifficultyButtonClick(this.id);
+      }, { passive: false });
     });
-  });
+    
+    document.querySelectorAll(".design-button").forEach(button => {
+      button.addEventListener("touchend", function(e) {
+        e.preventDefault();
+        handleDesignButtonClick(this.id);
+      }, { passive: false });
+    });
+    
+    const onePlayerBtn = document.getElementById("onePlayer");
+    if (onePlayerBtn) {
+      onePlayerBtn.addEventListener("touchend", function(e) {
+        e.preventDefault();
+        onePlayerButtonClick();
+      }, { passive: false });
+    }
+  } else {
+    // Sur desktop : utiliser click comme d'habitude
+    document.querySelectorAll(".difficulty-button").forEach(button => {
+      button.addEventListener("click", function() {
+        handleDifficultyButtonClick(this.id);
+      });
+    });
+    
+    document.querySelectorAll(".design-button").forEach(button => {
+      button.addEventListener("click", function() {
+        handleDesignButtonClick(this.id);
+      });
+    });
+    
+    document.getElementById("onePlayer").addEventListener("click", onePlayerButtonClick);
+    
+    const twoPlayersBtn = document.getElementById("twoPlayers");
+    if (twoPlayersBtn) {
+      twoPlayersBtn.addEventListener("click", twoPlayersButtonClick);
+    }
+  }
 
   let isTwoPlayerMode = gameSettings.mode === "multiplayer";
 
-  // Gestion du mode "One Player"
-  document.getElementById("onePlayer").addEventListener("click", function() {
+  // Fonction pour le bouton One Player
+  function onePlayerButtonClick() {
     const player2Input = document.getElementById("player2");
     const control2Container = document.getElementById("control2Container");
     const statusText = document.querySelector('.player2-container .status-text');
@@ -238,24 +332,24 @@ export function displayGameForm() {
     gameSettings.isAIActive = true;
     player2Input.disabled = true;
     player2Input.placeholder = i18next.t('game.aiControlled');
-    control2Container.style.display = "none";
-    statusText.style.display = 'none';
-    infoText.style.display = 'none';
+    if (control2Container) control2Container.style.display = "none";
+    if (statusText) statusText.style.display = 'none';
+    if (infoText) infoText.style.display = 'none';
 
     const control1 = document.getElementById("control1");
     const control2 = document.getElementById("control2");
-    control1.value = "arrows";
-    control2.value = "wasd";
-    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
-    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    if (control1) control1.value = isMobile ? "touch" : "arrows";
+    if (control2) control2.value = "wasd";
+    if (control1) control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+    if (control2) control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
 
     isTwoPlayerMode = false;
     gameSettings.mode = "solo";
     toggleActiveButton(".mode-button", "onePlayer");
-  });
+  }
 
-  // Gestion du mode "Two Players"
-  document.getElementById("twoPlayers").addEventListener("click", function() {
+  // Fonction pour le bouton Two Players
+  function twoPlayersButtonClick() {
     const player2Input = document.getElementById("player2");
     const control2Container = document.getElementById("control2Container");
     const statusText = document.querySelector('.player2-container .status-text');
@@ -266,23 +360,29 @@ export function displayGameForm() {
     gameSettings.isAIActive = false;
     player2Input.disabled = false;
     player2Input.placeholder = i18next.t('game.enterPlayer2Name');
-    control2Container.style.display = "block";
-    statusText.style.display = 'block';
-    infoText.style.display = 'block';
+    if (control2Container) control2Container.style.display = "block";
+    if (statusText) statusText.style.display = 'block';
+    if (infoText) infoText.style.display = 'block';
 
     const control1 = document.getElementById("control1");
     const control2 = document.getElementById("control2");
-    control1.value = "arrows";
-    control2.value = "wasd";
-    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
-    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
-    control1.querySelector("option[value='wasd']").disabled = true;
-    control2.querySelector("option[value='arrows']").disabled = true;
+    if (control1) control1.value = "arrows";
+    if (control2) control2.value = "wasd";
+    if (control1) {
+      control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+      const wasdOption = control1.querySelector("option[value='wasd']");
+      if (wasdOption) wasdOption.disabled = true;
+    }
+    if (control2) {
+      control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+      const arrowsOption = control2.querySelector("option[value='arrows']");
+      if (arrowsOption) arrowsOption.disabled = true;
+    }
 
     isTwoPlayerMode = true;
     gameSettings.mode = "multiplayer";
     toggleActiveButton(".mode-button", "twoPlayers");
-  });
+  }
 
   // Mise à jour des paramètres via les inputs
   document.getElementById("numberOfGames").addEventListener("input", function() {
@@ -327,34 +427,30 @@ export function displayGameForm() {
     gameSettings.player2 = this.value;
   });
 
-  document.getElementById("control1").addEventListener("change", function() {
-    const selected = this.value;
-    gameSettings.control1 = this.value;
-    const control2 = document.getElementById("control2");
-    control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
-    control2.querySelector(`option[value="${selected}"]`).disabled = true;
-  });
+  if (!isMobile) {
+    document.getElementById("control1").addEventListener("change", function() {
+      const selected = this.value;
+      gameSettings.control1 = this.value;
+      const control2 = document.getElementById("control2");
+      if (control2) {
+        control2.querySelectorAll("option").forEach(opt => opt.disabled = false);
+        const selectedOption = control2.querySelector(`option[value="${selected}"]`);
+        if (selectedOption) selectedOption.disabled = true;
+      }
+    });
+  } else {
+    gameSettings.control1 = "touch";
+  }
 
   document.getElementById("control2").addEventListener("change", function() {
     const selected = this.value;
     gameSettings.control2 = this.value;
     const control1 = document.getElementById("control1");
-    control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
-    control1.querySelector(`option[value="${selected}"]`).disabled = true;
-  });
-
-  document.querySelectorAll(".difficulty-button").forEach(button => {
-    button.addEventListener("click", function() {
-      gameSettings.difficulty = this.id;
-      toggleActiveButton(".difficulty-button", this.id);
-    });
-  });
-
-  document.querySelectorAll(".design-button").forEach(button => {
-    button.addEventListener("click", function() {
-      gameSettings.design = this.id;
-      toggleActiveButton(".design-button", this.id);
-    });
+    if (control1) {
+      control1.querySelectorAll("option").forEach(opt => opt.disabled = false);
+      const selectedOption = control1.querySelector(`option[value="${selected}"]`);
+      if (selectedOption) selectedOption.disabled = true;
+    }
   });
 
   document.getElementById("toggleSoundButton").addEventListener("click", function() {
@@ -542,5 +638,3 @@ async function authenticatePlayer(username, password, playerName) {
 
   return await response.json();
 }
-
-

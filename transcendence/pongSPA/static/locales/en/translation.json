@@ -15,7 +15,7 @@
 
 	"register": {
 		"createAccount": "Create Account",
-			"username": "Username",
+		"username": "Username",
 		"password": "Password",
 		"enterUsername": "Enter your username",
 		"enterPassword": "Enter your password",
@@ -183,7 +183,8 @@
         "userNotFound": "User not found",
         "errorCheckingPlayerMsg": "There was an error checking player existence. Please try again.",
         "loginToAuthenticate": "Login to Authenticate",
-        "authenticationFailed": "Authentication failed. Please try again."
+        "authenticationFailed": "Authentication failed. Please try again.",
+		"touchButtons": "Touch Controls"
     },
     "pong": {
         "error": "Error",
@@ -313,7 +314,10 @@
 		"showAllTournaments": "Show all tournaments",
 		"showOnlyOngoing":  "Show only ongoing tournaments",
 		"notParticipating": "You are not participating in any tournament.",
-		"errorLoadingTournamentInfo": "Error loading tournament information."
+		"errorLoadingTournamentInfo": "Error loading tournament information.",
+		"mobileNotSupported": "Mobile Not Supported",
+		"pleaseUseBrowser": "Please use a desktop browser to access the tournament feature.",
+		"backToWelcomePage": "Back to Welcome Page"
     },
 	"statistics" :
 	{
@@ -457,7 +461,8 @@
 		"avatarDeleteSuccess": "Avatar has been deleted successfully.",
 		"genericError": "An error occurred: {errorMessage}",
 		"chooseFile": "Choose file",
-		"noFileChosen": "No file chosen"
+		"noFileChosen": "No file chosen",
+		"accountActions": "Account Actions"
 	},
 	"modal": {
 		"yes": "Yes",
