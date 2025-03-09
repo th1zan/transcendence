@@ -183,7 +183,8 @@
         "errorCheckingPlayerMsg": "There was an error checking player existence. Please try again.",
         "loginToAuthenticate": "Login to Authenticate",
         "authenticationFailed": "Authentication failed. Please try again.",
-        "player2NameRequired": "Please enter a name for Player 2 in multiplayer mode."
+        "player2NameRequired": "Please enter a name for Player 2 in multiplayer mode.",
+        "touchButtons": "Touch Controls"
     },
     "pong": {
         "error": "Error",
@@ -313,10 +314,10 @@
         "showAllTournaments": "Show all tournaments",
         "showOnlyOngoing": "Show only ongoing tournaments",
         "notParticipating": "You are not participating in any tournament.",
-        "notOrganizerMsg": "You are not the organizer of this tournament ({{username}}) and cannot interact with it. Matches must be played from the organizer's session.",
         "errorLoadingTournamentInfo": "Error loading tournament information.",
-        "playerNotAuthenticated": "Player is not authenticated.",
-        "errorStartingMatch": "Error starting the match: {error}"
+        "mobileNotSupported": "Mobile Not Supported",
+        "pleaseUseBrowser": "Please use a desktop browser to access the tournament feature.",
+        "backToWelcomePage": "Back to Welcome Page"
     },
     "statistics": {
         "statisticsDashboard": "Statistics Dashboard",
@@ -368,7 +369,6 @@
         "errorLoadingTournament": "Error Loading Tournaments",
         "errorLoadingGames": "Error loading games",
         "noPlayedMatchesFoundFor": "Aucun match joué trouvé par {{username}}",
-        "": "",
         "gamesFor": "Games For {{username}}",
         "opponent&Date": "Opponent & Date",
         "result": "Result",
@@ -447,7 +447,8 @@
         "avatarDeleteSuccess": "Avatar has been deleted successfully.",
         "genericError": "An error occurred: {errorMessage}",
         "chooseFile": "Choose file",
-        "noFileChosen": "No file chosen"
+        "noFileChosen": "No file chosen",
+        "accountActions": "Account Actions"
     },
     "modal": {
         "yes": "Yes",
