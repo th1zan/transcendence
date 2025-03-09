@@ -113,10 +113,18 @@ class AnonymizeAccountView(APIView):
             user.save()
             request.session.flush()
 
-            return Response(
+            response = JsonResponse(
                 {"message": f"Your account has been anonymized as {anonymous_name}."},
                 status=status.HTTP_200_OK,
             )
+
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            response.delete_cookie("sessionid")
+            response.delete_cookie("csrftoken")
+
+            return response
+        
         return Response(
             {"error": "Utilisateur non authentifié."},
             status=status.HTTP_401_UNAUTHORIZED,
@@ -135,16 +143,23 @@ class DeleteAccountView(APIView):
 
         player = Player.objects.filter(user=user).first()
         if player:
-            player.player = "Deleted_User"
+            unique_deleted_name = f"Deleted_User_{player.id}"
+            player.player = unique_deleted_name
             player.user = None
             player.save()
 
         user.delete()
 
-        return Response(
-            {"message": "Your account has been permanently deleted."},
-            status=status.HTTP_200_OK,
+        response = JsonResponse(
+            {"message": "Your account has been deleted, and cookies are cleared."},
+            status=200
         )
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")  
+        response.delete_cookie("sessionid")
+        response.delete_cookie("csrftoken")
+
+        return response
 
 
 class ChangePasswordView(APIView):
