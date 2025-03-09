@@ -1,7 +1,9 @@
-import {logger, showModal} from "./app.js";
+import { logger, showModal } from "./app.js";
 import { startGameSetup } from "./pong.js";
-import { checkPlayerExists, checkUserExists, handleError, updatePlayerStatus} from "./tournament.js";
+import { checkPlayerExists, checkUserExists, handleError, updatePlayerStatus } from "./tournament.js";
 import { sanitizeAdvanced, sanitizeHTML } from "./utils.js";
+
+let gameSettings = null;
 
 export function displayGameForm() {
   let players = new Map();
@@ -15,22 +17,22 @@ export function displayGameForm() {
   const formContainer = document.getElementById("app_main");
   const username = localStorage.getItem("username");
 
-  let gameSettings = {
+  gameSettings = {
     mode: "solo", // Mode par défaut
     difficulty: "easy",
     design: "retro",
-    numberOfGames: 1, // entre 1 et 5
-    setsPerGame: 3, // entre 1 et 5
-    player1: username || "Player1", // Sécurité si username est null
-    player2: "Bot-AI", // Valeur initiale pour mode solo
+    numberOfGames: 1,
+    setsPerGame: 3,
+    player1: username || "Player1",
+    player2: "Bot-AI",
     control1: "arrows",
     control2: "wasd",
     isTournamentMatch: false,
-    isAIActive: true, // Ajouté pour clarifier la logique IA
+    isAIActive: true,
     soundEnabled: false
   };
 
-  // Insertion du formulaire HTML
+  // Insertion du formulaire HTML (inchangé)
   formContainer.innerHTML = `
     <form id="gameForm" class="container w-100">
       <ul class="nav nav-pills nav-justified mb-3 d-flex justify-content-between" id="pills-tab" role="tablist">
@@ -85,13 +87,13 @@ export function displayGameForm() {
         </div>
 
         <div class="tab-pane fade" id="pills-player-settings" role="tabpanel" aria-labelledby="pills-player-settings-tab">
-          <div class="d-flex justify-content-between align-items-stretch mt-3" id="player-container"> <!-- Ajout d'un ID pour le conteneur -->
+          <div class="d-flex justify-content-between align-items-stretch mt-3" id="player-container">
             <div class="col p-3 d-flex flex-column">
               <h3 class="text-center p-2" style="font-family: 'Press Start 2P', cursive; font-size: 24px;">${i18next.t('game.player')} 1</h3>
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
                   <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.name')}:</label>
-                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control bg-transparent" disabled>
+                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15EDSpx;" class="form-control bg-transparent" disabled>
                 </div>
                 <div class="mb-3">
                   <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
@@ -144,7 +146,7 @@ export function displayGameForm() {
       </div>
     </form>
 
-   <div class="position-relative mt-4">
+    <div class="position-relative mt-4">
       <div class="text-center">
         <button id="startGameButton" class="btn btn-success" type="button">${i18next.t('game.startGame')}</button>
       </div>
@@ -159,17 +161,21 @@ export function displayGameForm() {
     </div>
   `;
 
-  const playerContainer = document.getElementById('player-container'); // Sélection du conteneur des joueurs
+  const playerContainer = document.getElementById('player-container');
   const player2Container = document.querySelector('.player2-container');
   if (player2Container) {
     const player2Input = player2Container.querySelector('#player2');
     player2Input.addEventListener('blur', async (event) => {
+      logger.log("Blur déclenché sur player2, mode actuel:", gameSettings.mode);
       if (gameSettings.mode === "multiplayer" && event.target.tagName === 'INPUT') {
         const playerDiv = event.target.closest('div');
         const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
+        const statusText = playerDiv.querySelector('.status-text');
 
+        logger.log("Vérification du joueur:", playerName);
         if (!playerName || (players.has(playerName) && players.get(playerName).validated)) {
           if (players.has(playerName) && players.get(playerName).validated) {
+            logger.log("Joueur déjà validé:", playerName);
             const modal = new bootstrap.Modal(document.getElementById('duplicatePlayerModal'));
             modal.show();
           }
@@ -177,37 +183,39 @@ export function displayGameForm() {
         }
 
         try {
-          cleanupPlayersMap(playerContainer, players); // Passer playerContainer comme paramètre
+          cleanupPlayersMap(playerContainer, players);
           const userData = await checkUserExists(playerName);
 
           if (userData.exists) {
+            logger.log("Utilisateur existant détecté:", userData);
             updatePlayerStatus(playerDiv, userData);
-            playerDiv.querySelector('.status-text').textContent = i18next.t('game.existingPlayerNeedsAuth');
-            playerDiv.querySelector('.status-text').className = 'status-text text-warning ms-2';
+            statusText.textContent = i18next.t('game.existingPlayerNeedsAuth');
+            statusText.className = 'status-text text-warning ms-2';
             players.set(playerName, { validated: true, div: playerDiv });
           } else {
             const playerData = await checkPlayerExists(playerName);
             if (playerData.exists) {
+              logger.log("Joueur invité existant:", playerData);
               updatePlayerStatus(playerDiv, { exists: true, is_guest: true });
-              playerDiv.querySelector('.status-text').textContent = i18next.t('game.existingGuestPlayer');
-              playerDiv.querySelector('.status-text').className = 'status-text text-info ms-2';
+              statusText.textContent = i18next.t('game.existingGuestPlayer');
+              statusText.className = 'status-text text-info ms-2';
             } else {
+              logger.log("Nouveau joueur invité:", playerName);
               updatePlayerStatus(playerDiv, { exists: false, is_guest: true });
-              playerDiv.querySelector('.status-text').textContent = i18next.t('game.newGuestPlayer');
-              playerDiv.querySelector('.status-text').className = 'status-text text-success ms-2';
+              statusText.textContent = i18next.t('game.newGuestPlayer');
+              statusText.className = 'status-text text-success ms-2';
             }
             players.set(playerName, { validated: true, div: playerDiv });
           }
         } catch (error) {
-          handleError(error, i18next.t('game.errorCheckingPlayer'));
-          playerDiv.querySelector('.status-text').textContent = i18next.t('game.errorCheckingPlayer');
-          playerDiv.querySelector('.status-text').className = 'status-text text-danger ms-2';
+          logger.error("Erreur lors de la vérification du joueur:", error);
+          statusText.textContent = i18next.t('game.errorCheckingPlayer');
+          statusText.className = 'status-text text-danger ms-2';
         }
       }
     }, true);
   }
 
-  // Fonction pour basculer les boutons actifs
   function toggleActiveButton(group, selectedId) {
     document.querySelectorAll(group).forEach(button => {
       button.classList.remove('btn-primary');
@@ -217,7 +225,6 @@ export function displayGameForm() {
     document.getElementById(selectedId).classList.add('btn-primary');
   }
 
-  // Ajout des écouteurs pour les boutons de mode, difficulté et design
   document.querySelectorAll(".mode-button, .difficulty-button, .design-button").forEach(button => {
     button.addEventListener("click", function() {
       toggleActiveButton(`.${this.classList[0]}`, this.id);
@@ -226,8 +233,8 @@ export function displayGameForm() {
 
   let isTwoPlayerMode = gameSettings.mode === "multiplayer";
 
-  // Gestion du mode "One Player"
   document.getElementById("onePlayer").addEventListener("click", function() {
+    logger.log("One Player cliqué");
     const player2Input = document.getElementById("player2");
     const control2Container = document.getElementById("control2Container");
     const statusText = document.querySelector('.player2-container .status-text');
@@ -240,7 +247,7 @@ export function displayGameForm() {
     player2Input.placeholder = i18next.t('game.aiControlled');
     control2Container.style.display = "none";
     statusText.style.display = 'none';
-    infoText.style.display = 'none';
+    if (infoText) infoText.style.display = 'none';
 
     const control1 = document.getElementById("control1");
     const control2 = document.getElementById("control2");
@@ -251,11 +258,12 @@ export function displayGameForm() {
 
     isTwoPlayerMode = false;
     gameSettings.mode = "solo";
+    logger.log("Mode défini à:", gameSettings.mode);
     toggleActiveButton(".mode-button", "onePlayer");
   });
 
-  // Gestion du mode "Two Players"
   document.getElementById("twoPlayers").addEventListener("click", function() {
+    logger.log("Two Players cliqué");
     const player2Input = document.getElementById("player2");
     const control2Container = document.getElementById("control2Container");
     const statusText = document.querySelector('.player2-container .status-text');
@@ -268,7 +276,7 @@ export function displayGameForm() {
     player2Input.placeholder = i18next.t('game.enterPlayer2Name');
     control2Container.style.display = "block";
     statusText.style.display = 'block';
-    infoText.style.display = 'block';
+    if (infoText) infoText.style.display = 'block';
 
     const control1 = document.getElementById("control1");
     const control2 = document.getElementById("control2");
@@ -281,24 +289,22 @@ export function displayGameForm() {
 
     isTwoPlayerMode = true;
     gameSettings.mode = "multiplayer";
+    logger.log("Mode défini à:", gameSettings.mode);
     toggleActiveButton(".mode-button", "twoPlayers");
   });
 
-  // Mise à jour des paramètres via les inputs
   document.getElementById("numberOfGames").addEventListener("input", function() {
     gameSettings.numberOfGames = parseInt(this.value);
   });
 
   document.getElementById("numberOfGames").addEventListener("blur", function() {
-    if (gameSettings.numberOfGames === "" || isNaN(gameSettings.numberOfGames)){
-      gameSettings.numberOfGames = 1;
-      this.value = 1;  
-    }
-    else if (gameSettings.numberOfGames < 1) {
+    if (gameSettings.numberOfGames === "" || isNaN(gameSettings.numberOfGames)) {
       gameSettings.numberOfGames = 1;
       this.value = 1;
-    }
-    else if (gameSettings.numberOfGames > 5) {
+    } else if (gameSettings.numberOfGames < 1) {
+      gameSettings.numberOfGames = 1;
+      this.value = 1;
+    } else if (gameSettings.numberOfGames > 5) {
       gameSettings.numberOfGames = 5;
       this.value = 5;
     }
@@ -312,17 +318,15 @@ export function displayGameForm() {
     if (this.value === "" || isNaN(gameSettings.setsPerGame)) {
       gameSettings.setsPerGame = 3;
       this.value = 3;
-    }
-    else if (gameSettings.setsPerGame < 1) {
+    } else if (gameSettings.setsPerGame < 1) {
       gameSettings.setsPerGame = 1;
       this.value = 1;
-    }
-    else if (gameSettings.setsPerGame > 5) {
+    } else if (gameSettings.setsPerGame > 5) {
       gameSettings.setsPerGame = 5;
       this.value = 5;
     }
   });
-  
+
   document.getElementById("player2").addEventListener("input", function() {
     gameSettings.player2 = this.value;
   });
@@ -375,25 +379,26 @@ export function displayGameForm() {
   let lastCheckedPlayer2 = "";
   let needAuth = false;
 
-  // Gestion du bouton "Start Game"
   document.getElementById("startGameButton").addEventListener("click", async () => {
     const player1 = username;
-    let player2 = document.getElementById("player2").value.trim();
-    
+    let player2Raw = document.getElementById("player2").value.trim();
+    let player2 = sanitizeAdvanced(player2Raw);
+
     document.getElementById("numberOfGames").dispatchEvent(new Event('blur'));
     document.getElementById("setsPerGame").dispatchEvent(new Event('blur'));
-  
-    logger.log("Start button clicked");
-    logger.log("Game settings at start:", gameSettings);
+
+    logger.log("Start button clicked, gameSettings:", gameSettings);
 
     if (!alertShown || player2 !== lastCheckedPlayer2) {
       alertShown = false;
       needAuth = false;
-      if (isTwoPlayerMode) {
+      if (gameSettings.mode === "multiplayer") { // Utiliser gameSettings.mode directement
+        logger.log("Mode multiplayer détecté, vérification de player2:", player2);
         try {
           const playerData = await checkPlayerExists(player2);
 
           if (playerData.exists && !playerData.is_guest) {
+            logger.log("Joueur enregistré détecté, besoin d'authentification");
             showModal(
               i18next.t('game.registeredPlayer'),
               i18next.t('game.registeredPlayerMsg'),
@@ -407,6 +412,7 @@ export function displayGameForm() {
             );
             return;
           } else if (playerData.exists) {
+            logger.log("Joueur invité existant détecté");
             showModal(
               i18next.t('game.guestPlayer'),
               i18next.t('game.guestPlayerMsg'),
@@ -419,11 +425,12 @@ export function displayGameForm() {
             );
             return;
           } else {
+            logger.log("Nouveau joueur, démarrage direct");
             startGameSetup(gameSettings);
             return;
           }
         } catch (error) {
-          logger.error("Error checking player existence:", error);
+          logger.error("Erreur lors de la vérification du joueur:", error);
           showModal(
             i18next.t('game.userNotFound'),
             i18next.t('game.errorCheckingPlayerMsg'),
@@ -434,19 +441,26 @@ export function displayGameForm() {
           return;
         }
       } else {
+        logger.log("Mode solo, démarrage direct");
         startGameSetup(gameSettings);
         return;
       }
     }
 
     if (needAuth) {
-      const authResult = await authenticateNow(player2, player1, numberOfGames, setsPerGame);
+      logger.log("Authentification requise pour player2:", player2);
+      const authResult = await authenticateNow(player2, player1, gameSettings.numberOfGames, gameSettings.setsPerGame);
       if (authResult) {
+        logger.log("Authentification réussie, démarrage du jeu");
         startGameSetup(gameSettings);
+      } else {
+        logger.log("Authentification échouée");
       }
     } else if (player2 !== lastCheckedPlayer2) {
+      logger.log("Nouveau player2, démarrage du jeu");
       startGameSetup(gameSettings);
     } else {
+      logger.log("Cas par défaut, démarrage du jeu");
       startGameSetup(gameSettings);
     }
 
@@ -454,7 +468,7 @@ export function displayGameForm() {
   });
 
   function cleanupPlayersMap(container, playersMap) {
-    const existingPlayerDivs = Array.from(container.querySelectorAll('.additional-player')); // Utilise le conteneur passé en paramètre
+    const existingPlayerDivs = Array.from(container.querySelectorAll('.additional-player'));
     const existingPlayerNames = existingPlayerDivs.map(div => div.querySelector('input').value.trim().toLowerCase());
 
     playersMap.forEach((value, key) => {
@@ -464,6 +478,8 @@ export function displayGameForm() {
     });
   }
 }
+
+// Les fonctions authenticateNow et authenticatePlayer restent inchangées
 
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
