@@ -326,6 +326,7 @@
         "showAllTournaments": "Afficher tous les tournois",
         "showOnlyOngoing": "Afficher uniquement les tournois en cours",
         "notParticipating": "Vous ne participez à aucun tournoi.",
+        "notOrganizerMsg": "Vous n'êtes pas l'organisateur de ce tournoi ({{username}}) et ne pouvez pas interagir avec celui-ci. Les matchs doivent être joués depuis la session de l'organisateur.",
         "errorLoadingTournamentInfo": "Erreur lors du chargement des informations du tournoi."
     },
     "statistics": {

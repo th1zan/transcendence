@@ -200,21 +200,31 @@ function updatePlayerStatusUI(playerName) {
 }
 
 //when a Tournament is selected, display the games linked to the tournament and other stuff
-function displayTournamentGameList(data) {
+async function displayTournamentGameList(data) {
   document.getElementById('app_bottom').innerHTML = '';
 
-  const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
-  localStorage.setItem("isTournamentMatch", true);
-
-
+  const username = localStorage.getItem("username"); // Nom de l'utilisateur connecté
   const tournamentMatchesDiv = document.getElementById("tournamentMatches");
 
+  // Vérifier si l'utilisateur est l'organisateur
+  let isOrganizer = false;
+  try {
+    const response = await fetch(`/api/tournament/${tournamentId}/`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    const tournamentData = await response.json();
+    isOrganizer = tournamentData.organizer === username; // Supposons que l'API renvoie le nom de l'organisateur
+  } catch (error) {
+    logger.error("Erreur lors de la vérification de l'organisateur:", error);
+  }
+
+  // Récupérer et afficher les joueurs
   fetch(`/api/tournament/players/${tournamentId}/`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
   })
     .then(response => response.json())
     .then(playersData => {
@@ -239,10 +249,10 @@ function displayTournamentGameList(data) {
           (player.authenticated ? 
             `<span class="badge bg-success">${i18next.t('tournament.authenticated')}</span>` : 
             `<span class="badge bg-warning text-dark">${i18next.t('tournament.needsAuthentication')}</span>`);
-        let authButton = !player.guest && !player.authenticated ? 
+        let authButton = (!player.guest && !player.authenticated && isOrganizer) ? 
           `<button class="btn btn-success btn-sm auth-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.authenticateNow')}</button>` : '';
-        let removeButton = index === 0 ? '' : 
-          `<button class="btn btn-danger btn-sm remove-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.remove')}</button>`;
+        let removeButton = (index !== 0 && isOrganizer) ? 
+          `<button class="btn btn-danger btn-sm remove-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.remove')}</button>` : '';
 
         playersHTML += `
           <tr>
@@ -255,6 +265,7 @@ function displayTournamentGameList(data) {
 
       playersHTML += '</tbody></table></div></div>';
 
+      // Afficher les matchs
       let matchesHTML = `
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
@@ -282,7 +293,7 @@ function displayTournamentGameList(data) {
               `<span class="badge bg-warning text-dark">${i18next.t('tournament.inProgress')}</span>`);
           let actionButton = '';
 
-          if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
+          if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0 && isOrganizer) {
             actionButton = `
               <button class="startGameButton btn btn-primary btn-sm"
                       data-player1="${match.player1_name}"
@@ -307,12 +318,99 @@ function displayTournamentGameList(data) {
 
         matchesHTML += '</tbody></table></div></div>';
 
-        tournamentMatchesDiv.innerHTML = `
+        // HTML final avec voile si non-organisateur
+        let finalHTML = `
           ${playersHTML}
           ${matchesHTML}
         `;
-        // Passer le tableau des matchs à displayTournamentRanking
+        tournamentMatchesDiv.innerHTML = finalHTML;
+
+        // Ajouter le classement
         displayTournamentRanking(data);
+
+        // Appliquer le voile et désactiver les interactions si non-organisateur
+        const appMain = document.getElementById("app_main");
+        if (!isOrganizer) {
+          const overlay = document.createElement("div");
+          overlay.id = "organizer-overlay";
+          overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+          `;
+          overlay.innerHTML = `
+            <div class="text-center text-white bg-dark p-4 rounded" style="font-family: 'Press Start 2P', cursive; font-size: 18px;">
+              ${i18next.t('tournament.notOrganizerMsg', { username: username || 'Utilisateur' })}
+            </div>
+          `;
+          appMain.style.position = "relative";
+          appMain.appendChild(overlay);
+          appMain.style.pointerEvents = "none"; // Désactiver les clics sur app_main
+        }
+
+        // Ajouter les événements uniquement si organisateur
+        if (isOrganizer) {
+          document.querySelectorAll('.auth-button').forEach(button => {
+            button.addEventListener('click', function() {
+              const playerName = this.getAttribute('data-player');
+              authenticateNow(playerName, tournamentId);
+            });
+          });
+
+          document.querySelectorAll('.startGameButton').forEach(button => {
+            button.addEventListener('click', async event => {
+              const player1 = event.target.getAttribute('data-player1');
+              const player2 = event.target.getAttribute('data-player2');
+              const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+              const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+              const matchID = parseInt(event.target.getAttribute('data-match-id'));
+
+              try {
+                const response = await fetch(`/api/tournament/start-match/${matchID}/`, {
+                  method: "POST",
+                  credentials: "include",
+                  headers: { "Content-Type": "application/json" },
+                });
+
+                if (response.ok) {
+                  const data = await response.json();
+                  let gameSettings = {
+                    mode: "multiplayer",
+                    difficulty: "medium",
+                    design: "retro",
+                    numberOfGames: setsToWin,
+                    setsPerGame: pointsPerSet,
+                    player1: player1,
+                    player2: player2,
+                    control1: "wasd",
+                    control2: "arrows",
+                    isTournamentMatch: true,
+                  };
+                  localStorage.setItem("matchID", matchID);
+                  startGameSetup(gameSettings);
+                }
+              } catch (error) {
+                logger.error("Error during match start:", error);
+              }
+            });
+          });
+
+          document.querySelectorAll('.remove-button').forEach(button => {
+            button.addEventListener('click', () => {
+              const playerName = button.getAttribute('data-player');
+              const tournamentId = button.getAttribute('data-tournament');
+              removePlayerFromTournament(tournamentId, playerName);
+            });
+          });
+        }
       } else {
         tournamentMatchesDiv.innerHTML = `
           ${playersHTML}
@@ -320,81 +418,8 @@ function displayTournamentGameList(data) {
              ${i18next.t('tournament.noMatchFound')}
           </div>
         `;
-        displayTournamentRanking(data); // Même ici, passer un tableau vide ou gérer différemment
+        displayTournamentRanking(data);
       }
-
-      document.querySelectorAll('.auth-button').forEach(button => {
-        button.addEventListener('click', function() {
-          const playerName = this.getAttribute('data-player');
-          authenticateNow(playerName, tournamentId);
-        });
-      });
-
-      document.querySelectorAll('.startGameButton').forEach(button => {
-        button.addEventListener('click', async event => {
-          const player1 = event.target.getAttribute('data-player1');
-          const player2 = event.target.getAttribute('data-player2');
-          const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-          const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-          const matchID = parseInt(event.target.getAttribute('data-match-id'));
-
-          logger.log("Attempting to start match with ID: ", matchID);
-
-          try {
-            const response = await fetch(`/api/tournament/start-match/${matchID}/`, {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              if (response.status === 403) {
-                showModal(i18next.t('tournament.organizerRequiredTitle'), i18next.t('tournament.organizerRequiredMsg'), 'OK', () => {});
-              } else if (response.status === 400) {
-                showModal(i18next.t('tournament.authRequiredTitle'), errorData.error, 'OK', () => {});
-              } else if (response.status === 404) {
-                showModal(i18next.t('tournament.matchNotFoundTitle'), i18next.t('tournament.matchNotFoundMsg'), 'OK', () => {});
-              } else {
-                showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorMsg', { detail: errorData.error || 'Unknown error' }), 'OK', () => {});
-              }
-              return;
-            }
-
-            const data = await response.json();
-            logger.log("Match validated by backend:", data);
-
-            let gameSettings = {
-              mode: "multiplayer",
-              difficulty: "medium",
-              design: "retro",
-              numberOfGames: setsToWin,
-              setsPerGame: pointsPerSet,
-              player1: player1,
-              player2: player2,
-              control1: "wasd",
-              control2: "arrows",
-              isTournamentMatch: true,
-            };
-            localStorage.setItem("matchID", matchID);
-            startGameSetup(gameSettings);
-
-          } catch (error) {
-            logger.error("Error during match validation or start:", error);
-            showModal(i18next.t('tournament.networkErrorTitle'), i18next.t('tournament.networkErrorMsg'), 'OK', () => {});
-          }
-        });
-      });
-
-      document.querySelectorAll('.remove-button').forEach(button => {
-        button.addEventListener('click', () => {
-          const playerName = button.getAttribute('data-player');
-          const tournamentId = button.getAttribute('data-tournament');
-          removePlayerFromTournament(tournamentId, playerName);
-        });
-      });
     })
     .catch((error) => {
       logger.error("Error retrieving players:", error);

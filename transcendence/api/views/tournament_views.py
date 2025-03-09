@@ -295,7 +295,7 @@ class ConfirmTournamentParticipationView(APIView):
 class RemovePlayerMatchesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # NOTE: Restricts removal to authorized users and validates tournament state.
+    # NOTE: Permet à l'organisateur ou au joueur lui-même de se supprimer (sauf l'organisateur lui-même).
     def delete(self, request, tournament_id, player_name):
         try:
             tournament = Tournament.objects.get(id=tournament_id)
@@ -304,23 +304,42 @@ class RemovePlayerMatchesView(APIView):
                     {"error": "Tournament must be finalized to remove player matches"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            user = request.user
-            if tournament.organizer != user:
+            user = request.user  # Utilisateur authentifié via le token
+
+            # Récupérer le joueur à supprimer
+            try:
+                tournament_player = TournamentPlayer.objects.get(
+                    tournament=tournament, player__player=player_name
+                )
+                player_to_remove = tournament_player.player
+            except TournamentPlayer.DoesNotExist:
                 return Response(
-                    {"error": "Only the organizer can remove players"},
+                    {"error": "Player not found in this tournament"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Vérifier les autorisations
+            is_organizer = tournament.organizer == user
+            is_player_themselves = player_to_remove.user == user
+
+            if not (is_organizer or is_player_themselves):
+                return Response(
+                    {
+                        "error": "Only the organizer or the player themselves can remove this player"
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            tournament_player = TournamentPlayer.objects.get(
-                tournament=tournament, player__player=player_name
-            )
-            player_to_remove = tournament_player.player
-            if tournament.organizer and player_to_remove.user == tournament.organizer:
+            # Empêcher l'organisateur de se supprimer lui-même
+            if is_organizer and is_player_themselves:
                 return Response(
-                    {"error": "The organizer cannot be removed from the tournament"},
+                    {
+                        "error": "The organizer cannot remove themselves from the tournament"
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
+            # Supprimer les matchs du joueur
             matches_to_delete = PongMatch.objects.filter(
                 tournament=tournament, player1=player_to_remove
             ) | PongMatch.objects.filter(
@@ -329,6 +348,7 @@ class RemovePlayerMatchesView(APIView):
             matches_deleted_count = matches_to_delete.delete()[0]
             tournament_player.delete()
 
+            # Mettre à jour l'état du tournoi
             remaining_matches = tournament.matches.all()
             tournament.is_finished = (
                 all(match.is_match_played() for match in remaining_matches)
@@ -337,6 +357,7 @@ class RemovePlayerMatchesView(APIView):
             )
             tournament.save()
 
+            # Supprimer le tournoi si vide et seul l'organisateur reste
             if (
                 not remaining_matches.exists()
                 and TournamentPlayer.objects.filter(tournament=tournament).count() == 1
@@ -365,14 +386,10 @@ class RemovePlayerMatchesView(APIView):
                 },
                 status=status.HTTP_200_OK,
             )
+
         except Tournament.DoesNotExist:
             return Response(
                 {"error": "Tournament not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-        except TournamentPlayer.DoesNotExist:
-            return Response(
-                {"error": "Player not found in this tournament"},
-                status=status.HTTP_404_NOT_FOUND,
             )
 
 
