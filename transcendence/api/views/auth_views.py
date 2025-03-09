@@ -221,10 +221,20 @@ class LogoutView(APIView):
 class Toggle2FAView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # NOTE: Adds input validation and secure OTP handling (though OTP storage should be improved).
     def post(self, request):
         user = request.user
         otp_code = request.data.get("otp_code")
+
+        # Vérifier si l'email est fourni et valide
+        if not user.email or not user.email.strip():
+            logger.warning(f"User {user.username} has no email for 2FA activation")
+            return Response(
+                {
+                    "need_email": True,
+                    "message": "An email address is required to enable 2FA. Please update your profile.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if user.is_2fa_enabled:
             user.is_2fa_enabled = False
@@ -238,13 +248,20 @@ class Toggle2FAView(APIView):
             otp_code_generated = str(random.randint(100000, 999999))
             user.otp_secret = otp_code_generated  # TODO: Hash this value
             user.save()
-            send_mail(
-                "Your One-Time Code – Let’s Keep It Secure!",
-                f"Hey {user.username},\n\nHere’s your one-time code:\n\n {otp_code_generated} \n\nUse it to log in or enable Two-Factor Authentication (2FA) for extra security.\n\nJust enter it on the official site, and you’re all set.\n\nThis code is just for you—don’t share it with anyone!\n\nSee you on the leaderboard!\n\nThe Pong Team\n42 Lausanne",
-                "pong42lausanne@gmail.com",
-                [user.email],
-                fail_silently=False,
-            )
+            try:
+                send_mail(
+                    "Your One-Time Code – Let’s Keep It Secure!",
+                    f"Hey {user.username},\n\nHere’s your one-time code:\n\n {otp_code_generated} \n\nUse it to log in or enable Two-Factor Authentication (2FA) for extra security.\n\nJust enter it on the official site, and you’re all set.\n\nThis code is just for you—don’t share it with anyone!\n\nSee you on the leaderboard!\n\nThe Pong Team\n42 Lausanne",
+                    "pong42lausanne@gmail.com",
+                    [user.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send 2FA email to {user.email}: {str(e)}")
+                return Response(
+                    {"error": "Failed to send OTP email. Please try again later."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
             return Response(
                 {
                     "message": "OTP sent to your email. Please verify.",
