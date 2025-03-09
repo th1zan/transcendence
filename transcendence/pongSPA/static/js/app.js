@@ -19,7 +19,7 @@ document.getElementById("lang-en").addEventListener("click", () => changeLanguag
 document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
 
 i18next.use(i18nextHttpBackend).init({
-  lng: "en",
+  lng: localStorage.getItem('language') || "en",
   fallbackLng: "en",
   backend: {
     loadPath: "/static/locales/{{lng}}/translation.json"
@@ -27,21 +27,63 @@ i18next.use(i18nextHttpBackend).init({
 })
 .then(() => {
   console.log("i18next ready!");
-    const currentRoute = window.location.hash.replace('#', '') || 'welcome';
-    handleRouteChange(currentRoute);
+  logger.log('Language loaded from localStorage:', i18next.language);
+  
+  try {
+    updateLanguageButtons();
+  } catch (e) {
+    console.error("Error updating language buttons:", e);
+  }
+
+  const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+  handleRouteChange(currentRoute);
 });
 
 export function changeLanguage(lang) {
   i18next.changeLanguage(lang, (err) => {
-     if (err) {
-      console.error("Error changing language :", err);
-      } else {
-        logger.log('Language changed to', lang);
-        loadPrivacyPolicyModal();
-        const currentRoute = window.location.hash.replace('#', '') || 'welcome';
-        handleRouteChange(currentRoute);
+    if (err) {
+      console.error("Error changing language:", err);
+    } else {
+      localStorage.setItem('language', lang);
+      logger.log('Language changed to', lang, 'and saved to localStorage');
+      
+      try {
+        updateLanguageButtons();
+      } catch (e) {
+        console.error("Error updating language buttons:", e);
       }
+      
+      loadPrivacyPolicyModal();
+      const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+      handleRouteChange(currentRoute);
+    }
   });
+}
+
+function updateLanguageButtons() {
+  const enButton = document.getElementById("lang-en");
+  const frButton = document.getElementById("lang-fr");
+  
+  if (!enButton || !frButton) {
+    logger.warn("Language buttons not found in the DOM");
+    return;
+  }
+  
+  if (i18next.language === "fr") {
+    enButton.classList.remove("btn-primary");
+    enButton.classList.add("btn-outline-primary");
+    
+    frButton.classList.remove("btn-outline-primary");
+    frButton.classList.add("btn-primary");
+  } else {
+    enButton.classList.remove("btn-outline-primary");
+    enButton.classList.add("btn-primary");
+    
+    frButton.classList.remove("btn-primary");
+    frButton.classList.add("btn-outline-primary");
+  }
+  
+  logger.log('Language buttons updated, active language:', i18next.language);
 }
 
 export const logger = {
