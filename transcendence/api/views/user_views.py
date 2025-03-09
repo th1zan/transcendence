@@ -160,36 +160,74 @@ class UserDetailView(APIView):
             }
         )
 
-    # NOTE: Validates updates to prevent duplicate entries and secures cookies.
     def put(self, request):
         user = request.user
         data = request.data
+
+        # Vérifications de longueur (de main)
+        if "email" in data and data["email"] and len(data["email"]) > 255:
+            return Response(
+                {"error": "Email address is too long. Maximum 255 characters allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if (
+            "phone_number" in data
+            and data["phone_number"]
+            and len(data["phone_number"]) > 15
+        ):
+            return Response(
+                {"error": "Phone number is too long. Maximum 15 characters allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if "username" in data and len(data["username"]) > 255:
+            return Response(
+                {"error": "Username is too long. Maximum 255 characters allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Mise à jour des champs avec vérification d’unicité
         if "email" in data:
             email = data["email"]
-            if (
-                email
-                and CustomUser.objects.filter(email=email).exclude(id=user.id).exists()
-            ):
-                return Response(
-                    {"error": "This email is already in use."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            user.email = email or None
+            if email:  # Vérifie si non vide
+                if CustomUser.objects.filter(email=email).exclude(id=user.id).exists():
+                    return Response(
+                        {"error": "This email is already in use."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user.email = email
+            else:
+                user.email = None
+
         if "phone_number" in data:
             phone_number = data["phone_number"]
+            if phone_number:  # Vérifie si non vide
+                if (
+                    CustomUser.objects.filter(phone_number=phone_number)
+                    .exclude(id=user.id)
+                    .exists()
+                ):
+                    return Response(
+                        {"error": "This phone number is already in use."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                user.phone_number = phone_number
+            else:
+                user.phone_number = None
+
+        if "username" in data:
+            username = data["username"]
+            # Vérification d’unicité (optionnelle, inspirée de main)
             if (
-                phone_number
-                and CustomUser.objects.filter(phone_number=phone_number)
+                CustomUser.objects.filter(username=username)
                 .exclude(id=user.id)
                 .exists()
             ):
                 return Response(
-                    {"error": "This phone number is already in use."},
+                    {"error": "This username is already taken."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            user.phone_number = phone_number or None
-        if "username" in data:
-            user.username = data["username"]
+            user.username = username
+
         try:
             user.save()
             refresh = RefreshToken.for_user(user)

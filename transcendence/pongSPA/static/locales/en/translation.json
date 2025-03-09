@@ -15,7 +15,7 @@
 
 	"register": {
 		"createAccount": "Create Account",
-		"username": "Username",
+			"username": "Username",
 		"password": "Password",
 		"enterUsername": "Enter your username",
 		"enterPassword": "Enter your password",
@@ -61,16 +61,32 @@
         "authenticationFailed": "Authentication Failed",
         "unexpectedResponse": "Unexpected response from server",
         "successTitle": "Success",
-        "globalOutcomes": "Global Outcomes",
-        "rankingTitle": "General Ranking",
-        "top5Players": "Top 5 Players",
-        "pointsPerPlayer": "Points per Player",
         "noRankingData": "No ranking data available.",
         "errorLoadingRanking": "Error loading ranking",
+		"participationConfirmedMsg": "You have successfully confirmed your participation in the tournament.",
+		"failedToConfirm": "Failed to confirm participation",
+		"errorTitle": "Error",
+		"acceptButton": "Accept",
+		"declineButton": "Decline",
+		"confirmParticipation": "Confirm",
+		"removePlayerConfirmationTitle": "Confirm Player Removal",
+		"removePlayerConfirmationMsg": "Are you sure you want to remove this player from the tournament? This will delete their matches.",
+		"removeFailed": "Failed to remove player",
+		"removeErrorMsg": "An error occurred while removing the player. Make sure you have the necessary permissions and try again.",
+		"processingTitle": "Processing",
+		"processingMsg": "Removing player, please wait...",
+		"tournamentDeletedTitle": "Tournament Deleted",
+		"tournamentDeletedMsg": "The tournament has been deleted because it had no more matches or only the organizer remained.",
+		"removeInvitation": "Remove",
+		"pointsPerPlayer": "Points per Player",
+		"top5Players": "Top 5 Players",
+		"rankingTitle": "General Ranking",
         "points": "Points",
         "players": "Players",
         "pointsScored": "Points Scored",
-		"matchOutcomes": "Match Outcomes"
+		"matchOutcomes": "Match Outcomes",
+		"rank": "Rank",
+		"player": "Player"
     },
     "app": {
         "warning": "Warning",
@@ -316,10 +332,24 @@
 		"profileUpdated" : "Profile updated successfully!",
 		
 		"username": "Username",
+		"usernameRequired": "Username is required and cannot be empty.",
 		"email": "Email",
 
 		"error": "Error",
 		"invalidEmail": "Invalid email format. Please enter a valid email (e.g., user@example.com).",
+		
+		"emailError": "Email Error",
+		"phoneError": "Phone Number Error",
+		"usernameError": "Username Error",
+		"validationError": "Validation Error",
+		
+		"emailAlreadyInUse": "This email address is already in use by another user.",
+		"phoneAlreadyInUse": "This phone number is already in use by another user.",
+		"usernameAlreadyTaken": "This username is already taken.",
+		
+		"emailTooLong": "Email address is too long. Maximum 255 characters allowed.",
+		"phoneTooLong": "Phone number is too long. Maximum 15 characters allowed.",
+		"usernameTooLong": "Username is too long. Maximum 255 characters allowed.",
 		
 		"phoneNumber": "Phone Number",
 		"clear": "Clear",

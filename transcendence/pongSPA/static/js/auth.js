@@ -1,6 +1,7 @@
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
+import { sanitizeHTML } from "./utils.js";
 
 export function showModalConfirmation(message, title = "Confirmation") {
   return new Promise((resolve) => {
@@ -15,18 +16,18 @@ export function showModalConfirmation(message, title = "Confirmation") {
       keyboard: false
     });
 
-    // Mise à jour du titre
+    // Mise à jour du titre with sanitization
     const titleElement = document.getElementById('confirmationModalLabel');
     if (titleElement) {
-      titleElement.textContent = title;
+      titleElement.textContent = sanitizeHTML(title);
     } else {
       logger.error('Confirmation modal title element not found');
     }
 
-    // Mise à jour du message
+    // Mise à jour du message with sanitization
     const bodyElement = document.getElementById('confirmationModalBody');
     if (bodyElement) {
-      bodyElement.textContent = message;
+      bodyElement.textContent = sanitizeHTML(message);
     } else {
       logger.error('Confirmation modal body element not found');
     }
@@ -198,7 +199,7 @@ export function verifyOTP() {
       } else if (data.error) {
         showModal(
           i18next.t('auth.error'),
-          `❌ ${data.error}`,
+          `❌ ${sanitizeHTML(data.error)}`, // Sanitize server error
           i18next.t('modal.ok'),
           () => {}
         );
@@ -215,7 +216,7 @@ export function verifyOTP() {
       logger.error("Error verifying OTP for 2FA:", error);
       showModal(
         i18next.t('auth.error'),
-        i18next.t('auth.verifyingOTPError') + error.message,
+        i18next.t('auth.verifyingOTPError') + sanitizeHTML(error.message), // Sanitize error message
         i18next.t('modal.ok'),
         () => {}
       );
@@ -293,13 +294,13 @@ export function update2FAStatus() {
       }
 
       if (user.is_2fa_enabled) {
-        statusElement.innerText = i18next.t('auth.twoFAEnabledstatus'); // Changed from 'auth.twoFAEnabled'
-        toggleButton.innerText = i18next.t('auth.disableTwoFA');
+        statusElement.textContent = i18next.t('auth.twoFAEnabledstatus'); // textContent instead of innerText
+        toggleButton.textContent = i18next.t('auth.disableTwoFA');
         toggleButton.classList.remove("btn-success");
         toggleButton.classList.add("btn-danger");
       } else {
-        statusElement.innerText = i18next.t('auth.twoFADisabled');
-        toggleButton.innerText = i18next.t('auth.enableTwoFA');
+        statusElement.textContent = i18next.t('auth.twoFADisabled');
+        toggleButton.textContent = i18next.t('auth.enableTwoFA');
         toggleButton.classList.remove("btn-danger");
         toggleButton.classList.add("btn-success");
       }
@@ -338,7 +339,7 @@ export async function logout() {
     logger.error("Logout failed:", error);
     showModal(
       i18next.t('auth.error'),
-      i18next.t('auth.logoutError') + error.message,
+      i18next.t('auth.logoutError') + sanitizeHTML(error.message), // sanitize error message
       i18next.t('modal.ok'),
       () => {}
     );
@@ -387,9 +388,9 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
       let errorMessage = "Registration error:\n";
       for (const field in error) {
         if (Array.isArray(error[field])) {
-          errorMessage += `${field}: ${error[field].join(", ")}\n`;
+          errorMessage += `${field}: ${sanitizeHTML(error[field].join(", "))}\n`; // Sanitize array values
         } else {
-          errorMessage += `${field}: ${error[field]}\n`;
+          errorMessage += `${field}: ${sanitizeHTML(String(error[field]))}\n`; // Sanitize and ensure string
         }
       }
       showModal(
@@ -467,7 +468,7 @@ export function getToken(username, password) {
       logger.error("Login failed:", error);
       showModal(
         i18next.t('auth.error'),
-        i18next.t('auth.loginFailed') + error.message,
+        i18next.t('auth.loginFailed') + sanitizeHTML(error.message),
         i18next.t('modal.ok'),
         () => {}
       );

@@ -2,6 +2,7 @@ import { update2FAStatus, toggle2FA, verifyOTP, showModalConfirmation, getCookie
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { showPrivacyPolicyModal } from "./privacy_policy.js";
+import { sanitizeHTML, sanitizeAdvanced } from "./utils.js";
 
 function displayHTMLforSettings(user) {
 
@@ -50,20 +51,20 @@ function displayHTMLforSettings(user) {
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.username')}:</label>
-          <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+          <input type="text" id="usernameInput" class="form-control" value="${sanitizeHTML(user.username)}">
         </div>
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.email')}:</label>
           <div class="input-group">
-            <input type="email" id="emailInput" class="form-control" value="${user.email || ''}">
+            <input type="email" id="emailInput" class="form-control" value="${sanitizeHTML(user.email || '')}">
             <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">${i18next.t('settings.clear')}</button>
           </div>
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.phoneNumber')}:</label>
           <div class="input-group">
-            <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+            <input type="text" id="phoneInput" class="form-control" value="${sanitizeHTML(user.phone_number || '')}">
             <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">${i18next.t('settings.clear')}</button>
           </div>
         </div>
@@ -585,16 +586,28 @@ export async function deleteAvatar() {
 
 
 export function updateProfile() {
-  const username = document.getElementById("usernameInput").value;
+  // Store raw values for validation
+  const usernameRaw = document.getElementById("usernameInput").value.trim();
   const emailInput = document.getElementById("emailInput");
-  const emailValue = emailInput.value.trim();
-  const phoneNumber = document.getElementById("phoneInput").value;
+  const emailRaw = emailInput.value.trim();
+  const phoneRaw = document.getElementById("phoneInput").value;
+
+  // Validate username is not empty
+  if (!usernameRaw) {
+    showModal(
+      i18next.t('settings.error'),
+      i18next.t('settings.usernameRequired'),
+      i18next.t('modal.ok'),
+      () => {}
+    );
+    return;
+  }
 
   // Regular Expression to validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Validate email if not empty
-  if (emailValue !== "" && !emailRegex.test(emailValue)) {
+  if (emailRaw !== "" && !emailRegex.test(emailRaw)) {
     emailInput.classList.add("is-invalid"); // Bootstrap will show a validation error
     emailInput.classList.remove("is-valid");
     showModal(
@@ -609,6 +622,11 @@ export function updateProfile() {
     emailInput.classList.add("is-valid");
   }
 
+  // Sanitize inputs before sending to server
+  const username = sanitizeAdvanced(usernameRaw);
+  const emailValue = sanitizeAdvanced(emailRaw);
+  const phoneNumber = sanitizeAdvanced(phoneRaw);
+
   // Disable the save button to prevent double submissions
   const saveButton = document.getElementById("saveProfileButton");
   if (saveButton) {
@@ -620,6 +638,7 @@ export function updateProfile() {
     credentials: "include", // Send authentication cookies
     headers: {
       "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
     },
     body: JSON.stringify({
       username: username,
@@ -629,7 +648,9 @@ export function updateProfile() {
   })
     .then(response => {
       if (!response.ok) {
-        throw new Error("Failed to update profile.");
+                return response.json().then(data => {
+          throw new Error(data.error || data.detail || "Failed to update profile.");
+        });
       }
       return response.json();
     })
@@ -641,7 +662,7 @@ export function updateProfile() {
           // Add cache-busting parameter if avatar was updated
           profilePic.src = profilePic.src.split('?')[0] + '?t=' + new Date().getTime();
         }
-           // Update localStorage with new username
+        // Update localStorage with new username
         localStorage.setItem("username", username);
         setTimeout(() => {
           showModal(
@@ -667,16 +688,61 @@ export function updateProfile() {
         saveButton.disabled = false;
       }
 
+      // Check specific error messages from the backend
+      let errorTitle = i18next.t('settings.error');
+      let errorMessage = "";
+      
+      // error messages with translations
+      if (error.message.includes("email is already in use")) {
+        errorTitle = i18next.t('settings.emailError');
+        errorMessage = i18next.t('settings.emailAlreadyInUse');
+        // Highlight the problematic field
+        const emailInput = document.getElementById("emailInput");
+        if (emailInput) {
+          emailInput.classList.add("is-invalid");
+        }
+      } 
+      else if (error.message.includes("phone number is already in use")) {
+        errorTitle = i18next.t('settings.phoneError');
+        errorMessage = i18next.t('settings.phoneAlreadyInUse');
+        const phoneInput = document.getElementById("phoneInput");
+        if (phoneInput) {
+          phoneInput.classList.add("is-invalid");
+        }
+      }
+      else if (error.message.includes("username is already taken")) {
+        errorTitle = i18next.t('settings.usernameError');
+        errorMessage = i18next.t('settings.usernameAlreadyTaken');
+        const usernameInput = document.getElementById("usernameInput");
+        if (usernameInput) {
+          usernameInput.classList.add("is-invalid");
+        }
+      }
+      else if (error.message.includes("Email address is too long")) {
+        errorTitle = i18next.t('settings.validationError');
+        errorMessage = i18next.t('settings.emailTooLong');
+      }
+      else if (error.message.includes("Phone number is too long")) {
+        errorTitle = i18next.t('settings.validationError');
+        errorMessage = i18next.t('settings.phoneTooLong');
+      }
+      else if (error.message.includes("Username is too long")) {
+        errorTitle = i18next.t('settings.validationError');
+        errorMessage = i18next.t('settings.usernameTooLong');
+      }
+      else {
+        // unknown errors
+        errorMessage = error.message;
+      }
+
       showModal(
-        i18next.t('settings.error'),
-        i18next.t('settings.genericError').replace('{errorMessage}', error.message),
+        errorTitle,
+        errorMessage,
         i18next.t('modal.ok'),
         () => {}
       );
     });
 }
-
-
 
 export function changePassword() {
   const currentPassword = document.getElementById("currentPasswordInput").value;
