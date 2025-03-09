@@ -2,6 +2,7 @@ import { update2FAStatus, toggle2FA, verifyOTP, showModalConfirmation, getCookie
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { showPrivacyPolicyModal } from "./privacy_policy.js";
+import { sanitizeHTML, sanitizeAdvanced } from "./utils.js";
 
 function displayHTMLforSettings(user) {
 
@@ -50,20 +51,20 @@ function displayHTMLforSettings(user) {
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.username')}:</label>
-          <input type="text" id="usernameInput" class="form-control" value="${user.username}">
+          <input type="text" id="usernameInput" class="form-control" value="${sanitizeHTML(user.username)}">
         </div>
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.email')}:</label>
           <div class="input-group">
-            <input type="email" id="emailInput" class="form-control" value="${user.email || ''}">
+            <input type="email" id="emailInput" class="form-control" value="${sanitizeHTML(user.email || '')}">
             <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">${i18next.t('settings.clear')}</button>
           </div>
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.phoneNumber')}:</label>
           <div class="input-group">
-            <input type="text" id="phoneInput" class="form-control" value="${user.phone_number || ''}">
+            <input type="text" id="phoneInput" class="form-control" value="${sanitizeHTML(user.phone_number || '')}">
             <button class="btn btn-outline-danger" id="clearPhoneBtn" type="button">${i18next.t('settings.clear')}</button>
           </div>
         </div>
@@ -585,13 +586,14 @@ export async function deleteAvatar() {
 
 
 export function updateProfile() {
-  const username = document.getElementById("usernameInput").value.trim();
+  // Store raw values for validation
+  const usernameRaw = document.getElementById("usernameInput").value.trim();
   const emailInput = document.getElementById("emailInput");
-  const emailValue = emailInput.value.trim();
-  const phoneNumber = document.getElementById("phoneInput").value;
+  const emailRaw = emailInput.value.trim();
+  const phoneRaw = document.getElementById("phoneInput").value;
 
   // Validate username is not empty
-  if (!username) {
+  if (!usernameRaw) {
     showModal(
       i18next.t('settings.error'),
       i18next.t('settings.usernameRequired'),
@@ -605,7 +607,7 @@ export function updateProfile() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Validate email if not empty
-  if (emailValue !== "" && !emailRegex.test(emailValue)) {
+  if (emailRaw !== "" && !emailRegex.test(emailRaw)) {
     emailInput.classList.add("is-invalid"); // Bootstrap will show a validation error
     emailInput.classList.remove("is-valid");
     showModal(
@@ -619,6 +621,11 @@ export function updateProfile() {
     emailInput.classList.remove("is-invalid");
     emailInput.classList.add("is-valid");
   }
+
+  // Sanitize inputs before sending to server
+  const username = sanitizeAdvanced(usernameRaw);
+  const emailValue = sanitizeAdvanced(emailRaw);
+  const phoneNumber = sanitizeAdvanced(phoneRaw);
 
   // Disable the save button to prevent double submissions
   const saveButton = document.getElementById("saveProfileButton");

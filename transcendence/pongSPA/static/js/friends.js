@@ -1,6 +1,6 @@
 import {showModal, navigateTo, logger } from './app.js';
 import {showModalConfirmation } from './auth.js';
-
+import { sanitizeAdvanced, sanitizeHTML } from './utils.js';
 
 export function displayFriends() {
   // Vide tous les conteneurs
@@ -56,9 +56,9 @@ export function displayFriends() {
   `;
 
   document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
-    const friendUsername = document.getElementById("friendUsername").value.trim();
-    if (friendUsername) {
-      sendFriendRequest(friendUsername);
+    const friendUsernameRaw = document.getElementById("friendUsername").value.trim();
+    if (friendUsernameRaw) {
+      sendFriendRequest(friendUsernameRaw);
     } else {
       // Remplacer une éventuelle alert par oneButtonModal
       showModal(
@@ -75,8 +75,11 @@ export function displayFriends() {
 }
 
 
-export function sendFriendRequest(friendUsername) {
+export function sendFriendRequest(friendUsernameRaw) {
     const loggedInUsername = localStorage.getItem("username");
+    
+    // Sanitize input
+    const friendUsername = sanitizeAdvanced(friendUsernameRaw);
 
     if (friendUsername === loggedInUsername) {
         showModal(

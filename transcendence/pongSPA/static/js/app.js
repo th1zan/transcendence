@@ -11,6 +11,7 @@ import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayMenu } from "./menu.js";
 import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
+
 //'true' to display logs, 'false' for production
 const DEBUG = true;
 
