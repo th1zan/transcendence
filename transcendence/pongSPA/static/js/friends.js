@@ -1,9 +1,6 @@
 import {showModal, navigateTo, logger } from './app.js';
 import {showModalConfirmation } from './auth.js';
 
-// TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
-// prevent sending friend request to the user himself
-
 
 export function displayFriends() {
   // Vide tous les conteneurs
@@ -16,13 +13,12 @@ export function displayFriends() {
     <div class="container mt-4">
       <div class="row g-4">
         <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-5">
           <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
             <div class="card-body text-center">
               <h5 class="card-title mb-3" >${i18next.t('friends.sendFriendRequest')}</h5>
               <div class="form-group mt-2">
-                <label for="friendUsername" class="form-label" >${i18next.t('friends.username')}</label>
-                <input type="text" id="friendUsername" style="border: 2px solid #007bff;" placeholder="${i18next.t('friends.username')}" class="form-control bg-transparent" required >
+                <input type="text" id="friendUsername" placeholder="${i18next.t('friends.enterFriendUsername')}" class="form-control bg-transparent" required >
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
                   ${i18next.t('friends.sendRequest')}
                 </button>
@@ -91,7 +87,7 @@ export function sendFriendRequest(friendUsername) {
         );
         return;
     }
-    
+
     // Fetch the current friends list before sending the request
     fetch("/api/friends/list/", {
         method: "GET",
@@ -142,12 +138,6 @@ export function sendFriendRequest(friendUsername) {
                       navigateTo('friends');
                     }
                 );
-                // showModal(
-                // 	'Success',
-                // 	data.message,
-                // 	'OK',
-                // 	() => {}
-                // );
             }
         })
         .catch((error) => {
@@ -177,7 +167,7 @@ export function sendFriendRequest(friendUsername) {
 
 
 export function respondToFriendRequest(friendUsername, action) {
-    fetch("/api/friends/respond/", {  
+    fetch("/api/friends/respond/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -228,7 +218,7 @@ export function removeFriend(friendUsername) {
       if (!confirmed) {
         return;
       }
-  
+
       fetch("/api/friends/remove/", {
         method: "DELETE",
         headers: {
@@ -283,14 +273,14 @@ export function fetchFriendRequests() {
 	  .then(requestsData => {
 		const requestList = document.getElementById("friendRequests");
 		requestList.innerHTML = "";
-  
+
 		requestsData.requests.forEach(request => {
       const avatarUrl = request.avatar;
 		  const listItem = document.createElement("li");
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
       <div class="d-flex align-items-center">
-            <img src="${avatarUrl}" alt="${i18next.t('friends.avatarAlt', { username: request.sender })}" class="friend-avatar" 
+            <img src="${avatarUrl}" alt="${i18next.t('friends.avatarAlt', { username: request.sender })}" class="friend-avatar"
               style="width:50px; height:50px; border-radius:50%; margin-right:12px;">
             <span style="font-weight: bold; font-size: 16px;">${request.sender}</span>
           </div>
@@ -301,7 +291,7 @@ export function fetchFriendRequests() {
 		  `;
 		  requestList.appendChild(listItem);
 		});
-  
+
 		// Add event listeners for accept and decline buttons
 		document.querySelectorAll(".accept-request").forEach(button => {
 		  button.addEventListener("click", event => {
@@ -309,7 +299,7 @@ export function fetchFriendRequests() {
 			respondToFriendRequest(friendUsername, "accept");
 		  });
 		});
-  
+
 		document.querySelectorAll(".decline-request").forEach(button => {
 		  button.addEventListener("click", event => {
 			const friendUsername = event.target.getAttribute("data-username");
@@ -336,16 +326,16 @@ export function fetchFriends() {
 		  .then((statusData) => {
 			const friendList = document.getElementById("friendList");
 			friendList.innerHTML = "";
-  
+
 			friendsData.friends.forEach((friend) => {
 			  // Find corresponding status in statusData
 			  const friendStatus = statusData.friends_status.find(
 				(status) => status.username === friend.username
 			  );
-  
+
 			  const isOnline = friendStatus ? friendStatus.is_online : false;
 			  const lastSeen = friendStatus ? friendStatus.last_seen : i18next.t('friends.never');
-  
+
 			  const statusBadge = isOnline
 				? `<span >🟢 ${i18next.t('friends.online')}</span>`
 				: `<span >🔘 ${i18next.t('friends.offline', { lastSeen: lastSeen })}</span>`;
@@ -356,7 +346,7 @@ export function fetchFriends() {
 		  listItem.className = "list-group-item d-flex justify-content-between align-items-center";
 		  listItem.innerHTML = `
         <div class="d-flex align-items-center">
-          <img src="${avatarUrl}" alt="${i18next.t('friends.avatarAlt', { username: friend.username })}" class="friend-avatar" 
+          <img src="${avatarUrl}" alt="${i18next.t('friends.avatarAlt', { username: friend.username })}" class="friend-avatar"
             style="width:50px; height:50px; border-radius:50%; margin-right:12px;">
             <div class="d-flex flex-column">
 			        <span style="font-weight: bold; font-size: 16px;">${friend.username}</span>
@@ -379,31 +369,3 @@ export function fetchFriends() {
     })
 	.catch((error) => logger.error("Error fetching friends:", error));
 }
-
-// const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
-
-// ws.onmessage = (event) => {
-//   const data = JSON.parse(event.data);
-  
-//   if (data.notification_type === "friend_request") {
-//     showModal(
-//       'Notification',
-//       "🔔 Friend Request: " + data.message,
-//       'OK',
-//       () => {
-//         fetchFriendRequests(); // Refresh friend requests dynamically
-//       }
-//     );
-//   } else {
-//     showModal(
-//       'Notification',
-//       "🔔 Notification: " + data.message,
-//       'OK',
-//       () => {}
-//     );
-//   }
-// };
-
-// ws.onerror = (error) => {
-//   logger.error("WebSocket error:", error);
-// };

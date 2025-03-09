@@ -209,28 +209,42 @@ class UserDetailView(APIView):
         user = request.user
         data = request.data
 
+        # Check field length constraints
+        if "email" in data and data["email"] and len(data["email"]) > 255:
+            return Response(
+                {"error": "Email address is too long. Maximum 255 characters allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if "phone_number" in data and data["phone_number"] and len(data["phone_number"]) > 15:
+            return Response(
+                {"error": "Phone number is too long. Maximum 15 characters allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if "username" in data and len(data["username"]) > 255:
+            return Response(
+                {"error": "Username is too long. Maximum 255 characters allowed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if "email" in data:
             email = data["email"]
-            existing_user = (
-                CustomUser.objects.filter(email=email).exclude(id=user.id).first()
-            )
-            if existing_user:
-                return Response(
-                    {"error": "This email is already in use."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            if email:  # Check if email is not empty
+                existing_user = CustomUser.objects.filter(email=email).exclude(id=user.id).first()
+                if existing_user:
+                    return Response(
+                        {"error": "This email is already in use."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             user.email = email
         else:
             user.email = None
 
         if "phone_number" in data:
             phone_number = data["phone_number"]
-            if phone_number:
-                existing_user = (
-                    CustomUser.objects.filter(phone_number=phone_number)
-                    .exclude(id=user.id)
-                    .first()
-                )
+            if phone_number:  # Check if phone_number is not empty
+                existing_user = CustomUser.objects.filter(phone_number=phone_number).exclude(id=user.id).first()
                 if existing_user:
                     return Response(
                         {"error": "This phone number is already in use."},
@@ -241,7 +255,15 @@ class UserDetailView(APIView):
                 user.phone_number = None
 
         if "username" in data:
-            user.username = data["username"]
+            username = data["username"]
+            # Check if username is already taken
+            existing_user = CustomUser.objects.filter(username=username).exclude(id=user.id).first()
+            if existing_user:
+                return Response(
+                    {"error": f"This username is already taken."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            user.username = username
 
         try:
             user.save()
