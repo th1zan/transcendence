@@ -72,6 +72,7 @@
         "processingMsg": "Removing player, please wait...",
         "tournamentDeletedTitle": "Tournament Removed",
         "tournamentDeletedMsg": "The tournament was deleted because it had no matches or only the organizer remained.",
+        "matchOutcomes": "Games' Outcomes",
         "removeInvitation": "Remove",
         "globalOutcomes": "Global Outcomes",
         "rankingTitle": "General Ranking",
@@ -113,6 +114,7 @@
         "registrationError": "Registration error:",
         "refreshAndRetry": "Something went wrong. Please refresh the page and try again.",
         "loginFailed": "Login failed: ",
+        "badCredentials": "Bad credentials. Please check your username and password.",
         "emailRequiredFor2FA": "An email address is required for two-factor authentication. Please add an email in your profile settings."
     },
     "friends": {

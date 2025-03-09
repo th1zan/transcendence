@@ -72,66 +72,87 @@ export function displayTournament() {
   displayUserTournaments();
 }
 
-//authenticate a registred user in a tournament
 function authenticateNow(playerName, tournamentId) {
-  // Bootstrap modal for login
-  const modalHTML = `
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">${i18next.t('tournament.loginToAuth')}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="loginForm">
-              <div class="form-group">
-                <label for="username">${i18next.t('tournament.username')}</label>
-                <input type="text" class="form-control" id="username" placeholder="${i18next.t('tournament.enterUsername')}" required>
-              </div>
-              <div class="form-group">
-                <label for="password">${i18next.t('tournament.password')}</label>
-                <input type="password" class="form-control" id="password" placeholder="${i18next.t('tournament.enterPassword')}" required>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18next.t('tournament.close')}</button>
-            <button type="button" class="btn btn-primary" id="submitLogin">${i18next.t('tournament.login')}</button>
+  return new Promise((resolve, reject) => {
+    // Bootstrap modal for login
+    const modalHTML = `
+      <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">${i18next.t('tournament.loginToAuth')}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="loginForm">
+                <div class="form-group">
+                  <label for="username">${i18next.t('tournament.username')}</label>
+                  <input type="text" class="form-control" id="username" placeholder="${i18next.t('tournament.enterUsername')}" required>
+                </div>
+                <div class="form-group">
+                  <label for="password">${i18next.t('tournament.password')}</label>
+                  <input type="password" class="form-control" id="password" placeholder="${i18next.t('tournament.enterPassword')}" required>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18next.t('tournament.close')}</button>
+              <button type="button" class="btn btn-primary" id="submitLogin">${i18next.t('tournament.login')}</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  //append modal to body
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Append modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-  // show modal using Bootstrap
-  const loginModal = document.getElementById('loginModal');
-  const modalBootstrap = new bootstrap.Modal(loginModal);
-  modalBootstrap.show();
+    // Show modal using Bootstrap
+    const loginModal = document.getElementById('loginModal');
+    const modalBootstrap = new bootstrap.Modal(loginModal);
+    modalBootstrap.show();
 
-  //formular for authentificaton
-  document.getElementById('submitLogin').addEventListener('click', function() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    // Form submission for authentication
+    document.getElementById('submitLogin').addEventListener('click', async function () {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-    authenticatePlayer(username, password, playerName, tournamentId)
-      .then(() => {
-        updatePlayerStatusUI(playerName);
-        // Hide modal manually 
+      try {
+        const authResult = await authenticatePlayer(username, password, playerName, tournamentId);
+
+        if (authResult.success) {
+          updatePlayerStatusUI(playerName);
+          modalBootstrap.hide();
+          loginModal.remove();
+          resolve(true); // Succès
+        }
+      } catch (error) {
+        // Gestion des erreurs
+        let errorMessage;
+        if (error.message === 'badCredentials') {
+          errorMessage = i18next.t('auth.badCredentials');
+        } else {
+          errorMessage = `${i18next.t('tournament.errorTitle')}: ${error.message || 'Erreur inattendue'}`;
+        }
+
+        showModal(
+          i18next.t('tournament.errorTitle'),
+          errorMessage,
+          'OK',
+          () => {}
+        );
         modalBootstrap.hide();
-        // Remove modal from DOM
         loginModal.remove();
-      })
-      .catch(error => logger.error("Error during authentication:", error));
+        resolve(false); // Échec
+        logger.error("Error during authentication:", error);
+      }
+    });
   });
 }
 
-//ask the API
+// Ask the API
 async function authenticatePlayer(username, password, playerName, tournamentId) {
-  return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
+  const response = await fetch(`/api/auth/tournament-player/${tournamentId}/`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -142,17 +163,21 @@ async function authenticatePlayer(username, password, playerName, tournamentId) 
       password: password,
       player_name: playerName
     }),
-  })
-  .then(response => {
-    if (!response.ok) throw new Error("Authentication error:" + response.status);
-    return response.json();
-  })
-  .then(data => {
-    if (data.message !== "Player authenticated successfully") {
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    if (data.message === "Player authenticated successfully") {
+      return { success: true, data: data };
+    } else {
       throw new Error("Authentication failed");
     }
-    return data;
-  });
+  } else if (response.status === 401) {
+    throw new Error("badCredentials"); // Erreur spécifique pour mauvais identifiants
+  } else {
+    const data = await response.json();
+    throw new Error(data.detail || `Authentication error: ${response.status}`);
+  }
 }
 
 //update the status of a player/user after authenticating for a tournament

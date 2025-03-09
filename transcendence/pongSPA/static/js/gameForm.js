@@ -536,39 +536,66 @@ async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) 
       const password = document.getElementById('password').value;
 
       const authResult = await authenticatePlayer(username, password, playerName);
+
       if (authResult.success) {
         modalBootstrap.hide();
         loginModal.remove();
-        resolve(true); // Résout la promesse en cas de succès
+        resolve(true); // Succès
       } else {
+        // Gestion des différents types d'erreurs
+        let errorMessage;
+        if (authResult.error === 'badCredentials') {
+          errorMessage = i18next.t('auth.badCredentials');
+        } else if (authResult.error === 'network') {
+          errorMessage = `Erreur réseau : ${authResult.details}`;
+        } else {
+          errorMessage = `${i18next.t('game.authenticationFailed')} ${authResult.details || ''}`;
+        }
+
         showModal(
           i18next.t('app.error'),
-          i18next.t('game.authenticationFailed'),
+          errorMessage,
           'OK',
           () => {}
         );
         modalBootstrap.hide();
         loginModal.remove();
-        resolve(false); // Résout la promesse en cas d'échec
+        resolve(false); // Échec
       }
     });
   });
 }
 
 async function authenticatePlayer(username, password, playerName) {
-  const response = await fetch('/api/auth/match-player/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: username,
-      password: password,
-      player_name: playerName
-    }),
-  });
+  try {
+    const response = await fetch('/api/auth/match-player/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password,
+        player_name: playerName
+      }),
+    });
 
-  return await response.json();
+    const data = await response.json();
+
+    if (response.ok) {
+      // Succès (statut 200 ou autre code de succès)
+      return { success: true, data: data };
+    } else if (response.status === 401) {
+      // Échec d'authentification spécifique (mauvais identifiants)
+      return { success: false, error: 'badCredentials' };
+    } else {
+      // Autre erreur (ex. 500, 403, etc.)
+      return { success: false, error: 'generic', details: data.detail || 'Unknown error' };
+    }
+  } catch (error) {
+    // Erreur réseau ou autre problème
+    return { success: false, error: 'network', details: error.message };
+  }
 }
 
 
