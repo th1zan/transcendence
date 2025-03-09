@@ -18,6 +18,7 @@ from .views.tournament_views import (ConfirmTournamentParticipationView,
                                      PendingTournamentAuthenticationsView,
                                      RemovePlayerMatchesView, StartMatchView,
                                      TournamentCreationView,
+                                     TournamentDetailView,
                                      TournamentFinalizationView,
                                      TournamentMatchesView,
                                      TournamentPlayersView,
@@ -129,6 +130,11 @@ urlpatterns = [
         "tournament/start-match/<int:match_id>/",
         StartMatchView.as_view(),
         name="start-match",
+    ),
+    path(
+        "tournament/<int:tournament_id>/",
+        TournamentDetailView.as_view(),
+        name="tournament_detail",
     ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

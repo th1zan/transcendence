@@ -207,6 +207,15 @@ async function displayTournamentGameList(data) {
   const username = localStorage.getItem("username"); // Nom de l'utilisateur connecté
   const tournamentMatchesDiv = document.getElementById("tournamentMatches");
 
+  // Réinitialiser pointerEvents avant tout rendu
+  const appMain = document.getElementById("app_main");
+  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
+  // Supprimer l'overlay existant s'il existe
+  const existingOverlay = document.getElementById("organizer-overlay");
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+
   // Vérifier si l'utilisateur est l'organisateur
   let isOrganizer = false;
   try {
@@ -216,10 +225,14 @@ async function displayTournamentGameList(data) {
       credentials: "include",
     });
     const tournamentData = await response.json();
-    isOrganizer = tournamentData.organizer === username; // Supposons que l'API renvoie le nom de l'organisateur
+    logger.log("Tournament data:", tournamentData); // Ajout de log pour débogage
+    // Comparer le username de l'organisateur avec celui de l'utilisateur connecté
+    isOrganizer = tournamentData.organizer && tournamentData.organizer.username === username;
   } catch (error) {
     logger.error("Erreur lors de la vérification de l'organisateur:", error);
   }
+
+  logger.log("isOrganizer:", isOrganizer); // Ajout de log pour débogage
 
   // Récupérer et afficher les joueurs
   fetch(`/api/tournament/players/${tournamentId}/`, {
@@ -329,7 +342,6 @@ async function displayTournamentGameList(data) {
         displayTournamentRanking(data);
 
         // Appliquer le voile et désactiver les interactions si non-organisateur
-        const appMain = document.getElementById("app_main");
         if (!isOrganizer) {
           const overlay = document.createElement("div");
           overlay.id = "organizer-overlay";
@@ -354,6 +366,9 @@ async function displayTournamentGameList(data) {
           appMain.style.position = "relative";
           appMain.appendChild(overlay);
           appMain.style.pointerEvents = "none"; // Désactiver les clics sur app_main
+        } else {
+          // Réinitialiser explicitement si organisateur
+          appMain.style.pointerEvents = "auto";
         }
 
         // Ajouter les événements uniquement si organisateur
@@ -1099,19 +1114,21 @@ export function handleError(error, message) {
 
 
 export function selectTournament(tournamentId, tournamentName) {
-localStorage.setItem("tournamentId", tournamentId);
-localStorage.setItem("tournamentName", tournamentName);
-DisplayTournamentGame();
+  localStorage.setItem("tournamentId", tournamentId);
+  localStorage.setItem("tournamentName", tournamentName);
+  const appMain = document.getElementById("app_main");
+  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
+  const existingOverlay = document.getElementById("organizer-overlay");
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+  DisplayTournamentGame();
 }
 
 export function validateSearch() {
-  
   document.getElementById('app_bottom').innerHTML = '';
 
-  let tournamentName;
-
-  //check the local storage first 
-  tournamentName = localStorage.getItem("tournamentName");
+  let tournamentName = localStorage.getItem("tournamentName");
 
   if (!tournamentName) {
     showModal(
@@ -1124,6 +1141,12 @@ export function validateSearch() {
   }
 
   const appMain = document.getElementById("app_main");
+  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
+  const existingOverlay = document.getElementById("organizer-overlay");
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+
   appMain.innerHTML = `
     <div class="container mt-4">
       <div class="card mb-4 shadow-sm border-primary border-1 bg-transparent">
@@ -1163,8 +1186,7 @@ export function validateSearch() {
     .then((response) => response.json())
     .then((data) => {
       const tournamentBody = document.getElementById("tournamentBody");
-      // Ensure data is an array before manipulating it
-      const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
+      const tournaments = Array.isArray(data) ? data : [data];
 
       if (tournaments.length > 0) {
         tournaments.forEach((tournament) => {
@@ -1188,7 +1210,6 @@ export function validateSearch() {
           tournamentBody.appendChild(row);
         });
 
-        // Select button
         document.querySelectorAll('.selectTournamentButton').forEach(button => {
           button.addEventListener('click', event => {
             const tournamentId = event.target.getAttribute('data-id');
