@@ -106,89 +106,75 @@ export const logger = {
 let isUserLoggedIn = false;
 
 document.addEventListener("DOMContentLoaded", () => {
+    logger.log('Cookies at DOM load:', document.cookie);
 
-  logger.log('Cookies at DOM load:', document.cookie);
+    document.cookie.split(";").forEach((c) => {
+        logger.log('clear the cookies');
+        document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
 
-  //when the DOM is loaded, this event is triggered and it will:
+    loadPrivacyPolicyModal();
 
-  //  0. Clear all cookies
-  //
-  //  COMMENTED FOR DEBUGIN
-  document.cookie.split(";").forEach((c) => {
-    logger.log('clear the cookies');
-    document.cookie = c
-      .replace(/^ +/, "")
-      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  });
+    let initialRoute = window.location.hash.replace('#', '') || 'login';
+    logger.log('Initial route determined:', initialRoute);
 
-  loadPrivacyPolicyModal();
+    let isUserLoggedIn = false;
 
-  // 1. Determine the initial route based on the URL hash
-  let initialRoute = window.location.hash.replace('#', '') || 'login';
-  logger.log('Initial route determined:', initialRoute);
+    validateToken().then((isTokenValid) => {
+        logger.log('validateToken resolved with:', isTokenValid);
+        isUserLoggedIn = isTokenValid;
+        if (isUserLoggedIn) {
+            logger.log('User is logged in based on cookies');
+        } else {
+            logger.log('User is not logged in');
+        }
 
-  //Global variable for the "logged" status
-  let isUserLoggedIn = false;
+        if (isUserLoggedIn && initialRoute === 'login') {
+            logger.log('User logged in but on login page, redirecting to welcome');
+            initialRoute = 'welcome';
+            history.replaceState({ page: 'welcome' }, ' ', '#welcome');
+        } else if (!isUserLoggedIn && initialRoute !== 'login') {
+            logger.log('User not logged in but not on login page, redirecting to login');
+            initialRoute = 'login';
+            history.replaceState({ page: 'login' }, 'Login', '#login');
+        }
 
-  // 2. Check if the user is logged in
-  validateToken().then((isTokenValid) => {
-    logger.log('validateToken resolved with:', isTokenValid);
-    isUserLoggedIn = isTokenValid;
-    if (isUserLoggedIn) {
-      logger.log('User is logged in based on cookies');
-    } else {
-      logger.log('User is not logged in');
-    }
+        logger.log('Calling handleRouteChange with route:', initialRoute);
+        handleRouteChange(initialRoute);
+    }).catch((error) => {
+        logger.error('Error checking user login status:', error);
+        handleRouteChange('login');
+    });
 
-    // 3. Set initial state based on login status and initial route
-    if (isUserLoggedIn && initialRoute === 'login') {
-      logger.log('User logged in but on login page, redirecting to welcome');
-      initialRoute = 'welcome';
-      history.replaceState({ page: 'welcome' }, ' ', '#welcome');
-    } else if (!isUserLoggedIn && initialRoute !== 'login') {
-      logger.log('User not logged in but not on login page, redirecting to login');
-      initialRoute = 'login';
-      history.replaceState({ page: 'login' }, 'Login', '#login');
-    }
+    setInterval(async () => {
+        logger.log('Refreshing token via interval...');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+            logger.warn('Interval refresh failed, consider re-authenticating.');
+            showModal(
+                i18next.t('app.warning'),
+                i18next.t('app.sessionExpired'),
+                'OK',
+                () => navigateTo('login')
+            );
+        }
+    }, 4 * 60 * 1000);
 
-    // 4. Handle the initial route
-    logger.log('Calling handleRouteChange with route:', initialRoute);
-    handleRouteChange(initialRoute);
-  }).catch((error) => {
-    logger.error('Error checking user login status:', error);
-    logger.log('User is not logged in due to an error');
-    handleRouteChange('login');
-  });
+    window.addEventListener("popstate", function (event) {
+        let route = event.state ? event.state.page : window.location.hash.replace('#', '') || 'welcome';
+        logger.log('Navigating to route:', route);
+        handleRouteChange(route);
+    });
 
-  // 5. Plan the refreshing interval for the authentication Token
-  logger.log('Setting up token refresh interval');
-  setInterval(async () => {
-  logger.log('Refreshing token via interval...');
-  const refreshed = await refreshToken();
-  if (!refreshed) {
-      logger.warn('Interval refresh failed, consider re-authenticating.');
-      showModal(
-        i18next.t('app.warning'),
-        i18next.t('app.sessionExpired'),
-        'OK',
-        () => navigateTo('login')
-      );
-    }
-  }, 4 * 60 * 1000); // token is refreshed every 4 minutes
-
-  // 5. Listener for history changes
-  window.addEventListener("popstate", function (event) {
-    logger.log('Popstate event triggered. Current state:', event.state);
-    let route;
-    if (event.state) {
-      route = event.state.page;
-    } else {
-      route = window.location.hash.replace('#', '') || 'welcome';
-    }
-    logger.log('Navigating to route:', route);
-    logger.log('Custom History:', customHistory);
-    handleRouteChange(route);
-  });
+    // Ajout pour gérer la déconnexion à la fermeture de la page
+    window.addEventListener('beforeunload', () => {
+        if (isUserLoggedIn) {
+            navigator.sendBeacon('/api/auth/logout/', JSON.stringify({}));
+            logger.log('Sent logout beacon on page close');
+        }
+    });
 });
 
 // variable to store history

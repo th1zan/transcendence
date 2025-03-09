@@ -37,7 +37,15 @@ EOF
 echo "Django and superuser are setup."
 
 yes yes | python manage.py collectstatic --settings=config.settings_prod
-exec "$@"
+
+# Lancer daphne en arrière-plan
+daphne -b 0.0.0.0 -p 8001 config.asgi:application &
+
+# Lancer la boucle pour exécuter update_online_status toutes les 60 secondes
+while true; do
+	python /transcendence/manage.py update_online_status
+	sleep 60
+done
 
 # OLD  VERSION
 

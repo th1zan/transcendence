@@ -59,7 +59,18 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
+    "django_crontab",
 ]
+
+CRONJOBS = [
+    (
+        "*/1 * * * *",
+        "api.management.commands.update_online_status.Command",
+    ),  # Toutes les minutes
+]
+
+# commande pour activer les cronjobs
+# python manage.py crontab add
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -70,6 +81,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.middleware.UpdateLastSeenMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

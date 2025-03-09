@@ -123,34 +123,69 @@ class CustomTokenValidateView(APIView):
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [AllowAny]
 
-    # NOTE: Validates token securely and prevents information leakage.
     def post(self, request, *args, **kwargs):
+        """
+        Valide le token d'accès dans les cookies et met à jour last_seen si valide.
+        Retourne une réponse indiquant si le token est valide ou non.
+        """
+        # Récupérer le token d'accès depuis les cookies
         token = request.COOKIES.get("access_token")
         if not token:
-            logger.warning("No access token found in cookies.")
+            logger.warning("No access token found in cookies during validation.")
             return Response(
                 {"detail": "Access token not provided."},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        # Simuler l'en-tête Authorization pour l'authentification JWT
         request.META["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+
         try:
+            # Décoder le token pour vérifier sa validité
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+            # Vérifier l'expiration du token
             if payload.get("exp") <= int(time.time()):
-                logger.warning("Token has expired.")
+                logger.warning("Token has expired during validation.")
                 return Response(
                     {"detail": "Token has expired."},
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
-            logger.info("Token validation successful.")
+
+            # Si le token est valide, récupérer l'utilisateur authentifié
+            user = request.user
+            if user.is_authenticated:
+                # Mettre à jour last_seen pour indiquer l'activité
+                user.update_last_seen()
+                logger.info(f"Token validated successfully for user: {user.username}")
+                return Response(
+                    {"detail": "Token is valid.", "valid": True},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                logger.warning("Token valid but no authenticated user found.")
+                return Response(
+                    {"detail": "No authenticated user associated with this token."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+        except jwt.ExpiredSignatureError:
+            logger.warning("Expired token detected during validation.")
             return Response(
-                {"detail": "Token is valid.", "valid": True}, status=status.HTTP_200_OK
-            )
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            logger.warning("Invalid or expired token.")
-            return Response(
-                {"detail": "Invalid or expired token."},
+                {"detail": "Token has expired."},
                 status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except jwt.InvalidTokenError:
+            logger.warning("Invalid token detected during validation.")
+            return Response(
+                {"detail": "Invalid token."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error during token validation: {str(e)}")
+            return Response(
+                {"detail": "An error occurred during token validation."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
