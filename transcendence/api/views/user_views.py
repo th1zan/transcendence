@@ -59,31 +59,61 @@ class AnonymizeAccountView(APIView):
     # NOTE: Securely anonymizes user data and clears sensitive information.
     def post(self, request):
         user = request.user
-        anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:5]}"
-        Player.objects.filter(user=user).update(player=anonymous_name)
-        user.username = anonymous_name
-        user.email = None
-        user.first_name = "Anonymous"
-        user.last_name = "User"
-        user.phone_number = None
-        user.friends.clear()
-        user.is_online = False
-        user.last_seen = None
-        if (
-            user.avatar
-            and user.avatar.name != "avatars/default.png"
-            and os.path.exists(user.avatar.path)
-        ):
-            os.remove(user.avatar.path)
-        user.avatar.name = "avatars/default.png"
-        user.is_active = False
-        user.date_joined = None
-        user.set_unusable_password()
-        user.save()
-        request.session.flush()
+        if user.is_authenticated:
+            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:5]}"
+
+            Player.objects.filter(user=user).update(player=anonymous_name)
+
+            user.username = anonymous_name
+
+            if hasattr(user, "email"):
+                user.email = None
+            if hasattr(user, "first_name"):
+                user.first_name = "Anonymous"
+            if hasattr(user, "last_name"):
+                user.last_name = "User"
+            if hasattr(user, "phone_number"):
+                user.phone_number = None
+            if hasattr(user, "friends"):
+                user.friends.clear()
+            if hasattr(user, "is_online"):
+                user.is_online = False
+            if hasattr(user, "last_seen"):
+                user.last_seen = None
+
+            if hasattr(user, "avatar") and user.avatar:
+                try:
+                    if (
+                        user.avatar.name
+                        and user.avatar.name != "avatars/default.png"
+                        and os.path.exists(user.avatar.path)
+                    ):
+                        os.remove(user.avatar.path)
+                except Exception as e:
+                    print(f"Error deleting avatar file: {e}")
+                user.avatar.name = "avatars/default.png"
+
+            user.is_active = False
+            user.date_joined = None
+            user.set_unusable_password()
+            user.save()
+
+            request.session.flush()
+
+            response = JsonResponse(
+                {"message": f"Your account has been anonymized as {anonymous_name}."},
+                status=status.HTTP_200_OK,
+            )
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            response.delete_cookie("sessionid")
+            response.delete_cookie("csrftoken")
+
+            return response
+
         return Response(
-            {"message": f"Your account has been anonymized as {anonymous_name}."},
-            status=status.HTTP_200_OK,
+            {"message": "Authentication required to anonymize account."},
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
 
@@ -97,14 +127,22 @@ class DeleteAccountView(APIView):
         PongMatch.objects.filter(user2=user).update(user2=None)
         player = Player.objects.filter(user=user).first()
         if player:
-            player.player = "Deleted_User"
+            unique_deleted_name = f"Deleted_User_{player.id}"
+            player.player = unique_deleted_name
             player.user = None
             player.save()
         user.delete()
-        return Response(
-            {"message": "Your account has been permanently deleted."},
-            status=status.HTTP_200_OK,
+
+        response = JsonResponse(
+            {"message": "Your account has been deleted, and cookies are cleared."},
+            status=200,
         )
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        response.delete_cookie("sessionid")
+        response.delete_cookie("csrftoken")
+
+        return response
 
 
 class ChangePasswordView(APIView):
