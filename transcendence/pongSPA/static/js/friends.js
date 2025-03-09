@@ -64,7 +64,7 @@ export function displayFriends() {
       showModal(
         i18next.t('friends.warning'),
         i18next.t('friends.enterUsername'),
-        'OK', // Texte du bouton
+        i18next.t('modal.ok'),
         () => {} // Action vide, juste fermer la modale
       );
     }
@@ -85,7 +85,7 @@ export function sendFriendRequest(friendUsernameRaw) {
         showModal(
             i18next.t('friends.warning'),
             i18next.t('friends.cannotAddSelf'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {}
         );
         return;
@@ -105,7 +105,7 @@ export function sendFriendRequest(friendUsernameRaw) {
             showModal(
                 i18next.t('friends.warning'),
                 i18next.t('friends.pendingRequestExists', { username: friendUsername }) || `A friend request with ${friendUsername} is already pending.`,
-                'OK',
+                i18next.t('modal.ok'),
                 () => {
                   navigateTo('friends');
                 }
@@ -126,7 +126,7 @@ export function sendFriendRequest(friendUsernameRaw) {
                 showModal(
                     i18next.t('friends.warning'),
                     i18next.t('friends.alreadyFriend', { username: friendUsername }),
-                    'OK',
+                    i18next.t('modal.ok'),
                     () => {
                       navigateTo('friends');
                     }
@@ -149,7 +149,7 @@ export function sendFriendRequest(friendUsernameRaw) {
                     showModal(
                         i18next.t('friends.error'),
                         i18next.t('friends.errorPrefix') + data.error,
-                        'OK',
+                        i18next.t('modal.ok'),
                         () => {
                           navigateTo('friends');
                         }
@@ -158,7 +158,7 @@ export function sendFriendRequest(friendUsernameRaw) {
                     showModal(
                         i18next.t('friends.success'),
                         i18next.t('friends.requestSent', { username: friendUsername }),
-                        'OK',
+                        i18next.t('modal.ok'),
                         () => {
                           navigateTo('friends');
                         }
@@ -170,7 +170,7 @@ export function sendFriendRequest(friendUsernameRaw) {
                 showModal(
                     i18next.t('friends.error'),
                     i18next.t('friends.errorOccurred'),
-                    'OK',
+                    i18next.t('modal.ok'),
                     () => {
                       navigateTo('friends');
                     }
@@ -182,7 +182,7 @@ export function sendFriendRequest(friendUsernameRaw) {
             showModal(
                 i18next.t('friends.error'),
                 i18next.t('friends.errorCheckingStatus'),
-                'OK',
+                i18next.t('modal.ok'),
                 () => {
                   navigateTo('friends');
                 }
@@ -194,7 +194,7 @@ export function sendFriendRequest(friendUsernameRaw) {
         showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorCheckingRequests') || "Error checking pending friend requests.",
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -218,7 +218,7 @@ export function respondToFriendRequest(friendUsername, action) {
           showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorPrefix') + data.error,
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -227,7 +227,7 @@ export function respondToFriendRequest(friendUsername, action) {
           showModal(
             i18next.t('friends.success'),
             data.message,
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               fetchFriendRequests();
               fetchFriends();
@@ -241,7 +241,7 @@ export function respondToFriendRequest(friendUsername, action) {
         showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorOccurred'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -270,7 +270,7 @@ export function removeFriend(friendUsername) {
             showModal(
               i18next.t('friends.error'),
               i18next.t('friends.errorPrefix') + data.error,
-              'OK',
+              i18next.t('modal.ok'),
               () => {
                 navigateTo('friends');
               }
@@ -279,7 +279,7 @@ export function removeFriend(friendUsername) {
             showModal(
               i18next.t('friends.success'),
               data.message,
-              'OK',
+              i18next.t('modal.ok'),
               () => {
                 fetchFriends();
                 navigateTo('friends');
@@ -292,7 +292,7 @@ export function removeFriend(friendUsername) {
           showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorOccurred'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
