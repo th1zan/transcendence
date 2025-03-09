@@ -204,8 +204,10 @@ class UserTournamentsView(APIView):
     def get(self, request):
         username = request.user.username
         try:
+            # Filtrer pour inclure uniquement les tournois finalisés
             user_tournaments = Tournament.objects.filter(
-                tournamentplayer__player__user__username=username
+                tournamentplayer__player__user__username=username,
+                is_finalized=True,  # Ajoutez ce filtre
             ).distinct()
             serializer = TournamentSerializer(user_tournaments, many=True)
             return Response(serializer.data)

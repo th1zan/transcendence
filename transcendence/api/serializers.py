@@ -33,6 +33,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "number_of_games",
             "points_to_win",
             "is_finished",
+            "is_finalized",
             "players",
             "organizer",
         ]
