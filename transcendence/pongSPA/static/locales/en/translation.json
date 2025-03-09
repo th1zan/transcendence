@@ -178,7 +178,8 @@
         "userNotFound": "User not found",
         "errorCheckingPlayerMsg": "There was an error checking player existence. Please try again.",
         "loginToAuthenticate": "Login to Authenticate",
-        "authenticationFailed": "Authentication failed. Please try again."
+        "authenticationFailed": "Authentication failed. Please try again.",
+        "player2NameRequired": "Please enter a name for Player 2 in multiplayer mode."  
     },
     "pong": {
         "error": "Error",

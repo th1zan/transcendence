@@ -181,8 +181,9 @@
         "userNotFound": "Utilisateur introuvable",
         "errorCheckingPlayerMsg": "Une erreur s'est produite lors de la vérification de l'existence du joueur. Veuillez réessayer.",
         "loginToAuthenticate": "Connexion pour authentification",
-        "authenticationFailed": "Échec de l'authentification. Veuillez réessayer."
-    },
+        "authenticationFailed": "Échec de l'authentification. Veuillez réessayer.",
+        "player2NameRequired": "Veuillez entrer un nom pour le Joueur 2 en mode multijoueur."  
+  },
     "pong": {
         "error": "Erreur",
         "canvasNotFound": "Impossible de démarrer le jeu. Le canvas de jeu n'a pas pu être trouvé. Veuillez rafraîchir la page et réessayer.",

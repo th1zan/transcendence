@@ -18,7 +18,7 @@ export function displayGameForm() {
   const username = localStorage.getItem("username");
 
   gameSettings = {
-    mode: "solo", // Mode par défaut
+    mode: "solo",
     difficulty: "easy",
     design: "retro",
     numberOfGames: 1,
@@ -93,7 +93,7 @@ export function displayGameForm() {
               <div class="border border-primary rounded p-3 flex-grow-1 d-flex flex-column justify-content-between bg-transparent">
                 <div class="mb-3">
                   <label for="player1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.name')}:</label>
-                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15EDSpx;" class="form-control bg-transparent" disabled>
+                  <input type="text" id="player1" value="${gameSettings.player1}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-control bg-transparent" disabled>
                 </div>
                 <div class="mb-3">
                   <label for="control1" style="font-family: 'Press Start 2P', cursive; font-size: 15px;" class="form-label">${i18next.t('game.control')}:</label>
@@ -389,10 +389,24 @@ export function displayGameForm() {
 
     logger.log("Start button clicked, gameSettings:", gameSettings);
 
+    // Vérification si player2 est vide en mode multiplayer
+    if (gameSettings.mode === "multiplayer" && !player2) {
+      logger.log("Mode multiplayer, mais player2 est vide");
+      showModal(
+        i18next.t('game.error'),
+        i18next.t('game.player2NameRequired') || "Please enter a name for Player 2 in multiplayer mode.",
+        'OK',
+        () => {
+          document.getElementById("player2").focus(); // Remet le focus sur le champ player2
+        }
+      );
+      return;
+    }
+
     if (!alertShown || player2 !== lastCheckedPlayer2) {
       alertShown = false;
       needAuth = false;
-      if (gameSettings.mode === "multiplayer") { // Utiliser gameSettings.mode directement
+      if (gameSettings.mode === "multiplayer") {
         logger.log("Mode multiplayer détecté, vérification de player2:", player2);
         try {
           const playerData = await checkPlayerExists(player2);
@@ -478,8 +492,6 @@ export function displayGameForm() {
     });
   }
 }
-
-// Les fonctions authenticateNow et authenticatePlayer restent inchangées
 
 
 async function authenticateNow(playerName, player1, numberOfGames, setsPerGame) {
