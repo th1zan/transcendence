@@ -135,7 +135,7 @@ services:
   #     interval: 1s
   #     timeout: 5s
   #     retries: 120
-  #
+  
   # elasticsearch:
   #   container_name: elasticsearch  # Correction ici
   #   build:
@@ -164,7 +164,7 @@ services:
   #     interval: 5s
   #     timeout: 5s
   #     retries: 120
-  #
+  
   # kibana:
   #   container_name: kibana
   #   build:
@@ -184,7 +184,7 @@ services:
   #     - elk
   #   restart: always
   #   mem_limit: ${MEM_LIMIT}
-  #
+  
   # logstash:
   #   container_name: logstash
   #   build:

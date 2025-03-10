@@ -17,6 +17,7 @@ const DEBUG = true;
 
 document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
 document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
+document.getElementById("lang-es").addEventListener("click", () => changeLanguage("es"));
 
 i18next.use(i18nextHttpBackend).init({
   lng: localStorage.getItem('language') || "en",
@@ -63,8 +64,9 @@ export function changeLanguage(lang) {
 function updateLanguageButtons() {
   const enButton = document.getElementById("lang-en");
   const frButton = document.getElementById("lang-fr");
+  const esButton = document.getElementById("lang-es");
   
-  if (!enButton || !frButton) {
+  if (!enButton || !frButton || !esButton) {
     logger.warn("Language buttons not found in the DOM");
     return;
   }
@@ -72,15 +74,32 @@ function updateLanguageButtons() {
   if (i18next.language === "fr") {
     enButton.classList.remove("btn-primary");
     enButton.classList.add("btn-outline-primary");
+
+    esButton.classList.remove("btn-primary");
+    esButton.classList.add("btn-outline-primary");
     
     frButton.classList.remove("btn-outline-primary");
     frButton.classList.add("btn-primary");
+    
+  } else if (i18next.language === "es") {
+    enButton.classList.remove("btn-primary");
+    enButton.classList.add("btn-outline-primary");
+
+    frButton.classList.remove("btn-primary");
+    frButton.classList.add("btn-outline-primary");
+
+    esButton.classList.remove("btn-outline-primary");
+    esButton.classList.add("btn-primary");
+
   } else {
     enButton.classList.remove("btn-outline-primary");
     enButton.classList.add("btn-primary");
     
     frButton.classList.remove("btn-primary");
     frButton.classList.add("btn-outline-primary");
+
+    esButton.classList.remove("btn-primary");
+    esButton.classList.add("btn-outline-primary");
   }
   
   logger.log('Language buttons updated, active language:', i18next.language);
