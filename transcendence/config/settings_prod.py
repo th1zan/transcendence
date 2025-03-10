@@ -60,8 +60,18 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
+    "django_crontab",
 ]
 
+CRONJOBS = [
+    (
+        "*/1 * * * *",
+        "api.management.commands.update_online_status.Command",
+    ),  # Toutes les minutes
+]
+
+# commande pour activer les cronjobs
+# python manage.py crontab add
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -72,6 +82,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.middleware.UpdateLastSeenMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -183,10 +194,12 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = "/media/"
+# MEDIA_URL = "/media/"
+MEDIA_URL = "https://localhost:8443/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 SIMPLE_JWT = {
+    "ALGORITHM": "HS256",  # HS256 is the by-default algorithm
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
@@ -208,13 +221,18 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "pong42lausanne@gmail.com"
-EMAIL_HOST_PASSWORD = "tpyr gtki xzzc udcr"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 # EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 # EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# put in .env 
+# put in .env
 # EMAIL_HOST_USER=pong42lausanne@gmail.com
 # EMAIL_HOST_PASSWORD=tpyr gtki xzzc udcr
+
+# Debug
+print(f"EMAIL_HOST_USER: {EMAIL_HOST_USER}")
+print(f"EMAIL_HOST_PASSWORD: {EMAIL_HOST_PASSWORD}")
+
 
 # Cette configuration va envoyer les logs SQL à la console avec un niveau de log DEBUG.
 LOGGING = {

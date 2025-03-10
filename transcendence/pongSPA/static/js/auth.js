@@ -1,6 +1,7 @@
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { displayConnectionFormular } from "./login.js";
+import { sanitizeHTML } from "./utils.js";
 
 export function showModalConfirmation(message, title = "Confirmation") {
   return new Promise((resolve) => {
@@ -15,18 +16,18 @@ export function showModalConfirmation(message, title = "Confirmation") {
       keyboard: false
     });
 
-    // Mise à jour du titre
+    // Mise à jour du titre with sanitization
     const titleElement = document.getElementById('confirmationModalLabel');
     if (titleElement) {
-      titleElement.textContent = title;
+      titleElement.textContent = sanitizeHTML(title);
     } else {
       logger.error('Confirmation modal title element not found');
     }
 
-    // Mise à jour du message
+    // Mise à jour du message with sanitization
     const bodyElement = document.getElementById('confirmationModalBody');
     if (bodyElement) {
-      bodyElement.textContent = message;
+      bodyElement.textContent = sanitizeHTML(message);
     } else {
       logger.error('Confirmation modal body element not found');
     }
@@ -36,6 +37,10 @@ export function showModalConfirmation(message, title = "Confirmation") {
     const noButton = document.getElementById('confirmationModalNo');
 
     if (yesButton && noButton) {
+      // Translate button labels
+      yesButton.textContent = i18next.t('modal.yes');
+      noButton.textContent = i18next.t('modal.no');
+
       // Supprimer les anciens écouteurs pour éviter les doublons
       yesButton.removeEventListener('click', yesButton.handler);
       noButton.removeEventListener('click', noButton.handler);
@@ -138,7 +143,17 @@ export function toggle2FA() {
     .then(data => {
       logger.log("Toggle 2FA response:", data);
       
-      if (data.otp_required) {
+      if (data.need_email) {
+        showModal(
+          i18next.t('auth.error'), 
+          i18next.t('auth.emailRequiredFor2FA'),
+          i18next.t('modal.ok'),
+          () => {
+            // Redirect to profile settings
+            navigateTo("settings");
+          }
+        );
+      } else if (data.otp_required) {
         document.getElementById("otpSection").style.display = "block"; // Show OTP field
       } else {
         update2FAStatus();
@@ -147,14 +162,13 @@ export function toggle2FA() {
     .catch(error => logger.error("Error toggling 2FA:", error));
 }
 
-
 export function verifyOTP() {
   const otpCode = document.getElementById("otpInput").value.trim();
   if (!otpCode) {
     showModal(
       i18next.t('auth.warning'),
       i18next.t('auth.enterOTPCode'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return;
@@ -175,7 +189,7 @@ export function verifyOTP() {
         showModal(
           i18next.t('auth.success'),
           i18next.t('auth.twoFAEnabled'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Hide the OTP section again
             document.getElementById("otpSection").style.display = "none";
@@ -185,15 +199,15 @@ export function verifyOTP() {
       } else if (data.error) {
         showModal(
           i18next.t('auth.error'),
-          `❌ ${data.error}`,
-          'OK',
+          `❌ ${sanitizeHTML(data.error)}`, // Sanitize server error
+          i18next.t('modal.ok'),
           () => {}
         );
       } else {
         showModal(
           i18next.t('auth.error'),
           i18next.t('auth.unknownOTPError'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -202,8 +216,8 @@ export function verifyOTP() {
       logger.error("Error verifying OTP for 2FA:", error);
       showModal(
         i18next.t('auth.error'),
-        i18next.t('auth.verifyingOTPError') + error.message,
-        'OK',
+        i18next.t('auth.verifyingOTPError') + sanitizeHTML(error.message), // Sanitize error message
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -219,7 +233,7 @@ export function verify2FALogin() {
     showModal(
       i18next.t('auth.warning'),
       i18next.t('auth.enterOTPCode'),
-      'OK',
+      i18next.t('modal.ok'),
       () => {}
     );
     return;
@@ -238,7 +252,7 @@ export function verify2FALogin() {
         showModal(
           i18next.t('auth.success'),
           i18next.t('auth.twoFAVerified'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             // Set the username in localStorage so the welcome page can use it
             localStorage.setItem("username", username);
@@ -252,7 +266,7 @@ export function verify2FALogin() {
         showModal(
           i18next.t('auth.error'),
           i18next.t('auth.invalidOTP'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -280,13 +294,13 @@ export function update2FAStatus() {
       }
 
       if (user.is_2fa_enabled) {
-        statusElement.innerText = i18next.t('auth.twoFAEnabled');
-        toggleButton.innerText = i18next.t('auth.disableTwoFA');
+        statusElement.textContent = i18next.t('auth.twoFAEnabledstatus'); // textContent instead of innerText
+        toggleButton.textContent = i18next.t('auth.disableTwoFA');
         toggleButton.classList.remove("btn-success");
         toggleButton.classList.add("btn-danger");
       } else {
-        statusElement.innerText = i18next.t('auth.twoFADisabled');
-        toggleButton.innerText = i18next.t('auth.enableTwoFA');
+        statusElement.textContent = i18next.t('auth.twoFADisabled');
+        toggleButton.textContent = i18next.t('auth.enableTwoFA');
         toggleButton.classList.remove("btn-danger");
         toggleButton.classList.add("btn-success");
       }
@@ -297,39 +311,39 @@ export function update2FAStatus() {
 }
 
 export async function logout() {
-  const confirmed = await showModalConfirmation("Are you sure you want to log out?");
-  if (!confirmed) return;
-  try {
-    const response = await fetch("/api/auth/logout/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || i18next.t('auth.logoutRequestFailed'));
+    const confirmed = await showModalConfirmation("Are you sure you want to log out?");
+    if (!confirmed) return;
+    try {
+        const response = await fetch("/api/auth/logout/", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || i18next.t('auth.logoutRequestFailed'));
+        }
+        logger.log("✅ Logout successful!");
+        showModal(
+            i18next.t('auth.success'),
+            i18next.t('auth.logoutSuccessful'),
+            i18next.t('modal.ok'),
+            () => {
+                localStorage.clear();
+                window.location.href = "/";
+            }
+        );
+    } catch (error) {
+        logger.error("Logout failed:", error);
+        showModal(
+            i18next.t('auth.error'),
+            i18next.t('auth.logoutError') + sanitizeHTML(error.message),
+            i18next.t('modal.ok'),
+            () => {}
+        );
     }
-    logger.log("✅ Logout successful!");
-    showModal(
-      i18next.t('auth.success'),
-      i18next.t('auth.logoutSuccessful'),
-      'OK',
-      () => {
-        localStorage.clear(); // Clear all user data
-        window.location.href = "/"; // Redirect to login page
-      }
-    );
-  } catch (error) {
-    logger.error("Logout failed:", error);
-    showModal(
-      i18next.t('auth.error'),
-      i18next.t('auth.logoutError') + error.message,
-      'OK',
-      () => {}
-    );
-  }
 }
 
 export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
@@ -354,7 +368,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
         showModal(
           i18next.t('auth.success'),
           i18next.t('auth.accountCreated'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {
             displayConnectionFormular();
           }
@@ -363,7 +377,7 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
         showModal(
           i18next.t('auth.error'),
           i18next.t('auth.accountCreationError'),
-          'OK',
+          i18next.t('modal.ok'),
           () => {}
         );
       }
@@ -374,15 +388,15 @@ export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {
       let errorMessage = "Registration error:\n";
       for (const field in error) {
         if (Array.isArray(error[field])) {
-          errorMessage += `${field}: ${error[field].join(", ")}\n`;
+          errorMessage += `${field}: ${sanitizeHTML(error[field].join(", "))}\n`; // Sanitize array values
         } else {
-          errorMessage += `${field}: ${error[field]}\n`;
+          errorMessage += `${field}: ${sanitizeHTML(String(error[field]))}\n`; // Sanitize and ensure string
         }
       }
       showModal(
         i18next.t('auth.error'),
         errorMessage,
-        'OK',
+        i18next.t('modal.ok'),
         () => {}
       );
     });
@@ -425,7 +439,7 @@ export function getToken(username, password) {
           showModal(
             i18next.t('auth.error'),
             i18next.t('auth.refreshAndRetry'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {}
           );
           return;
@@ -454,8 +468,8 @@ export function getToken(username, password) {
       logger.error("Login failed:", error);
       showModal(
         i18next.t('auth.error'),
-        i18next.t('auth.loginFailed') + error.message,
-        'OK',
+        i18next.t('auth.loginFailed') + sanitizeHTML(error.message),
+        i18next.t('modal.ok'),
         () => {}
       );
     });

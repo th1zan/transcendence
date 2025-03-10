@@ -22,7 +22,7 @@ from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
 #
 class TournamentSerializer(serializers.ModelSerializer):
     players = serializers.SerializerMethodField()
-    organizer = serializers.PrimaryKeyRelatedField(read_only=True)  # Ajout optionnel
+    organizer = serializers.SerializerMethodField()
 
     class Meta:
         model = Tournament
@@ -33,13 +33,19 @@ class TournamentSerializer(serializers.ModelSerializer):
             "number_of_games",
             "points_to_win",
             "is_finished",
+            "is_finalized",
             "players",
-            "organizer",  # Ajouté
+            "organizer",
         ]
 
     def get_players(self, obj):
         tournament_players = TournamentPlayer.objects.filter(tournament=obj)
         return TournamentPlayerSerializer(tournament_players, many=True).data
+
+    def get_organizer(self, obj):
+        if obj.organizer:
+            return {"id": obj.organizer.id, "username": obj.organizer.username}
+        return None
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -146,6 +152,21 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if CustomUser.objects.filter(username=value).exists():
             raise serializers.ValidationError("This username is already taken.")
+
+        # validation reject explicitly dangerous inputs
+        dangerous_patterns = [
+            r"<script.*?>.*?</script>",
+            r"javascript:",
+            r"onerror=",
+            r"onload=",
+        ]
+
+        for pattern in dangerous_patterns:
+            if re.search(pattern, value, re.IGNORECASE):
+                raise serializers.ValidationError(
+                    "Username contains potentially unsafe content."
+                )
+
         return value
 
     def validate_password(self, value):

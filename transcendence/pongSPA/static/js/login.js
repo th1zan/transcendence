@@ -1,6 +1,6 @@
 import {showModal, logger } from './app.js';
 import { getToken, createAccount, verify2FALogin } from './auth.js';
-
+import { sanitizeAdvanced } from './utils.js';
 
 // login
 export function displayConnectionFormular() {
@@ -15,7 +15,7 @@ export function displayConnectionFormular() {
           <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">${i18next.t('login.welcomeBack')}</h2>
           <form id="loginForm">
             <div class="form-group mb-4">
-              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i>${i18next.t('login.username')}</label>
+              <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> ${i18next.t('login.username')}</label>
               <input
                 type="text"
                 id="username"
@@ -66,8 +66,13 @@ export function displayConnectionFormular() {
       .getElementById("loginForm")
       .addEventListener("submit", function (event) {
         event.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+        const usernameRaw = document.getElementById("username").value;
+        const passwordRaw = document.getElementById("password").value;
+        
+        // Sanitize inputs
+        const username = sanitizeAdvanced(usernameRaw);
+        const password = passwordRaw; // Don't sanitize passwords as they might contain special chars
+        
         getToken(username, password);
       });
 
@@ -104,7 +109,7 @@ export function displayRegistrationForm() {
         <h2 class="text-center mb-5 text-primary" style="font-size: 2.5rem;">${i18next.t('register.createAccount')}</h2>
         <form id="signupForm">
           <div class="form-group mb-4">
-            <label for="newUsername" class="h5"><i class="bi bi-person"></i> ${i18next.t('register.username')}</label>
+            <label for="newUsername" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> ${i18next.t('register.username')}</label>
             <input
               type="text"
               id="newUsername"
@@ -114,7 +119,7 @@ export function displayRegistrationForm() {
             />
           </div>
           <div class="form-group mb-5">
-            <label for="newPassword" class="h5"><i class="bi bi-lock"></i>${i18next.t('register.password')}</label>
+            <label for="newPassword" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-lock"></i> ${i18next.t('register.password')}</label>
             <input
               type="password"
               id="newPassword"
@@ -132,13 +137,15 @@ export function displayRegistrationForm() {
           </div>
           <button
             type="submit"
-            class="btn btn-success w-100 py-3 h5">
+            class="btn btn-success w-100 py-3 h5"
+            style="font-size: 1.3rem;">
             ${i18next.t('register.createAccount')}
           </button>
         </form>
         <button
           id="backToLoginButton"
-          class="btn btn-primary w-100 mt-4 py-3 h5">
+          class="btn btn-primary w-100 mt-4 py-3 h5"
+          style="font-size: 1.3rem;">
           ${i18next.t('register.backToLogin')}
         </button>
       </div>
@@ -150,10 +157,14 @@ export function displayRegistrationForm() {
     .addEventListener("submit", function (event) {
       event.preventDefault();
       logger.log('Form submitted, checking privacyPolicyAccepted...');
-      const newUsername = document.getElementById("newUsername").value;
-      const newPassword = document.getElementById("newPassword").value;
+      const newUsernameRaw = document.getElementById("newUsername").value;
+      const newPasswordRaw = document.getElementById("newPassword").value;
       const privacyPolicyAccepted = document.getElementById("privacyPolicyAccepted").checked;
-
+      
+      // Sanitize inputs
+      const newUsername = sanitizeAdvanced(newUsernameRaw);
+      const newPassword = newPasswordRaw; // we don't sanitize passwords as they might contain special chars
+      
       if (!privacyPolicyAccepted) {
         logger.log('Attempting to display modal...');
         showModal(

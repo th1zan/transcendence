@@ -1,9 +1,6 @@
 import {showModal, navigateTo, logger } from './app.js';
 import {showModalConfirmation } from './auth.js';
-
-// TODO: error message when user is already in friend list (now Friend request sent to 123 even if 123 is already a friend )
-// prevent sending friend request to the user himself
-
+import { sanitizeAdvanced, sanitizeHTML } from './utils.js';
 
 export function displayFriends() {
   // Vide tous les conteneurs
@@ -16,13 +13,12 @@ export function displayFriends() {
     <div class="container mt-4">
       <div class="row g-4">
         <!-- Colonne 1 : Carte pour envoyer une demande d'ami -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-5">
           <div class="card shadow-sm bg-transparent" style="border-radius: 8px;">
             <div class="card-body text-center">
               <h5 class="card-title mb-3" >${i18next.t('friends.sendFriendRequest')}</h5>
               <div class="form-group mt-2">
-                <label for="friendUsername" class="form-label" >${i18next.t('friends.username')}</label>
-                <input type="text" id="friendUsername" style="border: 2px solid #007bff;" placeholder="${i18next.t('friends.username')}" class="form-control bg-transparent" required >
+                <input type="text" id="friendUsername" placeholder="${i18next.t('friends.enterFriendUsername')}" class="form-control bg-transparent" required >
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
                   ${i18next.t('friends.sendRequest')}
                 </button>
@@ -60,15 +56,15 @@ export function displayFriends() {
   `;
 
   document.getElementById("sendFriendRequestButton").addEventListener("click", () => {
-    const friendUsername = document.getElementById("friendUsername").value.trim();
-    if (friendUsername) {
-      sendFriendRequest(friendUsername);
+    const friendUsernameRaw = document.getElementById("friendUsername").value.trim();
+    if (friendUsernameRaw) {
+      sendFriendRequest(friendUsernameRaw);
     } else {
       // Remplacer une éventuelle alert par oneButtonModal
       showModal(
         i18next.t('friends.warning'),
         i18next.t('friends.enterUsername'),
-        'OK', // Texte du bouton
+        i18next.t('modal.ok'),
         () => {} // Action vide, juste fermer la modale
       );
     }
@@ -79,83 +75,114 @@ export function displayFriends() {
 }
 
 
-export function sendFriendRequest(friendUsername) {
+export function sendFriendRequest(friendUsernameRaw) {
     const loggedInUsername = localStorage.getItem("username");
+    
+    // Sanitize input
+    const friendUsername = sanitizeAdvanced(friendUsernameRaw);
 
     if (friendUsername === loggedInUsername) {
         showModal(
             i18next.t('friends.warning'),
             i18next.t('friends.cannotAddSelf'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {}
         );
         return;
     }
     
-    // Fetch the current friends list before sending the request
-    fetch("/api/friends/list/", {
+    // fetch pending requests to check if there's already a pending request with this user
+    fetch("/api/friends/requests/", {
         method: "GET",
         credentials: "include",
     })
     .then((response) => response.json())
-    .then((friendsData) => {
-        // Check if the user is already in the friend list
-        const isAlreadyFriend = friendsData.friends.some(friend => friend.username === friendUsername);
-        if (isAlreadyFriend) {
+    .then((requestsData) => {
+        // Check if there's a pending request from/to this username
+        const isPendingRequest = requestsData.requests.some(request => request.sender === friendUsername);
+        
+        if (isPendingRequest) {
             showModal(
                 i18next.t('friends.warning'),
-                i18next.t('friends.alreadyFriend', { username: friendUsername }),
-                'OK',
+                i18next.t('friends.pendingRequestExists', { username: friendUsername }) || `A friend request with ${friendUsername} is already pending.`,
+                i18next.t('modal.ok'),
                 () => {
                   navigateTo('friends');
                 }
             );
             return;
         }
-
-        // If checks pass, send the friend request
-        fetch("/api/friends/send-request/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ username: friendUsername }),
+        
+        // If no pending request, check current friends
+        fetch("/api/friends/list/", {
+            method: "GET",
+            credentials: "include",
         })
         .then((response) => response.json())
-        .then((data) => {
-            if (data.error) {
+        .then((friendsData) => {
+            // Check if the user is already in the friend list
+            const isAlreadyFriend = friendsData.friends.some(friend => friend.username === friendUsername);
+            if (isAlreadyFriend) {
+                showModal(
+                    i18next.t('friends.warning'),
+                    i18next.t('friends.alreadyFriend', { username: friendUsername }),
+                    i18next.t('modal.ok'),
+                    () => {
+                      navigateTo('friends');
+                    }
+                );
+                return;
+            }
+
+            // If checks pass, send the friend request
+            fetch("/api/friends/send-request/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ username: friendUsername }),
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.error) {
+                    showModal(
+                        i18next.t('friends.error'),
+                        i18next.t('friends.errorPrefix') + data.error,
+                        i18next.t('modal.ok'),
+                        () => {
+                          navigateTo('friends');
+                        }
+                    );
+                } else {
+                    showModal(
+                        i18next.t('friends.success'),
+                        i18next.t('friends.requestSent', { username: friendUsername }),
+                        i18next.t('modal.ok'),
+                        () => {
+                          navigateTo('friends');
+                        }
+                    );
+                }
+            })
+            .catch((error) => {
+                logger.error("Error sending friend request:", error);
                 showModal(
                     i18next.t('friends.error'),
-                    i18next.t('friends.errorPrefix') + data.error,
-                    'OK',
+                    i18next.t('friends.errorOccurred'),
+                    i18next.t('modal.ok'),
                     () => {
                       navigateTo('friends');
                     }
                 );
-            } else {
-                showModal(
-                    i18next.t('friends.success'),
-                    i18next.t('friends.requestSent', { username: friendUsername }),
-                    'OK',
-                    () => {
-                      navigateTo('friends');
-                    }
-                );
-                // showModal(
-                // 	'Success',
-                // 	data.message,
-                // 	'OK',
-                // 	() => {}
-                // );
-            }
+            });
         })
         .catch((error) => {
-            logger.error("Error sending friend request:", error);
+            logger.error("Error fetching friend list:", error);
             showModal(
                 i18next.t('friends.error'),
-                i18next.t('friends.errorOccurred'),
-                'OK',
+                i18next.t('friends.errorCheckingStatus'),
+                i18next.t('modal.ok'),
                 () => {
                   navigateTo('friends');
                 }
@@ -163,11 +190,11 @@ export function sendFriendRequest(friendUsername) {
         });
     })
     .catch((error) => {
-        logger.error("Error fetching friend list:", error);
+        logger.error("Error fetching pending requests:", error);
         showModal(
             i18next.t('friends.error'),
-            i18next.t('friends.errorCheckingStatus'),
-            'OK',
+            i18next.t('friends.errorCheckingRequests') || "Error checking pending friend requests.",
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -191,7 +218,7 @@ export function respondToFriendRequest(friendUsername, action) {
           showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorPrefix') + data.error,
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -200,7 +227,7 @@ export function respondToFriendRequest(friendUsername, action) {
           showModal(
             i18next.t('friends.success'),
             data.message,
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               fetchFriendRequests();
               fetchFriends();
@@ -214,7 +241,7 @@ export function respondToFriendRequest(friendUsername, action) {
         showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorOccurred'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -243,7 +270,7 @@ export function removeFriend(friendUsername) {
             showModal(
               i18next.t('friends.error'),
               i18next.t('friends.errorPrefix') + data.error,
-              'OK',
+              i18next.t('modal.ok'),
               () => {
                 navigateTo('friends');
               }
@@ -252,7 +279,7 @@ export function removeFriend(friendUsername) {
             showModal(
               i18next.t('friends.success'),
               data.message,
-              'OK',
+              i18next.t('modal.ok'),
               () => {
                 fetchFriends();
                 navigateTo('friends');
@@ -265,7 +292,7 @@ export function removeFriend(friendUsername) {
           showModal(
             i18next.t('friends.error'),
             i18next.t('friends.errorOccurred'),
-            'OK',
+            i18next.t('modal.ok'),
             () => {
               navigateTo('friends');
             }
@@ -379,31 +406,3 @@ export function fetchFriends() {
     })
 	.catch((error) => logger.error("Error fetching friends:", error));
 }
-
-// const ws = new WebSocket("wss://127.0.0.1:8000/ws/notifications/");
-
-// ws.onmessage = (event) => {
-//   const data = JSON.parse(event.data);
-  
-//   if (data.notification_type === "friend_request") {
-//     showModal(
-//       'Notification',
-//       "🔔 Friend Request: " + data.message,
-//       'OK',
-//       () => {
-//         fetchFriendRequests(); // Refresh friend requests dynamically
-//       }
-//     );
-//   } else {
-//     showModal(
-//       'Notification',
-//       "🔔 Notification: " + data.message,
-//       'OK',
-//       () => {}
-//     );
-//   }
-// };
-
-// ws.onerror = (error) => {
-//   logger.error("WebSocket error:", error);
-// };

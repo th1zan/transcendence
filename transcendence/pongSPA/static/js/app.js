@@ -1,7 +1,7 @@
 import { displayWelcomePage } from "./welcome.js";
 import { gameInterval, stopGameProcess, removeGameListeners } from "./pong.js";
 import { displayStats } from "./stats.js";
-import { displayTournament } from "./tournament.js";
+import { displayTournament, resetAppMainLock } from "./tournament.js";
 import { validateToken } from "./auth.js";
 import { displayFriends } from "./friends.js";
 import { displaySettings } from "./settings.js";
@@ -11,6 +11,7 @@ import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayMenu } from "./menu.js";
 import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
+
 //'true' to display logs, 'false' for production
 const DEBUG = true;
 
@@ -18,7 +19,7 @@ document.getElementById("lang-en").addEventListener("click", () => changeLanguag
 document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
 
 i18next.use(i18nextHttpBackend).init({
-  lng: "en",
+  lng: localStorage.getItem('language') || "en",
   fallbackLng: "en",
   backend: {
     loadPath: "/static/locales/{{lng}}/translation.json"
@@ -26,21 +27,63 @@ i18next.use(i18nextHttpBackend).init({
 })
 .then(() => {
   console.log("i18next ready!");
-    const currentRoute = window.location.hash.replace('#', '') || 'welcome';
-    handleRouteChange(currentRoute);
+  logger.log('Language loaded from localStorage:', i18next.language);
+  
+  try {
+    updateLanguageButtons();
+  } catch (e) {
+    console.error("Error updating language buttons:", e);
+  }
+
+  const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+  handleRouteChange(currentRoute);
 });
 
 export function changeLanguage(lang) {
   i18next.changeLanguage(lang, (err) => {
-     if (err) {
-      console.error("Error changing language :", err);
-      } else {
-        logger.log('Language changed to', lang);
-        loadPrivacyPolicyModal();
-        const currentRoute = window.location.hash.replace('#', '') || 'welcome';
-        handleRouteChange(currentRoute);
+    if (err) {
+      console.error("Error changing language:", err);
+    } else {
+      localStorage.setItem('language', lang);
+      logger.log('Language changed to', lang, 'and saved to localStorage');
+      
+      try {
+        updateLanguageButtons();
+      } catch (e) {
+        console.error("Error updating language buttons:", e);
       }
+      
+      loadPrivacyPolicyModal();
+      const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+      handleRouteChange(currentRoute);
+    }
   });
+}
+
+function updateLanguageButtons() {
+  const enButton = document.getElementById("lang-en");
+  const frButton = document.getElementById("lang-fr");
+  
+  if (!enButton || !frButton) {
+    logger.warn("Language buttons not found in the DOM");
+    return;
+  }
+  
+  if (i18next.language === "fr") {
+    enButton.classList.remove("btn-primary");
+    enButton.classList.add("btn-outline-primary");
+    
+    frButton.classList.remove("btn-outline-primary");
+    frButton.classList.add("btn-primary");
+  } else {
+    enButton.classList.remove("btn-outline-primary");
+    enButton.classList.add("btn-primary");
+    
+    frButton.classList.remove("btn-primary");
+    frButton.classList.add("btn-outline-primary");
+  }
+  
+  logger.log('Language buttons updated, active language:', i18next.language);
 }
 
 export const logger = {
@@ -63,89 +106,75 @@ export const logger = {
 let isUserLoggedIn = false;
 
 document.addEventListener("DOMContentLoaded", () => {
+    logger.log('Cookies at DOM load:', document.cookie);
 
-  logger.log('Cookies at DOM load:', document.cookie);
+    document.cookie.split(";").forEach((c) => {
+        logger.log('clear the cookies');
+        document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
 
-  //when the DOM is loaded, this event is triggered and it will:
+    loadPrivacyPolicyModal();
 
-  //  0. Clear all cookies
-  //
-  //  COMMENTED FOR DEBUGIN
-  document.cookie.split(";").forEach((c) => {
-    logger.log('clear the cookies');
-    document.cookie = c
-      .replace(/^ +/, "")
-      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  });
+    let initialRoute = window.location.hash.replace('#', '') || 'login';
+    logger.log('Initial route determined:', initialRoute);
 
-  loadPrivacyPolicyModal();
+    let isUserLoggedIn = false;
 
-  // 1. Determine the initial route based on the URL hash
-  let initialRoute = window.location.hash.replace('#', '') || 'login';
-  logger.log('Initial route determined:', initialRoute);
+    validateToken().then((isTokenValid) => {
+        logger.log('validateToken resolved with:', isTokenValid);
+        isUserLoggedIn = isTokenValid;
+        if (isUserLoggedIn) {
+            logger.log('User is logged in based on cookies');
+        } else {
+            logger.log('User is not logged in');
+        }
 
-  //Global variable for the "logged" status
-  let isUserLoggedIn = false;
+        if (isUserLoggedIn && initialRoute === 'login') {
+            logger.log('User logged in but on login page, redirecting to welcome');
+            initialRoute = 'welcome';
+            history.replaceState({ page: 'welcome' }, ' ', '#welcome');
+        } else if (!isUserLoggedIn && initialRoute !== 'login') {
+            logger.log('User not logged in but not on login page, redirecting to login');
+            initialRoute = 'login';
+            history.replaceState({ page: 'login' }, 'Login', '#login');
+        }
 
-  // 2. Check if the user is logged in
-  validateToken().then((isTokenValid) => {
-    logger.log('validateToken resolved with:', isTokenValid);
-    isUserLoggedIn = isTokenValid;
-    if (isUserLoggedIn) {
-      logger.log('User is logged in based on cookies');
-    } else {
-      logger.log('User is not logged in');
-    }
+        logger.log('Calling handleRouteChange with route:', initialRoute);
+        handleRouteChange(initialRoute);
+    }).catch((error) => {
+        logger.error('Error checking user login status:', error);
+        handleRouteChange('login');
+    });
 
-    // 3. Set initial state based on login status and initial route
-    if (isUserLoggedIn && initialRoute === 'login') {
-      logger.log('User logged in but on login page, redirecting to welcome');
-      initialRoute = 'welcome';
-      history.replaceState({ page: 'welcome' }, ' ', '#welcome');
-    } else if (!isUserLoggedIn && initialRoute !== 'login') {
-      logger.log('User not logged in but not on login page, redirecting to login');
-      initialRoute = 'login';
-      history.replaceState({ page: 'login' }, 'Login', '#login');
-    }
+    setInterval(async () => {
+        logger.log('Refreshing token via interval...');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+            logger.warn('Interval refresh failed, consider re-authenticating.');
+            showModal(
+                i18next.t('app.warning'),
+                i18next.t('app.sessionExpired'),
+                'OK',
+                () => navigateTo('login')
+            );
+        }
+    }, 4 * 60 * 1000);
 
-    // 4. Handle the initial route
-    logger.log('Calling handleRouteChange with route:', initialRoute);
-    handleRouteChange(initialRoute);
-  }).catch((error) => {
-    logger.error('Error checking user login status:', error);
-    logger.log('User is not logged in due to an error');
-    handleRouteChange('login');
-  });
+    window.addEventListener("popstate", function (event) {
+        let route = event.state ? event.state.page : window.location.hash.replace('#', '') || 'welcome';
+        logger.log('Navigating to route:', route);
+        handleRouteChange(route);
+    });
 
-  // 5. Plan the refreshing interval for the authentication Token
-  logger.log('Setting up token refresh interval');
-  setInterval(async () => {
-  logger.log('Refreshing token via interval...');
-  const refreshed = await refreshToken();
-  if (!refreshed) {
-      logger.warn('Interval refresh failed, consider re-authenticating.');
-      showModal(
-        i18next.t('app.warning'),
-        i18next.t('app.sessionExpired'),
-        'OK',
-        () => navigateTo('login')
-      );
-    }
-  }, 4 * 60 * 1000); // token is refreshed every 4 minutes
-
-  // 5. Listener for history changes
-  window.addEventListener("popstate", function (event) {
-    logger.log('Popstate event triggered. Current state:', event.state);
-    let route;
-    if (event.state) {
-      route = event.state.page;
-    } else {
-      route = window.location.hash.replace('#', '') || 'welcome';
-    }
-    logger.log('Navigating to route:', route);
-    logger.log('Custom History:', customHistory);
-    handleRouteChange(route);
-  });
+    // Ajout pour gérer la déconnexion à la fermeture de la page
+    window.addEventListener('beforeunload', () => {
+        if (isUserLoggedIn) {
+            navigator.sendBeacon('/api/auth/logout/', JSON.stringify({}));
+            logger.log('Sent logout beacon on page close');
+        }
+    });
 });
 
 // variable to store history
@@ -170,7 +199,9 @@ export function navigateTo(route) {
 
   // delete the lister used to play (mouse, AWSD, arrows)
   removeGameListeners();
-
+  // be sur app_main is unlocked
+  resetAppMainLock();
+  
   history.pushState({ page: route }, '', `#${route}`);
   logger.log('pushstate: ', history.state);
   addToCustomHistory(route);
@@ -310,78 +341,66 @@ export function showModal(title, message, actionText, actionCallback, focusEleme
   const modalId = 'oneButtonModal';
   const modalElement = document.getElementById(modalId);
   if (!modalElement) {
-    logger.error(`Modal element with ID ${modalId} not found`);
+    logger.error(`Modal element with ID ${modalId} not found. Ensure it exists in index.html.`);
     return;
   }
 
+  // Nettoyer tout backdrop existant avant d’ouvrir
+  const existingBackdrop = document.querySelector('.modal-backdrop');
+  if (existingBackdrop) {
+    existingBackdrop.remove();
+    logger.log("Pre-existing backdrop removed before showing modal");
+  }
+
   const modal = new bootstrap.Modal(modalElement, {
-    backdrop: 'static', // stop closing if clicking outside the modal
-    keyboard: false     // stop closing with escape
+    backdrop: 'static',
+    keyboard: false
   });
 
-  // Modal title
   const titleElement = document.getElementById(`${modalId}Label`);
-  if (titleElement) {
-    titleElement.textContent = title;
-  } else {
-    logger.error(`Title element for ${modalId}Label not found`);
-  }
+  if (titleElement) titleElement.textContent = title;
+  else logger.error(`Title element ${modalId}Label not found`);
 
-  // Message
   const bodyElement = document.getElementById(`${modalId}Body`);
-  if (bodyElement) {
-    bodyElement.textContent = message;
-  } else {
-    logger.error(`Modal body element not found for ${modalId}`);
-  }
+  if (bodyElement) bodyElement.textContent = message;
+  else logger.error(`Body element ${modalId}Body not found`);
 
-  // Action button
   const actionButton = document.getElementById(`${modalId}Action`);
   if (actionButton) {
     actionButton.textContent = actionText || i18next.t('app.close');
-
-    // Supprimer l’ancien listener s’il existe
     if (actionButton._handler) {
       actionButton.removeEventListener('click', actionButton._handler);
     }
-
-    // Définir le nouveau handler
     const handler = function () {
-      if (actionCallback) {
-        actionCallback();
-      }
+      if (actionCallback) actionCallback();
       modal.hide();
 
-      // Gestion du focus après fermeture
+      // Nettoyer le backdrop après fermeture
       setTimeout(() => {
-        let focusTarget = null;
-
-        if (focusElementId) {
-          focusTarget = document.getElementById(focusElementId);
-          if (focusTarget) {
-            focusTarget.focus();
-            logger.log(`Focus restored on ${focusElementId}`);
-            return;
-          } else {
-            logger.warn(`Specified element ${focusElementId} not found for focus`);
-          }
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+          backdrop.remove();
+          logger.log("Backdrop manually removed after hide");
+        } else {
+          logger.log("No backdrop found after hide");
         }
 
-        document.activeElement.blur();
-        logger.log("Focus removed after modal closed");
-      }, 50);
+        let focusTarget = focusElementId ? document.getElementById(focusElementId) : null;
+        if (focusTarget) {
+          focusTarget.focus();
+          logger.log(`Focus restored on ${focusElementId}`);
+        } else {
+          document.activeElement.blur();
+          logger.log("Focus removed after modal closed");
+        }
+      }, 300);
     };
-
-    // Ajouter le listener et stocker sa référence
     actionButton.addEventListener('click', handler);
-    actionButton._handler = handler; // Stocker le handler pour suppression future
+    actionButton._handler = handler;
+    actionButton.focus();
   } else {
-    logger.error(`Action button for ${modalId}Action not found`);
+    logger.error(`Action button ${modalId}Action not found`);
   }
 
-  // Afficher la modale et focaliser le bouton
   modal.show();
-  if (actionButton) {
-    actionButton.focus();
-  }
 }
