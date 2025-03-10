@@ -82,6 +82,8 @@
         "errorLoadingRanking": "Error loading ranking",
         "points": "Points",
         "players": "Players",
+        "rank": "Rank",
+        "player": "Player",
         "pointsScored": "Points Scored"
     },
     "app": {

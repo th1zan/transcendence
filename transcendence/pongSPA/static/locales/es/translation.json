@@ -82,6 +82,8 @@
         "errorLoadingRanking": "Error al cargar la clasificación",
         "points": "Puntos",
         "players": "Jugadores",
+        "rank": "Rango",
+        "player": "Jugadores",
         "pointsScored": "Puntos anotados"
     },
     "app": {
