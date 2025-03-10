@@ -1,10 +1,19 @@
-server.name: "kibana"
-server.host: "kibana"
-server.ssl.enabled: true
-server.ssl.certificate: config/certs/ca/ca.crt
-server.ssl.key: config/certs/ca/ca.key
+# Configuration du serveur
+server:
+  name: "kibana"
+  host: "kibana"
+  ssl:
+    enabled: true
+    certificate: config/certs/ca/ca.crt
+    key: config/certs/ca/ca.key
+
+# Configuration Elasticsearch
+elasticsearch:
+  hosts: ["https://elasticsearch:9200"]
+  username: "kibana_system"
+  password: "${KIBANA_PASSWORD}"
+  ssl:
+    certificateAuthorities: ["config/certs/ca/ca.crt"]
+
+# Configuration du monitoring
 monitoring.ui.container.elasticsearch.enabled: true
-elasticsearch.hosts: ["https://elasticsearch:9200"]
-elasticsearch.username: "kibana_system"
-elasticsearch.password: "${KIBANA_PASSWORD}"
-elasticsearch.ssl.certificateAuthorities: ["config/certs/ca/ca.crt"]
