@@ -22,7 +22,8 @@
         "privacyPolicy": "Politique de Confidentialité",
         "backToLogin": "Retour à la connexion",
         "privacyRequired": "Politique de Confidentialité requise",
-        "mustAcceptPolicy": "Vous devez accepter la politique de confidentialité pour vous inscrire."
+        "mustAcceptPolicy": "Vous devez accepter la politique de confidentialité pour vous inscrire.",
+        "allRightsReserved": "© 2025 PONG - Tous droits réservés"
     },
     "menu": {
         "profilePicture": "Photo de profil",

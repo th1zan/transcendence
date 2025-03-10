@@ -22,7 +22,8 @@
         "privacyPolicy": "Política de privacidad",
         "backToLogin": "Volver al inicio de sesión",
         "privacyRequired": "Política de privacidad requerida",
-        "mustAcceptPolicy": "Debes aceptar la Política de privacidad para registrarte."
+        "mustAcceptPolicy": "Debes aceptar la Política de privacidad para registrarte.",
+        "allRightsReserved": "© 2025 PONG - Todos los derechos reservados"
     },
     "menu": {
         "profilePicture": "Foto de perfil",
@@ -437,7 +438,7 @@
         "phoneTooLong": "El número de teléfono es demasiado largo. Se permiten máximo 15 caracteres.",
         "usernameTooLong": "El nombre de usuario es demasiado largo. Se permiten máximo 255 caracteres.",
         "phoneNumber": "Número de teléfono",
-        "clear": "Limpiar",
+        "clear": "Borrar",
         "saveChanges": "Guardar cambios",
         "changePassword": "Cambiar contraseña",
         "currentPassword": "Contraseña actual",

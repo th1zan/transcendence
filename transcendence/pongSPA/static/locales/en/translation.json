@@ -22,7 +22,8 @@
         "privacyPolicy": "Privacy Policy",
         "backToLogin": "Back to Login",
         "privacyRequired": "Privacy Policy Required",
-        "mustAcceptPolicy": "You must accept the Privacy Policy to register."
+        "mustAcceptPolicy": "You must accept the Privacy Policy to register.",
+        "allRightsReserved": "© 2025 PONG - All rights reserved"
     },
     "menu": {
         "profilePicture": "Profile picture",

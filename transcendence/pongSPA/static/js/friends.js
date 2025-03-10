@@ -144,16 +144,16 @@ export function sendFriendRequest(friendUsernameRaw) {
             })
             .then((response) => response.json())
             .then((data) => {
-                if (data.error) {
-                    showModal(
-                        i18next.t('friends.error'),
-                        i18next.t('friends.errorPrefix') + data.error,
-                        i18next.t('modal.ok'),
-                        () => {
-                          navigateTo('friends');
-                        }
-                    );
-                } else {
+            if (data.error) {
+              showModal(
+                  i18next.t('friends.error'),
+                  i18next.t(data.error) ,
+                  i18next.t('modal.ok'),
+                  () => {
+                    navigateTo('friends');
+                  }
+              );
+          } else {
                     showModal(
                         i18next.t('friends.success'),
                         i18next.t('friends.requestSent', { username: friendUsername }),
