@@ -12,8 +12,7 @@ export function displayConnectionFormular() {
     const appDiv = document.getElementById("app_main");  appDiv.innerHTML = `
       <div class="d-flex justify-content-center align-items-center mx-auto" style="min-height: 75vh;">
         <div class="card p-5 shadow-lg" style="width: 30rem; border-radius: 20px;">
-          <h2 class="text-center mb-5" style="font-size: 2.5rem; color: #007bff;">${i18next.t('login.welcomeBack')}</h2>
-          <form id="loginForm">
+            <h2 class="text-center mb-5 text-primary fs-3 fs-sm-2 fs-md-1 fw-bold text-break">${i18next.t('login.welcomeBack')}</h2>          <form id="loginForm">
             <div class="form-group mb-4">
               <label for="username" style="font-size: 1.3rem; font-family: 'Press Start 2P', cursive; font-size: 15px;"><i class="bi bi-person"></i> ${i18next.t('login.username')}</label>
               <input
@@ -71,7 +70,7 @@ export function displayConnectionFormular() {
         
         // Sanitize inputs
         const username = sanitizeAdvanced(usernameRaw);
-        const password = passwordRaw; // Don't sanitize passwords as they might contain special chars
+        const password = passwordRaw;
         
         getToken(username, password);
       });

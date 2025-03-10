@@ -9,3 +9,5 @@ Pillow==10.4.0
 djangorestframework-simplejwt==5.3.1
 django-filter==24.3
 whitenoise==6.8.2
+django-crontab==0.7.1
+psycopg2-binary==2.9.9

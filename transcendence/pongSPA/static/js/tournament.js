@@ -1,10 +1,60 @@
 import { showModalConfirmation } from "./auth.js";
 import { startGameSetup } from "./pong.js";
 import {showModal, logger, navigateTo} from "./app.js";
+import { isMobileDevice } from "./gameForm.js";
 
 //menu to display the tournament feature 
-export function displayTournament() {
 
+export function resetAppMainLock() {
+  const appMain = document.getElementById("app_main");
+  if (appMain) {
+    appMain.style.pointerEvents = "auto"; // Réactiver les interactions
+    const existingOverlay = document.getElementById("organizer-overlay");
+    if (existingOverlay) {
+      existingOverlay.remove(); // Supprimer le voile
+    }
+  }
+}
+
+export function displayTournament() {
+  resetAppMainLock();
+  
+  if (isMobileDevice()) {
+    // Vider tous les conteneurs
+    document.getElementById('app_top').innerHTML = '';
+    document.getElementById('app_main').innerHTML = '';
+    document.getElementById('app_bottom').innerHTML = '';
+    
+    // Afficher le message d'erreur dans app_main
+    const appMain = document.getElementById("app_main");
+    appMain.innerHTML = `
+      <div class="container py-5">
+        <div class="card border-warning shadow">
+          <div class="card-header bg-warning text-dark">
+            <h3 class="text-center mb-0">
+              <i class="bi bi-exclamation-triangle me-2"></i>${i18next.t('tournament.mobileNotSupported')}
+            </h3>
+          </div>
+          <div class="card-body text-center">
+            <p class="lead mb-4">${i18next.t('tournament.pleaseUseBrowser')}</p>
+            <div class="mt-4">
+              <button class="btn btn-primary" onclick="navigateTo('welcome')">
+                ${i18next.t('tournament.backToWelcomePage')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Ajouter écouteur d'événement pour le bouton de retour
+    const backButton = appMain.querySelector('.btn-primary');
+    if (backButton) {
+      backButton.addEventListener('click', () => navigateTo('welcome'));
+    }
+    
+    return; // Sortir de la fonction pour ne pas exécuter le reste du code
+  }
   document.getElementById('app_bottom').innerHTML = '';
   logger.log('Tournament');
 
@@ -72,66 +122,87 @@ export function displayTournament() {
   displayUserTournaments();
 }
 
-//authenticate a registred user in a tournament
 function authenticateNow(playerName, tournamentId) {
-  // Bootstrap modal for login
-  const modalHTML = `
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">${i18next.t('tournament.loginToAuth')}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="loginForm">
-              <div class="form-group">
-                <label for="username">${i18next.t('tournament.username')}</label>
-                <input type="text" class="form-control" id="username" placeholder="${i18next.t('tournament.enterUsername')}" required>
-              </div>
-              <div class="form-group">
-                <label for="password">${i18next.t('tournament.password')}</label>
-                <input type="password" class="form-control" id="password" placeholder="${i18next.t('tournament.enterPassword')}" required>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18next.t('tournament.close')}</button>
-            <button type="button" class="btn btn-primary" id="submitLogin">${i18next.t('tournament.login')}</button>
+  return new Promise((resolve, reject) => {
+    // Bootstrap modal for login
+    const modalHTML = `
+      <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">${i18next.t('tournament.loginToAuth')}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="loginForm">
+                <div class="form-group">
+                  <label for="username">${i18next.t('tournament.username')}</label>
+                  <input type="text" class="form-control" id="username" placeholder="${i18next.t('tournament.enterUsername')}" required>
+                </div>
+                <div class="form-group">
+                  <label for="password">${i18next.t('tournament.password')}</label>
+                  <input type="password" class="form-control" id="password" placeholder="${i18next.t('tournament.enterPassword')}" required>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${i18next.t('tournament.close')}</button>
+              <button type="button" class="btn btn-primary" id="submitLogin">${i18next.t('tournament.login')}</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  //append modal to body
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Append modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-  // show modal using Bootstrap
-  const loginModal = document.getElementById('loginModal');
-  const modalBootstrap = new bootstrap.Modal(loginModal);
-  modalBootstrap.show();
+    // Show modal using Bootstrap
+    const loginModal = document.getElementById('loginModal');
+    const modalBootstrap = new bootstrap.Modal(loginModal);
+    modalBootstrap.show();
 
-  //formular for authentificaton
-  document.getElementById('submitLogin').addEventListener('click', function() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    // Form submission for authentication
+    document.getElementById('submitLogin').addEventListener('click', async function () {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-    authenticatePlayer(username, password, playerName, tournamentId)
-      .then(() => {
-        updatePlayerStatusUI(playerName);
-        // Hide modal manually 
+      try {
+        const authResult = await authenticatePlayer(username, password, playerName, tournamentId);
+
+        if (authResult.success) {
+          updatePlayerStatusUI(playerName);
+          modalBootstrap.hide();
+          loginModal.remove();
+          resolve(true); // Succès
+        }
+      } catch (error) {
+        // Gestion des erreurs
+        let errorMessage;
+        if (error.message === 'badCredentials') {
+          errorMessage = i18next.t('auth.badCredentials');
+        } else {
+          errorMessage = `${i18next.t('tournament.errorTitle')}: ${error.message || 'Erreur inattendue'}`;
+        }
+
+        showModal(
+          i18next.t('tournament.errorTitle'),
+          errorMessage,
+          'OK',
+          () => {}
+        );
         modalBootstrap.hide();
-        // Remove modal from DOM
         loginModal.remove();
-      })
-      .catch(error => logger.error("Error during authentication:", error));
+        resolve(false); // Échec
+        logger.error("Error during authentication:", error);
+      }
+    });
   });
 }
 
-//ask the API
+// Ask the API
 async function authenticatePlayer(username, password, playerName, tournamentId) {
-  return fetch(`/api/auth/tournament-player/${tournamentId}/`, {
+  const response = await fetch(`/api/auth/tournament-player/${tournamentId}/`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -142,17 +213,21 @@ async function authenticatePlayer(username, password, playerName, tournamentId) 
       password: password,
       player_name: playerName
     }),
-  })
-  .then(response => {
-    if (!response.ok) throw new Error("Authentication error:" + response.status);
-    return response.json();
-  })
-  .then(data => {
-    if (data.message !== "Player authenticated successfully") {
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    if (data.message === "Player authenticated successfully") {
+      return { success: true, data: data };
+    } else {
       throw new Error("Authentication failed");
     }
-    return data;
-  });
+  } else if (response.status === 401) {
+    throw new Error("badCredentials"); // Erreur spécifique pour mauvais identifiants
+  } else {
+    const data = await response.json();
+    throw new Error(data.detail || `Authentication error: ${response.status}`);
+  }
 }
 
 //update the status of a player/user after authenticating for a tournament
@@ -175,21 +250,44 @@ function updatePlayerStatusUI(playerName) {
 }
 
 //when a Tournament is selected, display the games linked to the tournament and other stuff
-function displayTournamentGameList(data) {
+async function displayTournamentGameList(data) {
   document.getElementById('app_bottom').innerHTML = '';
 
-  const tournamentName = localStorage.getItem("tournamentName");
   const tournamentId = localStorage.getItem("tournamentId");
-  localStorage.setItem("isTournamentMatch", true);
-
-
+  const username = localStorage.getItem("username"); // Nom de l'utilisateur connecté
   const tournamentMatchesDiv = document.getElementById("tournamentMatches");
 
+  // Réinitialiser pointerEvents avant tout rendu
+  const appMain = document.getElementById("app_main");
+  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
+  // Supprimer l'overlay existant s'il existe
+  const existingOverlay = document.getElementById("organizer-overlay");
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+
+  // Vérifier si l'utilisateur est l'organisateur
+  let isOrganizer = false;
+  try {
+    const response = await fetch(`/api/tournament/${tournamentId}/`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    const tournamentData = await response.json();
+    logger.log("Tournament data:", tournamentData); // Ajout de log pour débogage
+    // Comparer le username de l'organisateur avec celui de l'utilisateur connecté
+    isOrganizer = tournamentData.organizer && tournamentData.organizer.username === username;
+  } catch (error) {
+    logger.error("Erreur lors de la vérification de l'organisateur:", error);
+  }
+
+  logger.log("isOrganizer:", isOrganizer); // Ajout de log pour débogage
+
+  // Récupérer et afficher les joueurs
   fetch(`/api/tournament/players/${tournamentId}/`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
   })
     .then(response => response.json())
     .then(playersData => {
@@ -214,10 +312,10 @@ function displayTournamentGameList(data) {
           (player.authenticated ? 
             `<span class="badge bg-success">${i18next.t('tournament.authenticated')}</span>` : 
             `<span class="badge bg-warning text-dark">${i18next.t('tournament.needsAuthentication')}</span>`);
-        let authButton = !player.guest && !player.authenticated ? 
+        let authButton = (!player.guest && !player.authenticated && isOrganizer) ? 
           `<button class="btn btn-success btn-sm auth-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.authenticateNow')}</button>` : '';
-        let removeButton = index === 0 ? '' : 
-          `<button class="btn btn-danger btn-sm remove-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.remove')}</button>`;
+        let removeButton = (index !== 0 && isOrganizer) ? 
+          `<button class="btn btn-danger btn-sm remove-button" data-player="${player.name}" data-tournament="${tournamentId}" style="font-family: 'Press Start 2P', cursive; font-size: 15px;">${i18next.t('tournament.remove')}</button>` : '';
 
         playersHTML += `
           <tr>
@@ -230,6 +328,7 @@ function displayTournamentGameList(data) {
 
       playersHTML += '</tbody></table></div></div>';
 
+      // Afficher les matchs
       let matchesHTML = `
         <div class="card border-primary border-1 mb-4">
           <div class="card-body">
@@ -257,7 +356,7 @@ function displayTournamentGameList(data) {
               `<span class="badge bg-warning text-dark">${i18next.t('tournament.inProgress')}</span>`);
           let actionButton = '';
 
-          if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0) {
+          if (!playButtonDisplayed && match.player1_sets_won === 0 && match.player2_sets_won === 0 && isOrganizer) {
             actionButton = `
               <button class="startGameButton btn btn-primary btn-sm"
                       data-player1="${match.player1_name}"
@@ -282,12 +381,131 @@ function displayTournamentGameList(data) {
 
         matchesHTML += '</tbody></table></div></div>';
 
-        tournamentMatchesDiv.innerHTML = `
+        // HTML final avec voile si non-organisateur
+        let finalHTML = `
           ${playersHTML}
           ${matchesHTML}
         `;
-        // Passer le tableau des matchs à displayTournamentRanking
+        tournamentMatchesDiv.innerHTML = finalHTML;
+
+        // Ajouter le classement
         displayTournamentRanking(data);
+
+        // Appliquer le voile et désactiver les interactions si non-organisateur
+        if (!isOrganizer) {
+          const overlay = document.createElement("div");
+          overlay.id = "organizer-overlay";
+          overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+          `;
+          overlay.innerHTML = `
+            <div class="text-center text-white bg-dark p-4 rounded" style="font-family: 'Press Start 2P', cursive; font-size: 18px;">
+              ${i18next.t('tournament.notOrganizerMsg', { username: username || 'Utilisateur' })}
+            </div>
+          `;
+          appMain.style.position = "relative";
+          appMain.appendChild(overlay);
+          appMain.style.pointerEvents = "none"; // Désactiver les clics sur app_main
+        } else {
+          // Réinitialiser explicitement si organisateur
+          appMain.style.pointerEvents = "auto";
+        }
+
+        // Ajouter les événements uniquement si organisateur
+        if (isOrganizer) {
+          document.querySelectorAll('.auth-button').forEach(button => {
+            button.addEventListener('click', function() {
+              const playerName = this.getAttribute('data-player');
+              authenticateNow(playerName, tournamentId);
+            });
+          });
+
+          document.querySelectorAll('.startGameButton').forEach(button => {
+            button.addEventListener('click', async event => {
+              const player1 = event.target.getAttribute('data-player1');
+              const player2 = event.target.getAttribute('data-player2');
+              const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
+              const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
+              const matchID = parseInt(event.target.getAttribute('data-match-id'));
+
+              try {
+                const response = await fetch(`/api/tournament/start-match/${matchID}/`, {
+                  method: "POST",
+                  credentials: "include",
+                  headers: { "Content-Type": "application/json" },
+                });
+
+                if (response.ok) {
+                  const data = await response.json();
+                  let gameSettings = {
+                    mode: "multiplayer",
+                    difficulty: "medium",
+                    design: "retro",
+                    numberOfGames: setsToWin,
+                    setsPerGame: pointsPerSet,
+                    player1: player1,
+                    player2: player2,
+                    control1: "wasd",
+                    control2: "arrows",
+                    isTournamentMatch: true,
+                  };
+                  localStorage.setItem("matchID", matchID);
+                  startGameSetup(gameSettings);
+                } else {
+                  // Si la réponse n'est pas OK, analyser l'erreur
+                  const errorData = await response.json();
+                  const errorMessage = errorData.error || "Unknown error";
+
+                  if (response.status === 400 && errorMessage.includes("is not authenticated")) {
+                    // Extraire le nom du joueur non authentifié depuis le message d'erreur
+                    showModal(
+                      i18next.t('tournament.errorTitle'), // Titre de la modale
+                      i18next.t('tournament.playerNotAuthenticated'), // Message avec le nom du joueur
+                      "OK", // Bouton de fermeture
+                      () => {
+                        // Optionnel : Ajouter une action, par exemple lancer authenticateNow
+                      }
+                    );
+                  } else {
+                    // Autres erreurs non liées à l'authentification
+                    showModal(
+                      i18next.t('tournament.errorTitle'),
+                      i18next.t('tournament.errorStartingMatch', { error: errorMessage }),
+                      "OK",
+                      () => {}
+                    );
+                  }
+                }
+              } catch (error) {
+                logger.error("Error during match start:", error);
+                showModal(
+                  i18next.t('tournament.errorTitle'),
+                  i18next.t('tournament.errorStartingMatch', { error: error.message }),
+                  "OK",
+                  () => {}
+                );
+              }
+            });
+          });
+
+          document.querySelectorAll('.remove-button').forEach(button => {
+            button.addEventListener('click', () => {
+              const playerName = button.getAttribute('data-player');
+              const tournamentId = button.getAttribute('data-tournament');
+              removePlayerFromTournament(tournamentId, playerName);
+            });
+          });
+        }
       } else {
         tournamentMatchesDiv.innerHTML = `
           ${playersHTML}
@@ -295,81 +513,8 @@ function displayTournamentGameList(data) {
              ${i18next.t('tournament.noMatchFound')}
           </div>
         `;
-        displayTournamentRanking(data); // Même ici, passer un tableau vide ou gérer différemment
+        displayTournamentRanking(data);
       }
-
-      document.querySelectorAll('.auth-button').forEach(button => {
-        button.addEventListener('click', function() {
-          const playerName = this.getAttribute('data-player');
-          authenticateNow(playerName, tournamentId);
-        });
-      });
-
-      document.querySelectorAll('.startGameButton').forEach(button => {
-        button.addEventListener('click', async event => {
-          const player1 = event.target.getAttribute('data-player1');
-          const player2 = event.target.getAttribute('data-player2');
-          const setsToWin = parseInt(event.target.getAttribute('data-sets-to-win'));
-          const pointsPerSet = parseInt(event.target.getAttribute('data-points-per-set'));
-          const matchID = parseInt(event.target.getAttribute('data-match-id'));
-
-          logger.log("Attempting to start match with ID: ", matchID);
-
-          try {
-            const response = await fetch(`/api/tournament/start-match/${matchID}/`, {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              if (response.status === 403) {
-                showModal(i18next.t('tournament.organizerRequiredTitle'), i18next.t('tournament.organizerRequiredMsg'), 'OK', () => {});
-              } else if (response.status === 400) {
-                showModal(i18next.t('tournament.authRequiredTitle'), errorData.error, 'OK', () => {});
-              } else if (response.status === 404) {
-                showModal(i18next.t('tournament.matchNotFoundTitle'), i18next.t('tournament.matchNotFoundMsg'), 'OK', () => {});
-              } else {
-                showModal(i18next.t('tournament.errorTitle'), i18next.t('tournament.errorMsg', { detail: errorData.error || 'Unknown error' }), 'OK', () => {});
-              }
-              return;
-            }
-
-            const data = await response.json();
-            logger.log("Match validated by backend:", data);
-
-            let gameSettings = {
-              mode: "multiplayer",
-              difficulty: "medium",
-              design: "retro",
-              numberOfGames: setsToWin,
-              setsPerGame: pointsPerSet,
-              player1: player1,
-              player2: player2,
-              control1: "wasd",
-              control2: "arrows",
-              isTournamentMatch: true,
-            };
-            localStorage.setItem("matchID", matchID);
-            startGameSetup(gameSettings);
-
-          } catch (error) {
-            logger.error("Error during match validation or start:", error);
-            showModal(i18next.t('tournament.networkErrorTitle'), i18next.t('tournament.networkErrorMsg'), 'OK', () => {});
-          }
-        });
-      });
-
-      document.querySelectorAll('.remove-button').forEach(button => {
-        button.addEventListener('click', () => {
-          const playerName = button.getAttribute('data-player');
-          const tournamentId = button.getAttribute('data-tournament');
-          removePlayerFromTournament(tournamentId, playerName);
-        });
-      });
     })
     .catch((error) => {
       logger.error("Error retrieving players:", error);
@@ -543,6 +688,8 @@ function calculateStandings(matches) {
 
 //display a list of Tournament's Games for a Tournament research based on Tournament ID
 export function DisplayTournamentGame() {
+   resetAppMainLock();
+
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
@@ -595,6 +742,7 @@ export function DisplayTournamentGame() {
 
 //create a Tournament form
 export function createTournamentForm() {
+  resetAppMainLock
   //empty all the containers
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -1049,19 +1197,17 @@ export function handleError(error, message) {
 
 
 export function selectTournament(tournamentId, tournamentName) {
-localStorage.setItem("tournamentId", tournamentId);
-localStorage.setItem("tournamentName", tournamentName);
-DisplayTournamentGame();
+  localStorage.setItem("tournamentId", tournamentId);
+  localStorage.setItem("tournamentName", tournamentName);
+  resetAppMainLock(); // Déverrouiller app_main
+  DisplayTournamentGame();
 }
 
 export function validateSearch() {
-  
+  resetAppMainLock
   document.getElementById('app_bottom').innerHTML = '';
 
-  let tournamentName;
-
-  //check the local storage first 
-  tournamentName = localStorage.getItem("tournamentName");
+  let tournamentName = localStorage.getItem("tournamentName");
 
   if (!tournamentName) {
     showModal(
@@ -1074,6 +1220,12 @@ export function validateSearch() {
   }
 
   const appMain = document.getElementById("app_main");
+  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
+  const existingOverlay = document.getElementById("organizer-overlay");
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+
   appMain.innerHTML = `
     <div class="container mt-4">
       <div class="card mb-4 shadow-sm border-primary border-1 bg-transparent">
@@ -1113,8 +1265,7 @@ export function validateSearch() {
     .then((response) => response.json())
     .then((data) => {
       const tournamentBody = document.getElementById("tournamentBody");
-      // Ensure data is an array before manipulating it
-      const tournaments = Array.isArray(data) ? data : [data]; // Convert single object to array or use as-is if already array
+      const tournaments = Array.isArray(data) ? data : [data];
 
       if (tournaments.length > 0) {
         tournaments.forEach((tournament) => {
@@ -1138,7 +1289,6 @@ export function validateSearch() {
           tournamentBody.appendChild(row);
         });
 
-        // Select button
         document.querySelectorAll('.selectTournamentButton').forEach(button => {
           button.addEventListener('click', event => {
             const tournamentId = event.target.getAttribute('data-id');

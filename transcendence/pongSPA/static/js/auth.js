@@ -311,39 +311,39 @@ export function update2FAStatus() {
 }
 
 export async function logout() {
-  const confirmed = await showModalConfirmation("Are you sure you want to log out?");
-  if (!confirmed) return;
-  try {
-    const response = await fetch("/api/auth/logout/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || i18next.t('auth.logoutRequestFailed'));
+    const confirmed = await showModalConfirmation("Are you sure you want to log out?");
+    if (!confirmed) return;
+    try {
+        const response = await fetch("/api/auth/logout/", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || i18next.t('auth.logoutRequestFailed'));
+        }
+        logger.log("✅ Logout successful!");
+        showModal(
+            i18next.t('auth.success'),
+            i18next.t('auth.logoutSuccessful'),
+            i18next.t('modal.ok'),
+            () => {
+                localStorage.clear();
+                window.location.href = "/";
+            }
+        );
+    } catch (error) {
+        logger.error("Logout failed:", error);
+        showModal(
+            i18next.t('auth.error'),
+            i18next.t('auth.logoutError') + sanitizeHTML(error.message),
+            i18next.t('modal.ok'),
+            () => {}
+        );
     }
-    logger.log("✅ Logout successful!");
-    showModal(
-      i18next.t('auth.success'),
-      i18next.t('auth.logoutSuccessful'),
-      i18next.t('modal.ok'),
-      () => {
-        localStorage.clear(); // Clear all user data
-        window.location.href = "/"; // Redirect to login page
-      }
-    );
-  } catch (error) {
-    logger.error("Logout failed:", error);
-    showModal(
-      i18next.t('auth.error'),
-      i18next.t('auth.logoutError') + sanitizeHTML(error.message), // sanitize error message
-      i18next.t('modal.ok'),
-      () => {}
-    );
-  }
 }
 
 export function createAccount(newUsername, newPassword, privacyPolicyAccepted) {

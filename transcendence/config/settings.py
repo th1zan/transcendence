@@ -32,7 +32,7 @@ SECRET_KEY = "django-insecure-ol6(ke(sh63zhc$oyx=f7e7-*y024fx2lm$*+3e@%(&1a-$zu8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.29']
 
 ASGI_APPLICATION = "config.asgi.application"
 
@@ -59,7 +59,18 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
+    "django_crontab",
 ]
+
+CRONJOBS = [
+    (
+        "*/1 * * * *",
+        "api.management.commands.update_online_status.Command",
+    ),  # Toutes les minutes
+]
+
+# commande pour activer les cronjobs
+# python manage.py crontab add
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -70,6 +81,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.middleware.UpdateLastSeenMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -100,28 +112,23 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         # 'NAME': env('DB_NAME'),
-#         # 'USER': env('DB_USER'),
-#         # 'PASSWORD': env('DB_PASSWORD'),
-#         # 'HOST': env('DB_HOST'),
-#         # 'PORT': env('DB_PORT', default='5432'),
-# 		  'NAME': "database_name",
-#         'USER': "database_user",
-#         'PASSWORD': "your_password",
-#         'HOST': "localhost",
-#         # 'DB_PORT': 5432,
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "HOST": "db",
+        "PORT": os.environ.get("DB_PORT"),
+    }
+}
 
 AUTH_USER_MODEL = "api.CustomUser"
 
@@ -172,6 +179,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MEDIA_URL = "/media/"
+MEDIA_URL = "https://localhost:8443/media/"
 # MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
@@ -181,8 +189,7 @@ load_dotenv()
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "api.authentication.CookieJWTAuthentication",  # Replace with the actual path instead of  "rest_framework_simplejwt.authentication.JWTAuthentication",
-        # "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "api.authentication.CookieJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
@@ -190,17 +197,17 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    "ALGORITHM": "HS256",  # HS256 is the by-default algorithm
+    "ALGORITHM": "HS256",
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_COOKIE": "access_token",  # Cookie name for access token
-    "AUTH_COOKIE_SECURE": True,  # Use secure cookies
-    "AUTH_COOKIE_HTTP_ONLY": True,  # Use HTTP-only cookies
-    "AUTH_COOKIE_PATH": "/",  # Path for the cookie
-    "AUTH_COOKIE_SAMESITE": "Lax",  # SameSite attribute
+    "AUTH_COOKIE": "access_token",
+    "AUTH_COOKIE_SECURE": True,
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_SAMESITE": "Lax",
 }
 
 AUTHENTICATION_BACKENDS = (
@@ -217,9 +224,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# put in .env
-# EMAIL_HOST_USER=pong42lausanne@gmail.com
-# EMAIL_HOST_PASSWORD=xxxx xxxx xxxx xxxx code is shared in Discord chat
+
 
 # Cette configuration va envoyer les logs SQL à la console avec un niveau de log DEBUG.
 LOGGING = {

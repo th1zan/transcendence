@@ -1,7 +1,7 @@
 import { displayWelcomePage } from "./welcome.js";
 import { gameInterval, stopGameProcess, removeGameListeners } from "./pong.js";
 import { displayStats } from "./stats.js";
-import { displayTournament } from "./tournament.js";
+import { displayTournament, resetAppMainLock } from "./tournament.js";
 import { validateToken } from "./auth.js";
 import { displayFriends } from "./friends.js";
 import { displaySettings } from "./settings.js";
@@ -13,13 +13,14 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
 
 //'true' to display logs, 'false' for production
-const DEBUG = true;
+const DEBUG = false;
 
 document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
 document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
+document.getElementById("lang-es").addEventListener("click", () => changeLanguage("es"));
 
 i18next.use(i18nextHttpBackend).init({
-  lng: "en",
+  lng: localStorage.getItem('language') || "en",
   fallbackLng: "en",
   backend: {
     loadPath: "/static/locales/{{lng}}/translation.json"
@@ -27,21 +28,81 @@ i18next.use(i18nextHttpBackend).init({
 })
 .then(() => {
   console.log("i18next ready!");
-    const currentRoute = window.location.hash.replace('#', '') || 'welcome';
-    handleRouteChange(currentRoute);
+  logger.log('Language loaded from localStorage:', i18next.language);
+  
+  try {
+    updateLanguageButtons();
+  } catch (e) {
+    console.error("Error updating language buttons:", e);
+  }
+
+  const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+  handleRouteChange(currentRoute);
 });
 
 export function changeLanguage(lang) {
   i18next.changeLanguage(lang, (err) => {
-     if (err) {
-      console.error("Error changing language :", err);
-      } else {
-        logger.log('Language changed to', lang);
-        loadPrivacyPolicyModal();
-        const currentRoute = window.location.hash.replace('#', '') || 'welcome';
-        handleRouteChange(currentRoute);
+    if (err) {
+      console.error("Error changing language:", err);
+    } else {
+      localStorage.setItem('language', lang);
+      logger.log('Language changed to', lang, 'and saved to localStorage');
+      
+      try {
+        updateLanguageButtons();
+      } catch (e) {
+        console.error("Error updating language buttons:", e);
       }
+      
+      loadPrivacyPolicyModal();
+      const currentRoute = window.location.hash.replace('#', '') || 'welcome';
+      handleRouteChange(currentRoute);
+    }
   });
+}
+
+function updateLanguageButtons() {
+  const enButton = document.getElementById("lang-en");
+  const frButton = document.getElementById("lang-fr");
+  const esButton = document.getElementById("lang-es");
+  
+  if (!enButton || !frButton || !esButton) {
+    logger.warn("Language buttons not found in the DOM");
+    return;
+  }
+  
+  if (i18next.language === "fr") {
+    enButton.classList.remove("btn-primary");
+    enButton.classList.add("btn-outline-primary");
+
+    esButton.classList.remove("btn-primary");
+    esButton.classList.add("btn-outline-primary");
+    
+    frButton.classList.remove("btn-outline-primary");
+    frButton.classList.add("btn-primary");
+    
+  } else if (i18next.language === "es") {
+    enButton.classList.remove("btn-primary");
+    enButton.classList.add("btn-outline-primary");
+
+    frButton.classList.remove("btn-primary");
+    frButton.classList.add("btn-outline-primary");
+
+    esButton.classList.remove("btn-outline-primary");
+    esButton.classList.add("btn-primary");
+
+  } else {
+    enButton.classList.remove("btn-outline-primary");
+    enButton.classList.add("btn-primary");
+    
+    frButton.classList.remove("btn-primary");
+    frButton.classList.add("btn-outline-primary");
+
+    esButton.classList.remove("btn-primary");
+    esButton.classList.add("btn-outline-primary");
+  }
+  
+  logger.log('Language buttons updated, active language:', i18next.language);
 }
 
 export const logger = {
@@ -64,89 +125,75 @@ export const logger = {
 let isUserLoggedIn = false;
 
 document.addEventListener("DOMContentLoaded", () => {
+    logger.log('Cookies at DOM load:', document.cookie);
 
-  logger.log('Cookies at DOM load:', document.cookie);
+    document.cookie.split(";").forEach((c) => {
+        logger.log('clear the cookies');
+        document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
 
-  //when the DOM is loaded, this event is triggered and it will:
+    loadPrivacyPolicyModal();
 
-  //  0. Clear all cookies
-  //
-  //  COMMENTED FOR DEBUGIN
-  document.cookie.split(";").forEach((c) => {
-    logger.log('clear the cookies');
-    document.cookie = c
-      .replace(/^ +/, "")
-      .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-  });
+    let initialRoute = window.location.hash.replace('#', '') || 'login';
+    logger.log('Initial route determined:', initialRoute);
 
-  loadPrivacyPolicyModal();
+    let isUserLoggedIn = false;
 
-  // 1. Determine the initial route based on the URL hash
-  let initialRoute = window.location.hash.replace('#', '') || 'login';
-  logger.log('Initial route determined:', initialRoute);
+    validateToken().then((isTokenValid) => {
+        logger.log('validateToken resolved with:', isTokenValid);
+        isUserLoggedIn = isTokenValid;
+        if (isUserLoggedIn) {
+            logger.log('User is logged in based on cookies');
+        } else {
+            logger.log('User is not logged in');
+        }
 
-  //Global variable for the "logged" status
-  let isUserLoggedIn = false;
+        if (isUserLoggedIn && initialRoute === 'login') {
+            logger.log('User logged in but on login page, redirecting to welcome');
+            initialRoute = 'welcome';
+            history.replaceState({ page: 'welcome' }, ' ', '#welcome');
+        } else if (!isUserLoggedIn && initialRoute !== 'login') {
+            logger.log('User not logged in but not on login page, redirecting to login');
+            initialRoute = 'login';
+            history.replaceState({ page: 'login' }, 'Login', '#login');
+        }
 
-  // 2. Check if the user is logged in
-  validateToken().then((isTokenValid) => {
-    logger.log('validateToken resolved with:', isTokenValid);
-    isUserLoggedIn = isTokenValid;
-    if (isUserLoggedIn) {
-      logger.log('User is logged in based on cookies');
-    } else {
-      logger.log('User is not logged in');
-    }
+        logger.log('Calling handleRouteChange with route:', initialRoute);
+        handleRouteChange(initialRoute);
+    }).catch((error) => {
+        logger.error('Error checking user login status:', error);
+        handleRouteChange('login');
+    });
 
-    // 3. Set initial state based on login status and initial route
-    if (isUserLoggedIn && initialRoute === 'login') {
-      logger.log('User logged in but on login page, redirecting to welcome');
-      initialRoute = 'welcome';
-      history.replaceState({ page: 'welcome' }, ' ', '#welcome');
-    } else if (!isUserLoggedIn && initialRoute !== 'login') {
-      logger.log('User not logged in but not on login page, redirecting to login');
-      initialRoute = 'login';
-      history.replaceState({ page: 'login' }, 'Login', '#login');
-    }
+    setInterval(async () => {
+        logger.log('Refreshing token via interval...');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+            logger.warn('Interval refresh failed, consider re-authenticating.');
+            showModal(
+                i18next.t('app.warning'),
+                i18next.t('app.sessionExpired'),
+                'OK',
+                () => navigateTo('login')
+            );
+        }
+    }, 4 * 60 * 1000);
 
-    // 4. Handle the initial route
-    logger.log('Calling handleRouteChange with route:', initialRoute);
-    handleRouteChange(initialRoute);
-  }).catch((error) => {
-    logger.error('Error checking user login status:', error);
-    logger.log('User is not logged in due to an error');
-    handleRouteChange('login');
-  });
+    window.addEventListener("popstate", function (event) {
+        let route = event.state ? event.state.page : window.location.hash.replace('#', '') || 'welcome';
+        logger.log('Navigating to route:', route);
+        handleRouteChange(route);
+    });
 
-  // 5. Plan the refreshing interval for the authentication Token
-  logger.log('Setting up token refresh interval');
-  setInterval(async () => {
-  logger.log('Refreshing token via interval...');
-  const refreshed = await refreshToken();
-  if (!refreshed) {
-      logger.warn('Interval refresh failed, consider re-authenticating.');
-      showModal(
-        i18next.t('app.warning'),
-        i18next.t('app.sessionExpired'),
-        'OK',
-        () => navigateTo('login')
-      );
-    }
-  }, 4 * 60 * 1000); // token is refreshed every 4 minutes
-
-  // 5. Listener for history changes
-  window.addEventListener("popstate", function (event) {
-    logger.log('Popstate event triggered. Current state:', event.state);
-    let route;
-    if (event.state) {
-      route = event.state.page;
-    } else {
-      route = window.location.hash.replace('#', '') || 'welcome';
-    }
-    logger.log('Navigating to route:', route);
-    logger.log('Custom History:', customHistory);
-    handleRouteChange(route);
-  });
+    // Ajout pour gérer la déconnexion à la fermeture de la page
+    window.addEventListener('beforeunload', () => {
+        if (isUserLoggedIn) {
+            navigator.sendBeacon('/api/auth/logout/', JSON.stringify({}));
+            logger.log('Sent logout beacon on page close');
+        }
+    });
 });
 
 // variable to store history
@@ -171,7 +218,9 @@ export function navigateTo(route) {
 
   // delete the lister used to play (mouse, AWSD, arrows)
   removeGameListeners();
-
+  // be sur app_main is unlocked
+  resetAppMainLock();
+  
   history.pushState({ page: route }, '', `#${route}`);
   logger.log('pushstate: ', history.state);
   addToCustomHistory(route);

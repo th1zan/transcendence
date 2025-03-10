@@ -1,6 +1,6 @@
 import { navigateTo, showModal, logger } from "./app.js";
 import { DisplayTournamentGame } from "./tournament.js";
-import { displayGameForm } from "./gameForm.js";
+import { displayGameForm, isMobileDevice } from "./gameForm.js";
 import { initSounds, playSound, toggleSound } from "./sounds.js";
 
 export let gameInterval;
@@ -40,6 +40,8 @@ let handlePlayerKeyDown = null;
 let handleOpponentKeyDown = null;
 let handlePlayerMouseMove = null;
 let handleOpponentMouseMove = null;
+let handlePlayerTouchUp = null;
+let handlePlayerTouchDown = null;
 
 window.isSoundOn = false;
 
@@ -56,6 +58,16 @@ export function removeGameListeners() {
     handleOpponentKeyDown = null;
     logger.log("handleOpponentKeyDown listener removed");
   }
+  if (handlePlayerTouchUp) {
+    handlePlayerTouchUp = null;
+    logger.log("handlePlayerTouchUp listener removed");
+  }
+  
+  if (handlePlayerTouchDown) {
+    handlePlayerTouchDown = null;
+    logger.log("handlePlayerTouchDown listener removed");
+  }
+  
   if (canvas) {
     if (handlePlayerMouseMove) {
       canvas.removeEventListener("mousemove", handlePlayerMouseMove);
@@ -322,6 +334,22 @@ export function startGameSetup(gameSettings) {
       }
     );
     return;
+  }
+
+  const touchControls = document.createElement('div');
+  touchControls.className = 'touch-controls mt-3 d-flex justify-content-around';
+  touchControls.id = 'playerControls';
+  touchControls.innerHTML = `
+    <button id="moveUp" class="btn btn-primary btn-lg p-3" style="width: 45%;">
+      <i class="bi bi-arrow-up-circle-fill" style="font-size: 2rem;"></i>
+    </button>
+    <button id="moveDown" class="btn btn-primary btn-lg p-3" style="width: 45%;">
+      <i class="bi bi-arrow-down-circle-fill" style="font-size: 2rem;"></i>
+    </button>
+  `;
+
+  if (isMobileDevice()) {
+    appMain.appendChild(touchControls);
   }
 
   if (isTournamentMatch) {
@@ -738,6 +766,28 @@ function initGameObjects(gameCanvas) {
       canvas.addEventListener("mousemove", handleOpponentMouseMove);
     } else {
       document.addEventListener("keydown", handleOpponentKeyDown);
+    }
+  }
+  if (isMobileDevice()) {
+    const moveUpBtn = document.getElementById("moveUp");
+    const moveDownBtn = document.getElementById("moveDown");
+    
+    handlePlayerTouchUp = function(e) {
+      e.preventDefault();
+      if (player.y > 0) player.y -= step;
+    };
+    
+    handlePlayerTouchDown = function(e) {
+      e.preventDefault();
+      if (player.y < canvas.height - player.height) player.y += step;
+    };
+    
+    if (moveUpBtn) {
+      moveUpBtn.addEventListener("touchstart", handlePlayerTouchUp);
+    }
+    
+    if (moveDownBtn) {
+      moveDownBtn.addEventListener("touchstart", handlePlayerTouchDown);
     }
   }
 }
