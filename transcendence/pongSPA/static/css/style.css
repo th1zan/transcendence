@@ -42,11 +42,11 @@ body {
     --bs-table-border-color: transparent;
 }
 
-.form-control {
+/* .form-control {
     background-color:rgba(255, 255, 255, 0.5) ;
     --bs-border-width: 2px
     --bs-border-color: #007bff;
-}
+} */
 
 /* Style pmur les tableaux dans .table-responsive avec .table-striped et .table-hover */ */
 .table-responsive .table.table-striped.table-hover {

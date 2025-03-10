@@ -522,7 +522,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
 
       const playedMatches = data.matches.filter(m => m.is_played);
       if (playedMatches.length === 0) {
-        appMain.innerHTML = `<p class="text-muted">No played matches found for this tournament${data.is_finished ? ' (Finished)' : ''}.</p>`;
+        appMain.innerHTML = `<p class="text-muted">${i18next.t('statistics.noPlayedMatchesFoundFor')}${data.is_finished ? ' (Finished)' : ''}.</p>`;
         return;
       }
 
@@ -543,14 +543,14 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       appMain.appendChild(chartsContainer);
 
       // Carte 1 : Tournament Summary
-      const summary = generateSummaryCard('Tournament Summary', {
-        'Name': playedMatches[0]?.tournament_name || 'Unknown',
-        'Matches Played': playedMatches.length,
-        'Top Winner': topWinner,
-        'Draw Matches': draws,
-        'Avg Sets per Match': avgSets,
-        'Total Points': totalPoints,
-        'Status': data.is_finished ? 'Finished' : 'Ongoing'
+      const summary = generateSummaryCard(i18next.t('statistics.tournamentSummary'), {
+        [i18next.t('statistics.name')]: playedMatches[0]?.tournament_name || i18next.t('statistics.unknown'),
+        [i18next.t('statistics.matchesPlayed')]: playedMatches.length,
+        [i18next.t('statistics.topWinner')]: topWinner,
+        [i18next.t('statistics.drawMatches')]: draws,
+        [i18next.t('statistics.avgSetsPerMatch')]: avgSets,
+        [i18next.t('statistics.totalPoints')]: totalPoints,
+        [i18next.t('statistics.status')]: data.is_finished ? [i18next.t('statistics.finished')] : [i18next.t('statistics.ongoing')]
       });
       const summaryCard = document.createElement('div');
       summaryCard.className = 'col-12 col-md-4 col-sm-6';
@@ -571,16 +571,16 @@ function fetchAndDisplayTournamentStats(tournamentId) {
         totalExchanges += matchExchanges;
       });
       const durationStats = {
-        'Average Match Duration': `${(totalMatchDuration / playedMatches.length || 0).toFixed(2)}s`,
-        'Total Match Duration': `${totalMatchDuration.toFixed(2)}s`,
-        'Average Exchanges per Match': `${(totalExchanges / playedMatches.length || 0).toFixed(2)}`
+        [i18next.t('statistics.averageMatchDuration')]: `${(totalMatchDuration / playedMatches.length || 0).toFixed(2)}s`,
+        [i18next.t('statistics.totalMatchDuration')]: `${totalMatchDuration.toFixed(2)}s`,
+        [i18next.t('statistics.averageExchangePerMatch')]: `${(totalExchanges / playedMatches.length || 0).toFixed(2)}`
       };
       const durationCard = document.createElement('div');
       durationCard.className = 'col-12 col-md-4 col-sm-6';
       durationCard.innerHTML = `
         <div class="card mb-4 shadow-sm">
           <div class="card-body">
-            <h5 class="text-center mb-3">Tournament Durations</h5>
+            <h5 class="text-center mb-3">${i18next.t('statistics.tournamentDurations')}</h5>
             <ul class="list-group list-group-flush">
               ${Object.entries(durationStats).map(([key, value]) => `
                 <li class="list-group-item bg-transparent"><strong>${key}:</strong> ${value}</li>
@@ -593,16 +593,16 @@ function fetchAndDisplayTournamentStats(tournamentId) {
 
       // Carte 3 : Set Statistics
       const setStats = {
-        'Average Set Duration': `${(totalSetDuration / totalSets || 0).toFixed(2)}s`,
-        'Average Exchanges per Set': `${(totalExchanges / totalSets || 0).toFixed(2)}`,
-        'Total Exchanges': totalExchanges
+        [i18next.t('statistics.averageSetDuration')]: `${(totalSetDuration / totalSets || 0).toFixed(2)}s`,
+        [i18next.t('statistics.averageExchangePerSet')]: `${(totalExchanges / totalSets || 0).toFixed(2)}`,
+        [i18next.t('statistics.totalExchanges')]: totalExchanges
       };
       const setCard = document.createElement('div');
       setCard.className = 'col-12 col-md-4 col-sm-6';
       setCard.innerHTML = `
         <div class="card mb-4 shadow-sm">
           <div class="card-body">
-            <h5 class="text-center mb-3">Set Statistics</h5>
+            <h5 class="text-center mb-3">${i18next.t('statistics.setStatistics')}</h5>
             <ul class="list-group list-group-flush">
               ${Object.entries(setStats).map(([key, value]) => `
                 <li class="list-group-item bg-transparent"><strong>${key}:</strong> ${value}</li>
@@ -619,7 +619,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const barChart = generateChart('bar', 'tourneyBar', {
         labels: [...Object.keys(winnersCount), 'Draws'],
         datasets: [{
-          label: 'Match Outcomes',
+          label: i18next.t('statistics.matchOutcomes'),
           data: [...Object.values(winnersCount), draws],
           backgroundColor: ['#007bff', '#ffc107']
         }]
@@ -627,7 +627,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
         scales: { y: { beginAtZero: true, title: { display: true, text: 'Matches' } } },
         plugins: { legend: { position: 'bottom' } }
       });
-      chartsContainer.appendChild(displayChartInCard(barChart, 'Match Outcomes per Player'));
+      chartsContainer.appendChild(displayChartInCard(barChart, i18next.t('statistics.matchOutcomesPerPlayer')));
 
       // 2. Aires : Points par match
       const areaChart = generateChart('line', 'tourneyArea', {
@@ -640,7 +640,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
           tension: 0.1
         }]
       }, { scales: { y: { beginAtZero: true, title: { display: true, text: 'Points' } } } });
-      chartsContainer.appendChild(displayChartInCard(areaChart, 'Points per Match'));
+      chartsContainer.appendChild(displayChartInCard(areaChart, i18next.t('statistics.pointsPerMatch')));
 
       // 3. Barres horizontales : Répartition des sets gagnés
       const playerStats = {};
@@ -657,12 +657,12 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       }, {
         indexAxis: 'y',
         scales: {
-          x: { beginAtZero: true, title: { display: true, text: 'Sets' } },
-          y: { title: { display: true, text: 'Players' } }
+          x: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.sets') } },
+          y: { title: { display: true, text: i18next.t('statistics.player') } }
         },
         plugins: { legend: { position: 'right' } }
       });
-      chartsContainer.appendChild(displayChartInCard(hBarChart, 'Sets Won by Player'));
+      chartsContainer.appendChild(displayChartInCard(hBarChart, i18next.t('statistics.setsWonByPlayer')));
 
       // 4. Barres horizontales : Durée moyenne par match par joueur
       const playerDurations = {};
@@ -685,12 +685,12 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       }, {
         indexAxis: 'y',
         scales: {
-          x: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } },
-          y: { title: { display: true, text: 'Players' } }
+          x: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.duration(s)') } },
+          y: { title: { display: true, text: i18next.t('statistics.player') } }
         },
         plugins: { legend: { display: false } }
       });
-      chartsContainer.appendChild(displayChartInCard(durationHBarChart, 'Match Duration by Player'));
+      chartsContainer.appendChild(displayChartInCard(durationHBarChart, i18next.t('statistics.matchDurationsPerPlayer')));
 
       // 5. Barres : Nombre moyen d’échanges par match par joueur
       const playerExchanges = {};
@@ -712,11 +712,11 @@ function fetchAndDisplayTournamentStats(tournamentId) {
         }]
       }, {
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } }
+          y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.exchanges') } }
         },
         plugins: { legend: { display: false } }
       });
-      chartsContainer.appendChild(displayChartInCard(exchangesBarChart, 'Exchanges per Player'));
+      chartsContainer.appendChild(displayChartInCard(exchangesBarChart, i18next.t('statistics.exchangesPerPlayer')));
     })
     .catch(error => {
       document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
@@ -755,12 +755,12 @@ function fetchAndDisplayGameStats(matchId, username) {
       appMain.appendChild(chartsContainer);
 
       // Carte 1 : Game Summary
-      const summary = generateSummaryCard('Game Summary', {
-        'Players': `${match.player1_name} vs ${match.player2_name}`,
-        'Winner': isDraw ? 'Draw' : match.winner_name || 'None',
-        'Score': `${match.player1_sets_won} - ${match.player2_sets_won}`,
-        'Duration': `${totalDuration.toFixed(2)}s`,
-        'Exchanges': totalExchanges,
+      const summary = generateSummaryCard(i18next.t('pong.gameSummary'), {
+        [i18next.t('welcome.players')]: `${match.player1_name} vs ${match.player2_name}`,
+        [i18next.t('tournament.winner')]: isDraw ? 'Draw' : match.winner_name || 'None',
+        [i18next.t('tournament.score')]: `${match.player1_sets_won} - ${match.player2_sets_won}`,
+        [i18next.t('pong.duration')]: `${totalDuration.toFixed(2)}s`,
+        [i18next.t('pong.exchanges')]: totalExchanges,
       });
       const summaryCard = document.createElement('div');
       summaryCard.className = 'col-12 col-md-4 col-sm-6';
@@ -769,16 +769,16 @@ function fetchAndDisplayGameStats(matchId, username) {
 
       // Carte 2 : Match Duration
       const durationStats = {
-        'Total Match Duration': `${totalDuration.toFixed(2)}s`,
-        'Average Set Duration': `${(totalDuration / match.sets.length || 0).toFixed(2)}s`,
-        'Total Exchanges': totalExchanges
+        [i18next.t('statistics.totalMatchDuration')]: `${totalDuration.toFixed(2)}s`,
+        [i18next.t('statistics.averageSetDuration')]: `${(totalDuration / match.sets.length || 0).toFixed(2)}s`,
+        [i18next.t('statistics.totalExchanges')]: totalExchanges
       };
       const durationCard = document.createElement('div');
       durationCard.className = 'col-12 col-md-4 col-sm-6';
       durationCard.innerHTML = `
         <div class="card mb-4 shadow-">
           <div class="card-body">
-            <h5 class="text-center mb-3" >Match Duration</h5>
+            <h5 class="text-center mb-3" >${i18next.t('statistics.matchDurations')}</h5>
             <ul class="list-group list-group-flush">
               ${Object.entries(durationStats).map(([key, value]) => `
                 <li class="list-group-item bg-transparent" ><strong>${key}:</strong> ${value}</li>
@@ -800,13 +800,13 @@ function fetchAndDisplayGameStats(matchId, username) {
       setCard.innerHTML = `
         <div class="card mb-4 shadow-">
           <div class="card-body">
-            <h5 class="text-center mb-3">Set Details</h5>
-            <table class="table table-sm table-hover">
+            <h5 class="text-center mb-3">${i18next.t('statistics.setDetails')}</h5>
+            <table class="table table-sm table-hover text-center">
               <thead>
                 <tr>
-                  <th >Set</th>
-                  <th >Duration (s)</th>
-                  <th >Exchanges</th>
+                  <th class="text-center w-33">${i18next.t('statistics.sets')}</th>
+                  <th class="text-center w-33">${i18next.t('statistics.duration(s)')}</th>
+                  <th class="text-center w-33">${i18next.t('statistics.exchanges')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -833,14 +833,14 @@ function fetchAndDisplayGameStats(matchId, username) {
         ]
       }, {
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Score' } },
+          y: { beginAtZero: true, title: { display: true, text: i18next.t('tournament.score') } },
           x: { stacked: true }
         },
         plugins: {
           title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
         }
       });
-      chartsContainer.appendChild(displayChartInCard(barChart, 'Score per Set'));
+      chartsContainer.appendChild(displayChartInCard(barChart, i18next.t('statistics.scorePerSet')));
 
       // 2. Anneau : Répartition des points
       const donutChart = generateChart('doughnut', 'gameDonut', {
@@ -855,11 +855,11 @@ function fetchAndDisplayGameStats(matchId, username) {
           title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
         }
       });
-      chartsContainer.appendChild(displayChartInCard(donutChart, 'Points Distribution'));
+      chartsContainer.appendChild(displayChartInCard(donutChart, i18next.t('statistics.pointsDistributions')));
 
       // 3. Barres horizontales : Comparaison joueurs
       const hBarChart = generateChart('bar', 'gameHBar', {
-        labels: ['Sets Won', 'Points'],
+        labels: [i18next.t('statistics.setsWon'), i18next.t('welcome.points')],
         datasets: [
           { label: match.player1_name, data: [match.player1_sets_won, match.player1_total_points], backgroundColor: '#28a745' },
           { label: match.player2_name, data: [match.player2_sets_won, match.player2_total_points], backgroundColor: '#dc3545' }
@@ -867,15 +867,15 @@ function fetchAndDisplayGameStats(matchId, username) {
       }, {
         indexAxis: 'y',
         scales: {
-          x: { beginAtZero: true, title: { display: true, text: 'Value' } },
-          y: { title: { display: true, text: 'Players' } }
+          x: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.value') } },
+          y: { title: { display: true, text: i18next.t('welcome.players') } }
         },
         plugins: {
           legend: { position: 'right' },
           title: { display: isDraw, text: 'Draw Match', font: { size: 16, family: 'Press Start 2P', color: '#ffc107' } }
         }
       });
-      chartsContainer.appendChild(displayChartInCard(hBarChart, 'Player Comparison'));
+      chartsContainer.appendChild(displayChartInCard(hBarChart, i18next.t('statistics.playerComparison')));
 
       // 4. Barres : Durée de chaque set
       const setDurations = match.sets.map(s => ({
@@ -885,17 +885,17 @@ function fetchAndDisplayGameStats(matchId, username) {
       const durationBarChart = generateChart('bar', 'gameDurationBar', {
         labels: setDurations.map(d => d.set),
         datasets: [{
-          label: 'Set Duration (s)',
+          label: i18next.t('statistics.setDurations'),
           data: setDurations.map(d => d.duration),
           backgroundColor: '#007bff'
         }]
       }, {
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Duration (s)' } }
+          y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.duration(s)') } }
         },
         plugins: { legend: { display: false } }
       });
-      chartsContainer.appendChild(displayChartInCard(durationBarChart, 'Set Durations'));
+      chartsContainer.appendChild(displayChartInCard(durationBarChart, i18next.t('statistics.setDurations')));
 
       // 5. Barres empilées : Échanges par set
       const setExchanges = match.sets.map(s => ({
@@ -911,12 +911,12 @@ function fetchAndDisplayGameStats(matchId, username) {
         ]
       }, {
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Exchanges' } },
+          y: { beginAtZero: true, title: { display: true, text: i18next.t('pong.exchanges') } },
           x: { stacked: true }
         },
         plugins: { legend: { position: 'bottom' } }
       });
-      chartsContainer.appendChild(displayChartInCard(exchangesBarChart, 'Exchanges per Set'));
+      chartsContainer.appendChild(displayChartInCard(exchangesBarChart, i18next.t('statistics.exchangesPerSet')));
     })
     .catch(error => {
       document.getElementById('app_main').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;

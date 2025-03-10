@@ -18,7 +18,7 @@ export function displayFriends() {
             <div class="card-body text-center">
               <h5 class="card-title mb-3" >${i18next.t('friends.sendFriendRequest')}</h5>
               <div class="form-group mt-2">
-                <input type="text" id="friendUsername" placeholder="${i18next.t('friends.enterFriendUsername')}" class="form-control bg-transparent" required >
+                <input type="text" id="friendUsername" placeholder="${i18next.t('friends.enterFriendUsername')}" class="form-control bg-transparent border border-primary" required >
                 <button id="sendFriendRequestButton" class="btn btn-outline-success mt-2 w-100 shadow-sm" >
                   ${i18next.t('friends.sendRequest')}
                 </button>
@@ -169,7 +169,7 @@ export function sendFriendRequest(friendUsernameRaw) {
                 logger.error("Error sending friend request:", error);
                 showModal(
                     i18next.t('friends.error'),
-                    i18next.t('friends.errorOccurred'),
+                    i18next.t('game.userNotFound'),
                     i18next.t('modal.ok'),
                     () => {
                       navigateTo('friends');
