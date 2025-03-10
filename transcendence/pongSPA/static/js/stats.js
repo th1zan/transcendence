@@ -82,7 +82,6 @@ function showTab(tab) {
 
 
 // Afficher la liste des matchs d’un utilisateur
-// Afficher la liste des matchs d’un utilisateur avec un menu déroulant stylisé
 function displayUserGames(username) {
   if (!username) {
     document.getElementById('searchArea').innerHTML = `<p class="text-danger" >Please enter a username.</p>`;
@@ -160,7 +159,7 @@ function displayUserGames(username) {
 
 
 
-// Nouvelle fonction pour afficher les 3 derniers tournois de l'utilisateur
+// Aficher les 3 derniers tournois de l'utilisateur
 function displayLastUserTournaments(searchArea, username) {
   if (!username) {
     searchArea.innerHTML = `<p class="text-danger">Please enter a username.</p>`;
@@ -185,8 +184,7 @@ function displayLastUserTournaments(searchArea, username) {
         return;
       }
 
-      // Afficher tous les tournois (pas de slice)
-      const tournaments = data.reverse(); // Inverser pour avoir les plus récents en haut
+      const tournaments = data.reverse(); 
 
       searchArea.innerHTML = `
         <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
@@ -221,7 +219,6 @@ function displayLastUserTournaments(searchArea, username) {
         </div>
       `;
 
-      // Connecter les clics sur les liens cliquables
       searchArea.querySelectorAll('.selectTournamentLink').forEach(link => {
         link.addEventListener('click', () => {
           const tournamentId = link.dataset.id;
@@ -237,7 +234,7 @@ function displayLastUserTournaments(searchArea, username) {
 
 
 
-// Générer un tableau "Summary"
+// tableau "Summary"
 function generateSummaryCard(title, stats) {
   return `
     <div class="card mb-4 shadow-sm">
@@ -253,7 +250,6 @@ function generateSummaryCard(title, stats) {
   `;
 }
 
-// Générer un graphique et le retourner comme élément DOM
 function generateChart(type, id, data, options) {
   const canvas = document.createElement('canvas');
   canvas.id = id;
@@ -262,7 +258,6 @@ function generateChart(type, id, data, options) {
   return canvas;
 }
 
-// Afficher un graphique dans une carte
 function displayChartInCard(chart, title) {
   const div = document.createElement('div');
   div.className = 'col-12 col-md-4';
@@ -277,7 +272,7 @@ function displayChartInCard(chart, title) {
   return div;
 }
 
-// Récupérer et afficher les stats d’un joueur (modifié pour accepter un paramètre par défaut)
+// fficher les stats d’un joueur 
 function fetchAndDisplayPlayerStats(username) {
     if (!username) return;
 
@@ -297,7 +292,6 @@ function fetchAndDisplayPlayerStats(username) {
                 return;
             }
 
-            // Calculs précis des stats avec gestion des nuls
             const stats = {
                 wins: 0,
                 losses: 0,
@@ -326,7 +320,6 @@ function fetchAndDisplayPlayerStats(username) {
                 stats.pointsScored += playerPointsScored || 0;
                 stats.pointsConceded += playerPointsConceded || 0;
 
-                // Appliquer la logique fournie
                 const isDraw = (match.winner === null || match.winner_name === 'No winner');
                 const winLoss = isDraw ? 'Draw' :
                                match.winner_name && match.winner_name.toLowerCase() === username.toLowerCase() ? 'Win' : 'Loss';
@@ -335,7 +328,6 @@ function fetchAndDisplayPlayerStats(username) {
                 else if (winLoss === 'Loss') stats.losses++;
                 else stats.draws++;
 
-                // Calculs pour durée et échanges
                 const matchDuration = match.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
                 const matchExchanges = match.sets.reduce((sum, set) => sum + (set.exchanges || 0), 0);
                 totalMatchDuration += matchDuration;
@@ -344,7 +336,7 @@ function fetchAndDisplayPlayerStats(username) {
                 totalExchanges += matchExchanges;
             });
 
-            // Showroom avec cartes et graphiques
+            // Showroom avec cartes et graphs
             const chartsContainer = document.createElement('div');
             chartsContainer.className = 'row g-4';
             appMain.appendChild(chartsContainer);
@@ -451,12 +443,11 @@ function fetchAndDisplayPlayerStats(username) {
             }, { scales: { y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.points') } } } });
             chartsContainer.appendChild(displayChartInCard(lineChart, i18next.t('statistics.poinsOverTime')));
 
-            // 4. Barres : Durée moyenne par match (modifié pour enlever les jours sans matchs)
-            const matchDurations = playedMatches.map(m => ({
+            // 4. Barres : Durée moyenne par match             const matchDurations = playedMatches.map(m => ({
                 date: m.date_played.split('T')[0],
                 duration: m.sets.reduce((sum, s) => sum + (s.duration || 0), 0)
             }));
-            // Filtrer pour ne garder que les dates avec des durées > 0 (évite les jours sans matchs)
+            // Filtrer pour garder que les dates avec des durées > 0 (évite les jours sans matchs)
             const filteredMatchDurations = matchDurations.filter(md => md.duration > 0);
 
             const durationBarChart = generateChart('bar', 'playerDurationBar', {
@@ -513,7 +504,6 @@ function fetchAndDisplayTournamentStats(tournamentId) {
       const appMain = document.getElementById('app_main');
       appMain.innerHTML = '';
 
-      // Vérifier la structure de la réponse
       if (!data || typeof data !== 'object' || !Array.isArray(data.matches)) {
         appMain.innerHTML = `<p class="text-danger">Error: Invalid tournament matches data received.</p>`;
         console.error('Expected an object with a "matches" array, received:', data);
@@ -923,7 +913,7 @@ function fetchAndDisplayGameStats(matchId, username) {
     });
 }
 
-// Récupérer et afficher le classement général
+// classement général
 function fetchAndDisplayRankingStats() {
   fetch('/api/ranking/', {
     method: 'GET',
@@ -955,7 +945,7 @@ function fetchAndDisplayRankingStats() {
         </div>
       `;
 
-      // Showroom (graphiques)
+      // Showroom
       const chartsContainer = document.createElement('div');
       chartsContainer.className = 'row g-4';
       appMain.appendChild(chartsContainer);
