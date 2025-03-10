@@ -1,7 +1,5 @@
 import logging
-
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -15,6 +13,15 @@ from ..models import CustomUser, FriendRequest, Notification
 logger = logging.getLogger(__name__)
 
 
+def get_avatar_url(user):
+    if user.avatar:
+        if user.avatar.url.startswith(settings.MEDIA_URL):
+            return user.avatar.url
+        return settings.MEDIA_URL + user.avatar.url.lstrip('/')
+    else:
+        return settings.MEDIA_URL + "avatars/avatar1.png"
+
+
 class ListFriendsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -24,11 +31,7 @@ class ListFriendsView(APIView):
         friends_data = [
             {
                 "username": friend.username,
-                "avatar": (
-                    request.build_absolute_uri(friend.avatar.url)
-                    if friend.avatar
-                    else request.build_absolute_uri("/media/avatars/avatar1.png")
-                ),
+                "avatar": get_avatar_url(friend),
             }
             for friend in friends
         ]
@@ -111,7 +114,7 @@ class SendFriendRequestView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            friend_request = FriendRequest.objects.create(
+            FriendRequest.objects.create(
                 sender=request.user, receiver=receiver
             )
             Notification.objects.create(
@@ -119,17 +122,7 @@ class SendFriendRequestView(APIView):
                 message=f"{request.user.username} sent you a friend request.",
                 notification_type="friend_request",
             )
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"notifications_{receiver.id}",
-                {
-                    "type": "send_notification",
-                    "content": {
-                        "message": f"{request.user.username} sent you a friend request.",
-                        "notification_type": "friend_request",
-                    },
-                },
-            )
+            
             return Response(
                 {"message": "Friend request sent."}, status=status.HTTP_200_OK
             )
@@ -149,11 +142,7 @@ class ViewFriendRequestsView(APIView):
         requests_data = [
             {
                 "sender": fr.sender.username,
-                "avatar": (
-                    request.build_absolute_uri(fr.sender.avatar.url)
-                    if fr.sender.avatar
-                    else request.build_absolute_uri("/media/avatars/avatar1.png")
-                ),
+                "avatar": get_avatar_url(fr.sender),
             }
             for fr in friend_requests
         ]

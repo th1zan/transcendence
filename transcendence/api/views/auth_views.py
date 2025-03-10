@@ -70,14 +70,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 key="access_token",
                 value=tokens["access"],
                 httponly=True,
-                secure=True,  # Secure cookies in production
+                secure=True,
                 samesite="Lax",
             )
             response.set_cookie(
                 key="refresh_token",
                 value=tokens["refresh"],
                 httponly=True,
-                secure=True,  # Secure cookies in production
+                secure=True,
                 samesite="Lax",
             )
         return response
@@ -106,14 +106,14 @@ class CustomTokenRefreshView(TokenRefreshView):
                 key="access_token",
                 value=tokens["access"],
                 httponly=True,
-                secure=True,  # Secure cookies in production
+                secure=True,
                 samesite="Lax",
             )
             response.set_cookie(
                 key="refresh_token",
                 value=tokens["refresh"],
                 httponly=True,
-                secure=True,  # Secure cookies in production
+                secure=True,
                 samesite="Lax",
             )
         return response

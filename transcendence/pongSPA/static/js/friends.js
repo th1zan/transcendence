@@ -3,7 +3,7 @@ import {showModalConfirmation } from './auth.js';
 import { sanitizeAdvanced, sanitizeHTML } from './utils.js';
 
 export function displayFriends() {
-  // Vide tous les conteneurs
+
   document.getElementById('app_top').innerHTML = '';
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
@@ -60,12 +60,11 @@ export function displayFriends() {
     if (friendUsernameRaw) {
       sendFriendRequest(friendUsernameRaw);
     } else {
-      // Remplacer une éventuelle alert par oneButtonModal
       showModal(
         i18next.t('friends.warning'),
         i18next.t('friends.enterUsername'),
         i18next.t('modal.ok'),
-        () => {} // Action vide, juste fermer la modale
+        () => {}
       );
     }
   });
@@ -354,7 +353,7 @@ export function fetchFriends() {
 	})
 	  .then((response) => response.json())
 	  .then((friendsData) => {
-		// Now fetch friend statuses
+		// fetch friend statuses
 		fetch("/api/friends/status/", {
 		  method: "GET",
 		  credentials: "include",
