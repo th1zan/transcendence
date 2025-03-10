@@ -443,7 +443,8 @@ function fetchAndDisplayPlayerStats(username) {
             }, { scales: { y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.points') } } } });
             chartsContainer.appendChild(displayChartInCard(lineChart, i18next.t('statistics.poinsOverTime')));
 
-            // 4. Barres : Durée moyenne par match             const matchDurations = playedMatches.map(m => ({
+            // 4. Barres : Durée moyenne par match            
+            const matchDurations = playedMatches.map(m => ({
                 date: m.date_played.split('T')[0],
                 duration: m.sets.reduce((sum, s) => sum + (s.duration || 0), 0)
             }));
