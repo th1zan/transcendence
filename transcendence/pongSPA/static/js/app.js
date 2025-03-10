@@ -13,7 +13,7 @@ import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
 
 //'true' to display logs, 'false' for production
-const DEBUG = true;
+const DEBUG = false;
 
 document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
 document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
