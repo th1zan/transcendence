@@ -34,13 +34,8 @@ DEBUG = False
 
 # port 8443 is the nginx container
 # TODO: delete the unecessary computer
-ALLOWED_HOSTS = ["c2r7s8.42lausanne.ch", "localhost"]
-CSRF_TRUSTED_ORIGINS = [
-    "https://transcendence.jjorge.ch",
-    "https://195.15.214.88",
-    "https://localhost:8443",
-    "https://c2r7s8.42lausanne.ch:8443",
-]
+ALLOWED_HOSTS = ["localhost"]
+CSRF_TRUSTED_ORIGINS = ["https://localhost:8443"]
 
 
 # Application definition
@@ -145,7 +140,7 @@ AUTH_USER_MODEL = "api.CustomUser"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "api.authentication.CookieJWTAuthentication",  # Replace with the actual path instead of  "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "api.authentication.CookieJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
@@ -199,17 +194,17 @@ MEDIA_URL = "https://localhost:8443/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 SIMPLE_JWT = {
-    "ALGORITHM": "HS256",  # HS256 is the by-default algorithm
+    "ALGORITHM": "HS256",
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_COOKIE": "access_token",  # Cookie name for access token
-    "AUTH_COOKIE_SECURE": True,  # Use secure cookies
-    "AUTH_COOKIE_HTTP_ONLY": True,  # Use HTTP-only cookies
-    "AUTH_COOKIE_PATH": "/",  # Path for the cookie
-    "AUTH_COOKIE_SAMESITE": "Lax",  # SameSite attribute
+    "AUTH_COOKIE": "access_token",
+    "AUTH_COOKIE_SECURE": True,
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_SAMESITE": "Lax",
 }
 
 SESSION_COOKIE_SECURE = True
@@ -223,11 +218,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-# put in .env
-# EMAIL_HOST_USER=pong42lausanne@gmail.com
-# EMAIL_HOST_PASSWORD=tpyr gtki xzzc udcr
 
 # Debug
 print(f"EMAIL_HOST_USER: {EMAIL_HOST_USER}")

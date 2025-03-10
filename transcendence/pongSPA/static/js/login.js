@@ -70,7 +70,7 @@ export function displayConnectionFormular() {
         
         // Sanitize inputs
         const username = sanitizeAdvanced(usernameRaw);
-        const password = passwordRaw; // Don't sanitize passwords as they might contain special chars
+        const password = passwordRaw;
         
         getToken(username, password);
       });
