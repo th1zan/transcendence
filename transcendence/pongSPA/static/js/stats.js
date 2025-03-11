@@ -84,7 +84,7 @@ function showTab(tab) {
 // Afficher la liste des matchs d’un utilisateur
 function displayUserGames(username) {
   if (!username) {
-    document.getElementById('searchArea').innerHTML = `<p class="text-danger" >Please enter a username.</p>`;
+    document.getElementById('searchArea').innerHTML = `<p class="text-danger" >${i18next.t('statistics.pleaseEnterAUsername')}</p>`;
     return;
   }
 
@@ -98,7 +98,7 @@ function displayUserGames(username) {
       const searchArea = document.getElementById('searchArea');
       const playedMatches = data.filter(m => m.is_played);
       if (playedMatches.length === 0) {
-        searchArea.innerHTML = `<p class="text-muted" >No games found for ${username}.</p>`;
+        searchArea.innerHTML = `<p class="text-muted mt-4" >${i18next.t('statistics.noGamesFoundFor', { username})}</p>`;
         return;
       }
 
@@ -162,7 +162,7 @@ function displayUserGames(username) {
 // Aficher les 3 derniers tournois de l'utilisateur
 function displayLastUserTournaments(searchArea, username) {
   if (!username) {
-    searchArea.innerHTML = `<p class="text-danger">Please enter a username.</p>`;
+    searchArea.innerHTML = `<p class="text-danger">${i18next.t('statistics.pleaseEnterAUsername')}</p>`;
     return;
   }
 
@@ -180,11 +180,11 @@ function displayLastUserTournaments(searchArea, username) {
       }
 
       if (data.length === 0) {
-        searchArea.innerHTML = `<p class="text-muted">${i18next.t('statistics.noTournamentsFound')}</p>`;
+        searchArea.innerHTML = `<p class="text-muted d-flex justify-content-center mt-5">${i18next.t('statistics.noTournamentsFound')}</p>`;
         return;
       }
 
-      const tournaments = data.reverse(); 
+      const tournaments = data.reverse();
 
       searchArea.innerHTML = `
         <div class="card w-75 mx-auto" style="max-height: 300px; overflow-y: auto;">
@@ -272,7 +272,7 @@ function displayChartInCard(chart, title) {
   return div;
 }
 
-// fficher les stats d’un joueur 
+// fficher les stats d’un joueur
 function fetchAndDisplayPlayerStats(username) {
     if (!username) return;
 
@@ -288,7 +288,7 @@ function fetchAndDisplayPlayerStats(username) {
 
             const playedMatches = data.filter(m => m.is_played);
             if (playedMatches.length === 0) {
-                appMain.innerHTML = `<p class="text-muted" >No played matches found for ${username}.</p>`;
+                appMain.innerHTML = `<p class="text-muted d-flex justify-content-center" >${i18next.t('statistics.noPlayedMatchesFoundFor', { username})}</p>`;
                 return;
             }
 
@@ -443,7 +443,7 @@ function fetchAndDisplayPlayerStats(username) {
             }, { scales: { y: { beginAtZero: true, title: { display: true, text: i18next.t('statistics.points') } } } });
             chartsContainer.appendChild(displayChartInCard(lineChart, i18next.t('statistics.poinsOverTime')));
 
-            // 4. Barres : Durée moyenne par match            
+            // 4. Barres : Durée moyenne par match
             const matchDurations = playedMatches.map(m => ({
                 date: m.date_played.split('T')[0],
                 duration: m.sets.reduce((sum, s) => sum + (s.duration || 0), 0)
@@ -718,7 +718,7 @@ function fetchAndDisplayTournamentStats(tournamentId) {
 // Récupérer et afficher les stats d’un match
 function fetchAndDisplayGameStats(matchId, username) {
   if (!username) {
-    document.getElementById('app_main').innerHTML = `<p class="text-danger">Please enter a username.</p>`;
+    document.getElementById('app_main').innerHTML = `<p class="text-danger">${i18next.t('statistics.pleaseEnterAUsername')}</p>`;
     return;
   }
 
@@ -730,7 +730,7 @@ function fetchAndDisplayGameStats(matchId, username) {
     .then(response => response.json())
     .then(data => {
       const match = data.find(m => m.id == matchId && m.is_played);
-      if (!match) throw new Error('Match not found or not played');
+      if (!match) throw new Error(i18next.t('statistics.matchNotFoundOrPlayed'));
 
       const appMain = document.getElementById('app_main');
       appMain.innerHTML = '';
@@ -927,7 +927,7 @@ function fetchAndDisplayRankingStats() {
       appMain.innerHTML = '';
 
       if (!Array.isArray(data) || data.length === 0) {
-        appMain.innerHTML = `<p class="text-muted" >No ranking data available.</p>`;
+        appMain.innerHTML = `<p class="text-muted" >${i18next.t('statistics.noRankindDataAvailable')}</p>`;
         return;
       }
 
