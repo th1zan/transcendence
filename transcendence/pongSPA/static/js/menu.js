@@ -43,8 +43,8 @@ export async function displayMenu(avatarUrl = null) {
           <div class="collapse navbar-collapse" id="navbarNav">
               <div class="menu-container d-flex flex-column h-100" style="width: 304px;">
                   <img src="${avatarPicture}" class="rounded-circle object-fit-cover align-self-center my-4" alt="${i18next.t('menu.profilePicture')}" />
-                  <button id="welcomeButton" style="word-break: break-all;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.welcome')}</button>
-                  <button id="playButton" style="word-break: break-all;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.play')}</button>
+                  <button id="welcomeButton" style="word-break: auto-phrase;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.welcome')}</button>
+                  <button id="playButton" style="word-break: auto-phrase;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.play')}</button>
                   <button id="tournamentButton" style="word-break: break-all;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.tournament')}</button>
                   <button id="statsButton" style="word-break: break-all;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.statistics')}</button>
                   <button id="friendsButton" style="word-break: break-all;" class="btn btn-primary nav-link menu-button w-100 mb-2">${i18next.t('menu.friends')}</button>
