@@ -320,7 +320,8 @@
         "errorLoadingTournamentInfo": "Error al cargar la información del torneo.",
         "mobileNotSupported": "Móvil no compatible",
         "pleaseUseBrowser": "Por favor, utiliza un navegador de escritorio para acceder a la función de torneo.",
-        "backToWelcomePage": "Volver a la página de bienvenida"
+        "backToWelcomePage": "Volver a la página de bienvenida",
+        "notOrganizerMsg": "No eres el organizador de este torneo ({{username}}) y no puedes interactuar con él. Los partidos deben jugarse desde la sesión del organizador."
     },
     "statistics": {
         "statisticsDashboard": "Panel de estadísticas",

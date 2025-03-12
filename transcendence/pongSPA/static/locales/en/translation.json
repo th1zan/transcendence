@@ -320,7 +320,8 @@
         "errorLoadingTournamentInfo": "Error loading tournament information.",
         "mobileNotSupported": "Mobile Not Supported",
         "pleaseUseBrowser": "Please use a desktop browser to access the tournament feature.",
-        "backToWelcomePage": "Back to Welcome Page"
+        "backToWelcomePage": "Back to Welcome Page",
+        "notOrganizerMsg": "You are not the organizer of this tournament ({{username}}) and cannot interact with it. Matches must be played from the organizer's session."
     },
     "statistics": {
         "statisticsDashboard": "Statistics Dashboard",
