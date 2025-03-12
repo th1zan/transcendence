@@ -69,7 +69,6 @@ CRONJOBS = [
 # python manage.py crontab add
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -231,12 +230,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-# Debug
-# print(f"EMAIL_HOST_USER: {EMAIL_HOST_USER}")
-# print(f"EMAIL_HOST_PASSWORD: {EMAIL_HOST_PASSWORD}")
 
-
-# Cette configuration va envoyer les logs SQL à la console avec un niveau de log DEBUG.
+# Cette configuration va envoyer les logs SQL à la console avec un niveau de log DEBUG.-> "level": "DEBUG",
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -248,7 +243,7 @@ LOGGING = {
     "loggers": {
         "django.db.backends": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "ERROR",
         },
     },
 }
