@@ -441,7 +441,7 @@
         "phoneAlreadyInUse": "This phone number is already in use by another user.",
         "usernameAlreadyTaken": "This username is already taken.",
         "emailTooLong": "Email address is too long. Maximum 255 characters allowed.",
-        "phoneTooLong": "Phone number is too long. Maximum 15 characters allowed.",
+        "phoneTooLong": "Phone number is too long. Maximum 16 characters allowed.",
         "usernameTooLong": "Username is too long. Maximum 255 characters allowed.",
         "phoneNumber": "Phone Number",
         "clear": "Clear",
