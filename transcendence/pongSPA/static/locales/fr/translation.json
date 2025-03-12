@@ -403,7 +403,11 @@
         "rank": "Classement",
         "top5Wins": "Top 5 Victoires",
         "globalWinsVsDrawsVsLosses": "Global Victoires vs Égalité vs Pertes",
-        "pointsPerPlayer": "Points par joueur"
+        "pointsPerPlayer": "Points par joueur",
+        "noGamesFoundFor": "Pas de Jeu trouvé par {{username}}",
+		"pleaseEnterAUsername": "Veuillez entrer un nom d'utilisateur",
+		"matchNotFoundOrPlayed": "Match pas trouvé ou joué",
+		"noRankindDataAvailable": "Aucune donnée de classement disponible."
     },
     "settings": {
         "accountManagement": "Gestion du compte",

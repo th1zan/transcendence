@@ -372,7 +372,7 @@
         "ongoing": "Ongoing",
         "errorLoadingTournament": "Error Loading Tournaments",
         "errorLoadingGames": "Error loading games",
-        "noPlayedMatchesFoundFor": "Aucun match joué trouvé par {{username}}",
+        "noPlayedMatchesFoundFor": "No Played matches found for {{username}}",
         "tournamentSummary": "Tournament Summary",
         "unknown": "Unknown",
         "topWinner": "Top Winner",
@@ -406,7 +406,12 @@
         "rank": "Rank",
         "top5Wins": "Top 5 Wins",
         "globalWinsVsDrawsVsLosses": "Global Wins Vs Draws Vs Losses",
-        "pointsPerPlayer": "Points Per Player"
+        "pointsPerPlayer": "Points Per Player",
+        "noGamesFoundFor": "No Games found for {{username}}",
+		"pleaseEnterAUsername": "Please enter a username",
+		"matchNotFoundOrPlayed": "Match not found or played",
+		"noRankindDataAvailable": "No ranking data available."
+
     },
     "settings": {
         "accountManagement": "Account Management",

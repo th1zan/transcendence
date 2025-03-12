@@ -711,7 +711,7 @@ export function updateProfile() {
       // Check specific error messages from the backend
       let errorTitle = i18next.t('settings.error');
       let errorMessage = "";
-      
+
       // error messages with translations
       if (error.message.includes("email is already in use")) {
         errorTitle = i18next.t('settings.emailError');
@@ -721,7 +721,7 @@ export function updateProfile() {
         if (emailInput) {
           emailInput.classList.add("is-invalid");
         }
-      } 
+      }
       else if (error.message.includes("phone number is already in use")) {
         errorTitle = i18next.t('settings.phoneError');
         errorMessage = i18next.t('settings.phoneAlreadyInUse');
@@ -887,7 +887,7 @@ export function changePassword() {
       }
 
       // Check if the error message contains "Current password is incorrect"
-      if (error.message.includes("Current password is incorrect") || 
+      if (error.message.includes("Current password is incorrect") ||
           error.message.toLowerCase().includes("incorrect")) {
         showModal(
           i18next.t('auth.error'),

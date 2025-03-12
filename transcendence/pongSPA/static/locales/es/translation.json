@@ -406,7 +406,11 @@
         "rank": "Rango",
         "top5Wins": "Top 5 victorias",
         "globalWinsVsDrawsVsLosses": "Victorias vs Empates vs Derrotas globales",
-        "pointsPerPlayer": "Puntos por jugador"
+        "pointsPerPlayer": "Puntos por jugador",
+        "noGamesFoundFor": "No se encontraron Juegos para {{username}}",
+		"pleaseEnterAUsername": "Por favor ingrese un nombre de usuario",
+		"matchNotFoundOrPlayed": "Match no encontrado o jugado",
+		"noRankindDataAvailable": "No hay datos de clasificación disponibles."
     },
     "settings": {
         "accountManagement": "Gestión de cuenta",
