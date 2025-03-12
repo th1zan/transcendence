@@ -123,7 +123,7 @@ celerybeat.pid
 
 # Environments
 .env
-.v
+.venv
 env/
 venv/
 ENV/
@@ -175,3 +175,7 @@ yarn-error.log
 
 # user uploaded files
 transcendence/media/avatars/user_*.*
+
+# migrations
+transcendence/api/migrations/*.py
+!transcendence/api/migrations/__init__.py
