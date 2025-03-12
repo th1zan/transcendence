@@ -1,4 +1,5 @@
 import logging
+
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -8,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..authentication import CookieJWTAuthentication
-from ..models import CustomUser, FriendRequest, Notification
+from ..models import CustomUser, FriendRequest
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def get_avatar_url(user):
     if user.avatar:
         if user.avatar.url.startswith(settings.MEDIA_URL):
             return user.avatar.url
-        return settings.MEDIA_URL + user.avatar.url.lstrip('/')
+        return settings.MEDIA_URL + user.avatar.url.lstrip("/")
     else:
         return settings.MEDIA_URL + "avatars/avatar1.png"
 
@@ -114,15 +115,8 @@ class SendFriendRequestView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            FriendRequest.objects.create(
-                sender=request.user, receiver=receiver
-            )
-            Notification.objects.create(
-                user=receiver,
-                message=f"{request.user.username} sent you a friend request.",
-                notification_type="friend_request",
-            )
-            
+            FriendRequest.objects.create(sender=request.user, receiver=receiver)
+
             return Response(
                 {"message": "Friend request sent."}, status=status.HTTP_200_OK
             )
@@ -175,11 +169,6 @@ class RespondToFriendRequestView(APIView):
             else:
                 friend_request.status = "declined"
                 message = f"You have declined {sender_username}'s friend request."
-                Notification.objects.create(
-                    user=friend_request.sender,
-                    message=f"{request.user.username} declined your friend request.",
-                    notification_type="friend_request_declined",
-                )
             friend_request.save()
             return Response({"message": message}, status=200)
         except FriendRequest.DoesNotExist:

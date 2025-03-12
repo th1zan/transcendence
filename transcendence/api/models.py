@@ -305,26 +305,6 @@ class FriendRequest(models.Model):
         return f"{self.sender.username} -> {self.receiver.username} ({self.status})"
 
 
-class Notification(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name="notifications", on_delete=models.CASCADE
-    )
-    message = models.TextField()
-    notification_type = models.CharField(
-        max_length=50,
-        choices=[
-            ("friend_request", "Friend Request"),
-            ("friend_request_declined", "Friend Request Declined"),
-            ("game_invite", "Game Invite"),
-        ],
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Notification for {self.user.username}: {self.message[:20]}..."
-
-
 @receiver(post_save, sender=PongMatch)
 def update_tournament_status_on_match_update(sender, instance, **kwargs):
     # Calculer si le match est joué
