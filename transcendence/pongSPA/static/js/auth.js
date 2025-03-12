@@ -71,49 +71,117 @@ export function showModalConfirmation(message, title = "Confirmation") {
   });
 }
 
+let isRefreshing = false; // Évite les appels concurrents
 
 export async function refreshToken() {
-  try {
-    logger.log("Attempting to refresh token...");
-    logger.log('Cookies before refresh (HTTP-only, checking via API):', 'Simulating cookie inclusion with credentials: include');
-    let response = await fetch("/api/auth/refresh/", {
-      method: "POST",
-      credentials: "include",
-      headers: { 
-        "Content-Type": "application/json",
-      },
-    });
-
-    logger.log("Refresh response status:", response.status);
-    logger.log("Refresh response headers:", response.headers); // Pour vérifier les cookies mis à jour
-    let data = await response.json();
-    logger.log("🔄 Refresh response:", data);
-
-    if (response.ok && (data.message === "Token refreshed successfully" || data.access)) {
-      logger.log("✅ Access token refreshed successfully (stored in cookies by server)");
-      if (data.refresh) {
-        logger.log("New refresh token detected in response, but not stored (handled by cookies):", data.refresh);
-      }
-      return true;
-    } else if (response.status === 401 || response.status === 403) {
-      const errorData = await response.json();
-      logger.warn("Refresh token invalid or expired:", errorData);
-      if (errorData.detail && errorData.detail.includes('blacklisted')) {
-        logger.warn('Token blacklisted detected:', errorData);
-      }
-      localStorage.removeItem('username');
-      return false;
+    if (isRefreshing) {
+        logger.log("Refresh already in progress, waiting...");
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                if (!isRefreshing) {
+                    clearInterval(interval);
+                    resolve(refreshToken());
+                }
+            }, 100);
+        });
     }
 
-    logger.warn("❌ Failed to refresh access token. Response:", data);
-    return false;
+    isRefreshing = true;
+    try {
+        logger.log("Attempting to refresh token...");
+        logger.log("Cookies before refresh (HTTP-only, checking via API): Simulating cookie inclusion with credentials: include");
 
-  } catch (error) {
-    logger.error("⚠️ Error refreshing token:", error.message, error.stack);
-    localStorage.removeItem('username');
-    return false;
-  }
+        const response = await fetch("https://localhost:8443/api/auth/refresh/", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        logger.log("Refresh response status:", response.status);
+        logger.log("Refresh response headers:", response.headers);
+
+        const data = await response.json();
+        logger.log("🔄 Refresh response:", data);
+
+        if (response.ok && (data.message === "Token refreshed successfully" || data.access)) {
+            logger.log("✅ Access token refreshed successfully (stored in cookies by server)");
+            if (data.refresh) {
+                logger.log("New refresh token detected in response, handled by cookies:", data.refresh);
+            }
+            return true;
+        } else if (response.status === 401 || response.status === 403) {
+            logger.warn("Refresh token invalid or expired:", data);
+            if (data.detail && data.detail.includes("blacklisted")) {
+                logger.warn("Token blacklisted detected:", data);
+                throw new Error("Refresh failed due to blacklisted token");
+            }
+            throw new Error("Refresh failed due to invalid token");
+        } else {
+            logger.warn("❌ Failed to refresh access token. Response:", data);
+            throw new Error("Refresh failed");
+        }
+    } catch (error) {
+        logger.error("⚠️ Error refreshing token:", error.message, error.stack);
+        localStorage.removeItem("username");
+        throw error;
+    } finally {
+        isRefreshing = false; // Libère le verrou
+    }
 }
+
+// Ajuste l'intervalle pour qu'il soit plus espacé
+setInterval(async () => {
+    try {
+        await refreshToken();
+    } catch (error) {
+        logger.warn("Interval refresh failed, consider re-authenticating.");
+    }
+}, 4.5 * 60 * 1000); // Rafraîchir toutes les 4,5 minutes (juste avant l'expiration de 5 minutes)
+
+// export async function refreshToken() {
+//   try {
+//     logger.log("Attempting to refresh token...");
+//     logger.log('Cookies before refresh (HTTP-only, checking via API):', 'Simulating cookie inclusion with credentials: include');
+//     let response = await fetch("/api/auth/refresh/", {
+//       method: "POST",
+//       credentials: "include",
+//       headers: { 
+//         "Content-Type": "application/json",
+//       },
+//     });
+//
+//     logger.log("Refresh response status:", response.status);
+//     logger.log("Refresh response headers:", response.headers); // Pour vérifier les cookies mis à jour
+//     let data = await response.json();
+//     logger.log("🔄 Refresh response:", data);
+//
+//     if (response.ok && (data.message === "Token refreshed successfully" || data.access)) {
+//       logger.log("✅ Access token refreshed successfully (stored in cookies by server)");
+//       if (data.refresh) {
+//         logger.log("New refresh token detected in response, but not stored (handled by cookies):", data.refresh);
+//       }
+//       return true;
+//     } else if (response.status === 401 || response.status === 403) {
+//       const errorData = await response.json();
+//       logger.warn("Refresh token invalid or expired:", errorData);
+//       if (errorData.detail && errorData.detail.includes('blacklisted')) {
+//         logger.warn('Token blacklisted detected:', errorData);
+//       }
+//       localStorage.removeItem('username');
+//       return false;
+//     }
+//
+//     logger.warn("❌ Failed to refresh access token. Response:", data);
+//     return false;
+//
+//   } catch (error) {
+//     logger.error("⚠️ Error refreshing token:", error.message, error.stack);
+//     localStorage.removeItem('username');
+//     return false;
+//   }
+// }
 
 // Fonction helper pour vérifier l'expiration (exemple pour JWT)
 
@@ -476,14 +544,14 @@ export function getToken(username, password) {
 }
 
 export async function validateToken() {
-  const username = localStorage.getItem('username');
+  const username = localStorage.getItem("username");
 
   if (!username) {
-    logger.log('No username found in localStorage, token validation skipped.');
+    logger.log("No username found in localStorage, token validation skipped.");
     return Promise.resolve(false);
   }
 
-  logger.log('Cookies at validation (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
+  logger.log("Cookies at validation (HTTP-only, not directly accessible): Cookies are HTTP-only, checking via API...");
 
   try {
     const response = await fetch("/api/auth/validate/", {
@@ -491,51 +559,118 @@ export async function validateToken() {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-      }
+      },
     });
 
-    logger.log('Validate response status:', response.status);
+    logger.log("Validate response status:", response.status);
     if (!response.ok) {
       logger.warn(`HTTP error validating token! Status: ${response.status}`);
       const errorData = await response.json();
-      logger.log('Error details:', errorData);
+      logger.log("Error details:", errorData);
 
       if (response.status === 401 || response.status === 403) {
-        logger.log('Token invalid or expired, attempting refresh...');
+        logger.log("Token invalid or expired, attempting refresh...");
         const refreshed = await refreshToken();
-        if (!refreshed) {
-          logger.warn('Failed to refresh token after validation failure, clearing tokens.');
-          localStorage.removeItem('username');
+        if (refreshed) {
+          return true; // Réessaye la validation si le refresh réussit
+        } else {
+          logger.warn("Failed to refresh token after validation failure, clearing tokens.");
+          localStorage.removeItem("username");
           return false;
         }
-        return true;
       }
       throw new Error(`Validation failed with status: ${response.status}`);
     }
 
     const data = await response.json();
     if (data.valid) {
-      logger.log('Token is valid');
+      logger.log("Token is valid");
       return true;
     } else {
-      logger.log('Token validation failed, data:', data);
+      logger.log("Token validation failed, data:", data);
       const refreshed = await refreshToken();
-      if (!refreshed) {
-        logger.warn('Failed to refresh token after validation failure, clearing tokens.');
-        localStorage.removeItem('username');
+      if (refreshed) {
+        return true; // Réessaye la validation
+      } else {
+        logger.warn("Failed to refresh token after validation failure, clearing tokens.");
+        localStorage.removeItem("username");
         return false;
       }
-      return true;
     }
   } catch (error) {
-    logger.error('Error validating token:', error.message, error.stack);
+    logger.error("Error validating token:", error.message, error.stack);
     const refreshed = await refreshToken();
-    if (!refreshed) {
-      logger.warn('Failed to refresh token after catch, clearing tokens.');
-      localStorage.removeItem('username');
+    if (refreshed) {
+      return true; // Réessaye après refresh
+    } else {
+      logger.warn("Failed to refresh token after catch, clearing tokens.");
+      localStorage.removeItem("username");
       return false;
     }
-    return true;
   }
 }
+
+// export async function validateToken() {
+//   const username = localStorage.getItem('username');
+//
+//   if (!username) {
+//     logger.log('No username found in localStorage, token validation skipped.');
+//     return Promise.resolve(false);
+//   }
+//
+//   logger.log('Cookies at validation (HTTP-only, not directly accessible):', 'Cookies are HTTP-only, checking via API...');
+//
+//   try {
+//     const response = await fetch("/api/auth/validate/", {
+//       method: "POST",
+//       credentials: "include",
+//       headers: {
+//         "Content-Type": "application/json",
+//       }
+//     });
+//
+//     logger.log('Validate response status:', response.status);
+//     if (!response.ok) {
+//       logger.warn(`HTTP error validating token! Status: ${response.status}`);
+//       const errorData = await response.json();
+//       logger.log('Error details:', errorData);
+//
+//       if (response.status === 401 || response.status === 403) {
+//         logger.log('Token invalid or expired, attempting refresh...');
+//         const refreshed = await refreshToken();
+//         if (!refreshed) {
+//           logger.warn('Failed to refresh token after validation failure, clearing tokens.');
+//           localStorage.removeItem('username');
+//           return false;
+//         }
+//         return true;
+//       }
+//       throw new Error(`Validation failed with status: ${response.status}`);
+//     }
+//
+//     const data = await response.json();
+//     if (data.valid) {
+//       logger.log('Token is valid');
+//       return true;
+//     } else {
+//       logger.log('Token validation failed, data:', data);
+//       const refreshed = await refreshToken();
+//       if (!refreshed) {
+//         logger.warn('Failed to refresh token after validation failure, clearing tokens.');
+//         localStorage.removeItem('username');
+//         return false;
+//       }
+//       return true;
+//     }
+//   } catch (error) {
+//     logger.error('Error validating token:', error.message, error.stack);
+//     const refreshed = await refreshToken();
+//     if (!refreshed) {
+//       logger.warn('Failed to refresh token after catch, clearing tokens.');
+//       localStorage.removeItem('username');
+//       return false;
+//     }
+//     return true;
+//   }
+// }
 

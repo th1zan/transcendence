@@ -2,18 +2,18 @@ import { displayWelcomePage } from "./welcome.js";
 import { gameInterval, stopGameProcess, removeGameListeners } from "./pong.js";
 import { displayStats } from "./stats.js";
 import { displayTournament, resetAppMainLock } from "./tournament.js";
-import { validateToken } from "./auth.js";
+import { validateToken, refreshToken } from "./auth.js";
 import { displayFriends } from "./friends.js";
 import { displaySettings } from "./settings.js";
 import { displayGameForm } from "./gameForm.js";
-import { refreshToken } from "./auth.js";
 import { displayConnectionFormular, displayRegistrationForm } from "./login.js";
 import { displayMenu } from "./menu.js";
 import { loadPrivacyPolicyModal } from "./privacy_policy.js";
 
 
 //'true' to display logs, 'false' for production
-const DEBUG = false;
+const DEBUG = true;
+window.refreshToken = refreshToken; //for debuging, to delete
 
 document.getElementById("lang-en").addEventListener("click", () => changeLanguage("en"));
 document.getElementById("lang-fr").addEventListener("click", () => changeLanguage("fr"));
@@ -167,19 +167,19 @@ document.addEventListener("DOMContentLoaded", () => {
         handleRouteChange('login');
     });
 
-    setInterval(async () => {
-        logger.log('Refreshing token via interval...');
-        const refreshed = await refreshToken();
-        if (!refreshed) {
-            logger.warn('Interval refresh failed, consider re-authenticating.');
-            showModal(
-                i18next.t('app.warning'),
-                i18next.t('app.sessionExpired'),
-                'OK',
-                () => navigateTo('login')
-            );
-        }
-    }, 4 * 60 * 1000);
+    // setInterval(async () => {
+    //     logger.log('Refreshing token via interval...');
+    //     const refreshed = await refreshToken();
+    //     if (!refreshed) {
+    //         logger.warn('Interval refresh failed, consider re-authenticating.');
+    //         showModal(
+    //             i18next.t('app.warning'),
+    //             i18next.t('app.sessionExpired'),
+    //             'OK',
+    //             () => navigateTo('login')
+    //         );
+    //     }
+    // }, 4 * 60 * 1000);
 
     window.addEventListener("popstate", function (event) {
         let route = event.state ? event.state.page : window.location.hash.replace('#', '') || 'welcome';
@@ -234,113 +234,221 @@ export function navigateTo(route) {
 }
 
 //avoid infinit redirection loop
+let isHandlingRouteChange = false; // Protection contre les appels concurrents
 let redirectAttempts = 0;
 const MAX_REDIRECT_ATTEMPTS = 3;
 
 function handleRouteChange(route) {
-  logger.log('handleRouteChange called with route:', route);
-  addToCustomHistory(route);
+    logger.log('handleRouteChange called with route:', route);
+    addToCustomHistory(route);
 
-  if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
-    logger.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
-    showModal(
-      i18next.t('app.error'),
-      i18next.t('app.authError'),
-      'OK',
-      () => navigateTo('login')
-    );
-    return;
-  }
-
-  validateToken().then((isTokenValid) => {
-    logger.log('Token validation in handleRouteChange:', isTokenValid);
-    isUserLoggedIn = isTokenValid;
-
-    const publicRoutes = ['login', 'register'];
-
-    if (publicRoutes.includes(route) || isUserLoggedIn) {
-      logger.log('Route is public or user is logged in');
-      redirectAttempts = 0; // Réinitialiser le compteur si la validation réussit
-      switch (route) {
-        case 'login':
-          if (!isUserLoggedIn) {
-            displayConnectionFormular();
-          } else {
-            navigateTo('welcome');
-          }
-          break;
-        case 'register':
-          displayRegistrationForm();
-          break;
-        case 'welcome':
-          updateUI(displayWelcomePage);
-          break;
-        case 'game':
-          updateUI(displayGameForm);
-          break;
-        case 'tournament':
-          updateUI(displayTournament);
-          break;
-        case 'stats':
-          updateUI(displayStats);
-          break;
-        // case 'userStats':
-        //   updateUI(fetchResultats);
-        //   break;
-        // case 'ranking':
-        //   updateUI(fetchRanking);
-        //   break;
-        case 'friends':
-          updateUI(displayFriends);
-          break;
-        case 'settings':
-          updateUI(displaySettings);
-          break;
-        default:
-          logger.log('Unknown route:', route);
-          if (!isUserLoggedIn) {
-            navigateTo('login');
-          } else {
-            navigateTo('welcome');
-          }
-      }
-    } else {
-      logger.log('User not logged in, attempting to refresh token before redirect');
-      refreshToken().then(refreshed => {
-        if (refreshed) {
-          logger.log('Token refreshed successfully, retrying route change');
-          redirectAttempts = 0;
-          handleRouteChange(route);
-        } else {
-          logger.log('Refresh failed, redirecting to login');
-          redirectAttempts++;
-          navigateTo('login');
-        }
-      }).catch(error => {
-        logger.error('Error refreshing token during redirect:', error);
-        redirectAttempts++;
-        navigateTo('login');
-      });
+    if (isHandlingRouteChange) {
+        logger.log('Route change already in progress, skipping:', route);
+        return;
     }
-  }).catch((error) => {
-    logger.error('Error validating token during route change:', error);
-    refreshToken().then(refreshed => {
-      if (refreshed) {
-        logger.log('Token refreshed successfully after validation error, retrying route change');
-        redirectAttempts = 0;
-        handleRouteChange(route);
-      } else {
-        logger.log('Refresh failed after validation error, redirecting to login');
-        redirectAttempts++;
-        navigateTo('login');
-      }
-    }).catch(error => {
-      logger.error('Error refreshing token after validation failure:', error);
-      redirectAttempts++;
-      navigateTo('login');
+
+    if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
+        logger.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
+        showModal(
+            i18next.t('app.error'),
+            i18next.t('app.authError'),
+            'OK',
+            () => navigateTo('login')
+        );
+        return;
+    }
+
+    isHandlingRouteChange = true; // Verrouillage
+
+    validateToken().then((isTokenValid) => {
+        logger.log('Token validation in handleRouteChange:', isTokenValid);
+        isUserLoggedIn = isTokenValid;
+
+        const publicRoutes = ['login', 'register'];
+
+        if (publicRoutes.includes(route) || isUserLoggedIn) {
+            logger.log('Route is public or user is logged in');
+            redirectAttempts = 0; // Réinitialiser le compteur si la validation réussit
+            switch (route) {
+                case 'login':
+                    if (!isUserLoggedIn) {
+                        displayConnectionFormular();
+                    } else {
+                        navigateTo('welcome');
+                    }
+                    break;
+                case 'register':
+                    displayRegistrationForm();
+                    break;
+                case 'welcome':
+                    updateUI(displayWelcomePage);
+                    break;
+                case 'game':
+                    updateUI(displayGameForm);
+                    break;
+                case 'tournament':
+                    updateUI(displayTournament);
+                    break;
+                case 'stats':
+                    updateUI(displayStats);
+                    break;
+                case 'friends':
+                    updateUI(displayFriends);
+                    break;
+                case 'settings':
+                    updateUI(displaySettings);
+                    break;
+                default:
+                    logger.log('Unknown route:', route);
+                    if (!isUserLoggedIn) {
+                        navigateTo('login');
+                    } else {
+                        navigateTo('welcome');
+                    }
+            }
+        } else {
+            logger.log('User not logged in, attempting to refresh token before redirect');
+            refreshToken().then(refreshed => {
+                if (refreshed) {
+                    logger.log('Token refreshed successfully, retrying route change');
+                    redirectAttempts = 0;
+                    handleRouteChange(route); // Récursion contrôlée
+                } else {
+                    logger.log('Refresh failed, redirecting to login');
+                    redirectAttempts++;
+                    navigateTo('login');
+                }
+            }).catch(error => {
+                logger.error('Error refreshing token during redirect:', error);
+                redirectAttempts++;
+                navigateTo('login');
+            });
+        }
+    }).catch((error) => {
+        logger.error('Error validating token during route change:', error);
+        refreshToken().then(refreshed => {
+            if (refreshed) {
+                logger.log('Token refreshed successfully after validation error, retrying route change');
+                redirectAttempts = 0;
+                handleRouteChange(route); // Récursion contrôlée
+            } else {
+                logger.log('Refresh failed after validation error, redirecting to login');
+                redirectAttempts++;
+                navigateTo('login');
+            }
+        }).catch(error => {
+            logger.error('Error refreshing token after validation failure:', error);
+            redirectAttempts++;
+            navigateTo('login');
+        });
+    }).finally(() => {
+        isHandlingRouteChange = false; // Libération du verrou
     });
-  });
 }
+// function handleRouteChange(route) {
+//   logger.log('handleRouteChange called with route:', route);
+//   addToCustomHistory(route);
+//
+//   if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
+//     logger.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
+//     showModal(
+//       i18next.t('app.error'),
+//       i18next.t('app.authError'),
+//       'OK',
+//       () => navigateTo('login')
+//     );
+//     return;
+//   }
+//
+//   validateToken().then((isTokenValid) => {
+//     logger.log('Token validation in handleRouteChange:', isTokenValid);
+//     isUserLoggedIn = isTokenValid;
+//
+//     const publicRoutes = ['login', 'register'];
+//
+//     if (publicRoutes.includes(route) || isUserLoggedIn) {
+//       logger.log('Route is public or user is logged in');
+//       redirectAttempts = 0; // Réinitialiser le compteur si la validation réussit
+//       switch (route) {
+//         case 'login':
+//           if (!isUserLoggedIn) {
+//             displayConnectionFormular();
+//           } else {
+//             navigateTo('welcome');
+//           }
+//           break;
+//         case 'register':
+//           displayRegistrationForm();
+//           break;
+//         case 'welcome':
+//           updateUI(displayWelcomePage);
+//           break;
+//         case 'game':
+//           updateUI(displayGameForm);
+//           break;
+//         case 'tournament':
+//           updateUI(displayTournament);
+//           break;
+//         case 'stats':
+//           updateUI(displayStats);
+//           break;
+//         // case 'userStats':
+//         //   updateUI(fetchResultats);
+//         //   break;
+//         // case 'ranking':
+//         //   updateUI(fetchRanking);
+//         //   break;
+//         case 'friends':
+//           updateUI(displayFriends);
+//           break;
+//         case 'settings':
+//           updateUI(displaySettings);
+//           break;
+//         default:
+//           logger.log('Unknown route:', route);
+//           if (!isUserLoggedIn) {
+//             navigateTo('login');
+//           } else {
+//             navigateTo('welcome');
+//           }
+//       }
+//     } else {
+//       logger.log('User not logged in, attempting to refresh token before redirect');
+//       refreshToken().then(refreshed => {
+//         if (refreshed) {
+//           logger.log('Token refreshed successfully, retrying route change');
+//           redirectAttempts = 0;
+//           handleRouteChange(route);
+//         } else {
+//           logger.log('Refresh failed, redirecting to login');
+//           redirectAttempts++;
+//           navigateTo('login');
+//         }
+//       }).catch(error => {
+//         logger.error('Error refreshing token during redirect:', error);
+//         redirectAttempts++;
+//         navigateTo('login');
+//       });
+//     }
+//   }).catch((error) => {
+//     logger.error('Error validating token during route change:', error);
+//     refreshToken().then(refreshed => {
+//       if (refreshed) {
+//         logger.log('Token refreshed successfully after validation error, retrying route change');
+//         redirectAttempts = 0;
+//         handleRouteChange(route);
+//       } else {
+//         logger.log('Refresh failed after validation error, redirecting to login');
+//         redirectAttempts++;
+//         navigateTo('login');
+//       }
+//     }).catch(error => {
+//       logger.error('Error refreshing token after validation failure:', error);
+//       redirectAttempts++;
+//       navigateTo('login');
+//     });
+//   });
+// }
 
 function updateUI(routeFunction) {
   // 1. Afficher le menu uniquement si l'utilisateur est connecté

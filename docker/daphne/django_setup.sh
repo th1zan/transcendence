@@ -23,8 +23,8 @@ wait_for_db
 
 # Apply migrations to PostgreSQL
 echo "Applying migrations..."
-python manage.py makemigrations --settings=config.settings_prod
-python manage.py migrate --settings=config.settings_prod
+python manage.py makemigrations --settings=config.settings
+python manage.py migrate --settings=config.settings
 if [[ $? -ne 0 ]]; then
   echo "Migrations failed!"
   exit 1
@@ -33,7 +33,7 @@ fi
 # Check if initial_data.json exists and import into PostgreSQL
 if [[ -f /transcendence/fixtures/initial_data.json ]]; then
   echo "Found fixtures/initial_data.json, importing into PostgreSQL..."
-  python manage.py loaddata fixtures/initial_data.json --settings=config.settings_prod
+  python manage.py loaddata fixtures/initial_data.json --settings=config.settings
   if [[ $? -eq 0 ]]; then
     echo "Data imported successfully"
   else
@@ -45,7 +45,7 @@ else
 fi
 
 # Create superuser if it doesn’t exist
-cat <<EOF | python manage.py shell --settings=config.settings_prod
+cat <<EOF | python manage.py shell --settings=config.settings
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -54,7 +54,7 @@ if not User.objects.filter(username='$SUPER_USER').exists():
 EOF
 echo "Django and superuser are setup."
 
-yes yes | python manage.py collectstatic --settings=config.settings_prod
+yes yes | python manage.py collectstatic --settings=config.settings
 
 # Lancer daphne en arrière-plan
 daphne -b 0.0.0.0 -p 8001 config.asgi:application &
@@ -90,8 +90,8 @@ done
 #
 ## Apply migrations to PostgreSQL
 #echo "Applying migrations..."
-#python manage.py makemigrations --settings=config.settings_prod
-#python manage.py migrate --settings=config.settings_prod
+#python manage.py makemigrations --settings=config.settings
+#python manage.py migrate --settings=config.settings
 #if [[ $? -ne 0 ]]; then
 #    echo "Migrations failed!"
 #    exit 1
@@ -100,7 +100,7 @@ done
 ## Check if initial_data.json exists and import into PostgreSQL
 #if [[ -f /transcendence/fixtures/initial_data.json ]]; then
 #    echo "Found fixtures/initial_data.json, importing into PostgreSQL..."
-#    python manage.py loaddata fixtures/initial_data.json --settings=config.settings_prod
+#    python manage.py loaddata fixtures/initial_data.json --settings=config.settings
 #    if [[ $? -eq 0 ]]; then
 #        echo "Data imported successfully"
 #    else
@@ -112,7 +112,7 @@ done
 #fi
 #
 ## Create superuser if it doesn’t exist
-#cat <<EOF | python manage.py shell --settings=config.settings_prod
+#cat <<EOF | python manage.py shell --settings=config.settings
 #from django.contrib.auth import get_user_model
 #
 #User = get_user_model()
@@ -121,7 +121,7 @@ done
 #EOF
 #echo "Django and superuser are setup."
 #
-#yes yes | python manage.py collectstatic --settings=config.settings_prod
+#yes yes | python manage.py collectstatic --settings=config.settings
 #
 ## Lancer daphne en arrière-plan
 #daphne -b 0.0.0.0 -p 8001 config.asgi:application &
@@ -142,9 +142,9 @@ done
 #	exit 1
 #else
 #	cd /transcendence
-#	python manage.py makemigrations --settings=config.settings_prod
-#	python manage.py migrate --settings=config.settings_prod
-#	cat <<EOF | python manage.py shell --settings=config.settings_prod
+#	python manage.py makemigrations --settings=config.settings
+#	python manage.py migrate --settings=config.settings
+#	cat <<EOF | python manage.py shell --settings=config.settings
 #from django.contrib.auth import get_user_model
 #
 #User = get_user_model()  # get the currently active user model
@@ -155,6 +155,6 @@ done
 #EOF
 #	echo "Django and superuser are setup."
 #fi
-#yes yes | python manage.py collectstatic --settings=config.settings_prod
+#yes yes | python manage.py collectstatic --settings=config.settings
 #exec "$@"
 #
