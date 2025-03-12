@@ -66,9 +66,8 @@ class TournamentCreationView(APIView):
 
 
 class TournamentFinalizationView(APIView):
-    permission_classes = [IsAuthenticated]  # Changed from AllowAny
+    permission_classes = [IsAuthenticated]
 
-    # NOTE: Restricts finalization to authenticated users and validates input.
     def post(self, request, tournament_id):
         if not request.user.is_authenticated:
             return Response(
@@ -103,6 +102,7 @@ class TournamentFinalizationView(APIView):
                     continue
                 authenticated = player_data.get("authenticated", False)
                 guest = player_data.get("guest", False)
+
                 try:
                     user = CustomUser.objects.get(username=player_name)
                     player, created = Player.objects.get_or_create(
@@ -113,14 +113,16 @@ class TournamentFinalizationView(APIView):
                         player.save()
                 except CustomUser.DoesNotExist:
                     player, created = Player.objects.get_or_create(player=player_name)
+                    guest = True  # Forcer guest = True si pas de CustomUser
+
                 tournament_player, tp_created = TournamentPlayer.objects.get_or_create(
                     player=player,
                     tournament=tournament,
                     defaults={"authenticated": authenticated, "guest": guest},
                 )
                 if not tp_created:
-                    tournament_player.authenticated = authenticated
-                    tournament_player.guest = guest
+                    tournament_player.authenticated = authenticated if player.user else False
+                    tournament_player.guest = guest or player.is_guest  # Utiliser is_guest pour détecter les guests
                     tournament_player.save()
 
             generate_matches(tournament_id, number_of_games, points_to_win)
@@ -137,6 +139,7 @@ class TournamentFinalizationView(APIView):
             return Response(
                 {"error": "Tournament not found"}, status=status.HTTP_404_NOT_FOUND
             )
+            
 
 
 def generate_matches(tournament_id, number_of_games, points_to_win):
@@ -398,7 +401,6 @@ class RemovePlayerMatchesView(APIView):
 class StartMatchView(APIView):
     permission_classes = [IsAuthenticated]
 
-    # NOTE: Ensures only the organizer can start matches and validates player authentication.
     def post(self, request, match_id):
         try:
             match = PongMatch.objects.get(id=match_id)
@@ -424,20 +426,18 @@ class StartMatchView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            player1_authenticated = (
-                player1_tournament.authenticated or player1_tournament.guest
-            )
-            player2_authenticated = (
-                player2_tournament.authenticated or player2_tournament.guest
-            )
-            if not player1_authenticated:
+            # Vérifier si les joueurs peuvent jouer
+            player1_can_play = player1_tournament.guest or player1_tournament.authenticated
+            player2_can_play = player2_tournament.guest or player2_tournament.authenticated
+
+            if not player1_can_play:
                 return Response(
-                    {"error": f"Player {match.player1.player} is not authenticated"},
+                    {"error": f"Player {match.player1.player} is neither a guest nor authenticated"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if not player2_authenticated:
+            if not player2_can_play:
                 return Response(
-                    {"error": f"Player {match.player2.player} is not authenticated"},
+                    {"error": f"Player {match.player2.player} is neither a guest nor authenticated"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
