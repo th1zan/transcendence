@@ -386,7 +386,6 @@ export async function deleteAccount() {
           // Force page redirection and prevent lingering JavaScript
           window.location.href = "/"; // Redirect to the login page
 
-          //displayConnectionFormular(); // Redirect back to the login page
         }
       );
     })
@@ -467,7 +466,7 @@ export function uploadAvatar() {
 
   fetch("/api/auth/upload-avatar/", {
     method: "POST",
-    credentials: "include", // Ensures authentication
+    credentials: "include",
     body: formData,
   })
     .then(response => {
@@ -500,8 +499,6 @@ export function uploadAvatar() {
           // Update the menu avatar
           displayMenu(data.avatar_url);
           updateWelcomePageAvatar(data.avatar_url);
-          // Re-render the settings page to ensure everything is in sync
-          //displaySettings();
         }
       );
     })
@@ -526,9 +523,8 @@ export function updateWelcomePageAvatar(avatarUrl) {
   }
 }
 
-
 export async function deleteAvatar() {
-  // First disable the button to prevent multiple clicks
+  // disable the button to prevent multiple clicks
   const deleteButton = document.getElementById("deleteAvatarButton");
   if (deleteButton) {
     deleteButton.disabled = true;
@@ -544,7 +540,7 @@ export async function deleteAvatar() {
     if (deleteButton) {
       deleteButton.disabled = false;
     }
-    return; // Exit the function if not confirmed
+    return;
   }
 
   // User confirmed, proceed with deletion
@@ -554,10 +550,7 @@ export async function deleteAvatar() {
   })
     .then((response) => response.json())
     .then((data) => {
-      // Update localStorage
       localStorage.setItem("avatarUrl", data.avatar_url);
-
-      // Update UI without showing another modal
       const profilePic = document.getElementById("profilePic");
       if (profilePic && data.avatar_url) {
         profilePic.src = data.avatar_url + "?t=" + new Date().getTime();
@@ -566,7 +559,6 @@ export async function deleteAvatar() {
       // Keep the delete button disabled
       if (deleteButton) {
         deleteButton.disabled = true;
-        //deleteButton.classList.add("disabled");
       }
 
       // Update all UI elements
@@ -579,13 +571,8 @@ export async function deleteAvatar() {
         i18next.t('modal.ok'),
         () => {}
       );
-      // // Wait briefly before re-rendering settings to ensure DOM stability
-      // setTimeout(() => {
-      //   displaySettings();
-      // }, 300);
     })
     .catch((error) => {
-      //console.error("Error deleting avatar:", error);
       logger.error("Error deleting avatar:", error);
 
       // Re-enable delete button in case of error
@@ -623,12 +610,12 @@ export function updateProfile() {
     return;
   }
 
-  // Regular Expression to validate email format
+  // Regex to validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Validate email if not empty
   if (emailRaw !== "" && !emailRegex.test(emailRaw)) {
-    emailInput.classList.add("is-invalid"); // Bootstrap will show a validation error
+    emailInput.classList.add("is-invalid");
     emailInput.classList.remove("is-valid");
     showModal(
       i18next.t('auth.error'),
@@ -636,7 +623,7 @@ export function updateProfile() {
       i18next.t('modal.ok'),
       () => {}
     );
-    return; // Stop execution if email is invalid
+    return;
   } else {
     emailInput.classList.remove("is-invalid");
     emailInput.classList.add("is-valid");
@@ -647,7 +634,6 @@ export function updateProfile() {
   const emailValue = sanitizeAdvanced(emailRaw);
   const phoneNumber = sanitizeAdvanced(phoneRaw);
 
-  // Disable the save button to prevent double submissions
   const saveButton = document.getElementById("saveProfileButton");
   if (saveButton) {
     saveButton.disabled = true;
@@ -655,7 +641,7 @@ export function updateProfile() {
 
   fetch("/api/auth/user/", {
     method: "PUT",
-    credentials: "include", // Send authentication cookies
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       "X-CSRFToken": getCookie("csrftoken"),
@@ -694,7 +680,6 @@ export function updateProfile() {
             }
           );
 
-          // Re-enable save button
           if (saveButton) {
             saveButton.disabled = false;
           }
@@ -703,12 +688,10 @@ export function updateProfile() {
     .catch(error => {
       logger.error("Error updating profile:", error);
 
-      // Re-enable save button
       if (saveButton) {
         saveButton.disabled = false;
       }
 
-      // Check specific error messages from the backend
       let errorTitle = i18next.t('settings.error');
       let errorMessage = "";
 
@@ -816,7 +799,6 @@ export function changePassword() {
     return;
   }
 
-  // If there's an error message, show it
   if (errorMessage) {
     document.getElementById("newPasswordInput").classList.add("is-invalid");
     const feedbackElement = document.getElementById("newPasswordFeedback");
@@ -829,7 +811,6 @@ export function changePassword() {
     return;
   }
 
-  // Disable the button to prevent double submissions
   const changeBtn = document.getElementById("changePasswordBtn");
   if (changeBtn) {
     changeBtn.disabled = true;
@@ -860,7 +841,7 @@ export function changePassword() {
       document.getElementById("newPasswordInput").value = "";
       document.getElementById("confirmPasswordInput").value = "";
 
-      // Wait for cookies to process
+      // Wait for cookies to process, or maybe it works without waiting - to test more
       setTimeout(() => {
         showModal(
           i18next.t('auth.success'),
@@ -872,7 +853,6 @@ export function changePassword() {
           }
         );
 
-        // Re-enable button
         if (changeBtn) {
           changeBtn.disabled = false;
         }
@@ -881,7 +861,6 @@ export function changePassword() {
     .catch(error => {
       logger.error("Error changing password:", error);
 
-      // Re-enable button
       if (changeBtn) {
         changeBtn.disabled = false;
       }

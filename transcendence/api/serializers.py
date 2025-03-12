@@ -198,17 +198,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             )
         return value
 
-    # def validate_email(self, value):
-    #     if CustomUser.objects.filter(email=value).exists():
-    #         raise serializers.ValidationError("A user with that email already exists.")
-    #     return value
-
     def create(self, validated_data):
         user = CustomUser.objects.create_user(
             username=validated_data["username"],
             password=validated_data["password"],
             privacy_policy_accepted=validated_data["privacy_policy_accepted"],
-            # email=validated_data["email"],
         )
         return user
 
@@ -224,11 +218,6 @@ class ChangePasswordSerializer(serializers.Serializer):
         return value
 
     def validate_new_password(self, value):
-        # for dev phase, remove later
-        # if len(value) < 3:
-        #     raise serializers.ValidationError(
-        #         "The password must contain at least 3 characters."
-        #     )
         # Check for minimum length
         if len(value) < 8:
             raise serializers.ValidationError(

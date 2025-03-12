@@ -30,14 +30,14 @@ class CookieJWTAuthentication(JWTAuthentication):
             validated_token = self.get_validated_token(raw_token)
             user = self.get_user(validated_token)
 
-            # NOTE: Ensures only active users can authenticate, preventing access with disabled accounts.
+            # Ensures only active users can authenticate, preventing access with disabled accounts
             if not user.is_active:
                 logger.warning(
                     f"Authentication failed: User {user.username} is inactive."
                 )
                 raise AuthenticationFailed("User account is disabled.")
 
-            # NOTE: Enforces 2FA verification with session check to enhance security.
+            # Enforces 2FA verification with session check to enhance security
             if user.is_2fa_enabled:
                 if not request.session.get("2fa_verified"):
                     logger.info(
@@ -46,7 +46,7 @@ class CookieJWTAuthentication(JWTAuthentication):
                     raise AuthenticationFailed(
                         "2FA verification required. Please verify OTP."
                     )
-                # Optional: Add a timeout for 2FA session verification
+                # timeout for 2FA session verification
                 last_2fa_time = request.session.get("2fa_verified_time")
                 if (
                     last_2fa_time

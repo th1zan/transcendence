@@ -254,7 +254,113 @@ export function loadPrivacyPolicyModal() {
 				</div>
 			</div>
 			</div>
-	  	`
+	  	`,
+		es: `
+		<div class="modal fade" id="privacyPolicyModal" tabindex="-1" aria-labelledby="privacyPolicyLabel" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="privacyPolicyLabel">Política de Privacidad</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+				</div>
+				<div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+					<p><strong>Fecha de vigencia:</strong> 14.02.2025</p>
+					<p><strong>Última actualización:</strong> 05.03.2025</p>
+
+					<h2>1. Introducción</h2>
+					<p>En Pong42, respetamos tu privacidad y nos comprometemos a proteger tus datos personales. Esta Política de Privacidad explica cómo recopilamos, usamos y protegemos tu información de acuerdo con el Reglamento General de Protección de Datos (GDPR). Al utilizar nuestra plataforma de juegos y servicios, aceptas los términos de esta Política de Privacidad.</p>
+
+					<h2>2. Qué datos recopilamos y por qué</h2>
+					<p>Recopilamos solo los datos necesarios para proporcionar nuestros servicios, mejorar la experiencia del usuario y cumplir con obligaciones legales.</p>
+
+					<h3>2.1 Información de la cuenta</h3>
+					<ul>
+					<li><strong>Nombre de usuario</strong> – Necesario para crear e identificar tu cuenta.</li>
+					<li><strong>Correo electrónico</strong> – Se usa para la autenticación de dos factores (2FA) y para enviar códigos OTP de inicio de sesión de forma segura.</li>
+					<li><strong>Contraseña</strong> – Almacenada de forma segura mediante algoritmos de hash, garantizando que nunca se almacene en texto plano.</li>
+					<li><strong>Avatar/Imagen de perfil</strong> – Opcional; almacenado para personalización del usuario.</li>
+					<li><strong>Fecha de registro</strong> – Fecha en la que se creó tu cuenta.</li>
+					<li><strong>Última conexión</strong> – Muestra la última actividad registrada y es visible para otros usuarios. Esta función no se puede desactivar.</li>
+					</ul>
+
+					<h3>2.2 Datos de juego y perfil</h3>
+					<ul>
+					<li><strong>Historial de partidas</strong> – Registro de tus partidas pasadas, incluyendo victorias y derrotas.</li>
+					<li><strong>Lista de amigos</strong> – Lista de jugadores que has agregado como amigos.</li>
+					<li><strong>Participación en torneos</strong> – Historial de torneos en los que has participado.</li>
+					</ul>
+
+					<h3>2.3 Seguridad y autenticación</h3>
+					<ul>
+					<li><strong>Estado de la autenticación en dos pasos (2FA)</strong> – Indica si la 2FA está habilitada o deshabilitada en tu cuenta.</li>
+					<li><strong>Códigos OTP</strong> – Almacenados temporalmente para autenticación y nunca retenidos después de su verificación.</li>
+					<li><strong>Tokens de acceso y actualización (JWT)</strong> – Utilizados para sesiones seguras y almacenados exclusivamente en cookies HTTP-only.</li>
+					</ul>
+
+					<h3>2.4 Almacenamiento local y cookies</h3>
+					<p>No utilizamos cookies de seguimiento de terceros. Solo almacenamos datos mínimos para la gestión de sesiones:</p>
+					<ul>
+					<li><strong>Nombre de usuario</strong> – Recordado para facilitar el inicio de sesión.</li>
+					<li><strong>Idioma seleccionado</strong> – Almacena la preferencia de idioma.</li>
+					<li><strong>Tokens de acceso y actualización</strong> – Solo almacenados en cookies HTTP-only.</li>
+					</ul>
+
+					<h2>3. Cómo usamos tus datos</h2>
+					<p>Procesamos tus datos personales para:</p>
+					<ul>
+					<li>Crear y administrar tu cuenta.</li>
+					<li>Facilitar la participación en partidas y torneos.</li>
+					<li>Proporcionar funciones multijugador, como listas de amigos y emparejamiento.</li>
+					<li>Garantizar la seguridad de la plataforma.</li>
+					<li>Cumplir con requisitos legales.</li>
+					</ul>
+
+					<h2>4. Gestión y eliminación de datos</h2>
+					<p>Puedes gestionar tus datos dentro de la plataforma:</p>
+					<ul>
+					<li><strong>Actualizar información</strong> – Puedes cambiar tu nombre de usuario, correo electrónico y contraseña.</li>
+					<li><strong>Eliminar o anonimizar cuenta</strong> – Puedes borrar tu cuenta permanentemente o anonimizar tus datos.</li>
+					</ul>
+
+					<h2>5. Medidas de seguridad</h2>
+					<p>Implementamos protocolos de seguridad para proteger tu información:</p>
+					<ul>
+					<li>Las contraseñas están encriptadas antes de ser almacenadas.</li>
+					<li>La autenticación en dos pasos (2FA) está disponible.</li>
+					<li>Los tokens de acceso y actualización se almacenan de forma segura.</li>
+					<li>El tráfico de datos está cifrado mediante HTTPS.</li>
+					</ul>
+
+					<h2>6. Servicios de terceros</h2>
+					<p>No compartimos tus datos con terceros para publicidad. Sin embargo, utilizamos servicios externos para:</p>
+					<ul>
+					<li><strong>Autenticación</strong> – Para proporcionar inicios de sesión seguros.</li>
+					<li><strong>Almacenamiento de avatares</strong> – Si subes una imagen de perfil, esta se almacena en nuestro directorio seguro.</li>
+					</ul>
+
+					<h2>7. Tus derechos según el GDPR</h2>
+					<p>De acuerdo con el GDPR, tienes los siguientes derechos:</p>
+					<ul>
+					<li><strong>Derecho de acceso</strong> – Puedes solicitar una copia de tus datos personales.</li>
+					<li><strong>Derecho de rectificación</strong> – Puedes actualizar tu información personal.</li>
+					<li><strong>Derecho al olvido</strong> – Puedes solicitar la eliminación de tu cuenta.</li>
+					</ul>
+
+					<h2>8. Cambios en esta política</h2>
+					<p>Podemos actualizar esta política en el futuro. Te notificaremos si realizamos cambios importantes.</p>
+
+					<h2>9. Información de contacto</h2>
+					<p>Si tienes preguntas sobre esta política o quieres ejercer tus derechos, contáctanos en:</p>
+					<p>📧 <a href="mailto:pong42lausanne@gmail.com">pong42lausanne@gmail.com</a></p>
+					<p>📍 Equipo Pong42, Lausana, Suiza</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+				</div>
+				</div>
+			</div>
+			</div>
+		`
 	};
   
 	// get current language and select template

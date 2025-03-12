@@ -1,4 +1,3 @@
-# from django.contrib.auth.models import User
 import os
 import random
 
@@ -17,23 +16,17 @@ class CustomUser(AbstractUser):
     email = models.EmailField(max_length=255, blank=True, null=True, default=None)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(
-        max_length=15, unique=True, blank=True, null=True, default=None
-    )  # We might use phone number for 2FA
-    friends = models.ManyToManyField(
-        "self", symmetrical=True, blank=True
-    )  # Friend list (Many-to-Many)
+    phone_number = models.CharField(max_length=16, unique=True, blank=True, null=True, default=None)
+    friends = models.ManyToManyField("self", symmetrical=True, blank=True) # Friend list (Many-to-Many)
     privacy_policy_accepted = models.BooleanField(default=False)
-    is_online = models.BooleanField(default=False)  # Track online status
-    last_seen = models.DateTimeField(blank=True, null=True)  # Track last active time
+    is_online = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(blank=True, null=True)
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
-    # The avatar will be saved under media/avatars/ with a random default image if none is uploaded.
     avatar = models.ImageField(upload_to="", blank=True, null=True)
     is_2fa_enabled = models.BooleanField(default=False)
-    otp_secret = models.CharField(max_length=6, blank=True, null=True)  # Store OTP
+    otp_secret = models.CharField(max_length=6, blank=True, null=True)
 
     def set_random_avatar(self):
-        # List of default avatar images in the 'avatars/' folder
         default_avatars = [
             "avatars/avatar1.png",
             "avatars/avatar2.png",
@@ -44,28 +37,20 @@ class CustomUser(AbstractUser):
             "avatars/avatar7.png",
         ]
 
-        # Choose a random avatar from the list
         chosen_avatar = random.choice(default_avatars)
-
-        # Make the filename unique by adding the username
         new_filename = f"user_{self.id}.png"
-
-        # Get the full path to the avatar file
         avatar_path = os.path.join(settings.MEDIA_ROOT, chosen_avatar)
-
         # Open the chosen avatar image file and assign its content to the user's avatar field
         with open(avatar_path, "rb") as f:
             self.avatar.save(f"avatars/{new_filename}", File(f), save=False)
-
-        # Optionally save the user instance to commit the changes
         self.save()
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
-        if is_new:  # If it's a new user, save first to get the ID
+        if is_new:  # If it's a new user, save user first to get the ID
             super().save(*args, **kwargs)
             if not self.avatar:  # If no avatar is set, assign a random one
-                self.set_random_avatar()  # Now set the avatar with the unique filename
+                self.set_random_avatar()  # set the avatar with the unique filename
         else:
             super().save(*args, **kwargs)  # Save as usual if not a new user
 
@@ -74,7 +59,6 @@ class CustomUser(AbstractUser):
         self.last_seen = now()
         self.save()
 
-    # USERNAME_FIELD = "username" @ receiver(post_save, sender=Tournament)
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
 
