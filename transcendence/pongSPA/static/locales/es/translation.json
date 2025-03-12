@@ -440,7 +440,7 @@
         "phoneAlreadyInUse": "Este número de teléfono ya está siendo utilizado por otro usuario.",
         "usernameAlreadyTaken": "Este nombre de usuario ya está en uso.",
         "emailTooLong": "La dirección de correo electrónico es demasiado larga. Se permiten máximo 255 caracteres.",
-        "phoneTooLong": "El número de teléfono es demasiado largo. Se permiten máximo 15 caracteres.",
+        "phoneTooLong": "El número de teléfono es demasiado largo. Se permiten máximo 16 caracteres.",
         "usernameTooLong": "El nombre de usuario es demasiado largo. Se permiten máximo 255 caracteres.",
         "phoneNumber": "Número de teléfono",
         "clear": "Borrar",

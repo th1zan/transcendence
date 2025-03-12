@@ -437,7 +437,7 @@
         "phoneAlreadyInUse": "Ce numéro de téléphone est déjà utilisé par un autre utilisateur.",
         "usernameAlreadyTaken": "Ce nom d'utilisateur est déjà pris.",
         "emailTooLong": "L'adresse e-mail est trop longue. Maximum 255 caractères autorisés.",
-        "phoneTooLong": "Le numéro de téléphone est trop long. Maximum 15 caractères autorisés.",
+        "phoneTooLong": "Le numéro de téléphone est trop long. Maximum 16 caractères autorisés.",
         "usernameTooLong": "Le nom d'utilisateur est trop long. Maximum 255 caractères autorisés.",
         "phoneNumber": "Numéro de téléphone",
         "clear": "Effacer",
@@ -481,6 +481,6 @@
     "modal": {
         "yes": "Oui",
         "no": "Non",
-        "ok": "J'ai compris"
+        "ok": "OK"
     }
 }
