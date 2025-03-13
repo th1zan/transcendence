@@ -37,3 +37,29 @@ export function sanitizeAdvanced(input) {
   
   return sanitized;
 }
+
+/**
+ * Ensures avatar URLs are absolute, working on any device
+ * @param {string} avatarPath - Relative or absolute path to avatar
+ * @returns {string} - Full URL to avatar
+ */
+export function getAbsoluteAvatarUrl(avatarPath) {
+  // If no avatar path provided, use default
+  if (!avatarPath) {
+    avatarPath = "/media/avatars/avatar1.png";
+  }
+
+  // If it's already a full URL, return it
+  if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+    return avatarPath;
+  }
+
+  // Ensure the path starts with /
+  if (!avatarPath.startsWith('/')) {
+    avatarPath = '/' + avatarPath;
+  }
+
+  // Build absolute URL using current origin
+  const baseUrl = window.location.origin;
+  return baseUrl + avatarPath;
+}
