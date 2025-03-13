@@ -10,6 +10,16 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import now
+from django.core.exceptions import ValidationError
+
+
+def validate_image_file_extension(value):
+    # The current validator might be checking only for JPEG
+    # Change it to include PNG as well
+    valid_extensions = ['jpg', 'jpeg', 'png']  # Add 'png' here
+    ext = os.path.splitext(value.name)[1][1:].lower()
+    if ext not in valid_extensions:
+        raise ValidationError('Unsupported file extension. Please use JPEG or PNG.')
 
 
 class CustomUser(AbstractUser):
@@ -22,7 +32,12 @@ class CustomUser(AbstractUser):
     is_online = models.BooleanField(default=False)
     last_seen = models.DateTimeField(blank=True, null=True)
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
-    avatar = models.ImageField(upload_to="", blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to="", 
+        blank=True, 
+        null=True, 
+        validators=[validate_image_file_extension]
+    )
     is_2fa_enabled = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=6, blank=True, null=True)
 

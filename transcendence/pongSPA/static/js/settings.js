@@ -2,7 +2,7 @@ import { update2FAStatus, toggle2FA, verifyOTP, showModalConfirmation, getCookie
 import { navigateTo, showModal, logger } from "./app.js";
 import { displayMenu } from "./menu.js";
 import { showPrivacyPolicyModal } from "./privacy_policy.js";
-import { sanitizeHTML, sanitizeAdvanced } from "./utils.js";
+import { sanitizeHTML, sanitizeAdvanced, getAbsoluteAvatarUrl } from "./utils.js";
 
 function displayHTMLforSettings(user) {
 
@@ -11,8 +11,11 @@ function displayHTMLforSettings(user) {
   document.getElementById('app_main').innerHTML = '';
   document.getElementById('app_bottom').innerHTML = '';
 
-  const avatarUrl = user.avatar_url || "/media/avatars/default.png";
-  const isDefaultAvatar = avatarUrl.includes("default.png");
+  // Get avatar URL from localStorage or user data, ensuring it's absolute
+  const storedAvatarUrl = localStorage.getItem("avatarUrl");
+  const avatarPath = storedAvatarUrl || user.avatar_url || "/media/avatars/avatar1.png";
+  const avatarUrl = getAbsoluteAvatarUrl(avatarPath);
+  const isDefaultAvatar = avatarPath.includes("avatar1.png");
 
   const appTop = document.getElementById("app_top");
   appTop.innerHTML = `
@@ -178,7 +181,6 @@ function displayHTMLforSettings(user) {
 }
 
 export function displaySettings() {
-
 
   const user = localStorage.getItem("username");
   const storedAvatarUrl = localStorage.getItem("avatarUrl");
@@ -491,7 +493,7 @@ export function uploadAvatar() {
     );
     return;
   }
-
+    
   const formData = new FormData();
   formData.append("avatar", file);
 
@@ -501,9 +503,9 @@ export function uploadAvatar() {
     body: formData,
   })
     .then(response => {
-      if (!response.ok) {
+            if (!response.ok) {
         return response.json().then(error => {
-          throw new Error(error.error || "Upload failed.");
+                    throw new Error(error.error || "Upload failed.");
         });
       }
       return response.json();
@@ -514,22 +516,25 @@ export function uploadAvatar() {
         i18next.t('settings.profilePictureUpdated'),
         i18next.t('modal.ok'),
         () => {
+          // First update localStorage with the new avatar URL
           localStorage.setItem("avatarUrl", data.avatar_url);
+          
+          // Update profile picture on current page
           const profilePic = document.getElementById("profilePic");
-
-          if (profilePic && data.avatar_url) {
-            profilePic.src = data.avatar_url + "?t=" + new Date().getTime(); // Prevents caching issues
+          if (profilePic) {
+            profilePic.src = getAbsoluteAvatarUrl(data.avatar_url) + "?t=" + new Date().getTime();
           }
-          // Enable the delete button (if it was disabled)
+          
+          // Enable the delete button
           const deleteButton = document.getElementById("deleteAvatarButton");
           if (deleteButton) {
             deleteButton.disabled = false;
             deleteButton.classList.remove("disabled");
           }
 
-          // Update the menu avatar
-          displayMenu(data.avatar_url);
-          updateWelcomePageAvatar(data.avatar_url);
+          // Update menu and welcome page
+          displayMenu();  // No need to pass URL since we already updated localStorage
+          updateWelcomePageAvatar();
         }
       );
     })
@@ -544,13 +549,11 @@ export function uploadAvatar() {
     });
 }
 
-export function updateWelcomePageAvatar(avatarUrl) {
+export function updateWelcomePageAvatar() {
   const welcomeAvatar = document.getElementById("welcomeAvatar");
-  if (welcomeAvatar && avatarUrl) { // Add check for avatarUrl
-    welcomeAvatar.src = avatarUrl + "?t=" + new Date().getTime();
-  } else if (welcomeAvatar) {
-    // Use default avatar
-    welcomeAvatar.src = "/media/avatars/default.png" + "?t=" + new Date().getTime();
+  if (welcomeAvatar) {
+    const storedAvatarUrl = localStorage.getItem("avatarUrl") || "/media/avatars/default.png";
+    welcomeAvatar.src = getAbsoluteAvatarUrl(storedAvatarUrl) + "?t=" + new Date().getTime();
   }
 }
 

@@ -1,29 +1,9 @@
 import { logout } from './auth.js';
 import { changeLanguage, navigateTo, logger } from "./app.js";
 
-export async function fetchAndStoreAvatarUrl() {
-  try {
-    const response = await fetch("/api/auth/user/", {
-      method: "GET",
-      credentials: "include",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to fetch user data.");
-    }
-    const user = await response.json();
-    const avatarUrl = user.avatar_url ? user.avatar_url : "/media/avatars/default.png";
-    localStorage.setItem("avatarUrl", avatarUrl);
-    return avatarUrl;
-  } catch (error) {
-    logger.error("Error fetching avatar URL:", error);
-    const defaultUrl = "/media/avatars/avatar1.png";
-    localStorage.setItem("avatarUrl", defaultUrl);
-    return defaultUrl;
-  }
-}
 
-export async function displayMenu(avatarUrl = null) {
-  const avatarPicture = avatarUrl || await fetchAndStoreAvatarUrl();
+export async function displayMenu() {
+  const avatarPicture = localStorage.getItem("avatarUrl");
 
   document.getElementById('app_top').className = 'semi-transparent-bg p-3 text-dark';
   document.getElementById('app_main').className = 'semi-transparent-bg flex-grow-1 p-3 text-dark';
@@ -69,7 +49,7 @@ export async function displayMenu(avatarUrl = null) {
   const navbarCollapse = menu.querySelector('.navbar-collapse');
 
   function hideMenuIfScroll() {
-      const scrollThreshold = 200; // Seuil en pixels (ajustable selon tes besoins)
+// Seuil en pixels (ajustable selon tes besoins)          const scrollThreshold =  // Seuil en pixels (ajustable selon tes besoins)200; // Seuil en pixels (ajustable selon tes besoins)
       const scrollPosition = window.scrollY || window.pageYOffset;
 
       if (scrollPosition > scrollThreshold) {

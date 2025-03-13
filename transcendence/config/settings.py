@@ -33,7 +33,7 @@ DEBUG = False
 
 # port 8443 is the nginx container
 # TODO: delete the unecessary computer
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.1.96"]
 CSRF_TRUSTED_ORIGINS = ["https://localhost:8443"]
 
 
@@ -195,8 +195,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# MEDIA_URL = "/media/"
-MEDIA_URL = "https://localhost:8443/media/"
+# Media configuration - simple relative URL
+# The client-side JavaScript will handle making these URLs absolute
+MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 SIMPLE_JWT = {
