@@ -12,15 +12,12 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 
-
 def validate_image_file_extension(value):
-    # The current validator might be checking only for JPEG
-    # Change it to include PNG as well
-    valid_extensions = ['jpg', 'jpeg', 'png']  # Add 'png' here
+
+    valid_extensions = ['jpg', 'jpeg', 'png']
     ext = os.path.splitext(value.name)[1][1:].lower()
     if ext not in valid_extensions:
         raise ValidationError('Unsupported file extension. Please use JPEG or PNG.')
-
 
 class CustomUser(AbstractUser):
     email = models.EmailField(max_length=255, blank=True, null=True, default=None)
