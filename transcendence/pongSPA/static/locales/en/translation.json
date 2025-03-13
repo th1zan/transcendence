@@ -131,6 +131,7 @@
         "enterUsername": "Please enter a username.",
         "cannotAddSelf": "You cannot send a friend request to yourself.",
         "alreadyFriend": "You are already friends with {{username}}.",
+        "alreadySentRequest": "A friend request has already been sent to {{username}}.",
         "pendingRequestExists": "A friend request with {{username}} is already pending.",
         "errorCheckingRequests": "Error checking pending friend requests.",
         "error": "Error",

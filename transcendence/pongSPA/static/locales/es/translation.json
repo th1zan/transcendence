@@ -131,6 +131,7 @@
         "enterUsername": "Por favor, introduce un nombre de usuario.",
         "cannotAddSelf": "No puedes enviarte una solicitud de amistad a ti mismo.",
         "alreadyFriend": "Ya eres amigo de {{username}}.",
+        "alreadySentRequest": "Ya has enviado una solicitud de amistad a {{username}}.",
         "pendingRequestExists": "Ya existe una solicitud de amistad con {{username}}.",
         "errorCheckingRequests": "Error al verificar las solicitudes de amistad pendientes.",
         "error": "Error",

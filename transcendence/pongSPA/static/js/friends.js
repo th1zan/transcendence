@@ -98,18 +98,32 @@ export function sendFriendRequest(friendUsernameRaw) {
     .then((response) => response.json())
     .then((requestsData) => {
         // Check if there's a pending request from/to this username
-        const isPendingRequest = requestsData.requests.some(request => request.sender === friendUsername);
-        
+        const isSentRequest = requestsData.requests.some(request =>
+          request.sender === loggedInUsername && request.recipient === friendUsername
+        );
+        const isPendingRequest = requestsData.requests.some(request => 
+          request.recipient === loggedInUsername && request.sender === friendUsername 
+        );
+        if (isSentRequest) {
+        // ❌ If pending (sent), show "Friend request already sent"
+          showModal(
+              i18next.t('friends.warning'),
+              i18next.t('friends.alreadySentRequest', { username: friendUsername }),
+              i18next.t('modal.ok'),
+              () => navigateTo('friends')
+          );
+          return;
+        }
         if (isPendingRequest) {
-            showModal(
-                i18next.t('friends.warning'),
-                i18next.t('friends.pendingRequestExists', { username: friendUsername }) || `A friend request with ${friendUsername} is already pending.`,
-                i18next.t('modal.ok'),
-                () => {
-                  navigateTo('friends');
-                }
-            );
-            return;
+          showModal(
+              i18next.t('friends.warning'),
+              i18next.t('friends.pendingRequestExists', { username: friendUsername }) || `A friend request with ${friendUsername} is already pending.`,
+              i18next.t('modal.ok'),
+              () => {
+                navigateTo('friends');
+              }
+          );
+          return;
         }
         
         // If no pending request, check current friends
@@ -145,9 +159,10 @@ export function sendFriendRequest(friendUsernameRaw) {
             .then((response) => response.json())
             .then((data) => {
             if (data.error) {
+              
               showModal(
                   i18next.t('friends.error'),
-                  i18next.t(data.error) ,
+                  i18next.t('friends.alreadySentRequest', { username: friendUsername }),
                   i18next.t('modal.ok'),
                   () => {
                     navigateTo('friends');
