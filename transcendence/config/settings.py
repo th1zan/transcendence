@@ -197,6 +197,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Media configuration - simple relative URL
 # The client-side JavaScript will handle making these URLs absolute
+
+# MEDIA_URL = "https://localhost:8443/media/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 

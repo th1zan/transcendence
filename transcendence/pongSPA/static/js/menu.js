@@ -49,7 +49,7 @@ export async function displayMenu() {
   const navbarCollapse = menu.querySelector('.navbar-collapse');
 
   function hideMenuIfScroll() {
-// Seuil en pixels (ajustable selon tes besoins)          const scrollThreshold =  // Seuil en pixels (ajustable selon tes besoins)200; // Seuil en pixels (ajustable selon tes besoins)
+      const scrollThreshold = 200; // Seuil en pixels (ajustable selon tes besoins)
       const scrollPosition = window.scrollY || window.pageYOffset;
 
       if (scrollPosition > scrollThreshold) {
