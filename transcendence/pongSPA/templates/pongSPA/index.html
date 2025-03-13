@@ -40,10 +40,12 @@
             <!-- Barre de navigation responsive (Colonne gauche, 2 colonnes sur grand écran, pleine largeur sur petit écran) -->
             <nav class="navbar navbar-expand-md p-0 d-flex flex-column" style="min-height: 0;" id="menu"></nav>
             <!-- Contenu principal (Colonne droite, ajustée pour compenser le menu) -->
-            <div id="app" class="p-1 d-flex flex-column nav-pills flex-grow-1 h-100" data-bs-spy="scroll" style="width: auto">
+            <div class="p-1 flex-grow-1 d-flex " style="overflow-y: auto; width: min-content;" class="" >
+                <div id="app" class="flex-column nav-pills h-100" data-bs-spy="scroll" style="width: fit-content;">
                     <div id="app_top" class="semi-transparent-bg p-3 text-dark"></div>
                     <div id="app_main" class="semi-transparent-bg flex-grow-1 p-3 text-dark overflow-auto"></div>
                     <div id="app_bottom" class="semi-transparent-bg p-3 text-dark"></div>
+                </div>
             </div>
         </div>
     </div>
