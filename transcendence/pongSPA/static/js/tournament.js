@@ -468,9 +468,16 @@ async function displayTournamentGameList(data) {
 
                   if (response.status === 400 && errorMessage.includes("is not authenticated")) {
                     // Extraire le nom du joueur non authentifié depuis le message d'erreur
+                    const playerNameMatch = errorMessage.match(/Player\s+(.*?)\s+is\s+not\s+authenticated/i);
+                    let playerName = "Unknown";
+                    
+                    if (playerNameMatch && playerNameMatch[1]) {
+                      playerName = playerNameMatch[1];
+                    }
+                    
                     showModal(
                       i18next.t('tournament.errorTitle'), // Titre de la modale
-                      i18next.t('tournament.playerNotAuthenticated'), // Message avec le nom du joueur
+                      i18next.t('tournament.playerNotAuthenticated', { playerName: playerName }), // Message avec le nom du joueur
                       "OK", // Bouton de fermeture
                       () => {
                         // Optionnel : Ajouter une action, par exemple lancer authenticateNow

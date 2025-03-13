@@ -131,6 +131,7 @@
         "enterUsername": "Please enter a username.",
         "cannotAddSelf": "You cannot send a friend request to yourself.",
         "alreadyFriend": "You are already friends with {{username}}.",
+        "alreadySentRequest": "A friend request has already been sent to {{username}}.",
         "pendingRequestExists": "A friend request with {{username}} is already pending.",
         "errorCheckingRequests": "Error checking pending friend requests.",
         "error": "Error",
@@ -187,7 +188,8 @@
         "loginToAuthenticate": "Login to Authenticate",
         "authenticationFailed": "Authentication failed. Please try again.",
         "player2NameRequired": "Please enter a name for Player 2 in multiplayer mode.",
-        "touchButtons": "Touch Controls"
+        "touchButtons": "Touch Controls",
+        "error" : "Error"
     },
     "pong": {
         "error": "Error",
@@ -321,7 +323,8 @@
         "mobileNotSupported": "Mobile Not Supported",
         "pleaseUseBrowser": "Please use a desktop browser to access the tournament feature.",
         "backToWelcomePage": "Back to Welcome Page",
-        "notOrganizerMsg": "You are not the organizer of this tournament ({{username}}) and cannot interact with it. Matches must be played from the organizer's session."
+        "notOrganizerMsg": "You are not the organizer of this tournament ({{username}}) and cannot interact with it. Matches must be played from the organizer's session.",
+        "playerNotAuthenticated": "Player {{playerName}} is not authenticated. Please authenticate this player before starting the match."
     },
     "statistics": {
         "statisticsDashboard": "Statistics Dashboard",
@@ -441,7 +444,7 @@
         "phoneAlreadyInUse": "This phone number is already in use by another user.",
         "usernameAlreadyTaken": "This username is already taken.",
         "emailTooLong": "Email address is too long. Maximum 255 characters allowed.",
-        "phoneTooLong": "Phone number is too long. Maximum 15 characters allowed.",
+        "phoneTooLong": "Phone number is too long. Maximum 16 characters allowed.",
         "usernameTooLong": "Username is too long. Maximum 255 characters allowed.",
         "phoneNumber": "Phone Number",
         "clear": "Clear",
@@ -472,15 +475,16 @@
         "anonymizeConfirmation": "Confirmation",
         "accountAnonymizationConfirmation": "Are you sure you want to anonymize your account? This action is irreversible.",
         "anonymizeAccountSuccess": "Your account has been anonymized successfully.",
+        "anonymizedAs": "Your account has been anonymized as {{name}}.",
         "accountAnonymizationFailed": "Account anonymization failed.",
         "privacyPolicy": "Read our Privacy Policy",
         "failedFetchUserData": "Failed to fetch user data.",
         "avatarUploadFailed": "Upload failed.",
         "avatarDeleteSuccess": "Avatar has been deleted successfully.",
         "genericError": "An error occurred: {errorMessage}",
+        "accountActions": "Account Actions",
         "chooseFile": "Choose file",
-        "noFileChosen": "No file chosen",
-        "accountActions": "Account Actions"
+        "noFileSelected": "No file selected"
     },
     "modal": {
         "yes": "Yes",

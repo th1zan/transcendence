@@ -131,6 +131,7 @@
         "enterUsername": "Por favor, introduce un nombre de usuario.",
         "cannotAddSelf": "No puedes enviarte una solicitud de amistad a ti mismo.",
         "alreadyFriend": "Ya eres amigo de {{username}}.",
+        "alreadySentRequest": "Ya has enviado una solicitud de amistad a {{username}}.",
         "pendingRequestExists": "Ya existe una solicitud de amistad con {{username}}.",
         "errorCheckingRequests": "Error al verificar las solicitudes de amistad pendientes.",
         "error": "Error",
@@ -187,7 +188,8 @@
         "loginToAuthenticate": "Iniciar sesión para autenticarse",
         "authenticationFailed": "La autenticación falló. Por favor, inténtalo de nuevo.",
         "player2NameRequired": "Por favor, introduce un nombre para el Jugador 2 en el modo multijugador.",
-        "touchButtons": "Controles táctiles"
+        "touchButtons": "Controles táctiles",
+        "error" : "Error"
     },
     "pong": {
         "error": "Error",
@@ -321,7 +323,8 @@
         "mobileNotSupported": "Móvil no compatible",
         "pleaseUseBrowser": "Por favor, utiliza un navegador de escritorio para acceder a la función de torneo.",
         "backToWelcomePage": "Volver a la página de bienvenida",
-        "notOrganizerMsg": "No eres el organizador de este torneo ({{username}}) y no puedes interactuar con él. Los partidos deben jugarse desde la sesión del organizador."
+        "notOrganizerMsg": "No eres el organizador de este torneo ({{username}}) y no puedes interactuar con él. Los partidos deben jugarse desde la sesión del organizador.",
+        "playerNotAuthenticated": "El jugador {{playerName}} no está autenticado. Por favor, autentique a este jugador antes de comenzar el partido."
     },
     "statistics": {
         "statisticsDashboard": "Panel de estadísticas",
@@ -440,7 +443,7 @@
         "phoneAlreadyInUse": "Este número de teléfono ya está siendo utilizado por otro usuario.",
         "usernameAlreadyTaken": "Este nombre de usuario ya está en uso.",
         "emailTooLong": "La dirección de correo electrónico es demasiado larga. Se permiten máximo 255 caracteres.",
-        "phoneTooLong": "El número de teléfono es demasiado largo. Se permiten máximo 15 caracteres.",
+        "phoneTooLong": "El número de teléfono es demasiado largo. Se permiten máximo 16 caracteres.",
         "usernameTooLong": "El nombre de usuario es demasiado largo. Se permiten máximo 255 caracteres.",
         "phoneNumber": "Número de teléfono",
         "clear": "Borrar",
@@ -471,14 +474,15 @@
         "anonymizeConfirmation": "Confirmación",
         "accountAnonymizationConfirmation": "¿Estás seguro de que quieres anonimizar tu cuenta? Esta acción es irreversible.",
         "anonymizeAccountSuccess": "Tu cuenta ha sido anonimizada exitosamente.",
+        "anonymizedAs": "Tu cuenta ha sido anonimizada como {{name}}.",
         "accountAnonymizationFailed": "Error al anonimizar la cuenta.",
         "privacyPolicy": "Leer nuestra Política de privacidad",
         "failedFetchUserData": "Error al obtener los datos del usuario.",
         "avatarUploadFailed": "Error al subir.",
         "avatarDeleteSuccess": "El avatar ha sido eliminado exitosamente.",
         "genericError": "Ocurrió un error: {errorMessage}",
-        "chooseFile": "Elegir archivo",
-        "noFileChosen": "Ningún archivo elegido",
+        "chooseFile": "Seleccionar archivo",
+        "noFileSelected": "Ningún archivo seleccionado",
         "accountActions": "Acciones de cuenta"
     },
     "modal": {

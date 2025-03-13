@@ -279,12 +279,42 @@ export function verify2FALogin() {
           i18next.t('auth.twoFAVerified'),
           i18next.t('modal.ok'),
           () => {
-            // Set the username in localStorage so the welcome page can use it
+            // Set the username in localStorage
             localStorage.setItem("username", username);
-            // clear the temporary session storage value
-            sessionStorage.removeItem("2fa_pending_user");
-            displayMenu();
-            navigateTo("welcome");
+            
+            // Fetch user profile to get avatar URL after 2FA authentication
+            fetch("/api/auth/user/", {
+              method: "GET",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+            })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error("Failed to fetch user profile after 2FA");
+                }
+                return response.json();
+              })
+              .then(userData => {
+                // Store avatar URL in localStorage
+                if (userData.avatar_url) {
+                  localStorage.setItem("avatarUrl", userData.avatar_url);
+                  logger.log("Avatar URL set after 2FA:", userData.avatar_url);
+                } else {
+                  localStorage.setItem("avatarUrl", "/media/avatars/avatar1.png");
+                }
+                
+                // Clear session storage and navigate
+                sessionStorage.removeItem("2fa_pending_user");
+                displayMenu();
+                navigateTo("welcome");
+              })
+              .catch(error => {
+                logger.error("Error fetching profile after 2FA:", error);
+                localStorage.setItem("avatarUrl", "/media/avatars/avatar1.png");
+                sessionStorage.removeItem("2fa_pending_user");
+                displayMenu();
+                navigateTo("welcome");
+              });
           }
         );
       } else {
@@ -482,9 +512,47 @@ export function getToken(username, password) {
       // Handle successful login
       if (ok && data.message === "Login successful") {
         logger.log("Login successful!");
-        localStorage.setItem("username", username); // Stocke uniquement le username
-        displayMenu();
-        navigateTo("welcome");
+        
+        // Store username in localStorage
+        localStorage.setItem("username", username);
+        
+        // Fetch user profile to get avatar URL
+        logger.log("Fetching user profile to get avatar URL...");
+        
+        fetch("/api/auth/user/", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Failed to fetch user profile");
+            }
+            return response.json();
+          })
+          .then(userData => {
+            logger.log("User profile fetched successfully:", userData);
+            
+            // Store avatar URL in localStorage
+            if (userData.avatar_url) {
+              localStorage.setItem("avatarUrl", userData.avatar_url);
+              logger.log("Avatar URL set in localStorage:", userData.avatar_url);
+            } else {
+              localStorage.setItem("avatarUrl", "/media/avatars/avatar1.png");
+              logger.log("Default avatar URL set in localStorage");
+            }
+            
+            // Now navigate to welcome page
+            displayMenu();
+            navigateTo("welcome");
+          })
+          .catch(error => {
+            logger.error("Error fetching user profile:", error);
+            // Use default avatar and continue anyway
+            localStorage.setItem("avatarUrl", "/media/avatars/avatar1.png");
+            displayMenu();
+            navigateTo("welcome");
+          });
       } else {
         throw new Error(data.detail || `Unexpected response (status: ${status})`);
       }

@@ -60,7 +60,7 @@ class AnonymizeAccountView(APIView):
     def post(self, request):
         user = request.user
         if user.is_authenticated:
-            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:5]}"
+            anonymous_name = f"Anonymized_{uuid.uuid4().hex[:5]}"
 
             Player.objects.filter(user=user).update(player=anonymous_name)
 
@@ -211,10 +211,10 @@ class UserDetailView(APIView):
         if (
             "phone_number" in data
             and data["phone_number"]
-            and len(data["phone_number"]) > 15
+            and len(data["phone_number"]) > 16
         ):
             return Response(
-                {"error": "Phone number is too long. Maximum 15 characters allowed."},
+                {"error": "Phone number is too long. Maximum 16 characters allowed."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if "username" in data and len(data["username"]) > 255:
@@ -265,6 +265,15 @@ class UserDetailView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user.username = username
+            
+            # update the player field in the associated Player model
+            try:
+                player = Player.objects.get(user=user)
+                player.player = username
+                player.save()
+            except Player.DoesNotExist:
+                # If player doesn't exist, create one
+                Player.objects.create(user=user, player=username)
 
         try:
             user.save()
