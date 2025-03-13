@@ -60,7 +60,7 @@ class AnonymizeAccountView(APIView):
     def post(self, request):
         user = request.user
         if user.is_authenticated:
-            anonymous_name = f"Anonymized_User_{uuid.uuid4().hex[:5]}"
+            anonymous_name = f"Anonymized_{uuid.uuid4().hex[:5]}"
 
             Player.objects.filter(user=user).update(player=anonymous_name)
 

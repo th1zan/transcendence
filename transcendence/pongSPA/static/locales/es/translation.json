@@ -472,6 +472,7 @@
         "anonymizeConfirmation": "Confirmación",
         "accountAnonymizationConfirmation": "¿Estás seguro de que quieres anonimizar tu cuenta? Esta acción es irreversible.",
         "anonymizeAccountSuccess": "Tu cuenta ha sido anonimizada exitosamente.",
+        "anonymizedAs": "Tu cuenta ha sido anonimizada como {{name}}.",
         "accountAnonymizationFailed": "Error al anonimizar la cuenta.",
         "privacyPolicy": "Leer nuestra Política de privacidad",
         "failedFetchUserData": "Error al obtener los datos del usuario.",

@@ -426,9 +426,17 @@ export async function anonymizeAccount() {
       return response.json();
     })
     .then((data) => {
+      let message = data.message; // server message as default/fallback
+      if (data.message) {
+        const nameMatch = data.message.match(/anonymized as ([^.]+)\./);
+        if (nameMatch && nameMatch[1]) {
+          const anonymousName = nameMatch[1];
+        message = i18next.t('settings.anonymizedAs', { name: anonymousName });
+        }
+      }
       showModal(
         i18next.t('settings.success'),
-        data.message || i18next.t('settings.anonymizeAccountSuccess'),
+        message,
         i18next.t('modal.ok'),
         () => {
           localStorage.clear();
