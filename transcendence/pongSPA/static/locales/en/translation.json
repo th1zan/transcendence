@@ -482,9 +482,9 @@
         "avatarUploadFailed": "Upload failed.",
         "avatarDeleteSuccess": "Avatar has been deleted successfully.",
         "genericError": "An error occurred: {errorMessage}",
+        "accountActions": "Account Actions",
         "chooseFile": "Choose file",
-        "noFileChosen": "No file chosen",
-        "accountActions": "Account Actions"
+        "noFileSelected": "No file selected"
     },
     "modal": {
         "yes": "Yes",

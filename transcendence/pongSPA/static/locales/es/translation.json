@@ -481,8 +481,8 @@
         "avatarUploadFailed": "Error al subir.",
         "avatarDeleteSuccess": "El avatar ha sido eliminado exitosamente.",
         "genericError": "Ocurrió un error: {errorMessage}",
-        "chooseFile": "Elegir archivo",
-        "noFileChosen": "Ningún archivo elegido",
+        "chooseFile": "Seleccionar archivo",
+        "noFileSelected": "Ningún archivo seleccionado",
         "accountActions": "Acciones de cuenta"
     },
     "modal": {

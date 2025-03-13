@@ -36,15 +36,21 @@ function displayHTMLforSettings(user) {
               ${i18next.t('settings.deleteAvatar')}
             </button>
 
-          <div class="mt-3 w-100">
-          <label class="form-label">${i18next.t('settings.chooseNewProfilePicture')}:</label>
-          <div class="row g-2">
-            <div class="col-12 col-md-8">
-              <input type="file" id="avatarInput" accept="image/*" class="form-control">
+    <div class="mt-3 w-100">
+        <label class="form-label">${i18next.t('settings.chooseNewProfilePicture')}:</label>
+        <div class="row g-2">
+          <div class="col-12 col-md-8">
+            <input type="file" id="avatarInput" accept="image/*" style="display:none">
+            
+            <div class="input-group">
+              <span class="form-control" id="file-display">${i18next.t('settings.noFileSelected')}</span>
+              <label for="avatarInput" class="input-group-text btn btn-outline-secondary">
+                ${i18next.t('settings.chooseFile')}
+              </label>
             </div>
-            <div class="col-12 col-md-4">
-              <button id="uploadAvatarButton" class="btn btn-primary w-100">${i18next.t('settings.upload')}</button>
-            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <button id="uploadAvatarButton" class="btn btn-primary w-100">${i18next.t('settings.upload')}</button>
           </div>
         </div>
       </div>
@@ -63,6 +69,7 @@ function displayHTMLforSettings(user) {
             <input type="email" id="emailInput" class="form-control" value="${sanitizeHTML(user.email || '')}">
             <button class="btn btn-outline-danger" id="clearEmailBtn" type="button">${i18next.t('settings.clear')}</button>
           </div>
+        </div>
 
         <div class="form-group mt-2">
           <label>${i18next.t('settings.phoneNumber')}:</label>
@@ -154,6 +161,10 @@ function displayHTMLforSettings(user) {
   document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
   document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
   update2FAStatus();
+  document.getElementById("avatarInput").addEventListener("change", function() {
+    const fileDisplay = document.getElementById("file-display");
+    fileDisplay.textContent = this.files.length ? this.files[0].name : i18next.t('settings.noFileSelected');
+  });
   document.getElementById("clearEmailBtn").addEventListener("click", () => {
     document.getElementById("emailInput").value = "";
   });
@@ -218,11 +229,19 @@ export function displaySettings() {
                 ${i18next.t('settings.deleteAvatar')}
               </button>
 
-              <div class="mt-3 w-100">
+             <div class="mt-3 w-100">
                 <label class="form-label">${i18next.t('settings.chooseNewProfilePicture')}:</label>
                 <div class="row g-2">
                   <div class="col-12 col-md-8">
-                    <input type="file" id="avatarInput" accept="image/*" class="form-control">
+                    <!-- Cacher l'input file original -->
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                    
+                    <div class="input-group">
+                      <span class="form-control" id="file-display">${i18next.t('settings.noFileSelected')}</span>
+                      <label for="avatarInput" class="input-group-text btn btn-outline-secondary">
+                        ${i18next.t('settings.chooseFile')}
+                      </label>
+                    </div>
                   </div>
                   <div class="col-12 col-md-4">
                     <button id="uploadAvatarButton" class="btn btn-primary w-100">${i18next.t('settings.upload')}</button>
@@ -341,6 +360,10 @@ export function displaySettings() {
     document.getElementById("toggle2FAButton").addEventListener("click", toggle2FA);
     document.getElementById("verifyOTPButton").addEventListener("click", verifyOTP);
     update2FAStatus();
+    document.getElementById("avatarInput").addEventListener("change", function() {
+      const fileName = this.files.length ? this.files[0].name : i18next.t('settings.noFileSelected');
+      console.log("Fichier sélectionné : " + fileName);
+    });
     document.getElementById("clearEmailBtn").addEventListener("click", () => {
       document.getElementById("emailInput").value = "";
     });
