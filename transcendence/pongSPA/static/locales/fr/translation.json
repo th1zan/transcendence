@@ -184,7 +184,8 @@
         "loginToAuthenticate": "Connexion pour authentification",
         "authenticationFailed": "Échec de l'authentification. Veuillez réessayer.",
         "player2NameRequired": "Veuillez entrer un nom pour le Joueur 2 en mode multijoueur.",
-        "touchButtons": "Contrôles tactiles"
+        "touchButtons": "Contrôles tactiles",
+        "error" : "Erreur"
     },
     "pong": {
         "error": "Erreur",

@@ -187,7 +187,8 @@
         "loginToAuthenticate": "Login to Authenticate",
         "authenticationFailed": "Authentication failed. Please try again.",
         "player2NameRequired": "Please enter a name for Player 2 in multiplayer mode.",
-        "touchButtons": "Touch Controls"
+        "touchButtons": "Touch Controls",
+        "error" : "Error"
     },
     "pong": {
         "error": "Error",

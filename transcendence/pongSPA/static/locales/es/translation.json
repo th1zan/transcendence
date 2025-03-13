@@ -187,7 +187,8 @@
         "loginToAuthenticate": "Iniciar sesión para autenticarse",
         "authenticationFailed": "La autenticación falló. Por favor, inténtalo de nuevo.",
         "player2NameRequired": "Por favor, introduce un nombre para el Jugador 2 en el modo multijugador.",
-        "touchButtons": "Controles táctiles"
+        "touchButtons": "Controles táctiles",
+        "error" : "Error"
     },
     "pong": {
         "error": "Error",
