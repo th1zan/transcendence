@@ -122,7 +122,7 @@ class SendFriendRequestView(APIView):
             )
         except CustomUser.DoesNotExist:
             return Response(
-                {"error": "game.userNotFound"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
 

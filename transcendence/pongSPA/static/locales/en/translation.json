@@ -147,7 +147,8 @@
         "never": "Never",
         "online": "Online",
         "offline": "Offline (last seen: {{lastSeen}})",
-        "remove": "Remove"
+        "remove": "Remove",
+        "userNotFound": "User not found."
     },
     "game": {
         "gameSettings": "Game Settings",

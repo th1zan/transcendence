@@ -144,7 +144,8 @@
         "never": "Jamais",
         "online": "En ligne",
         "offline": "Hors ligne (dernière connexion : {{lastSeen}})",
-        "remove": "Supprimer"
+        "remove": "Supprimer",
+        "userNotFound": "Utilisateur introuvable"
     },
     "game": {
         "gameSettings": "Paramètres du jeu",
