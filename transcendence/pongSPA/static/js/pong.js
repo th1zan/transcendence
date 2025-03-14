@@ -308,6 +308,18 @@ export function startGameSetup(gameSettings) {
   isTournamentMatch = gameSettings.isTournamentMatch;
   isSoundOn = gameSettings.soundEnabled;
 
+  if (player1 === player2 && mode === "multiplayer") {
+    showModal(
+      i18next.t("pong.error"),
+      i18next.t("pong.samePlayerError"),
+      "OK",
+      () => {
+        navigateTo("game");
+      }
+    );
+    return;
+  }
+
   logger.log("StartGameSetup: Game settings isTournamentMatch:", gameSettings.isTournamentMatch);
   logger.log("StartGameSetup: isTournamentMatch:", isTournamentMatch);
 

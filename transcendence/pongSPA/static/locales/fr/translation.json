@@ -210,7 +210,8 @@
         "setScore": "Score de la Manche",
         "exchanges": "Échanges",
         "duration": "Durée (s)",
-        "noSets": "Aucune manche enregistrée."
+        "noSets": "Aucune manche enregistrée.",
+        "samePlayerError": "Vous ne pouvez pas jouer contre vous-même ! Veuillez sélectionner un adversaire différent."
     },
     "tournament": {
         "myTournaments": "Mes Tournois",

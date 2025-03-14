@@ -213,7 +213,9 @@
         "setScore": "Set Score",
         "exchanges": "Exchanges",
         "duration": "Duration (s)",
-        "noSets": "No sets recorded."
+        "noSets": "No sets recorded.",
+        "samePlayerError": "You cannot play against yourself! Please select a different opponent."
+
     },
     "tournament": {
         "myTournaments": "My Tournaments",
