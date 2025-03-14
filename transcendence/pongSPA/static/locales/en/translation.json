@@ -326,7 +326,8 @@
         "pleaseUseBrowser": "Please use a desktop browser to access the tournament feature.",
         "backToWelcomePage": "Back to Welcome Page",
         "notOrganizerMsg": "You are not the organizer of this tournament ({{username}}) and cannot interact with it. Matches must be played from the organizer's session.",
-        "playerNotAuthenticated": "Player {{playerName}} is not authenticated. Please authenticate this player before starting the match."
+        "playerNotAuthenticated": "Player {{playerName}} is not authenticated. Please authenticate this player before starting the match.",
+        "errorStartingMatch": "Authentication required. You must be logged in to play."
     },
     "statistics": {
         "statisticsDashboard": "Statistics Dashboard",

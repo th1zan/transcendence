@@ -322,7 +322,8 @@
         "pleaseUseBrowser": "Veuillez utiliser un navigateur de bureau pour accéder à la fonctionnalité tournoi.",
         "backToWelcomePage": "Retour à la page d'accueil",
         "notOrganizerMsg": "Vous n'êtes pas l'organisateur de ce tournoi ({{username}}) et ne pouvez pas interagir avec celui-ci. Les matchs doivent être joués depuis la session de l'organisateur.",
-        "playerNotAuthenticated": "Le joueur {{playerName}} n'est pas authentifié. Veuillez authentifier ce joueur avant de commencer le match."
+        "playerNotAuthenticated": "Le joueur {{playerName}} n'est pas authentifié. Veuillez authentifier ce joueur avant de commencer le match.",
+        "errorStartingMatch": "Authentification requise. Vous devez être connecté pour jouer."
     },
     "statistics": {
         "statisticsDashboard": "Tableau de bord des Statistiques",

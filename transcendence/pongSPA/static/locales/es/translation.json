@@ -325,7 +325,8 @@
         "pleaseUseBrowser": "Por favor, utiliza un navegador de escritorio para acceder a la función de torneo.",
         "backToWelcomePage": "Volver a la página de bienvenida",
         "notOrganizerMsg": "No eres el organizador de este torneo ({{username}}) y no puedes interactuar con él. Los partidos deben jugarse desde la sesión del organizador.",
-        "playerNotAuthenticated": "El jugador {{playerName}} no está autenticado. Por favor, autentique a este jugador antes de comenzar el partido."
+        "playerNotAuthenticated": "El jugador {{playerName}} no está autenticado. Por favor, autentique a este jugador antes de comenzar el partido.",
+        "errorStartingMatch": "Autenticación requerida. Debe iniciar sesión para jugar."
     },
     "statistics": {
         "statisticsDashboard": "Panel de estadísticas",
