@@ -127,23 +127,27 @@ let isUserLoggedIn = false;
 document.addEventListener("DOMContentLoaded", () => {
     logger.log('Cookies at DOM load:', document.cookie);
 
-    document.cookie.split(";").forEach((c) => {
-        logger.log('clear the cookies');
-        document.cookie = c
-            .replace(/^ +/, "")
-            .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
+    // document.cookie.split(";").forEach((c) => {
+    //     logger.log('clear the cookies');
+    //     document.cookie = c
+    //         .replace(/^ +/, "")
+    //         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    // });
 
     loadPrivacyPolicyModal();
 
     let initialRoute = window.location.hash.replace('#', '') || 'login';
     logger.log('Initial route determined:', initialRoute);
 
-    let isUserLoggedIn = false;
+    // REMOVED THIS LINE - it created a local variable that shadows the global one:
+    // let isUserLoggedIn = false;
 
-    validateToken().then((isTokenValid) => {
+    // ADDED: Try to refresh token first before validating
+    refreshToken().then(() => {
+        return validateToken();
+    }).then((isTokenValid) => {
         logger.log('validateToken resolved with:', isTokenValid);
-        isUserLoggedIn = isTokenValid;
+        isUserLoggedIn = isTokenValid; // now this updates the global variable
         if (isUserLoggedIn) {
             logger.log('User is logged in based on cookies');
         } else {
@@ -167,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         handleRouteChange('login');
     });
 
-    // setInterval(async () => {
+        // setInterval(async () => {
     //     logger.log('Refreshing token via interval...');
     //     const refreshed = await refreshToken();
     //     if (!refreshed) {
@@ -186,14 +190,14 @@ document.addEventListener("DOMContentLoaded", () => {
         logger.log('Navigating to route:', route);
         handleRouteChange(route);
     });
-
+    //COMMENTED OUT but maybe we can keep it, to test more...
     // Ajout pour gérer la déconnexion à la fermeture de la page
-    window.addEventListener('beforeunload', () => {
-        if (isUserLoggedIn) {
-            navigator.sendBeacon('/api/auth/logout/', JSON.stringify({}));
-            logger.log('Sent logout beacon on page close');
-        }
-    });
+    // window.addEventListener('beforeunload', () => {
+    //     if (isUserLoggedIn) {
+    //         navigator.sendBeacon('/api/auth/logout/', JSON.stringify({}));
+    //         logger.log('Sent logout beacon on page close');
+    //     }
+    // });
 });
 
 // variable to store history
@@ -311,7 +315,7 @@ function handleRouteChange(route) {
             refreshToken().then(refreshed => {
                 if (refreshed) {
                     logger.log('Token refreshed successfully, retrying route change');
-                    redirectAttempts = 0;
+                    redirectAttempts = 0; // Récursion contrôlée
                     handleRouteChange(route); // Récursion contrôlée
                 } else {
                     logger.log('Refresh failed, redirecting to login');
