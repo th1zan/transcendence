@@ -29,18 +29,3 @@ def assign_default_permissions(sender, instance, created, **kwargs):
             except Permission.DoesNotExist:
                 # All permisisons in DB:
                 print(f"Permission '{perm}' does not exist.")
-
-
-#
-# add_pongmatch Can add pong match
-# change_pongmatch Can change pong match
-# delete_pongmatch Can delete pong match
-# view_pongmatch Can view pong match
-# add_pongresult Can add pong result
-# change_pongresult Can change pong result
-# delete_pongresult Can delete pong result
-# view_pongresult Can view pong result
-# add_pongset Can add pong set
-# change_pongset Can change pong set
-# delete_pongset Can delete pong set
-# view_pongset Can view pong set

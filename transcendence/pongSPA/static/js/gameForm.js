@@ -41,7 +41,7 @@ export function displayGameForm() {
     soundEnabled: false
   };
 
-  // Insertion du formulaire HTML (inchangé)
+  // Insertion du formulaire HTML
   formContainer.innerHTML = `
     <form id="gameForm" class="container w-100">
       <ul class="nav nav-pills nav-justified mb-3 d-flex flex-wrap" id="pills-tab" role="tablist">
@@ -282,7 +282,7 @@ export function displayGameForm() {
 
   // Écouteurs d'événements conditionnels selon le type d'appareil
   if (isMobile) {
-    // Sur mobile : utiliser touchend pour éviter les problèmes
+    // Sur mobile
     document.querySelectorAll(".difficulty-button").forEach(button => {
       button.addEventListener("touchend", function(e) {
         e.preventDefault();
@@ -305,7 +305,7 @@ export function displayGameForm() {
       }, { passive: false });
     }
   } else {
-    // Sur desktop : utiliser click comme d'habitude
+    // Sur desktop
     document.querySelectorAll(".difficulty-button").forEach(button => {
       button.addEventListener("click", function() {
         handleDifficultyButtonClick(this.id);

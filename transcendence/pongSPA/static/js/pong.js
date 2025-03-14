@@ -733,7 +733,7 @@ function initGameObjects(gameCanvas) {
   opponent = { x: canvas.width - paddleWidth, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, color: "WHITE", score: 0 };
   ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speed: ballSpeed, velocityX: ballSpeed * Math.cos(ballAngle), velocityY: ballSpeed * Math.sin(ballAngle), color: "WHITE" };
 
-  // Définir les écouteurs avec des fonctions nommées
+  // Définir les écouteurs 
   handlePlayerKeyDown = (event) => {
     event.preventDefault();
     logger.log("step: ", step, " player.y: ", player.y);
@@ -804,7 +804,6 @@ function initGameObjects(gameCanvas) {
   }
 }
 
-// Mettre à jour stopGameProcess pour utiliser removeGameListeners
 export function stopGameProcess(isGameFinished = false) {
   if (gameInterval) {
     clearInterval(gameInterval);
@@ -828,7 +827,7 @@ export function stopGameProcess(isGameFinished = false) {
       </div>
     `;
   }
-  // Utiliser la fonction centralisée pour supprimer les écouteurs
+  // supprimer les écouteurs
   removeGameListeners();
   player1Wins = 0;
   player2Wins = 0;
@@ -851,7 +850,7 @@ function drawCircle(x, y, r, color, ctx) {
 
 function drawText(text, x, y, color, ctx) {
   ctx.fillStyle = color;
-  ctx.font = "45px 'Press Start 2P'"; // Police pixelisée pour les scores
+  ctx.font = "45px 'Press Start 2P'"; 
   ctx.fillText(text, x, y);
 }
 

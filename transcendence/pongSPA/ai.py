@@ -176,26 +176,3 @@ class PongAI:
 
         # Handicap final
         self.handicap = base_error * error_multiplier * prob_factor
-
-    #   def set_handicap(self):
-    # # Erreur de base
-    # base_error = self.paddle_height
-    #
-    # # Facteur de probabilité
-    # prob_factor = random.uniform(-1.0, 1.0)
-    #
-    # # On veut que l'IA soit plus précise quand elle est menée, moins quand elle mène
-    # score_diff = self.score[0] - self.score[1]
-    #
-    # # Ajustement basé sur le score (0.1 par point d'écart)
-    # score_adjustment = 0.1 * score_diff
-    #
-    # # Réduit l'erreur de 0.02 par touche, mais plafonné à 0.3
-    # touch_adjustment = min(0.3, 0.02 * self.touch)
-    #
-    # final_adjustment = score_adjustment - touch_adjustment
-    #
-    # error_multiplier = max(0.3, 1.0 - final_adjustment)
-    #
-    # self.handicap = base_error * error_multiplier * prob_factor
-    #

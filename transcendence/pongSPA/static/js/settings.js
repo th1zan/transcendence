@@ -391,7 +391,6 @@ export async function deleteAccount() {
     method: "DELETE",
     credentials: "include",
     headers: {
-      //  Authorization: `Bearer ${localStorage.getItem("access_token")}`,
     },
   })
     .then((response) => {

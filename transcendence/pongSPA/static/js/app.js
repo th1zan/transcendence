@@ -238,7 +238,7 @@ export function navigateTo(route) {
 }
 
 //avoid infinit redirection loop
-let isHandlingRouteChange = false; // Protection contre les appels concurrents
+let isHandlingRouteChange = false; 
 let redirectAttempts = 0;
 const MAX_REDIRECT_ATTEMPTS = 3;
 
@@ -349,110 +349,6 @@ function handleRouteChange(route) {
         isHandlingRouteChange = false; // Libération du verrou
     });
 }
-// function handleRouteChange(route) {
-//   logger.log('handleRouteChange called with route:', route);
-//   addToCustomHistory(route);
-//
-//   if (redirectAttempts >= MAX_REDIRECT_ATTEMPTS) {
-//     logger.error('Maximum redirect attempts reached, stopping to prevent infinite loop');
-//     showModal(
-//       i18next.t('app.error'),
-//       i18next.t('app.authError'),
-//       'OK',
-//       () => navigateTo('login')
-//     );
-//     return;
-//   }
-//
-//   validateToken().then((isTokenValid) => {
-//     logger.log('Token validation in handleRouteChange:', isTokenValid);
-//     isUserLoggedIn = isTokenValid;
-//
-//     const publicRoutes = ['login', 'register'];
-//
-//     if (publicRoutes.includes(route) || isUserLoggedIn) {
-//       logger.log('Route is public or user is logged in');
-//       redirectAttempts = 0; // Réinitialiser le compteur si la validation réussit
-//       switch (route) {
-//         case 'login':
-//           if (!isUserLoggedIn) {
-//             displayConnectionFormular();
-//           } else {
-//             navigateTo('welcome');
-//           }
-//           break;
-//         case 'register':
-//           displayRegistrationForm();
-//           break;
-//         case 'welcome':
-//           updateUI(displayWelcomePage);
-//           break;
-//         case 'game':
-//           updateUI(displayGameForm);
-//           break;
-//         case 'tournament':
-//           updateUI(displayTournament);
-//           break;
-//         case 'stats':
-//           updateUI(displayStats);
-//           break;
-//         // case 'userStats':
-//         //   updateUI(fetchResultats);
-//         //   break;
-//         // case 'ranking':
-//         //   updateUI(fetchRanking);
-//         //   break;
-//         case 'friends':
-//           updateUI(displayFriends);
-//           break;
-//         case 'settings':
-//           updateUI(displaySettings);
-//           break;
-//         default:
-//           logger.log('Unknown route:', route);
-//           if (!isUserLoggedIn) {
-//             navigateTo('login');
-//           } else {
-//             navigateTo('welcome');
-//           }
-//       }
-//     } else {
-//       logger.log('User not logged in, attempting to refresh token before redirect');
-//       refreshToken().then(refreshed => {
-//         if (refreshed) {
-//           logger.log('Token refreshed successfully, retrying route change');
-//           redirectAttempts = 0;
-//           handleRouteChange(route);
-//         } else {
-//           logger.log('Refresh failed, redirecting to login');
-//           redirectAttempts++;
-//           navigateTo('login');
-//         }
-//       }).catch(error => {
-//         logger.error('Error refreshing token during redirect:', error);
-//         redirectAttempts++;
-//         navigateTo('login');
-//       });
-//     }
-//   }).catch((error) => {
-//     logger.error('Error validating token during route change:', error);
-//     refreshToken().then(refreshed => {
-//       if (refreshed) {
-//         logger.log('Token refreshed successfully after validation error, retrying route change');
-//         redirectAttempts = 0;
-//         handleRouteChange(route);
-//       } else {
-//         logger.log('Refresh failed after validation error, redirecting to login');
-//         redirectAttempts++;
-//         navigateTo('login');
-//       }
-//     }).catch(error => {
-//       logger.error('Error refreshing token after validation failure:', error);
-//       redirectAttempts++;
-//       navigateTo('login');
-//     });
-//   });
-// }
 
 function updateUI(routeFunction) {
   // 1. Afficher le menu uniquement si l'utilisateur est connecté

@@ -4,7 +4,6 @@ import {showModal, logger, navigateTo} from "./app.js";
 import { isMobileDevice } from "./gameForm.js";
 
 //menu to display the tournament feature 
-
 export function resetAppMainLock() {
   const appMain = document.getElementById("app_main");
   if (appMain) {
@@ -124,7 +123,6 @@ export function displayTournament() {
 
 function authenticateNow(playerName, tournamentId) {
   return new Promise((resolve, reject) => {
-    // Bootstrap modal for login
     const modalHTML = `
       <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -174,7 +172,7 @@ function authenticateNow(playerName, tournamentId) {
           updatePlayerStatusUI(playerName);
           modalBootstrap.hide();
           loginModal.remove();
-          resolve(true); // Succès
+          resolve(true); 
         }
       } catch (error) {
         // Gestion des erreurs
@@ -200,7 +198,6 @@ function authenticateNow(playerName, tournamentId) {
   });
 }
 
-// Ask the API
 async function authenticatePlayer(username, password, playerName, tournamentId) {
   const response = await fetch(`/api/auth/tournament-player/${tournamentId}/`, {
     method: "POST",
@@ -223,7 +220,7 @@ async function authenticatePlayer(username, password, playerName, tournamentId) 
       throw new Error("Authentication failed");
     }
   } else if (response.status === 401) {
-    throw new Error("badCredentials"); // Erreur spécifique pour mauvais identifiants
+    throw new Error("badCredentials"); // Erreur  pour mauvais identifiants
   } else {
     const data = await response.json();
     throw new Error(data.detail || `Authentication error: ${response.status}`);
@@ -254,7 +251,7 @@ async function displayTournamentGameList(data) {
   document.getElementById('app_bottom').innerHTML = '';
 
   const tournamentId = localStorage.getItem("tournamentId");
-  const username = localStorage.getItem("username"); // Nom de l'utilisateur connecté
+  const username = localStorage.getItem("username"); 
   const tournamentMatchesDiv = document.getElementById("tournamentMatches");
 
   // Réinitialiser pointerEvents avant tout rendu
@@ -275,14 +272,14 @@ async function displayTournamentGameList(data) {
       credentials: "include",
     });
     const tournamentData = await response.json();
-    logger.log("Tournament data:", tournamentData); // Ajout de log pour débogage
+    logger.log("Tournament data:", tournamentData);
     // Comparer le username de l'organisateur avec celui de l'utilisateur connecté
     isOrganizer = tournamentData.organizer && tournamentData.organizer.username === username;
   } catch (error) {
     logger.error("Erreur lors de la vérification de l'organisateur:", error);
   }
 
-  logger.log("isOrganizer:", isOrganizer); // Ajout de log pour débogage
+  logger.log("isOrganizer:", isOrganizer);
 
   // Récupérer et afficher les joueurs
   fetch(`/api/tournament/players/${tournamentId}/`, {
@@ -476,15 +473,13 @@ async function displayTournamentGameList(data) {
                     }
                     
                     showModal(
-                      i18next.t('tournament.errorTitle'), // Titre de la modale
-                      i18next.t('tournament.playerNotAuthenticated', { playerName: playerName }), // Message avec le nom du joueur
-                      "OK", // Bouton de fermeture
+                      i18next.t('tournament.errorTitle'), 
+                      i18next.t('tournament.playerNotAuthenticated', { playerName: playerName }),
+                      "OK",
                       () => {
-                        // Optionnel : Ajouter une action, par exemple lancer authenticateNow
                       }
                     );
                   } else {
-                    // Autres erreurs non liées à l'authentification
                     showModal(
                       i18next.t('tournament.errorTitle'),
                       i18next.t('tournament.errorStartingMatch', { error: errorMessage }),
@@ -531,7 +526,6 @@ async function displayTournamentGameList(data) {
     });
 }
 
-// Votre fonction removePlayerFromTournament reste inchangée ici, mais assurez-vous qu'elle appelle displayTournamentGameList correctement
 function removePlayerFromTournament(tournamentId, playerName) {
   logger.log("in removePlayerFromTournament:: tournament id: ", tournamentId, " playerName: ", playerName);
 
@@ -643,7 +637,7 @@ function displayTournamentRanking(data) {
 
   sortedStandings.forEach((player, index) => {
     const isFirst = index === 0;
-    const rowClass = isFirst ? 'table-success' : ''; // Vert pour le leader
+    const rowClass = isFirst ? 'table-success' : ''; 
 
     rankingHTML += `
       <tr class="${rowClass}">
@@ -871,7 +865,7 @@ function getTournamentFormHTML() {
 }
 
 
-//Handling the adding of player (check if existing playerName, or existing re)
+//Handling the adding of player (check if existing playerName)
 async function initializePlayerManagement() {
   const playerContainer = document.getElementById('playerContainer');
   const addButton = document.getElementById('addPlayerButton');
@@ -896,7 +890,7 @@ async function initializePlayerManagement() {
       const playerDiv = event.target.closest('div');
       const playerName = playerDiv.querySelector('input').value.trim().toLowerCase();
 
-      if (!playerName) return; // Ignorer si vide, pas de modale ici
+      if (!playerName) return;
 
       try {
         cleanupPlayersMap(players);
@@ -1017,18 +1011,18 @@ if (!statusSpan) {
 if (playerDiv.classList.contains('additional-player')) {
   if (userData.exists) {
     if (userData.is_guest) {
-      // Joueur invité existant (statut géré dans initializePlayerManagement)
+      // Joueur invité existant 
       playerDiv.setAttribute('data-user-id', '');
       playerDiv.setAttribute('data-is-guest', 'true');
       playerDiv.setAttribute('data-authenticated', 'false');
     } else {
-      // Joueur existant nécessitant authentification (statut géré dans initializePlayerManagement)
+      // Joueur existant nécessitant authentification 
       playerDiv.setAttribute('data-user-id', userData.user_id);
       playerDiv.setAttribute('data-is-guest', 'false');
       playerDiv.setAttribute('data-authenticated', 'false');
     }
   } else {
-    // Nouveau joueur invité (statut géré dans initializePlayerManagement)
+    // Nouveau joueur invité 
     playerDiv.setAttribute('data-user-id', '');
     playerDiv.setAttribute('data-is-guest', 'true');
     playerDiv.setAttribute('data-authenticated', 'false');
@@ -1042,12 +1036,6 @@ if (playerDiv.classList.contains('additional-player')) {
 }
 }
 
-
-function resetTournamentData() {
-  localStorage.removeItem("tournamentName");
-  localStorage.removeItem("tournamentId");
-  localStorage.removeItem("players");
-}
 
 //big function to handle the creation of a Tournament with the tournament form
 function setupSubmitHandlers() {
@@ -1227,7 +1215,7 @@ export function validateSearch() {
   }
 
   const appMain = document.getElementById("app_main");
-  appMain.style.pointerEvents = "auto"; // Réinitialiser les clics
+  appMain.style.pointerEvents = "auto";
   const existingOverlay = document.getElementById("organizer-overlay");
   if (existingOverlay) {
     existingOverlay.remove();
@@ -1376,7 +1364,7 @@ export function displayUserTournaments() {
     .then((response) => response.json())
     .then((data) => {
       const tournamentsBody = document.getElementById("tournamentsBody");
-      tournamentsBody.innerHTML = ''; // Réinitialiser le contenu pour éviter les duplications
+      tournamentsBody.innerHTML = '';
 
       const tournaments = Array.isArray(data) ? data : [data];
 

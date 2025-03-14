@@ -8,18 +8,6 @@ from .models import (CustomUser, Player, PongMatch, PongSet, Tournament,
                      TournamentPlayer)
 
 
-# class TournamentSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Tournament
-#         fields = [
-#             "id",
-#             "tournament_name",
-#             "date",
-#             "number_of_games",
-#             "points_to_win",
-#             "is_finished",
-#         ]
-#
 class TournamentSerializer(serializers.ModelSerializer):
     players = serializers.SerializerMethodField()
     organizer = serializers.SerializerMethodField()

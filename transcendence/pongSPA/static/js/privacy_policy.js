@@ -387,10 +387,4 @@ export function loadPrivacyPolicyModal() {
 	modal.show();
   }
 
-// can be used in a footer or button click event with this code
-// import { showPrivacyPolicyModal } from "./privacy_policy.js";
 
-// document.getElementById("privacyPolicyLink").addEventListener("click", (e) => {
-// 	e.preventDefault();
-// 	showPrivacyPolicyModal();
-//   });

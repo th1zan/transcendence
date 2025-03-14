@@ -14,7 +14,6 @@ export async function displayWelcomePage() {
   const appTop = document.getElementById('app_top');
   appTop.innerHTML = '';
 
-  // Poser le squelette des cartes dans app_main
   const appMain = document.getElementById("app_main");
   appMain.innerHTML = `
     <div class="container py-5">
@@ -50,7 +49,6 @@ export async function displayWelcomePage() {
   const appBottom = document.getElementById("app_bottom");
   appBottom.innerHTML = `<!-- Footer de la page -->`;
 
-  // Remplir chaque carte avec son contenu
   fillWelcomeCard(username, avatarPicture);
   fillFriendRequestsCard();
   fillTournamentAuthCard();
@@ -58,7 +56,7 @@ export async function displayWelcomePage() {
   fillRankingCard();
 }
 
-// Fonction pour remplir la carte de bienvenue
+// remplir la carte de bienvenue
 function fillWelcomeCard(username, avatarPicture) {
   // Default avatar if none is provided
   const defaultAvatar = "/media/avatars/avatar1.png";
@@ -77,7 +75,7 @@ function fillWelcomeCard(username, avatarPicture) {
   `;
 }
 
-// Fonction pour remplir la carte des demandes d'amis
+//  remplir la carte des demandes d'amis
 function fillFriendRequestsCard() {
   const friendRequestsCardBody = document.getElementById("friendRequestsCardBody");
   friendRequestsCardBody.innerHTML = `
@@ -87,7 +85,7 @@ function fillFriendRequestsCard() {
   fetchPendingFriendRequests();
 }
 
-// Fonction pour remplir la carte des authentifications de tournoi
+// remplir la carte des authentifications de tournoi
 function fillTournamentAuthCard() {
   const tournamentAuthCardBody = document.getElementById("tournamentAuthCardBody");
   tournamentAuthCardBody.innerHTML = `
@@ -127,7 +125,7 @@ function fillQuickStatsCard(username) {
     });
 }
 
-// Fonction pour initialiser le graphique Quick Stats (donut)
+// initialiser le graphique Quick Stats (donut)
 function initializeQuickStatsChart(data, username) {
   const canvas = document.getElementById("quickStatsDonut");
   if (!canvas || !data || !Array.isArray(data)) {
@@ -167,7 +165,7 @@ function initializeQuickStatsChart(data, username) {
   });
 }
 
-// Fonction pour remplir la carte Ranking
+// remplir la carte Ranking
 function fillRankingCard() {
   const rankingCardBody = document.getElementById("rankingCardBody");
   rankingCardBody.innerHTML = `
@@ -197,7 +195,7 @@ function fillRankingCard() {
     });
 }
 
-// Fonction pour initialiser le graphique Ranking (barres)
+//initialiser le graphique Ranking
 function initializeRankingChart(data) {
   const canvas = document.getElementById("rankingBarWelcome");
   if (!canvas || !data || !Array.isArray(data)) {
@@ -228,7 +226,7 @@ function initializeRankingChart(data) {
   });
 }
 
-// Fonctions pour générer le HTML des cartes
+//  générer le HTML des cartes
 function displayQuickStats(data, playerName) {
   if (!Array.isArray(data) || data.length === 0 || data.filter(match => match.is_played === true).length === 0) {
     return `
@@ -335,7 +333,6 @@ function displayRankingCard(data) {
   `;
 }
 
-// Fonctions existantes (inchangées)
 export function fetchPendingFriendRequests() {
   fetch("/api/friends/requests/", {
     method: "GET",

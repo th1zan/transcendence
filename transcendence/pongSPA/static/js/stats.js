@@ -57,8 +57,8 @@ function showTab(tab) {
   const searchArea = document.getElementById('searchArea');
   const appMain = document.getElementById('app_main');
   const username = document.getElementById('globalSearch').value.trim() || localStorage.getItem('username') || '';
-  searchArea.innerHTML = ''; // Vider la zone de recherche secondaire
-  appMain.innerHTML = ''; // Vider le contenu principal
+  searchArea.innerHTML = ''; 
+  appMain.innerHTML = ''; 
 
   // Ajouter la classe "active" à l'onglet sélectionné
   document.querySelectorAll('#app_top button').forEach(btn => btn.classList.remove('active'));

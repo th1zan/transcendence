@@ -3,6 +3,7 @@ import random
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.management import call_command
 from django.db import models
@@ -10,30 +11,32 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.timezone import now
-from django.core.exceptions import ValidationError
+
 
 def validate_image_file_extension(value):
 
-    valid_extensions = ['jpg', 'jpeg', 'png']
+    valid_extensions = ["jpg", "jpeg", "png"]
     ext = os.path.splitext(value.name)[1][1:].lower()
     if ext not in valid_extensions:
-        raise ValidationError('Unsupported file extension. Please use JPEG or PNG.')
+        raise ValidationError("Unsupported file extension. Please use JPEG or PNG.")
+
 
 class CustomUser(AbstractUser):
     email = models.EmailField(max_length=255, blank=True, null=True, default=None)
     username = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=16, unique=True, blank=True, null=True, default=None)
-    friends = models.ManyToManyField("self", symmetrical=True, blank=True) # Friend list (Many-to-Many)
+    phone_number = models.CharField(
+        max_length=16, unique=True, blank=True, null=True, default=None
+    )
+    friends = models.ManyToManyField(
+        "self", symmetrical=True, blank=True
+    )  # Friend list (Many-to-Many)
     privacy_policy_accepted = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)
     last_seen = models.DateTimeField(blank=True, null=True)
     date_joined = models.DateTimeField(default=timezone.now, null=True, blank=True)
     avatar = models.ImageField(
-        upload_to="", 
-        blank=True, 
-        null=True, 
-        validators=[validate_image_file_extension]
+        upload_to="", blank=True, null=True, validators=[validate_image_file_extension]
     )
     is_2fa_enabled = models.BooleanField(default=False)
     otp_secret = models.CharField(max_length=6, blank=True, null=True)
@@ -78,20 +81,6 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-# class Player(models.Model):
-#     user = models.OneToOneField(
-#         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
-#     )
-#     player = models.CharField(max_length=20, unique=True)
-#
-#     def __str__(self):
-#         return self.user.username if self.user else self.player
-#
-#     @property
-#     def is_guest(self):
-#         return self.user is None
-
-
 class Player(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
@@ -128,14 +117,6 @@ class Tournament(models.Model):
 
     def __str__(self):
         return self.tournament_name
-
-
-# class TournamentPlayer(models.Model):
-#     player = models.ForeignKey(Player, on_delete=models.CASCADE)
-#     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-#
-#     def __str__(self):
-#         return f"{self.player} in {self.tournament}"
 
 
 class TournamentPlayer(models.Model):
@@ -208,59 +189,6 @@ class PongMatch(models.Model):
         ):
             return True
         return False
-
-
-# class PongMatch(models.Model):
-#     user1 = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.SET_NULL,
-#         related_name="initiated_matches",
-#         null=True,
-#         blank=True,
-#     )
-#     user2 = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.SET_NULL,
-#         related_name="opponent_matches",
-#         null=True,
-#         blank=True,
-#     )
-#     player1 = models.ForeignKey(
-#         Player, on_delete=models.CASCADE, related_name="matches_as_player1"
-#     )
-#     player2 = models.ForeignKey(
-#         Player, on_delete=models.CASCADE, related_name="matches_as_player2"
-#     )
-#     sets_to_win = models.IntegerField(default=1)
-#     points_per_set = models.IntegerField(default=3)
-#     player1_sets_won = models.IntegerField(default=0)
-#     player2_sets_won = models.IntegerField(default=0)
-#     winner = models.ForeignKey(
-#         Player,
-#         on_delete=models.CASCADE,
-#         null=True,  # Permet de ne pas avoir de gagnant pour les matchs en cours ou non terminés
-#         blank=True,  # Idem pour les formulaires et l'admin
-#     )
-#     date_played = models.DateTimeField(auto_now_add=True)
-#     is_tournament_match = models.BooleanField(default=False)
-#     tournament = models.ForeignKey(
-#         Tournament,
-#         on_delete=models.CASCADE,
-#         related_name="matches",
-#         null=True,
-#         blank=True,
-#     )
-#     is_played = models.BooleanField(default=False)
-#
-#     def is_match_played(self):
-#         return (
-#             self.player1_sets_won != 0
-#             or self.player2_sets_won != 0
-#             or self.winner is not None
-#         )
-#
-#     def __str__(self):
-#         return f"{self.player1} vs {self.player2} - Winner: {self.winner or 'Not decided yet'}"
 
 
 class PongSet(models.Model):

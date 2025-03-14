@@ -8,7 +8,7 @@ export function showModalConfirmation(message, title = "Confirmation") {
     const modalElement = document.getElementById('confirmationModal');
     if (!modalElement) {
       logger.error('Confirmation modal not found in DOM');
-      resolve(false); // Résout avec false en cas d’erreur
+      resolve(false); 
       return;
     }
 
@@ -24,7 +24,6 @@ export function showModalConfirmation(message, title = "Confirmation") {
       logger.error('Confirmation modal title element not found');
     }
 
-    // Mise à jour du message with sanitization
     const bodyElement = document.getElementById('confirmationModalBody');
     if (bodyElement) {
       bodyElement.textContent = sanitizeHTML(message);
@@ -32,41 +31,35 @@ export function showModalConfirmation(message, title = "Confirmation") {
       logger.error('Confirmation modal body element not found');
     }
 
-    // Gestion des boutons
     const yesButton = document.getElementById('confirmationModalYes');
     const noButton = document.getElementById('confirmationModalNo');
 
     if (yesButton && noButton) {
-      // Translate button labels
       yesButton.textContent = i18next.t('modal.yes');
       noButton.textContent = i18next.t('modal.no');
 
-      // Supprimer les anciens écouteurs pour éviter les doublons
       yesButton.removeEventListener('click', yesButton.handler);
       noButton.removeEventListener('click', noButton.handler);
 
-      // Ajouter les nouveaux écouteurs
       yesButton.addEventListener('click', function handler() {
         modal.hide();
-        resolve(true); // Résout avec true si "Yes" est cliqué
+        resolve(true);
       });
       yesButton.handler = yesButton.onclick;
 
       noButton.addEventListener('click', function handler() {
         modal.hide();
-        resolve(false); // Résout avec false si "No" est cliqué
+        resolve(false);
       });
       noButton.handler = noButton.onclick;
     } else {
       logger.error('Confirmation modal buttons not found');
     }
 
-    // Afficher la modale
     modal.show();
 
-    // Gérer la fermeture de la modale (par exemple, clic sur "Close" ou en dehors)
     modalElement.addEventListener('hidden.bs.modal', () => {
-      resolve(false); // Résout avec false si la modale est fermée autrement
+      resolve(false);
     }, { once: true });
   });
 }
@@ -127,11 +120,10 @@ export async function refreshToken() {
         localStorage.removeItem("username");
         throw error;
     } finally {
-        isRefreshing = false; // Libère le verrou
+        isRefreshing = false;
     }
 }
 
-// Ajuste l'intervalle pour qu'il soit plus espacé
 setInterval(async () => {
     try {
         await refreshToken();
@@ -174,12 +166,11 @@ export function toggle2FA() {
           i18next.t('auth.emailRequiredFor2FA'),
           i18next.t('modal.ok'),
           () => {
-            // Redirect to profile settings
             navigateTo("settings");
           }
         );
       } else if (data.otp_required) {
-        document.getElementById("otpSection").style.display = "block"; // Show OTP field
+        document.getElementById("otpSection").style.display = "block"; 
       } else {
         update2FAStatus();
       }
@@ -199,12 +190,11 @@ export function verifyOTP() {
     return;
   }
 
-  // This second call includes the OTP code in the body
   fetch("/api/auth/toggle-2fa/", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ otp_code: otpCode }), // << pass the OTP
+    body: JSON.stringify({ otp_code: otpCode }),
   })
     .then(response => response.json())
     .then(data => {
@@ -216,9 +206,8 @@ export function verifyOTP() {
           i18next.t('auth.twoFAEnabled'),
           i18next.t('modal.ok'),
           () => {
-            // Hide the OTP section again
             document.getElementById("otpSection").style.display = "none";
-            update2FAStatus(); // Refresh UI to show new status
+            update2FAStatus();
           }
         );
       } else if (data.error) {
@@ -279,7 +268,6 @@ export function verify2FALogin() {
           i18next.t('auth.twoFAVerified'),
           i18next.t('modal.ok'),
           () => {
-            // Set the username in localStorage
             localStorage.setItem("username", username);
             
             // Fetch user profile to get avatar URL after 2FA authentication
@@ -349,7 +337,7 @@ export function update2FAStatus() {
       }
 
       if (user.is_2fa_enabled) {
-        statusElement.textContent = i18next.t('auth.twoFAEnabledstatus'); // textContent instead of innerText
+        statusElement.textContent = i18next.t('auth.twoFAEnabledstatus');
         toggleButton.textContent = i18next.t('auth.disableTwoFA');
         toggleButton.classList.remove("btn-success");
         toggleButton.classList.add("btn-danger");
