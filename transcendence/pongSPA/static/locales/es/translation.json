@@ -213,7 +213,8 @@
         "setScore": "Puntuación del set",
         "exchanges": "Intercambios",
         "duration": "Duración (s)",
-        "noSets": "No hay sets registrados."
+        "noSets": "No hay sets registrados.",
+        "samePlayerError": "¡No puedes jugar contra ti mismo! Por favor, selecciona un oponente diferente."
     },
     "tournament": {
         "myTournaments": "Mis torneos",
